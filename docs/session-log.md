@@ -32,11 +32,11 @@ Verification:
 
 Commit:
 
-- pending
+- `fd83d34` - `Surface persisted session archive in web chat`
 
 Push:
 
-- pending
+- succeeded
 
 ## 2026-06-20
 

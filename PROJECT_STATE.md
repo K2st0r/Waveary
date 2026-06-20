@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `80b7360` - `Add browser chat session reset flow`
+- `fd83d34` - `Surface persisted session archive in web chat`
 
 ## Modules
 
