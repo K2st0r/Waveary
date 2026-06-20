@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `1e43c8a` - `Add official waveary-web homepage`
+- `3cbc4f3` - `Add web provider setup console`
 
 ## Modules
 
@@ -37,6 +37,7 @@ Brand line:
   - official homepage is implemented
   - product positioning, engine stack, provider compatibility, roadmap, and repository structure are presented in the first page
   - browser-native provider setup flow is implemented through local `/api/provider/*` routes
+  - first in-browser runtime chat shell is implemented through local `/api/chat/turn`
   - package boundary is documented for future provider setup and runtime UI work
 
 ## Provider Flow
@@ -56,7 +57,7 @@ Brand line:
   - owns the official web interface layer
   - ships a formal project homepage and a working provider setup console
   - can list provider presets, fetch models through the selected provider key, and save local config
-  - is the future entry point for runtime chat access
+  - can run a first browser chat flow and render memory, relationship, emotion, and timeline signals
 
 ## Verified Commands
 
@@ -65,6 +66,7 @@ Brand line:
 - `npm run demo`
 - `npm run build --workspace @waveary/web`
 - `npm run web:dev`
+- `npm run build --workspace @waveary/web`
 - `npm run demo:provider` shows required provider configuration guidance
 - `npm run setup:provider` is available for interactive provider selection and config saving
 - `python C:\Users\13571\.codex\skills\.system\skill-creator\scripts\quick_validate.py C:\Users\13571\.codex\skills\waveary-continuity-guard`
@@ -75,8 +77,8 @@ Brand line:
 
 ## Next Steps
 
-- add a first in-browser runtime/chat surface on top of `waveary-web`
-- reuse the saved provider config inside the browser chat flow
+- stabilize `waveary-web` local dev serving on the current Windows path setup
+- persist browser chat session state beyond in-memory process lifetime
 - add persistence interfaces beyond in-memory storage
 - add persistence tests once non-memory stores exist
 - keep updating `PROJECT_STATE.md` and `docs/session-log.md` after each verified work block

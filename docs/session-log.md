@@ -363,6 +363,43 @@ Verification:
 
 Commit:
 
+- `3cbc4f3` - `Add web provider setup console`
+
+Push:
+
+- succeeded
+
+## 2026-06-20
+
+Objective:
+
+Add the first in-browser Waveary chat shell on top of the saved provider configuration so the web app can send real messages and surface runtime signals.
+
+Summary:
+
+- added local `/api/chat/turn` support backed by `WavearyRuntime`
+- introduced a lightweight in-memory browser chat session state on the server side
+- extended `waveary-web` with a chat panel plus runtime insight cards for memory, relationship, emotion, and timeline
+- kept provider usage behind local API routes instead of calling the model provider directly from frontend code
+
+Files changed:
+
+- `waveary-web/server/chat-runtime.ts`
+- `waveary-web/server/provider-api.ts`
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `PROJECT_STATE.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check`
+- `npm run test`
+- `npm run build --workspace @waveary/web`
+
+Commit:
+
 - pending
 
 Push:

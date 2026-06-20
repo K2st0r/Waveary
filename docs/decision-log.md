@@ -217,3 +217,25 @@ Impact:
 - `waveary-web` owns a thin local API layer for presets, model discovery, and config persistence
 - provider keys and model listing remain behind server middleware instead of direct browser-only logic
 - future chat runtime endpoints should follow the same pattern
+
+## 2026-06-20 - First Browser Chat Path
+
+Status:
+
+- accepted
+
+Decision:
+
+Build the first browser chat surface on top of the saved provider configuration and expose it through a local `/api/chat/turn` endpoint that returns runtime signals alongside the reply.
+
+Reason:
+
+- the setup flow only becomes useful once it can drive a real conversation path
+- returning memory, relationship, emotion, and timeline output keeps Waveary framed as a framework, not a plain chat shell
+- the endpoint gives future UI work a stable contract while keeping runtime orchestration inside server-side code
+
+Impact:
+
+- `waveary-web` now includes a local chat endpoint backed by `WavearyRuntime`
+- the browser UI can show companion signals, not just assistant text
+- future persistence work can swap internal storage without rewriting the frontend contract
