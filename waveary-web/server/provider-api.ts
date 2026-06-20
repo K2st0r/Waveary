@@ -11,6 +11,7 @@ import {
   createChatSession,
   exportChatSession,
   getCurrentChatPersistenceStatus,
+  importChatSession,
   type ChatPersistenceSwitchResult,
   DEFAULT_CHAT_SESSION_ID,
   deleteChatSession,
@@ -55,6 +56,11 @@ interface UpdateChatPersistenceRequest {
   backend?: ChatPersistenceBackend;
 }
 
+interface ImportChatSessionRequest {
+  exported?: unknown;
+  title?: string;
+}
+
 type NextFunction = (error?: unknown) => void;
 
 export function createProviderApiMiddleware() {
@@ -97,6 +103,22 @@ export function createProviderApiMiddleware() {
         );
 
         sendJson(response, 200, { exported });
+        return;
+      }
+
+      if (request.method === "POST" && request.url === "/api/chat/session/import") {
+        const payload = (await readJsonBody(request)) as ImportChatSessionRequest;
+        const imported = importChatSession(
+          payload.exported as Parameters<typeof importChatSession>[0],
+          payload.title
+        );
+
+        sendJson(response, 200, {
+          imported,
+          sessions: listChatSessions(),
+          defaultSessionId: DEFAULT_CHAT_SESSION_ID,
+          persistence: getCurrentChatPersistenceStatus()
+        });
         return;
       }
 

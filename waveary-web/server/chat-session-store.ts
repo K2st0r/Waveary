@@ -79,6 +79,13 @@ export interface ExportedChatSession {
   snapshot: ChatSessionSnapshot;
 }
 
+export interface ImportChatSessionResult {
+  session: ChatSessionSnapshot;
+  exportedAt: string;
+  importedFromSessionId: string;
+  importedTitle: string;
+}
+
 interface PersistedChatSession extends PersistedSessionState {
   latestInsights: ChatReplyPayload | null;
   title?: string;
@@ -400,6 +407,84 @@ export function exportChatSession(sessionId: string): ExportedChatSession {
   });
 }
 
+export function importChatSession(
+  exported: ExportedChatSession,
+  titleOverride?: string
+): ImportChatSessionResult {
+  validateExportedChatSession(exported);
+
+  return withChatSessionRepository((repository) => {
+    const importedSessionId = resolveSessionId();
+    const importedTitle = (titleOverride?.trim() || exported.title.trim() || "Imported Session").slice(0, 120);
+    const snapshot = exported.snapshot;
+    const now = new Date().toISOString();
+
+    const importedState: PersistedChatSession = {
+      context: {
+        session: {
+          ...createInitialRuntimeContext(importedSessionId).session,
+          id: importedSessionId
+        },
+        user: createInitialRuntimeContext(importedSessionId).user,
+        persona: createInitialRuntimeContext(importedSessionId).persona,
+        history: snapshot.messages.map((message) => ({
+          ...message,
+          sessionId: importedSessionId
+        }))
+      },
+      memories: snapshot.memoryArchive.map((memory) => ({
+        id: memory.id,
+        userId: "user-web-1",
+        type: memory.type,
+        content: memory.content,
+        importance: memory.importance,
+        confidence: 0.8,
+        sourceMessageIds: [],
+        createdAt: memory.createdAt
+      })),
+      timeline: snapshot.timelineEvents.map((event) => ({
+        id: event.id,
+        userId: "user-web-1",
+        title: event.title,
+        description: event.description,
+        eventType: event.type,
+        eventTime: event.eventTime,
+        importance: event.importance,
+        linkedMemoryIds: []
+      })),
+      latestInsights: snapshot.latestInsights,
+      title: importedTitle,
+      updatedAt: now
+    };
+
+    if (snapshot.relationship) {
+      importedState.relationship = {
+        ...snapshot.relationship,
+        userId: "user-web-1"
+      };
+    }
+
+    repository.save(importedSessionId, importedState);
+
+    return {
+      session: {
+        sessionId: importedSessionId,
+        messages: importedState.context.history.filter(
+          (message) => message.role === "user" || message.role === "assistant"
+        ),
+        latestInsights: importedState.latestInsights,
+        memoryArchive: snapshot.memoryArchive,
+        relationship: snapshot.relationship,
+        timelineEvents: snapshot.timelineEvents,
+        updatedAt: importedState.updatedAt
+      },
+      exportedAt: exported.exportedAt,
+      importedFromSessionId: exported.sessionId,
+      importedTitle
+    };
+  });
+}
+
 export function getCurrentChatPersistenceStatus(): ChatPersistenceStatus {
   return buildChatPersistenceStatus(loadChatPersistenceConfig());
 }
@@ -576,6 +661,36 @@ function deriveSessionTitle(sessionId: string, session: PersistedChatSession): s
 
 function cloneContext(context: RuntimeContext): RuntimeContext {
   return JSON.parse(JSON.stringify(context)) as RuntimeContext;
+}
+
+function validateExportedChatSession(exported: ExportedChatSession): void {
+  if (!exported || typeof exported !== "object") {
+    throw new Error("A valid exported session package is required.");
+  }
+
+  if (!exported.sessionId?.trim()) {
+    throw new Error("Exported session package is missing sessionId.");
+  }
+
+  if (!exported.title?.trim()) {
+    throw new Error("Exported session package is missing title.");
+  }
+
+  if (!exported.snapshot || typeof exported.snapshot !== "object") {
+    throw new Error("Exported session package is missing snapshot data.");
+  }
+
+  if (!Array.isArray(exported.snapshot.messages)) {
+    throw new Error("Exported session snapshot is missing messages.");
+  }
+
+  if (!Array.isArray(exported.snapshot.memoryArchive)) {
+    throw new Error("Exported session snapshot is missing memory archive.");
+  }
+
+  if (!Array.isArray(exported.snapshot.timelineEvents)) {
+    throw new Error("Exported session snapshot is missing timeline events.");
+  }
 }
 
 class FileBackedSessionRepository

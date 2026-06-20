@@ -83,6 +83,13 @@ interface ExportedChatSession {
   snapshot: ChatSessionSnapshot;
 }
 
+interface ImportedChatSessionResult {
+  session: ChatSessionSnapshot;
+  exportedAt: string;
+  importedFromSessionId: string;
+  importedTitle: string;
+}
+
 interface ChatSessionListItem {
   sessionId: string;
   title: string;
@@ -222,6 +229,9 @@ export function App(): ReactElement {
   const [persistenceState, setPersistenceState] = useState<LoadState>("idle");
   const [sessionExportState, setSessionExportState] = useState<LoadState>("idle");
   const [sessionExportJson, setSessionExportJson] = useState("");
+  const [sessionImportState, setSessionImportState] = useState<LoadState>("idle");
+  const [sessionImportJson, setSessionImportJson] = useState("");
+  const [sessionImportTitle, setSessionImportTitle] = useState("");
 
   useEffect(() => {
     void loadInitialState();
@@ -590,6 +600,48 @@ export function App(): ReactElement {
     }
   }
 
+  async function handleImportSession(): Promise<void> {
+    if (!sessionImportJson.trim()) {
+      return;
+    }
+
+    setSessionImportState("loading");
+
+    try {
+      const exported = JSON.parse(sessionImportJson) as ExportedChatSession;
+      const response = await fetchJson<{
+        imported: ImportedChatSessionResult;
+        sessions: ChatSessionListItem[];
+        defaultSessionId: string;
+        persistence: ChatPersistenceStatus;
+      }>("/api/chat/session/import", {
+        method: "POST",
+        body: JSON.stringify({
+          exported,
+          title: sessionImportTitle.trim() || undefined
+        })
+      });
+
+      setChatSessions(response.sessions);
+      setDefaultSessionId(response.defaultSessionId);
+      setPersistenceStatus(response.persistence);
+      setSelectedPersistenceBackend(response.persistence.backend);
+      setActiveSessionId(response.imported.session.sessionId);
+      setSessionRenameTitle(response.imported.importedTitle);
+      setChatMessages(response.imported.session.messages);
+      setChatInsights(response.imported.session.latestInsights);
+      setChatRestoredAt(response.imported.session.updatedAt);
+      setSessionMemoryArchive(response.imported.session.memoryArchive);
+      setSessionRelationship(response.imported.session.relationship);
+      setSessionTimelineEvents(response.imported.session.timelineEvents);
+      setSessionImportState("success");
+      setStatusMessage(`Imported session as ${response.imported.importedTitle}.`);
+    } catch (error) {
+      setSessionImportState("error");
+      setStatusMessage(getErrorMessage(error));
+    }
+  }
+
   async function handleSendMessage(): Promise<void> {
     const trimmed = chatInput.trim();
     if (!trimmed) {
@@ -683,6 +735,7 @@ export function App(): ReactElement {
     selectedPersistenceBackend !== (persistenceStatus?.backend ?? selectedPersistenceBackend) &&
     persistenceState !== "loading";
   const canExportSession = Boolean(activeSessionId) && sessionExportState !== "loading";
+  const canImportSession = Boolean(sessionImportJson.trim()) && sessionImportState !== "loading";
   const alternateBackendStatus =
     persistenceStatus?.backendDetails.find((detail) => detail.backend !== persistenceStatus.backend) ?? null;
   const hasSessionArchive =
@@ -1104,6 +1157,38 @@ export function App(): ReactElement {
                       type="button"
                     >
                       Create Session
+                    </button>
+                  </div>
+                </div>
+
+                <div className="session-control-card">
+                  <div className="mini-heading">Import Session JSON</div>
+                  <label className="form-field">
+                    <span>Imported Session Title</span>
+                    <input
+                      type="text"
+                      value={sessionImportTitle}
+                      onChange={(event) => setSessionImportTitle(event.target.value)}
+                      placeholder="Recovered companion session..."
+                    />
+                  </label>
+                  <label className="form-field">
+                    <span>Exported JSON</span>
+                    <textarea
+                      className="session-import-textarea"
+                      value={sessionImportJson}
+                      onChange={(event) => setSessionImportJson(event.target.value)}
+                      placeholder='Paste an exported session package here...'
+                    />
+                  </label>
+                  <div className="console-actions">
+                    <button
+                      className="button button-secondary"
+                      onClick={() => void handleImportSession()}
+                      disabled={!canImportSession}
+                      type="button"
+                    >
+                      {sessionImportState === "loading" ? "Importing..." : "Import As New Session"}
                     </button>
                   </div>
                 </div>

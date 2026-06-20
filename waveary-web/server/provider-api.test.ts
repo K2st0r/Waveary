@@ -275,6 +275,78 @@ test("chat session export route returns a structured export package for the acti
   );
 });
 
+test("chat session import route restores an exported package as a new session", async () => {
+  const middleware = createProviderApiMiddleware();
+
+  const exported = {
+    exportedAt: "2026-06-20T00:00:00.000Z",
+    sessionId: "session-original",
+    title: "Imported Reflection Session",
+    snapshot: {
+      sessionId: "session-original",
+      messages: [
+        {
+          id: "user-1",
+          role: "user",
+          content: "I want to preserve this imported reflection.",
+          sessionId: "session-original"
+        },
+        {
+          id: "assistant-1",
+          role: "assistant",
+          content: "This session is now ready to be imported.",
+          sessionId: "session-original"
+        }
+      ],
+      latestInsights: null,
+      memoryArchive: [
+        {
+          id: "memory-1",
+          type: "reflection",
+          content: "I want to preserve this imported reflection.",
+          importance: 0.7,
+          createdAt: "2026-06-20T00:00:00.000Z"
+        }
+      ],
+      relationship: {
+        stage: "growing",
+        affinityScore: 0.55,
+        trustScore: 0.51,
+        stabilityScore: 0.62,
+        lastUpdatedAt: "2026-06-20T00:00:00.000Z"
+      },
+      timelineEvents: [
+        {
+          id: "timeline-1",
+          title: "Imported reflection",
+          description: "I want to preserve this imported reflection.",
+          type: "reflection",
+          eventTime: "2026-06-20T00:00:00.000Z",
+          importance: 0.7
+        }
+      ],
+      updatedAt: "2026-06-20T00:00:00.000Z"
+    }
+  };
+
+  const response = await invokeJsonRoute(middleware, "POST", "/api/chat/session/import", {
+    exported,
+    title: "Recovered Session"
+  });
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.imported.importedFromSessionId, "session-original");
+  assert.equal(response.body.imported.importedTitle, "Recovered Session");
+  assert.notEqual(response.body.imported.session.sessionId, "session-original");
+  assert.equal(response.body.imported.session.messages.length, 2);
+  assert.equal(response.body.imported.session.memoryArchive.length, 1);
+  assert.equal(response.body.imported.session.timelineEvents.length, 1);
+  assert.equal(
+    response.body.sessions.some((session: { title: string }) => session.title === "Recovered Session"),
+    true
+  );
+});
+
 test("chat session rename route updates non-default sessions and keeps persistence payload", async () => {
   createChatSession(DEFAULT_CHAT_SESSION_ID);
   createChatSession("session-rename", "Before Rename");
