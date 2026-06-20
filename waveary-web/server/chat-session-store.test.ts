@@ -10,12 +10,13 @@ process.env.WAVEARY_DATA_DIR = TEST_DATA_DIR;
 const {
   DEFAULT_CHAT_SESSION_ID,
   createChatSession,
+  getCurrentChatPersistenceStatus,
   listChatSessions,
   PersistentChatSessionState,
-  getCurrentChatPersistenceStatus,
   switchChatPersistenceBackend
 } = await import("./chat-session-store.js");
 const {
+  createDefaultChatPersistenceConfig,
   CHAT_SESSION_JSON_PATH,
   CHAT_SESSION_SQLITE_PATH,
   saveChatPersistenceConfig
@@ -23,7 +24,7 @@ const {
 
 after(() => {
   try {
-    saveChatPersistenceConfig({ backend: "file" });
+    saveChatPersistenceConfig(createDefaultChatPersistenceConfig());
     rmSync(TEST_DATA_DIR, { recursive: true, force: true });
   } catch {
     // Ignore Windows file-lock timing during final test cleanup.
@@ -32,7 +33,7 @@ after(() => {
 
 beforeEach(() => {
   rmSync(TEST_DATA_DIR, { recursive: true, force: true });
-  saveChatPersistenceConfig({ backend: "file" });
+  saveChatPersistenceConfig(createDefaultChatPersistenceConfig());
 });
 
 test("chat persistence switching imports file sessions into sqlite and preserves the default session", () => {
@@ -47,8 +48,19 @@ test("chat persistence switching imports file sessions into sqlite and preserves
 
   assert.equal(switched.persistence.backend, "sqlite");
   assert.equal(switched.importedSessionCount, 2);
+  assert.equal(switched.persistence.lastSync.fromBackend, "file");
+  assert.equal(switched.persistence.lastSync.toBackend, "sqlite");
+  assert.equal(switched.persistence.lastSync.synchronizedSessionCount, 2);
   assert.equal(existsSync(CHAT_SESSION_JSON_PATH), true);
   assert.equal(existsSync(CHAT_SESSION_SQLITE_PATH), true);
+  assert.equal(
+    switched.persistence.backendDetails.find((detail) => detail.backend === "sqlite")?.syncState,
+    "active"
+  );
+  assert.equal(
+    switched.persistence.backendDetails.find((detail) => detail.backend === "file")?.syncState,
+    "in-sync"
+  );
 
   const sessions = listChatSessions();
   assert.deepEqual(
@@ -98,10 +110,17 @@ test("chat persistence switching syncs newer session state back from sqlite to f
 
   assert.equal(switchedBack.persistence.backend, "file");
   assert.equal(switchedBack.importedSessionCount, 1);
+  assert.equal(switchedBack.persistence.lastSync.fromBackend, "sqlite");
+  assert.equal(switchedBack.persistence.lastSync.toBackend, "file");
+  assert.equal(switchedBack.persistence.lastSync.synchronizedSessionCount, 1);
 
   const restored = new PersistentChatSessionState("session-sync").getSnapshot();
   assert.ok(restored);
   assert.equal(restored.messages.length, 1);
   assert.equal(restored.messages[0]?.content, "sync this newer sqlite state");
   assert.equal(getCurrentChatPersistenceStatus().backend, "file");
+  assert.equal(
+    getCurrentChatPersistenceStatus().backendDetails.find((detail) => detail.backend === "sqlite")?.syncState,
+    "in-sync"
+  );
 });
