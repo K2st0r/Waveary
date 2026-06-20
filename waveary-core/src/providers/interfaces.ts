@@ -19,6 +19,17 @@ export interface ChatProvider {
   generateReply(request: ChatProviderRequest): Promise<string>;
 }
 
+export interface ModelDescriptor {
+  id: string;
+  provider: string;
+  label?: string;
+  contextWindow?: number;
+}
+
+export interface ModelDiscoveryProvider {
+  listModels(): Promise<ModelDescriptor[]>;
+}
+
 export interface EmotionAnalyzer {
   analyze(message: Message): Promise<EmotionState | undefined>;
 }

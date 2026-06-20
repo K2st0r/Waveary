@@ -58,8 +58,34 @@ waveary-core/
 - 基础内存实现适配
 - 最小可运行 demo
 - 基础 runtime tests
+- OpenAI-compatible multi-provider integration
 
 这版代码的目标不是直接产品化，而是先把长期陪伴框架的最小程序结构钉住。
+
+## AI Integration
+
+`waveary-core` now includes `OpenAICompatibleChatProvider`.
+
+Use these environment variables:
+
+- `WAVEARY_PROVIDER`
+- `WAVEARY_API_KEY`
+- `WAVEARY_BASE_URL`
+- `WAVEARY_MODEL`
+
+Built-in provider presets currently include:
+
+- `openai`
+- `deepseek`
+- `dashscope`
+- `volcengine-ark`
+- `siliconflow`
+
+Root demo command:
+
+```text
+npm run demo:provider
+```
 
 ## Design Rule
 
