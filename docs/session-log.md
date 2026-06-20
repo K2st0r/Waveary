@@ -320,7 +320,7 @@ Verification:
 
 Commit:
 
-- pending
+- `1e43c8a` - `Add official waveary-web homepage`
 
 Push:
 

@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `7f76d2e` - `Add interactive provider setup flow`
+- `1e43c8a` - `Add official waveary-web homepage`
 
 ## Modules
 
