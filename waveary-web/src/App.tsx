@@ -41,6 +41,13 @@ interface ChatTurnResponse {
   }>;
 }
 
+interface ChatSessionSnapshot {
+  sessionId: string;
+  messages: ChatMessage[];
+  latestInsights: ChatTurnResponse | null;
+  updatedAt: string;
+}
+
 interface ChatMessage {
   id: string;
   role: "user" | "assistant";
@@ -132,6 +139,7 @@ export function App(): ReactElement {
   const [chatState, setChatState] = useState<LoadState>("idle");
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatInsights, setChatInsights] = useState<ChatTurnResponse | null>(null);
+  const [chatRestoredAt, setChatRestoredAt] = useState<string | null>(null);
 
   useEffect(() => {
     void loadInitialState();
@@ -160,6 +168,7 @@ export function App(): ReactElement {
         setSelectedModel(nextConfig.model);
         setModels([{ id: nextConfig.model, provider: nextConfig.provider }]);
         setStatusMessage("Loaded saved provider configuration from .waveary/provider-config.json.");
+        await loadChatSession();
       } else if (fallbackPreset) {
         setSelectedProvider(fallbackPreset.id);
         setBaseURL(fallbackPreset.baseURL);
@@ -171,6 +180,27 @@ export function App(): ReactElement {
       setLoadState("success");
     } catch (error) {
       setLoadState("error");
+      setStatusMessage(getErrorMessage(error));
+    }
+  }
+
+  async function loadChatSession(): Promise<void> {
+    try {
+      const response = await fetchJson<{ session: ChatSessionSnapshot | null }>("/api/chat/session", {
+        method: "POST",
+        body: JSON.stringify({
+          sessionId: CHAT_SESSION_ID
+        })
+      });
+
+      if (!response.session) {
+        return;
+      }
+
+      setChatMessages(response.session.messages);
+      setChatInsights(response.session.latestInsights);
+      setChatRestoredAt(response.session.updatedAt);
+    } catch (error) {
       setStatusMessage(getErrorMessage(error));
     }
   }
@@ -234,6 +264,7 @@ export function App(): ReactElement {
       setSavedConfig(response.config);
       setSaveState("success");
       setStatusMessage("Provider configuration saved locally. Waveary is ready to use this model.");
+      await loadChatSession();
     } catch (error) {
       setSaveState("error");
       setStatusMessage(getErrorMessage(error));
@@ -563,6 +594,12 @@ export function App(): ReactElement {
                 <span>Conversation</span>
                 <span className="panel-tag">{chatReady ? "Runtime Ready" : "Setup Required"}</span>
               </div>
+
+              {chatRestoredAt ? (
+                <div className="status-banner status-banner-info">
+                  Restored local session history from {new Date(chatRestoredAt).toLocaleString()}.
+                </div>
+              ) : null}
 
               <div className="chat-log">
                 {chatMessages.length === 0 ? (

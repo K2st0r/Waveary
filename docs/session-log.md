@@ -73,6 +73,46 @@ Push:
 
 Objective:
 
+Persist the browser chat session beyond process memory so the first Waveary web conversation survives a local dev server restart.
+
+Summary:
+
+- added a file-backed chat session store in `waveary-web/server` using `.waveary/chat-sessions.json`
+- persisted runtime context history, memories, relationship state, timeline state, and latest runtime insights per session
+- added local `/api/chat/session` recovery support so the frontend can restore messages and the latest signals
+- updated the browser chat UI to reload persisted history automatically when a saved provider configuration is present
+- verified that a message survives a full `waveary-web` dev server restart and can be restored through the local API
+
+Files changed:
+
+- `waveary-web/server/chat-session-store.ts`
+- `waveary-web/server/chat-runtime.ts`
+- `waveary-web/server/provider-api.ts`
+- `waveary-web/src/App.tsx`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check`
+- `npm run web:build`
+- `Invoke-WebRequest http://127.0.0.1:4173/api/chat/session`
+- `Invoke-WebRequest http://127.0.0.1:4173/api/chat/turn`
+- restart `npm run web:dev`
+- `Invoke-WebRequest http://127.0.0.1:4173/api/chat/session`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-20
+
+Objective:
+
 Strengthen the continuity system by recording major decisions, not just task progress.
 
 Summary:
