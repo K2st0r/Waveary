@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `8e1c0b5` - `Harden provider model discovery normalization`
+- `c6262f4` - `Add DeepSeek provider request compatibility`
 
 ## Modules
 
