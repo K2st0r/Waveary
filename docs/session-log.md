@@ -31,11 +31,11 @@ Verification:
 
 Commit:
 
-- pending
+- `988bf49` - `Add web chat session export flow`
 
 Push:
 
-- pending
+- succeeded
 
 ## 2026-06-20
 

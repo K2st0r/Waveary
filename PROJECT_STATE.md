@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `fd83d34` - `Surface persisted session archive in web chat`
+- `988bf49` - `Add web chat session export flow`
 
 ## Modules
 
