@@ -3,6 +3,11 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import { OpenAICompatibleChatProvider, PROVIDER_PRESETS } from "@waveary/core";
 
 import { loadChatSessionSnapshot, sendChatTurn } from "./chat-runtime.js";
+import {
+  createChatSession,
+  DEFAULT_CHAT_SESSION_ID,
+  listChatSessions
+} from "./chat-session-store.js";
 import { loadSavedProviderConfig, saveProviderConfig } from "./provider-config.js";
 
 interface ProviderModelsRequest {
@@ -22,6 +27,11 @@ interface ChatTurnRequest {
 
 interface ChatSessionRequest {
   sessionId?: string;
+}
+
+interface CreateChatSessionRequest {
+  sessionId?: string;
+  title?: string;
 }
 
 type NextFunction = (error?: unknown) => void;
@@ -52,10 +62,30 @@ export function createProviderApiMiddleware() {
       if (request.method === "POST" && request.url === "/api/chat/session") {
         const payload = (await readJsonBody(request)) as ChatSessionRequest;
         const session = loadChatSessionSnapshot(
-          requireNonEmpty(payload.sessionId, "Session ID is required.")
+          payload.sessionId?.trim() || DEFAULT_CHAT_SESSION_ID
         );
 
         sendJson(response, 200, { session: session ?? null });
+        return;
+      }
+
+      if (request.method === "GET" && request.url === "/api/chat/sessions") {
+        sendJson(response, 200, {
+          sessions: listChatSessions(),
+          defaultSessionId: DEFAULT_CHAT_SESSION_ID
+        });
+        return;
+      }
+
+      if (request.method === "POST" && request.url === "/api/chat/sessions") {
+        const payload = (await readJsonBody(request)) as CreateChatSessionRequest;
+        const session = createChatSession(payload.sessionId, payload.title);
+
+        sendJson(response, 200, {
+          session,
+          sessions: listChatSessions(),
+          defaultSessionId: DEFAULT_CHAT_SESSION_ID
+        });
         return;
       }
 

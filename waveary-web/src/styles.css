@@ -559,6 +559,11 @@ a {
   gap: 1rem;
 }
 
+.session-panel {
+  margin-bottom: 1rem;
+  padding: 1.25rem;
+}
+
 .chat-panel,
 .insight-panel {
   padding: 1.25rem;

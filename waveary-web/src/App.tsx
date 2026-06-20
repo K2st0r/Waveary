@@ -48,6 +48,13 @@ interface ChatSessionSnapshot {
   updatedAt: string;
 }
 
+interface ChatSessionListItem {
+  sessionId: string;
+  title: string;
+  updatedAt: string;
+  messageCount: number;
+}
+
 interface ChatMessage {
   id: string;
   role: "user" | "assistant";
@@ -120,8 +127,6 @@ const setupSteps = [
 
 type LoadState = "idle" | "loading" | "success" | "error";
 
-const CHAT_SESSION_ID = "waveary-web-session-1";
-
 export function App(): ReactElement {
   const [presets, setPresets] = useState<ProviderPreset[]>([]);
   const [savedConfig, setSavedConfig] = useState<SavedProviderConfig | null>(null);
@@ -140,6 +145,10 @@ export function App(): ReactElement {
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatInsights, setChatInsights] = useState<ChatTurnResponse | null>(null);
   const [chatRestoredAt, setChatRestoredAt] = useState<string | null>(null);
+  const [chatSessions, setChatSessions] = useState<ChatSessionListItem[]>([]);
+  const [activeSessionId, setActiveSessionId] = useState("");
+  const [defaultSessionId, setDefaultSessionId] = useState("");
+  const [newSessionTitle, setNewSessionTitle] = useState("");
 
   useEffect(() => {
     void loadInitialState();
@@ -149,17 +158,24 @@ export function App(): ReactElement {
     setLoadState("loading");
 
     try {
-      const [presetResponse, configResponse] = await Promise.all([
+      const [presetResponse, configResponse, sessionsResponse] = await Promise.all([
         fetchJson<{ presets: ProviderPreset[] }>("/api/provider/presets"),
-        fetchJson<{ config?: SavedProviderConfig }>("/api/provider/config")
+        fetchJson<{ config?: SavedProviderConfig }>("/api/provider/config"),
+        fetchJson<{ sessions: ChatSessionListItem[]; defaultSessionId: string }>("/api/chat/sessions")
       ]);
 
       const nextPresets = presetResponse.presets;
       const nextConfig = configResponse.config ?? null;
       const fallbackPreset = nextPresets[0];
+      const nextSessions = sessionsResponse.sessions;
+      const nextDefaultSessionId = sessionsResponse.defaultSessionId;
+      const nextActiveSessionId = nextSessions[0]?.sessionId ?? nextDefaultSessionId;
 
       setPresets(nextPresets);
       setSavedConfig(nextConfig);
+      setChatSessions(nextSessions);
+      setDefaultSessionId(nextDefaultSessionId);
+      setActiveSessionId(nextActiveSessionId);
 
       if (nextConfig) {
         setSelectedProvider(nextConfig.provider);
@@ -168,7 +184,7 @@ export function App(): ReactElement {
         setSelectedModel(nextConfig.model);
         setModels([{ id: nextConfig.model, provider: nextConfig.provider }]);
         setStatusMessage("Loaded saved provider configuration from .waveary/provider-config.json.");
-        await loadChatSession();
+        await loadChatSession(nextActiveSessionId);
       } else if (fallbackPreset) {
         setSelectedProvider(fallbackPreset.id);
         setBaseURL(fallbackPreset.baseURL);
@@ -184,16 +200,19 @@ export function App(): ReactElement {
     }
   }
 
-  async function loadChatSession(): Promise<void> {
+  async function loadChatSession(sessionId: string): Promise<void> {
     try {
       const response = await fetchJson<{ session: ChatSessionSnapshot | null }>("/api/chat/session", {
         method: "POST",
         body: JSON.stringify({
-          sessionId: CHAT_SESSION_ID
+          sessionId
         })
       });
 
       if (!response.session) {
+        setChatMessages([]);
+        setChatInsights(null);
+        setChatRestoredAt(null);
         return;
       }
 
@@ -264,9 +283,42 @@ export function App(): ReactElement {
       setSavedConfig(response.config);
       setSaveState("success");
       setStatusMessage("Provider configuration saved locally. Waveary is ready to use this model.");
-      await loadChatSession();
+      await loadChatSession(activeSessionId || defaultSessionId);
     } catch (error) {
       setSaveState("error");
+      setStatusMessage(getErrorMessage(error));
+    }
+  }
+
+  async function handleSessionChange(event: ChangeEvent<HTMLSelectElement>): Promise<void> {
+    const nextSessionId = event.target.value;
+
+    setActiveSessionId(nextSessionId);
+    await loadChatSession(nextSessionId);
+  }
+
+  async function handleCreateSession(): Promise<void> {
+    try {
+      const response = await fetchJson<{
+        session: ChatSessionSnapshot;
+        sessions: ChatSessionListItem[];
+        defaultSessionId: string;
+      }>("/api/chat/sessions", {
+        method: "POST",
+        body: JSON.stringify({
+          title: newSessionTitle.trim() || undefined
+        })
+      });
+
+      setChatSessions(response.sessions);
+      setDefaultSessionId(response.defaultSessionId);
+      setActiveSessionId(response.session.sessionId);
+      setChatMessages(response.session.messages);
+      setChatInsights(response.session.latestInsights);
+      setChatRestoredAt(response.session.updatedAt);
+      setNewSessionTitle("");
+      setStatusMessage("Created a new local chat session.");
+    } catch (error) {
       setStatusMessage(getErrorMessage(error));
     }
   }
@@ -291,7 +343,7 @@ export function App(): ReactElement {
       const response = await fetchJson<ChatTurnResponse>("/api/chat/turn", {
         method: "POST",
         body: JSON.stringify({
-          sessionId: CHAT_SESSION_ID,
+          sessionId: activeSessionId || defaultSessionId,
           message: trimmed
         })
       });
@@ -304,6 +356,18 @@ export function App(): ReactElement {
 
       setChatMessages((current) => [...current, assistantMessage]);
       setChatInsights(response);
+      setChatRestoredAt(new Date().toISOString());
+      setChatSessions((current) =>
+        current.map((session) =>
+          session.sessionId === (activeSessionId || defaultSessionId)
+            ? {
+                ...session,
+                updatedAt: new Date().toISOString(),
+                messageCount: session.messageCount + 2
+              }
+            : session
+        )
+      );
       setChatState("success");
     } catch (error) {
       setChatMessages((current) => [
@@ -586,6 +650,42 @@ export function App(): ReactElement {
               This reference shell already returns a real reply plus memory recall, relationship change, and timeline output
               from the underlying runtime.
             </p>
+          </div>
+
+          <div className="panel session-panel">
+            <div className="panel-header">
+              <span>Session Layer</span>
+              <span className="panel-tag">Main + Optional Sessions</span>
+            </div>
+            <div className="provider-form-grid">
+              <label className="form-field">
+                <span>Active Session</span>
+                <select value={activeSessionId} onChange={(event) => void handleSessionChange(event)} disabled={!chatReady}>
+                  {chatSessions.map((session) => (
+                    <option key={session.sessionId} value={session.sessionId}>
+                      {session.title}
+                      {session.sessionId === defaultSessionId ? " (Main)" : ""}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="form-field form-field-wide">
+                <span>New Session Title</span>
+                <input
+                  type="text"
+                  value={newSessionTitle}
+                  onChange={(event) => setNewSessionTitle(event.target.value)}
+                  placeholder="Late night reflection, product brainstorm, memory test..."
+                  disabled={!chatReady}
+                />
+              </label>
+            </div>
+            <div className="console-actions">
+              <button className="button button-secondary" onClick={() => void handleCreateSession()} disabled={!chatReady}>
+                Create Session
+              </button>
+            </div>
           </div>
 
           <div className="chat-layout">

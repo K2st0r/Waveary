@@ -36,6 +36,13 @@ export interface ChatSessionSnapshot {
   updatedAt: string;
 }
 
+export interface ChatSessionListItem {
+  sessionId: string;
+  title: string;
+  updatedAt: string;
+  messageCount: number;
+}
+
 interface PersistedChatSession {
   context: RuntimeContext;
   memories: MemoryItem[];
@@ -43,11 +50,13 @@ interface PersistedChatSession {
   timeline: TimelineEvent[];
   latestInsights: ChatReplyPayload | null;
   updatedAt: string;
+  title?: string;
 }
 
 type PersistedChatSessions = Record<string, PersistedChatSession>;
 
 const SESSION_STORE_PATH = fileURLToPath(new URL("../../.waveary/chat-sessions.json", import.meta.url));
+export const DEFAULT_CHAT_SESSION_ID = "waveary-main";
 
 export class PersistentChatSessionState {
   private readonly memoryStore: MemoryStore;
@@ -101,6 +110,20 @@ export class PersistentChatSessionState {
     };
   }
 
+  setTitle(title: string): void {
+    const normalized = title.trim();
+
+    if (!normalized) {
+      return;
+    }
+
+    updateSession(this.sessionId, (current) => ({
+      ...current,
+      title: normalized,
+      updatedAt: new Date().toISOString()
+    }));
+  }
+
   private readOrCreate(): PersistedChatSession {
     return ensureSession(this.sessionId);
   }
@@ -108,6 +131,44 @@ export class PersistentChatSessionState {
 
 function loadPersistedChatSession(sessionId: string): PersistedChatSession | undefined {
   return readAllSessions()[sessionId];
+}
+
+export function listChatSessions(): ChatSessionListItem[] {
+  ensureSession(DEFAULT_CHAT_SESSION_ID);
+  const sessions = readAllSessions();
+
+  return Object.entries(sessions)
+    .map(([sessionId, session]) => ({
+      sessionId,
+      title: session.title ?? deriveSessionTitle(sessionId, session),
+      updatedAt: session.updatedAt,
+      messageCount: session.context.history.filter(
+        (message) => message.role === "user" || message.role === "assistant"
+      ).length
+    }))
+    .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt));
+}
+
+export function createChatSession(sessionId?: string, title?: string): ChatSessionSnapshot {
+  const resolvedSessionId = resolveSessionId(sessionId);
+  const session = ensureSession(resolvedSessionId);
+
+  if (title?.trim()) {
+    updateSession(resolvedSessionId, (current) => ({
+      ...current,
+      title: title.trim(),
+      updatedAt: new Date().toISOString()
+    }));
+  }
+
+  return {
+    sessionId: resolvedSessionId,
+    messages: session.context.history.filter(
+      (message) => message.role === "user" || message.role === "assistant"
+    ),
+    latestInsights: session.latestInsights,
+    updatedAt: session.updatedAt
+  };
 }
 
 function ensureSession(sessionId: string): PersistedChatSession {
@@ -121,7 +182,8 @@ function ensureSession(sessionId: string): PersistedChatSession {
     memories: [],
     timeline: [],
     latestInsights: null,
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
+    title: sessionId === DEFAULT_CHAT_SESSION_ID ? "Main Companion Session" : undefined
   };
 
   updateSession(sessionId, () => created);
@@ -140,7 +202,8 @@ function updateSession(
       memories: [],
       timeline: [],
       latestInsights: null,
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
+      title: sessionId === DEFAULT_CHAT_SESSION_ID ? "Main Companion Session" : undefined
     } satisfies PersistedChatSession);
   const next = updater(current);
 
@@ -187,6 +250,30 @@ function createInitialRuntimeContext(sessionId: string): RuntimeContext {
     },
     history: []
   };
+}
+
+function resolveSessionId(sessionId?: string): string {
+  const trimmed = sessionId?.trim();
+
+  if (trimmed) {
+    return trimmed;
+  }
+
+  return `session-${Date.now()}`;
+}
+
+function deriveSessionTitle(sessionId: string, session: PersistedChatSession): string {
+  const firstUserMessage = session.context.history.find((message) => message.role === "user");
+
+  if (firstUserMessage?.content.trim()) {
+    return firstUserMessage.content.trim().slice(0, 36);
+  }
+
+  if (sessionId === DEFAULT_CHAT_SESSION_ID) {
+    return "Main Companion Session";
+  }
+
+  return sessionId;
 }
 
 function cloneContext(context: RuntimeContext): RuntimeContext {
