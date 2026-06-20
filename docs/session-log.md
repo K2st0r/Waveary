@@ -4,6 +4,43 @@
 
 Objective:
 
+Add safe in-browser session import so a Waveary export package can be restored as a new local companion session without overwriting existing state.
+
+Summary:
+
+- added a guarded `importChatSession` flow in the web session layer that validates exported session packages and always restores them into a brand-new local session
+- preserved the existing architecture boundary by mapping imported conversation, memory, relationship, and timeline data back into the current web persistence format instead of changing `waveary-core`
+- exposed the import capability through a new `/api/chat/session/import` route and added route-level regression coverage for importing a structured export package
+- updated the browser session controls with a JSON paste import panel and automatic switch into the newly imported session after successful restore
+- kept the scope product-first and low-risk by explicitly not supporting overwrite or merge semantics in this first import version
+
+Files changed:
+
+- `waveary-web/server/chat-session-store.ts`
+- `waveary-web/server/provider-api.ts`
+- `waveary-web/server/provider-api.test.ts`
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run test --workspace @waveary/web`
+- `npm run check --workspace @waveary/web`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-20
+
+Objective:
+
 Add structured single-session export so persisted Waveary companion state can be carried out of the current browser session as a coherent JSON package.
 
 Summary:
