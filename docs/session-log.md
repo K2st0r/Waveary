@@ -4,6 +4,42 @@
 
 Objective:
 
+Verify that the browser-facing persistence migration flow also works in the reverse `sqlite -> file` direction and record the result in the continuity files.
+
+Summary:
+
+- confirmed through the running local dev server that `GET /api/chat/sessions` initially showed `sqlite` as active and `file` as `behind`
+- performed a live `POST /api/chat/persistence` switch from `sqlite` to `file` and verified that `lastSync.fromBackend`, `lastSync.toBackend`, and synchronized session counts reflected the reverse migration correctly
+- reloaded `waveary-main` immediately after the switch and confirmed that the restored file-backed session still contained the full prior message history
+- sent a real `POST /api/chat/turn` after the reverse switch and confirmed the new user/assistant pair persisted under the file backend
+- confirmed with follow-up `GET /api/chat/sessions` and `POST /api/chat/session` that `file` stayed active, `sqlite` became `behind`, and the new persisted turn was recoverable through the browser-facing API
+
+Files changed:
+
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run web:dev`
+- `Invoke-WebRequest http://127.0.0.1:4173/`
+- `Invoke-WebRequest http://127.0.0.1:4173/api/chat/sessions`
+- `Invoke-WebRequest http://127.0.0.1:4173/api/chat/persistence` with `{"backend":"file"}`
+- `Invoke-WebRequest http://127.0.0.1:4173/api/chat/session` with `{"sessionId":"waveary-main"}`
+- `Invoke-WebRequest http://127.0.0.1:4173/api/chat/turn` with `{"sessionId":"waveary-main","message":"Please reply with one short sentence confirming the file backend is now active after the live reverse switch."}`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-20
+
+Objective:
+
 Complete route-level regression coverage for the remaining `waveary-web` session APIs and fix runtime-side sqlite handle cleanup so repeated local verification stays stable on Windows.
 
 Summary:
@@ -31,11 +67,11 @@ Verification:
 
 Commit:
 
-- pending
+- `6e249db` - `Add session API regression tests`
 
 Push:
 
-- pending
+- succeeded
 
 ## 2026-06-20
 
@@ -67,11 +103,11 @@ Verification:
 
 Commit:
 
-- pending
+- `0442c6b` - `Record live persistence API verification`
 
 Push:
 
-- pending
+- succeeded
 
 ## 2026-06-20
 
@@ -101,11 +137,11 @@ Verification:
 
 Commit:
 
-- pending
+- `52f659f` - `Add chat persistence API regression tests`
 
 Push:
 
-- pending
+- succeeded
 
 ## 2026-06-20
 

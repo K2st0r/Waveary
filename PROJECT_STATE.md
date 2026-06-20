@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `0442c6b` - `Record live persistence API verification`
+- `6e249db` - `Add session API regression tests`
 
 ## Modules
 
@@ -45,6 +45,7 @@ Brand line:
   - Node-based regression tests now cover local persistence backend switching and cross-backend state synchronization
   - Node-based route tests now cover `/api/chat/persistence` response shape and runtime cache reset behavior
   - Node-based route tests now cover session listing, session loading, rename, delete, and default-session protection behavior
+  - runtime-side SQLite session repositories are now closed during backend resets and snapshot-only loads so repeated Windows verification does not leak file handles
   - session persistence UI now surfaces backend-by-backend sync state, last migration metadata, differing session counts, and latest write timestamps
   - main-session default plus optional additional chat sessions are implemented in the web layer
   - non-default sessions can now be renamed and deleted through the web session layer
@@ -91,6 +92,7 @@ Brand line:
 - `Invoke-WebRequest http://127.0.0.1:4173/api/chat/sessions/delete`
 - `Invoke-WebRequest http://127.0.0.1:4173/api/chat/persistence`
 - `Invoke-WebRequest http://127.0.0.1:4173/api/chat/persistence` live switch verified with `file -> sqlite`
+- `Invoke-WebRequest http://127.0.0.1:4173/api/chat/persistence` live switch verified with `sqlite -> file`
 - `Invoke-WebRequest http://127.0.0.1:4173/`
 - `Invoke-WebRequest http://127.0.0.1:4173/api/provider/presets`
 - `Invoke-WebRequest http://127.0.0.1:4173/api/chat/turn`
@@ -103,7 +105,7 @@ Brand line:
 ## Next Steps
 
 - expand provider-specific request normalization where "OpenAI-compatible" vendors diverge further
-- add a focused local verification pass for `sqlite -> file` live switch symmetry through the browser-facing API
+- add focused route-level and browser-facing coverage for any remaining persistence edge cases beyond the current file/sqlite symmetry path
 - consider hardening workspace build scripts further against transient Windows dist-lock races
 - keep updating `PROJECT_STATE.md` and `docs/session-log.md` after each verified work block
 - keep `START_HERE.md` and continuity files aligned with current workflow
