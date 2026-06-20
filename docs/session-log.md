@@ -1,5 +1,42 @@
 # Session Log
 
+## 2026-06-21
+
+Objective:
+
+Surface the Waveary session package format directly inside the browser import/export flow so users can see the safety rule, required fields, and sample package without leaving the product UI.
+
+Summary:
+
+- added a local `/api/chat/session/format` route in `waveary-web` that returns the current import mode, package rule summary, required field lists, and the sample session export JSON
+- updated the browser import panel to show package rules, required top-level fields, required snapshot arrays, and a one-click sample package loader
+- updated the browser export preview to repeat the import safety rule so users understand that imports always restore into a brand-new session
+- added route-level regression coverage for the new session format reference endpoint and verified the scoped web package check plus direct compiled server route tests
+
+Files changed:
+
+- `waveary-web/server/provider-api.ts`
+- `waveary-web/server/provider-api.test.ts`
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/web`
+- `npm run build:server --workspace @waveary/web`
+- `node --test waveary-web/dist-server/server/provider-api.test.js`
+- `npm run test --workspace @waveary/web` failed with the existing Windows `waveary-core/dist` `EPERM` cleanup issue before route tests started
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
 ## 2026-06-20
 
 Objective:

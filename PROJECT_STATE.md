@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `ed81dff` - `Document session package format`
+- `c8ba594` - `Record session format push failure`
 
 ## Modules
 
@@ -58,6 +58,7 @@ Brand line:
   - browser export now downloads a real `.json` file and browser import now supports selecting a local `.json` file in addition to paste input
   - malformed session imports now return structured validation diagnostics and the browser UI renders field-level import failure details
   - current browser session package shape is now documented for external tooling, with a sample export file under `docs/examples/`
+  - browser import/export controls now surface session package rules, required top-level fields, required snapshot arrays, and a loadable sample package through a local `/api/chat/session/format` route
   - non-default sessions can now be renamed and deleted through the web session layer
   - Windows-safe local dev and preview entrypoints are implemented for the current workspace path setup
   - package boundary is documented for future provider setup and runtime UI work
@@ -98,6 +99,8 @@ Brand line:
 - `npm run setup:provider` is available for interactive provider selection and config saving
 - `npm run test --workspace @waveary/core`
 - `npm run test --workspace @waveary/memory`
+- `npm run build:server --workspace @waveary/web`
+- `node --test waveary-web/dist-server/server/provider-api.test.js`
 - `Invoke-WebRequest http://127.0.0.1:4173/api/chat/session`
 - `Invoke-WebRequest http://127.0.0.1:4173/api/chat/sessions`
 - `Invoke-WebRequest http://127.0.0.1:4173/api/chat/sessions/rename`
@@ -125,7 +128,7 @@ Brand line:
 - consider validating downloadable file-based import/export or partial merge tools now that session migration is possible in-browser
 - consider adding stronger schema validation and user-facing import diagnostics for malformed session files
 - consider adding explicit schema versioning so imported session packages can evolve without ambiguous compatibility rules
-- consider surfacing the session package format docs or sample export link directly in the browser import/export UI
+- consider adding explicit schema version fields to exported session packages and validating them during import
 - consider hardening workspace build scripts further against transient Windows dist-lock races
 - keep updating `PROJECT_STATE.md` and `docs/session-log.md` after each verified work block
 - keep `START_HERE.md` and continuity files aligned with current workflow

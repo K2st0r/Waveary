@@ -90,6 +90,18 @@ interface ImportedChatSessionResult {
   importedTitle: string;
 }
 
+interface SessionPackageReference {
+  importMode: "new-session-only";
+  importRule: string;
+  topLevelFields: string[];
+  requiredSnapshotCollections: string[];
+  docs: {
+    formatPath: string;
+    samplePath: string;
+  };
+  sample: ExportedChatSession;
+}
+
 interface ApiErrorPayload {
   error?: string;
   details?: string[];
@@ -238,6 +250,7 @@ export function App(): ReactElement {
   const [sessionImportJson, setSessionImportJson] = useState("");
   const [sessionImportTitle, setSessionImportTitle] = useState("");
   const [sessionImportErrors, setSessionImportErrors] = useState<string[]>([]);
+  const [sessionPackageReference, setSessionPackageReference] = useState<SessionPackageReference | null>(null);
   const sessionImportFileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
@@ -248,9 +261,10 @@ export function App(): ReactElement {
     setLoadState("loading");
 
     try {
-      const [presetResponse, configResponse, sessionsResponse] = await Promise.all([
+      const [presetResponse, configResponse, sessionFormatResponse, sessionsResponse] = await Promise.all([
         fetchJson<{ presets: ProviderPreset[] }>("/api/provider/presets"),
         fetchJson<{ config?: SavedProviderConfig }>("/api/provider/config"),
+        fetchJson<{ reference: SessionPackageReference }>("/api/chat/session/format"),
         fetchJson<{
           sessions: ChatSessionListItem[];
           defaultSessionId: string;
@@ -267,6 +281,7 @@ export function App(): ReactElement {
 
       setPresets(nextPresets);
       setSavedConfig(nextConfig);
+      setSessionPackageReference(sessionFormatResponse.reference);
       setChatSessions(nextSessions);
       setDefaultSessionId(nextDefaultSessionId);
       setActiveSessionId(nextActiveSessionId);
@@ -672,6 +687,17 @@ export function App(): ReactElement {
     }
   }
 
+  function handleLoadSampleSession(): void {
+    if (!sessionPackageReference) {
+      return;
+    }
+
+    setSessionImportJson(JSON.stringify(sessionPackageReference.sample, null, 2));
+    setSessionImportErrors([]);
+    setSessionImportTitle("Recovered Sample Session");
+    setStatusMessage("Loaded the Waveary sample session package into the import editor.");
+  }
+
   async function handleSendMessage(): Promise<void> {
     const trimmed = chatInput.trim();
     if (!trimmed) {
@@ -766,6 +792,7 @@ export function App(): ReactElement {
     persistenceState !== "loading";
   const canExportSession = Boolean(activeSessionId) && sessionExportState !== "loading";
   const canImportSession = Boolean(sessionImportJson.trim()) && sessionImportState !== "loading";
+  const canLoadSampleSession = Boolean(sessionPackageReference) && sessionImportState !== "loading";
   const alternateBackendStatus =
     persistenceStatus?.backendDetails.find((detail) => detail.backend !== persistenceStatus.backend) ?? null;
   const hasSessionArchive =
@@ -1193,6 +1220,40 @@ export function App(): ReactElement {
 
                 <div className="session-control-card">
                   <div className="mini-heading">Import Session JSON</div>
+                  {sessionPackageReference ? (
+                    <div className="session-reference-card">
+                      <div className="mini-heading">Package Rules</div>
+                      <p className="provider-note session-reference-copy">
+                        {sessionPackageReference.importRule}
+                      </p>
+                      <div className="session-reference-grid">
+                        <div>
+                          <strong>Top-Level Fields</strong>
+                          <ul className="session-reference-list">
+                            {sessionPackageReference.topLevelFields.map((field) => (
+                              <li key={field}>
+                                <code>{field}</code>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                        <div>
+                          <strong>Required Snapshot Arrays</strong>
+                          <ul className="session-reference-list">
+                            {sessionPackageReference.requiredSnapshotCollections.map((field) => (
+                              <li key={field}>
+                                <code>{field}</code>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                      <div className="session-reference-links">
+                        <span>{sessionPackageReference.docs.formatPath}</span>
+                        <span>{sessionPackageReference.docs.samplePath}</span>
+                      </div>
+                    </div>
+                  ) : null}
                   <input
                     ref={sessionImportFileInputRef}
                     type="file"
@@ -1225,6 +1286,14 @@ export function App(): ReactElement {
                       type="button"
                     >
                       Choose JSON File
+                    </button>
+                    <button
+                      className="button button-secondary"
+                      onClick={handleLoadSampleSession}
+                      disabled={!canLoadSampleSession}
+                      type="button"
+                    >
+                      Load Sample Package
                     </button>
                     <button
                       className="button button-secondary"
@@ -1372,6 +1441,12 @@ export function App(): ReactElement {
                   <p className="provider-note">
                     This export package includes conversation, persisted memories, relationship state, timeline events, and latest insights for the active session.
                   </p>
+                  {sessionPackageReference ? (
+                    <div className="session-export-callout">
+                      <strong>Import safety</strong>
+                      <span>{sessionPackageReference.importRule}</span>
+                    </div>
+                  ) : null}
                   <pre className="session-export-block">
                     <code>{sessionExportJson}</code>
                   </pre>

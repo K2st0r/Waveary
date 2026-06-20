@@ -824,6 +824,54 @@ a {
   display: none;
 }
 
+.session-reference-card,
+.session-export-callout {
+  display: grid;
+  gap: 0.7rem;
+  padding: 0.95rem 1rem;
+  border-radius: 16px;
+  background: rgba(99, 212, 188, 0.08);
+  border: 1px solid rgba(99, 212, 188, 0.2);
+}
+
+.session-reference-copy,
+.session-export-callout span {
+  margin: 0;
+}
+
+.session-reference-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.session-reference-grid strong,
+.session-export-callout strong {
+  color: var(--text);
+  font-size: 0.92rem;
+}
+
+.session-reference-list {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0.55rem 0 0;
+  padding-left: 1.1rem;
+}
+
+.session-reference-list code,
+.session-reference-links span {
+  color: #d9f3ea;
+  font-family: "IBM Plex Mono", "Cascadia Code", Consolas, monospace;
+  font-size: 0.82rem;
+}
+
+.session-reference-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  color: var(--muted);
+}
+
 .session-import-error-card {
   display: grid;
   gap: 0.7rem;
@@ -1046,6 +1094,7 @@ a {
   .signal-grid,
   .engine-grid,
   .signal-metrics,
+  .session-reference-grid,
   .session-card-topline,
   .session-card-meta,
   .session-action-row {

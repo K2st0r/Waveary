@@ -373,6 +373,30 @@ test("chat session import route returns validation details for malformed package
   ]);
 });
 
+test("chat session format route returns import safety guidance and sample package", async () => {
+  const middleware = createProviderApiMiddleware();
+  const response = await invokeJsonRoute(middleware, "GET", "/api/chat/session/format");
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.reference.importMode, "new-session-only");
+  assert.equal(response.body.reference.docs.formatPath, "docs/session-file-format.md");
+  assert.equal(response.body.reference.docs.samplePath, "docs/examples/session-export.sample.json");
+  assert.deepEqual(response.body.reference.topLevelFields, [
+    "exportedAt",
+    "sessionId",
+    "title",
+    "snapshot"
+  ]);
+  assert.deepEqual(response.body.reference.requiredSnapshotCollections, [
+    "messages",
+    "memoryArchive",
+    "timelineEvents"
+  ]);
+  assert.equal(response.body.reference.sample.sessionId, "waveary-main");
+  assert.equal(response.body.reference.sample.title, "Main Companion Session");
+  assert.equal(response.body.reference.sample.snapshot.messages.length, 2);
+});
+
 test("chat session rename route updates non-default sessions and keeps persistence payload", async () => {
   createChatSession(DEFAULT_CHAT_SESSION_ID);
   createChatSession("session-rename", "Before Rename");
