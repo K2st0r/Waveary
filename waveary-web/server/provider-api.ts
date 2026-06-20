@@ -2,14 +2,22 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 
 import { OpenAICompatibleChatProvider, PROVIDER_PRESETS } from "@waveary/core";
 
-import { loadChatSessionSnapshot, sendChatTurn } from "./chat-runtime.js";
+import {
+  loadChatSessionSnapshot,
+  resetChatRuntimeSessions,
+  sendChatTurn
+} from "./chat-runtime.js";
 import {
   createChatSession,
+  getCurrentChatPersistenceStatus,
+  type ChatPersistenceSwitchResult,
   DEFAULT_CHAT_SESSION_ID,
   deleteChatSession,
   listChatSessions,
-  renameChatSession
+  renameChatSession,
+  switchChatPersistenceBackend
 } from "./chat-session-store.js";
+import type { ChatPersistenceBackend } from "./chat-persistence-config.js";
 import { loadSavedProviderConfig, saveProviderConfig } from "./provider-config.js";
 
 interface ProviderModelsRequest {
@@ -39,6 +47,10 @@ interface CreateChatSessionRequest {
 interface UpdateChatSessionRequest {
   sessionId?: string;
   title?: string;
+}
+
+interface UpdateChatPersistenceRequest {
+  backend?: ChatPersistenceBackend;
 }
 
 type NextFunction = (error?: unknown) => void;
@@ -79,7 +91,8 @@ export function createProviderApiMiddleware() {
       if (request.method === "GET" && request.url === "/api/chat/sessions") {
         sendJson(response, 200, {
           sessions: listChatSessions(),
-          defaultSessionId: DEFAULT_CHAT_SESSION_ID
+          defaultSessionId: DEFAULT_CHAT_SESSION_ID,
+          persistence: getCurrentChatPersistenceStatus()
         });
         return;
       }
@@ -91,7 +104,8 @@ export function createProviderApiMiddleware() {
         sendJson(response, 200, {
           session,
           sessions: listChatSessions(),
-          defaultSessionId: DEFAULT_CHAT_SESSION_ID
+          defaultSessionId: DEFAULT_CHAT_SESSION_ID,
+          persistence: getCurrentChatPersistenceStatus()
         });
         return;
       }
@@ -106,7 +120,8 @@ export function createProviderApiMiddleware() {
         sendJson(response, 200, {
           session,
           sessions: listChatSessions(),
-          defaultSessionId: DEFAULT_CHAT_SESSION_ID
+          defaultSessionId: DEFAULT_CHAT_SESSION_ID,
+          persistence: getCurrentChatPersistenceStatus()
         });
         return;
       }
@@ -119,7 +134,24 @@ export function createProviderApiMiddleware() {
 
         sendJson(response, 200, {
           sessions,
-          defaultSessionId: DEFAULT_CHAT_SESSION_ID
+          defaultSessionId: DEFAULT_CHAT_SESSION_ID,
+          persistence: getCurrentChatPersistenceStatus()
+        });
+        return;
+      }
+
+      if (request.method === "POST" && request.url === "/api/chat/persistence") {
+        const payload = (await readJsonBody(request)) as UpdateChatPersistenceRequest;
+        const result = switchChatPersistenceBackend(
+          requirePersistenceBackend(payload.backend)
+        );
+        resetChatRuntimeSessions();
+
+        sendJson(response, 200, {
+          sessions: listChatSessions(),
+          defaultSessionId: DEFAULT_CHAT_SESSION_ID,
+          persistence: result.persistence,
+          importedSessionCount: result.importedSessionCount
         });
         return;
       }
@@ -199,4 +231,14 @@ function requireNonEmpty(value: string | undefined, message: string): string {
   }
 
   return normalized;
+}
+
+function requirePersistenceBackend(
+  value: ChatPersistenceBackend | undefined
+): ChatPersistenceBackend {
+  if (value === "file" || value === "sqlite") {
+    return value;
+  }
+
+  throw new Error("A valid chat persistence backend is required.");
 }

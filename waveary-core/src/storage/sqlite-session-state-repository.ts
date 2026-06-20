@@ -2,9 +2,14 @@ import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 
-import type { PersistedSessionState, SessionStateRepository } from "./session-state.js";
+import type {
+  PersistedSessionState,
+  PersistedSessionStateRecord,
+  SessionStateRepository
+} from "./session-state.js";
 
 interface SqliteSessionStateRow {
+  session_id: string;
   state_json: string;
 }
 
@@ -58,6 +63,17 @@ export class SqliteSessionStateRepository<
     this.database
       .prepare("DELETE FROM waveary_session_states WHERE session_id = ?")
       .run(sessionId);
+  }
+
+  list(): PersistedSessionStateRecord<TState>[] {
+    const rows = this.database
+      .prepare("SELECT session_id, state_json FROM waveary_session_states ORDER BY updated_at DESC")
+      .all() as unknown as SqliteSessionStateRow[];
+
+    return rows.map((row) => ({
+      sessionId: row.session_id,
+      state: JSON.parse(row.state_json) as TState
+    }));
   }
 
   close(): void {

@@ -11,8 +11,16 @@ export interface PersistedSessionState {
   updatedAt: string;
 }
 
+export interface PersistedSessionStateRecord<
+  TState extends PersistedSessionState = PersistedSessionState
+> {
+  sessionId: string;
+  state: TState;
+}
+
 export interface SessionStateRepository<TState extends PersistedSessionState = PersistedSessionState> {
   load(sessionId: string): TState | undefined;
   save(sessionId: string, state: TState): void;
   delete(sessionId: string): void;
+  list(): PersistedSessionStateRecord<TState>[];
 }
