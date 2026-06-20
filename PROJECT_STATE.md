@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `9f33468` - `Add browser runtime chat shell`
+- `bca3a54` - `Stabilize web dev runtime and provider compatibility`
 
 ## Modules
 

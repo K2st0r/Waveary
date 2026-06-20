@@ -446,8 +446,8 @@ Verification:
 
 Commit:
 
-- pending
+- `bca3a54` - `Stabilize web dev runtime and provider compatibility`
 
 Push:
 
-- pending
+- succeeded
