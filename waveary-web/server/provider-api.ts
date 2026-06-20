@@ -11,6 +11,7 @@ import {
   sendChatTurn
 } from "./chat-runtime.js";
 import {
+  CHAT_SESSION_SCHEMA_VERSION,
   ChatSessionImportValidationError,
   createChatSession,
   exportChatSession,
@@ -66,6 +67,7 @@ interface ImportChatSessionRequest {
 }
 
 interface SessionPackageReference {
+  currentSchemaVersion: string;
   importMode: "new-session-only";
   importRule: string;
   topLevelFields: string[];
@@ -324,10 +326,11 @@ function getSessionPackageReference(): SessionPackageReference {
   }
 
   cachedSessionPackageReference = {
+    currentSchemaVersion: CHAT_SESSION_SCHEMA_VERSION,
     importMode: "new-session-only",
     importRule:
       "Waveary validates the package, creates a brand-new local session ID, and never overwrites or merges an existing session during import.",
-    topLevelFields: ["exportedAt", "sessionId", "title", "snapshot"],
+    topLevelFields: ["schemaVersion", "exportedAt", "sessionId", "title", "snapshot"],
     requiredSnapshotCollections: ["messages", "memoryArchive", "timelineEvents"],
     docs: {
       formatPath: "docs/session-file-format.md",

@@ -73,6 +73,7 @@ export interface ChatSessionListItem {
 }
 
 export interface ExportedChatSession {
+  schemaVersion?: string;
   exportedAt: string;
   sessionId: string;
   title: string;
@@ -104,6 +105,7 @@ interface PersistedChatSession extends PersistedSessionState {
 type PersistedChatSessions = Record<string, PersistedChatSession>;
 
 export const DEFAULT_CHAT_SESSION_ID = "waveary-main";
+export const CHAT_SESSION_SCHEMA_VERSION = "waveary-session@1";
 
 interface ChatSessionRepository extends SessionStateRepository<PersistedChatSession> {
   close?(): void;
@@ -386,6 +388,7 @@ export function exportChatSession(sessionId: string): ExportedChatSession {
     const title = session.title ?? deriveSessionTitle(sessionId, session);
 
     return {
+      schemaVersion: CHAT_SESSION_SCHEMA_VERSION,
       exportedAt: new Date().toISOString(),
       sessionId,
       title,
@@ -680,6 +683,15 @@ function validateExportedChatSession(exported: ExportedChatSession): void {
     throw new ChatSessionImportValidationError("A valid exported session package is required.", [
       "The import payload must be a JSON object."
     ]);
+  }
+
+  if (
+    exported.schemaVersion !== undefined &&
+    exported.schemaVersion !== CHAT_SESSION_SCHEMA_VERSION
+  ) {
+    details.push(
+      `Unsupported \`schemaVersion\` "${String(exported.schemaVersion)}". Supported version: \`${CHAT_SESSION_SCHEMA_VERSION}\`.`
+    );
   }
 
   if (!exported.sessionId?.trim()) {

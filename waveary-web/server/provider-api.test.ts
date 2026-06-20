@@ -264,6 +264,7 @@ test("chat session export route returns a structured export package for the acti
   });
 
   assert.equal(response.statusCode, 200);
+  assert.equal(response.body.exported.schemaVersion, "waveary-session@1");
   assert.equal(response.body.exported.sessionId, DEFAULT_CHAT_SESSION_ID);
   assert.equal(response.body.exported.title, "Main Companion Session");
   assert.equal(response.body.exported.snapshot.messages.length, 2);
@@ -279,6 +280,7 @@ test("chat session import route restores an exported package as a new session", 
   const middleware = createProviderApiMiddleware();
 
   const exported = {
+    schemaVersion: "waveary-session@1",
     exportedAt: "2026-06-20T00:00:00.000Z",
     sessionId: "session-original",
     title: "Imported Reflection Session",
@@ -373,20 +375,83 @@ test("chat session import route returns validation details for malformed package
   ]);
 });
 
+test("chat session import route accepts legacy packages without schemaVersion", async () => {
+  const middleware = createProviderApiMiddleware();
+
+  const response = await invokeJsonRoute(middleware, "POST", "/api/chat/session/import", {
+    exported: {
+      exportedAt: "2026-06-20T00:00:00.000Z",
+      sessionId: "legacy-session",
+      title: "Legacy Session",
+      snapshot: {
+        sessionId: "legacy-session",
+        messages: [
+          {
+            id: "user-1",
+            role: "user",
+            content: "This package was exported before schema versions existed.",
+            sessionId: "legacy-session"
+          }
+        ],
+        latestInsights: null,
+        memoryArchive: [],
+        relationship: null,
+        timelineEvents: [],
+        updatedAt: "2026-06-20T00:00:00.000Z"
+      }
+    }
+  });
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.imported.importedFromSessionId, "legacy-session");
+  assert.equal(response.body.imported.session.messages.length, 1);
+});
+
+test("chat session import route rejects unsupported schema versions", async () => {
+  const middleware = createProviderApiMiddleware();
+
+  const response = await invokeJsonRoute(middleware, "POST", "/api/chat/session/import", {
+    exported: {
+      schemaVersion: "waveary-session@2",
+      exportedAt: "2026-06-20T00:00:00.000Z",
+      sessionId: "future-session",
+      title: "Future Session",
+      snapshot: {
+        sessionId: "future-session",
+        messages: [],
+        latestInsights: null,
+        memoryArchive: [],
+        relationship: null,
+        timelineEvents: [],
+        updatedAt: "2026-06-20T00:00:00.000Z"
+      }
+    }
+  });
+
+  assert.equal(response.statusCode, 400);
+  assert.equal(response.body.error, "Exported session package failed validation.");
+  assert.deepEqual(response.body.details, [
+    "Unsupported `schemaVersion` \"waveary-session@2\". Supported version: `waveary-session@1`."
+  ]);
+});
+
 test("chat session format route returns import safety guidance and sample package", async () => {
   const middleware = createProviderApiMiddleware();
   const response = await invokeJsonRoute(middleware, "GET", "/api/chat/session/format");
 
   assert.equal(response.statusCode, 200);
+  assert.equal(response.body.reference.currentSchemaVersion, "waveary-session@1");
   assert.equal(response.body.reference.importMode, "new-session-only");
   assert.equal(response.body.reference.docs.formatPath, "docs/session-file-format.md");
   assert.equal(response.body.reference.docs.samplePath, "docs/examples/session-export.sample.json");
   assert.deepEqual(response.body.reference.topLevelFields, [
+    "schemaVersion",
     "exportedAt",
     "sessionId",
     "title",
     "snapshot"
   ]);
+  assert.equal(response.body.reference.sample.schemaVersion, "waveary-session@1");
   assert.deepEqual(response.body.reference.requiredSnapshotCollections, [
     "messages",
     "memoryArchive",

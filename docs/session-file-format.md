@@ -37,6 +37,7 @@ This rule is deliberate. It keeps session migration safe during the current CE s
 
 ```json
 {
+  "schemaVersion": "waveary-session@1",
   "exportedAt": "2026-06-20T00:00:00.000Z",
   "sessionId": "waveary-main",
   "title": "Main Companion Session",
@@ -53,6 +54,12 @@ This rule is deliberate. It keeps session migration safe during the current CE s
 ```
 
 ## Field Reference
+
+### `schemaVersion`
+
+- type: `string`
+- current emitted value: `waveary-session@1`
+- meaning: explicit Waveary browser session package version
 
 ### `exportedAt`
 
@@ -224,6 +231,7 @@ The current importer returns structured validation diagnostics when the package 
 
 It currently checks for:
 
+- unsupported top-level `schemaVersion` when a version is present
 - missing top-level `sessionId`
 - missing top-level `title`
 - missing `snapshot`
@@ -237,8 +245,11 @@ It currently checks for:
 
 ## Compatibility Notes
 
+- Current exports include `schemaVersion: "waveary-session@1"`.
+- The current importer remains backward-compatible with older packages that do not include `schemaVersion`.
+- Packages that declare an unsupported `schemaVersion` are rejected explicitly.
 - This is the current CE browser session package, not a final long-term interchange standard.
-- Future versions may add stricter schema validation, explicit versioning, or richer metadata.
+- Future versions may add stricter schema validation or richer metadata.
 - External tooling should preserve unknown fields when possible.
 
 ## Example

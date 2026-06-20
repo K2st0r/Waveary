@@ -77,6 +77,7 @@ interface ChatSessionSnapshot {
 }
 
 interface ExportedChatSession {
+  schemaVersion?: string;
   exportedAt: string;
   sessionId: string;
   title: string;
@@ -91,6 +92,7 @@ interface ImportedChatSessionResult {
 }
 
 interface SessionPackageReference {
+  currentSchemaVersion: string;
   importMode: "new-session-only";
   importRule: string;
   topLevelFields: string[];
@@ -1226,6 +1228,9 @@ export function App(): ReactElement {
                       <p className="provider-note session-reference-copy">
                         {sessionPackageReference.importRule}
                       </p>
+                      <p className="provider-note session-reference-copy">
+                        Current schema version: <code>{sessionPackageReference.currentSchemaVersion}</code>
+                      </p>
                       <div className="session-reference-grid">
                         <div>
                           <strong>Top-Level Fields</strong>
@@ -1444,7 +1449,11 @@ export function App(): ReactElement {
                   {sessionPackageReference ? (
                     <div className="session-export-callout">
                       <strong>Import safety</strong>
-                      <span>{sessionPackageReference.importRule}</span>
+                      <span>
+                        {sessionPackageReference.importRule} Current schema:
+                        {" "}
+                        {sessionPackageReference.currentSchemaVersion}
+                      </span>
                     </div>
                   ) : null}
                   <pre className="session-export-block">
