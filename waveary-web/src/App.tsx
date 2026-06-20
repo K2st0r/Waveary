@@ -149,6 +149,7 @@ export function App(): ReactElement {
   const [activeSessionId, setActiveSessionId] = useState("");
   const [defaultSessionId, setDefaultSessionId] = useState("");
   const [newSessionTitle, setNewSessionTitle] = useState("");
+  const [sessionRenameTitle, setSessionRenameTitle] = useState("");
 
   useEffect(() => {
     void loadInitialState();
@@ -176,6 +177,8 @@ export function App(): ReactElement {
       setChatSessions(nextSessions);
       setDefaultSessionId(nextDefaultSessionId);
       setActiveSessionId(nextActiveSessionId);
+      setSessionRenameTitle(nextSessions.find((session) => session.sessionId === nextActiveSessionId)?.title ?? "");
+      await loadChatSession(nextActiveSessionId);
 
       if (nextConfig) {
         setSelectedProvider(nextConfig.provider);
@@ -184,11 +187,10 @@ export function App(): ReactElement {
         setSelectedModel(nextConfig.model);
         setModels([{ id: nextConfig.model, provider: nextConfig.provider }]);
         setStatusMessage("Loaded saved provider configuration from .waveary/provider-config.json.");
-        await loadChatSession(nextActiveSessionId);
       } else if (fallbackPreset) {
         setSelectedProvider(fallbackPreset.id);
         setBaseURL(fallbackPreset.baseURL);
-        setStatusMessage("Choose a provider and fetch the models available to your API key.");
+        setStatusMessage("Choose a provider and fetch the models available to your API key. Existing local sessions remain available.");
       } else {
         setStatusMessage("No provider presets are available.");
       }
@@ -290,10 +292,9 @@ export function App(): ReactElement {
     }
   }
 
-  async function handleSessionChange(event: ChangeEvent<HTMLSelectElement>): Promise<void> {
-    const nextSessionId = event.target.value;
-
+  async function handleSessionChange(nextSessionId: string): Promise<void> {
     setActiveSessionId(nextSessionId);
+    setSessionRenameTitle(chatSessions.find((session) => session.sessionId === nextSessionId)?.title ?? "");
     await loadChatSession(nextSessionId);
   }
 
@@ -313,11 +314,74 @@ export function App(): ReactElement {
       setChatSessions(response.sessions);
       setDefaultSessionId(response.defaultSessionId);
       setActiveSessionId(response.session.sessionId);
+      setSessionRenameTitle(
+        response.sessions.find((session) => session.sessionId === response.session.sessionId)?.title ?? ""
+      );
       setChatMessages(response.session.messages);
       setChatInsights(response.session.latestInsights);
       setChatRestoredAt(response.session.updatedAt);
       setNewSessionTitle("");
       setStatusMessage("Created a new local chat session.");
+    } catch (error) {
+      setStatusMessage(getErrorMessage(error));
+    }
+  }
+
+  async function handleRenameSession(): Promise<void> {
+    if (!activeSessionId || activeSessionId === defaultSessionId) {
+      return;
+    }
+
+    try {
+      const response = await fetchJson<{
+        session: ChatSessionSnapshot;
+        sessions: ChatSessionListItem[];
+        defaultSessionId: string;
+      }>("/api/chat/sessions/rename", {
+        method: "POST",
+        body: JSON.stringify({
+          sessionId: activeSessionId,
+          title: sessionRenameTitle
+        })
+      });
+
+      setChatSessions(response.sessions);
+      setDefaultSessionId(response.defaultSessionId);
+      setSessionRenameTitle(
+        response.sessions.find((session) => session.sessionId === activeSessionId)?.title ?? sessionRenameTitle
+      );
+      setStatusMessage("Session title updated.");
+    } catch (error) {
+      setStatusMessage(getErrorMessage(error));
+    }
+  }
+
+  async function handleDeleteSession(): Promise<void> {
+    if (!activeSessionId || activeSessionId === defaultSessionId) {
+      return;
+    }
+
+    try {
+      const response = await fetchJson<{
+        sessions: ChatSessionListItem[];
+        defaultSessionId: string;
+      }>("/api/chat/sessions/delete", {
+        method: "POST",
+        body: JSON.stringify({
+          sessionId: activeSessionId
+        })
+      });
+
+      const fallbackSessionId = response.defaultSessionId;
+
+      setChatSessions(response.sessions);
+      setDefaultSessionId(response.defaultSessionId);
+      setActiveSessionId(fallbackSessionId);
+      setSessionRenameTitle(
+        response.sessions.find((session) => session.sessionId === fallbackSessionId)?.title ?? ""
+      );
+      await loadChatSession(fallbackSessionId);
+      setStatusMessage("Session deleted.");
     } catch (error) {
       setStatusMessage(getErrorMessage(error));
     }
@@ -353,21 +417,16 @@ export function App(): ReactElement {
         role: "assistant",
         content: response.reply
       };
+      const sessionsResponse = await fetchJson<{
+        sessions: ChatSessionListItem[];
+        defaultSessionId: string;
+      }>("/api/chat/sessions");
 
       setChatMessages((current) => [...current, assistantMessage]);
       setChatInsights(response);
       setChatRestoredAt(new Date().toISOString());
-      setChatSessions((current) =>
-        current.map((session) =>
-          session.sessionId === (activeSessionId || defaultSessionId)
-            ? {
-                ...session,
-                updatedAt: new Date().toISOString(),
-                messageCount: session.messageCount + 2
-              }
-            : session
-        )
-      );
+      setChatSessions(sessionsResponse.sessions);
+      setDefaultSessionId(sessionsResponse.defaultSessionId);
       setChatState("success");
     } catch (error) {
       setChatMessages((current) => [
@@ -388,6 +447,16 @@ export function App(): ReactElement {
     Boolean(selectedProvider && baseURL.trim() && apiKey.trim() && selectedModel) && saveState !== "loading";
   const selectedPreset = presets.find((preset) => preset.id === selectedProvider) ?? null;
   const chatReady = Boolean(savedConfig?.provider && savedConfig.model);
+  const activeSession =
+    chatSessions.find((session) => session.sessionId === activeSessionId) ??
+    chatSessions.find((session) => session.sessionId === defaultSessionId) ??
+    null;
+  const canCreateSession = newSessionTitle.trim().length > 0 || chatSessions.length > 0;
+  const canRenameSession =
+    Boolean(activeSessionId) &&
+    activeSessionId !== defaultSessionId &&
+    sessionRenameTitle.trim().length > 0 &&
+    sessionRenameTitle.trim() !== activeSession?.title;
 
   return (
     <div className="page-shell">
@@ -657,34 +726,106 @@ export function App(): ReactElement {
               <span>Session Layer</span>
               <span className="panel-tag">Main + Optional Sessions</span>
             </div>
-            <div className="provider-form-grid">
-              <label className="form-field">
-                <span>Active Session</span>
-                <select value={activeSessionId} onChange={(event) => void handleSessionChange(event)} disabled={!chatReady}>
-                  {chatSessions.map((session) => (
-                    <option key={session.sessionId} value={session.sessionId}>
-                      {session.title}
-                      {session.sessionId === defaultSessionId ? " (Main)" : ""}
-                    </option>
-                  ))}
-                </select>
-              </label>
+            <div className="session-panel-grid">
+              <div className="session-list">
+                {chatSessions.map((session) => {
+                  const isActive = session.sessionId === activeSessionId;
+                  const isMain = session.sessionId === defaultSessionId;
 
-              <label className="form-field form-field-wide">
-                <span>New Session Title</span>
-                <input
-                  type="text"
-                  value={newSessionTitle}
-                  onChange={(event) => setNewSessionTitle(event.target.value)}
-                  placeholder="Late night reflection, product brainstorm, memory test..."
-                  disabled={!chatReady}
-                />
-              </label>
-            </div>
-            <div className="console-actions">
-              <button className="button button-secondary" onClick={() => void handleCreateSession()} disabled={!chatReady}>
-                Create Session
-              </button>
+                  return (
+                    <button
+                      className={`session-card ${isActive ? "session-card-active" : ""}`}
+                      key={session.sessionId}
+                      onClick={() => void handleSessionChange(session.sessionId)}
+                      type="button"
+                    >
+                      <div className="session-card-topline">
+                        <span className="session-card-title">{session.title}</span>
+                        <span className={`session-badge ${isMain ? "session-badge-main" : "session-badge-side"}`}>
+                          {isMain ? "Main" : "Session"}
+                        </span>
+                      </div>
+                      <div className="session-card-meta">
+                        <span>{session.messageCount} messages</span>
+                        <span>{formatSessionTimestamp(session.updatedAt)}</span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="session-controls">
+                <div className="session-control-card">
+                  <div className="mini-heading">Create Session</div>
+                  <label className="form-field">
+                    <span>New Session Title</span>
+                    <input
+                      type="text"
+                      value={newSessionTitle}
+                      onChange={(event) => setNewSessionTitle(event.target.value)}
+                      placeholder="Late night reflection, product brainstorm, memory test..."
+                    />
+                  </label>
+                  <div className="console-actions">
+                    <button
+                      className="button button-secondary"
+                      onClick={() => void handleCreateSession()}
+                      disabled={!canCreateSession}
+                      type="button"
+                    >
+                      Create Session
+                    </button>
+                  </div>
+                </div>
+
+                <div className="session-control-card">
+                  <div className="mini-heading">Manage Active Session</div>
+                  {activeSession ? (
+                    <>
+                      <div className="session-active-summary">
+                        <strong>{activeSession.title}</strong>
+                        <span>
+                          {activeSession.sessionId === defaultSessionId
+                            ? "Main companion session. Always preserved."
+                            : "Optional local session. Can be renamed or removed."}
+                        </span>
+                      </div>
+
+                      <label className="form-field">
+                        <span>Session Title</span>
+                        <input
+                          type="text"
+                          value={sessionRenameTitle}
+                          onChange={(event) => setSessionRenameTitle(event.target.value)}
+                          placeholder="Rename this session"
+                          disabled={activeSession.sessionId === defaultSessionId}
+                        />
+                      </label>
+
+                      <div className="session-action-row">
+                        <button
+                          className="button button-secondary"
+                          onClick={() => void handleRenameSession()}
+                          disabled={!canRenameSession}
+                          type="button"
+                        >
+                          Rename Session
+                        </button>
+                        <button
+                          className="button button-danger"
+                          onClick={() => void handleDeleteSession()}
+                          disabled={activeSession.sessionId === defaultSessionId}
+                          type="button"
+                        >
+                          Delete Session
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <p className="provider-note">No local session is available yet.</p>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
 
@@ -869,6 +1010,10 @@ async function fetchJson<T>(input: string, init?: RequestInit): Promise<T> {
   }
 
   return payload as T;
+}
+
+function formatSessionTimestamp(updatedAt: string): string {
+  return new Date(updatedAt).toLocaleString();
 }
 
 function getErrorMessage(error: unknown): string {

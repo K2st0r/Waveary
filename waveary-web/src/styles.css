@@ -223,6 +223,12 @@ a {
   background: rgba(255, 255, 255, 0.03);
 }
 
+.button-danger {
+  background: rgba(227, 92, 92, 0.12);
+  border-color: rgba(227, 92, 92, 0.32);
+  color: #ffd6d6;
+}
+
 .principle-list,
 .roadmap-card ul {
   margin: 0;
@@ -564,6 +570,104 @@ a {
   padding: 1.25rem;
 }
 
+.session-panel-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+  gap: 1rem;
+}
+
+.session-list,
+.session-controls,
+.session-control-card {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.session-list {
+  align-content: start;
+}
+
+.session-card {
+  display: grid;
+  gap: 0.7rem;
+  width: 100%;
+  padding: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.session-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(240, 180, 41, 0.28);
+}
+
+.session-card-active {
+  background: linear-gradient(180deg, rgba(240, 180, 41, 0.14), rgba(255, 255, 255, 0.03));
+  border-color: rgba(240, 180, 41, 0.4);
+  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.22);
+}
+
+.session-card-topline,
+.session-card-meta,
+.session-action-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.session-card-title,
+.session-active-summary strong {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.session-card-meta,
+.session-active-summary span {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.session-badge {
+  padding: 0.28rem 0.58rem;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.session-badge-main {
+  background: rgba(240, 180, 41, 0.16);
+  color: var(--accent);
+}
+
+.session-badge-side {
+  background: rgba(99, 212, 188, 0.14);
+  color: var(--accent-secondary);
+}
+
+.session-control-card {
+  padding: 1rem;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.session-active-summary {
+  display: grid;
+  gap: 0.45rem;
+}
+
 .chat-panel,
 .insight-panel {
   padding: 1.25rem;
@@ -727,6 +831,7 @@ a {
 @media (max-width: 1100px) {
   .hero,
   .setup-layout,
+  .session-panel-grid,
   .chat-layout,
   .provider-layout,
   .structure-layout {
@@ -770,8 +875,18 @@ a {
   .provider-form-grid,
   .signal-grid,
   .engine-grid,
-  .signal-metrics {
+  .signal-metrics,
+  .session-card-topline,
+  .session-card-meta,
+  .session-action-row {
     grid-template-columns: 1fr;
+  }
+
+  .session-card-topline,
+  .session-card-meta,
+  .session-action-row {
+    display: grid;
+    justify-content: stretch;
   }
 
   .timeline-row {

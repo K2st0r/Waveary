@@ -6,7 +6,9 @@ import { loadChatSessionSnapshot, sendChatTurn } from "./chat-runtime.js";
 import {
   createChatSession,
   DEFAULT_CHAT_SESSION_ID,
-  listChatSessions
+  deleteChatSession,
+  listChatSessions,
+  renameChatSession
 } from "./chat-session-store.js";
 import { loadSavedProviderConfig, saveProviderConfig } from "./provider-config.js";
 
@@ -30,6 +32,11 @@ interface ChatSessionRequest {
 }
 
 interface CreateChatSessionRequest {
+  sessionId?: string;
+  title?: string;
+}
+
+interface UpdateChatSessionRequest {
   sessionId?: string;
   title?: string;
 }
@@ -84,6 +91,34 @@ export function createProviderApiMiddleware() {
         sendJson(response, 200, {
           session,
           sessions: listChatSessions(),
+          defaultSessionId: DEFAULT_CHAT_SESSION_ID
+        });
+        return;
+      }
+
+      if (request.method === "POST" && request.url === "/api/chat/sessions/rename") {
+        const payload = (await readJsonBody(request)) as UpdateChatSessionRequest;
+        const session = renameChatSession(
+          requireNonEmpty(payload.sessionId, "Session ID is required."),
+          requireNonEmpty(payload.title, "Session title is required.")
+        );
+
+        sendJson(response, 200, {
+          session,
+          sessions: listChatSessions(),
+          defaultSessionId: DEFAULT_CHAT_SESSION_ID
+        });
+        return;
+      }
+
+      if (request.method === "POST" && request.url === "/api/chat/sessions/delete") {
+        const payload = (await readJsonBody(request)) as ChatSessionRequest;
+        const sessions = deleteChatSession(
+          requireNonEmpty(payload.sessionId, "Session ID is required.")
+        );
+
+        sendJson(response, 200, {
+          sessions,
           defaultSessionId: DEFAULT_CHAT_SESSION_ID
         });
         return;

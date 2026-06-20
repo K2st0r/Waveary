@@ -171,6 +171,52 @@ export function createChatSession(sessionId?: string, title?: string): ChatSessi
   };
 }
 
+export function renameChatSession(sessionId: string, title: string): ChatSessionSnapshot {
+  if (sessionId === DEFAULT_CHAT_SESSION_ID) {
+    throw new Error("The default main session cannot be renamed.");
+  }
+
+  const normalized = title.trim();
+
+  if (!normalized) {
+    throw new Error("Session title is required.");
+  }
+
+  const session = ensureSession(sessionId);
+
+  updateSession(sessionId, (current) => ({
+    ...current,
+    title: normalized,
+    updatedAt: new Date().toISOString()
+  }));
+
+  return {
+    sessionId,
+    messages: session.context.history.filter(
+      (message) => message.role === "user" || message.role === "assistant"
+    ),
+    latestInsights: session.latestInsights,
+    updatedAt: new Date().toISOString()
+  };
+}
+
+export function deleteChatSession(sessionId: string): ChatSessionListItem[] {
+  if (sessionId === DEFAULT_CHAT_SESSION_ID) {
+    throw new Error("The default main session cannot be deleted.");
+  }
+
+  const sessions = readAllSessions();
+
+  if (!(sessionId in sessions)) {
+    return listChatSessions();
+  }
+
+  delete sessions[sessionId];
+  writeAllSessions(sessions);
+
+  return listChatSessions();
+}
+
 function ensureSession(sessionId: string): PersistedChatSession {
   const existing = loadPersistedChatSession(sessionId);
   if (existing) {
