@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ChangeEvent, ReactElement } from "react";
 
 interface ProviderPreset {
@@ -232,6 +232,7 @@ export function App(): ReactElement {
   const [sessionImportState, setSessionImportState] = useState<LoadState>("idle");
   const [sessionImportJson, setSessionImportJson] = useState("");
   const [sessionImportTitle, setSessionImportTitle] = useState("");
+  const sessionImportFileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     void loadInitialState();
@@ -592,11 +593,30 @@ export function App(): ReactElement {
       });
 
       setSessionExportJson(JSON.stringify(response.exported, null, 2));
+      downloadSessionExport(response.exported);
       setSessionExportState("success");
       setStatusMessage(`Exported session package for ${response.exported.title}.`);
     } catch (error) {
       setSessionExportState("error");
       setStatusMessage(getErrorMessage(error));
+    }
+  }
+
+  async function handleImportSessionFile(event: ChangeEvent<HTMLInputElement>): Promise<void> {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    try {
+      const text = await file.text();
+      setSessionImportJson(text);
+      setStatusMessage(`Loaded import file: ${file.name}`);
+    } catch (error) {
+      setStatusMessage(getErrorMessage(error));
+    } finally {
+      event.target.value = "";
     }
   }
 
@@ -1163,6 +1183,13 @@ export function App(): ReactElement {
 
                 <div className="session-control-card">
                   <div className="mini-heading">Import Session JSON</div>
+                  <input
+                    ref={sessionImportFileInputRef}
+                    type="file"
+                    accept="application/json,.json"
+                    className="session-import-file-input"
+                    onChange={(event) => void handleImportSessionFile(event)}
+                  />
                   <label className="form-field">
                     <span>Imported Session Title</span>
                     <input
@@ -1182,6 +1209,13 @@ export function App(): ReactElement {
                     />
                   </label>
                   <div className="console-actions">
+                    <button
+                      className="button button-secondary"
+                      onClick={() => sessionImportFileInputRef.current?.click()}
+                      type="button"
+                    >
+                      Choose JSON File
+                    </button>
                     <button
                       className="button button-secondary"
                       onClick={() => void handleImportSession()}
@@ -1584,6 +1618,25 @@ function formatMemoryType(type: string): string {
     default:
       return type;
   }
+}
+
+function downloadSessionExport(exported: ExportedChatSession): void {
+  const blob = new Blob([JSON.stringify(exported, null, 2)], {
+    type: "application/json"
+  });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  const safeTitle = exported.title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "") || "waveary-session";
+
+  anchor.href = url;
+  anchor.download = `${safeTitle}.json`;
+  document.body.append(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(url);
 }
 
 function getErrorMessage(error: unknown): string {
