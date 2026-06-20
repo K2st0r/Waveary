@@ -4,6 +4,46 @@
 
 Objective:
 
+Surface richer local persistence backend status in `waveary-web` so the session layer shows active backend health, alternate-backend sync state, and last migration details.
+
+Summary:
+
+- expanded chat persistence config and status types to include `lastSync` metadata plus per-backend status details
+- updated the server-side session store to compare file and SQLite records, compute `active / in-sync / behind / ahead / diverged`, and expose differing session counts
+- extended the browser session panel with backend status cards, last sync metadata, and sync-state badges for both local stores
+- corrected the `sqlite -> file` regression expectation so post-sync status is treated as `in-sync`
+- updated `@waveary/web` `check` to prebuild workspace dependencies, matching the package's existing `test` behavior
+
+Files changed:
+
+- `waveary-web/package.json`
+- `waveary-web/server/chat-persistence-config.ts`
+- `waveary-web/server/chat-session-store.ts`
+- `waveary-web/server/chat-session-store.test.ts`
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run test --workspace @waveary/web`
+- `npm run check --workspace @waveary/web`
+- `npm run check`
+- `npm run test`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-20
+
+Objective:
+
 Add automated regression coverage for `waveary-web` local persistence backend switching so `file / sqlite` continuity does not rely only on manual browser checks.
 
 Summary:

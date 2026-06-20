@@ -57,10 +57,31 @@ interface ChatSessionListItem {
 
 type ChatPersistenceBackend = "file" | "sqlite";
 
+type ChatPersistenceSyncState = "active" | "in-sync" | "behind" | "ahead" | "diverged";
+
+interface ChatPersistenceSyncMetadata {
+  fromBackend: ChatPersistenceBackend | null;
+  toBackend: ChatPersistenceBackend | null;
+  switchedAt: string | null;
+  synchronizedSessionCount: number;
+}
+
+interface ChatPersistenceBackendStatus {
+  backend: ChatPersistenceBackend;
+  storageLabel: string;
+  exists: boolean;
+  sessionCount: number;
+  latestUpdatedAt: string | null;
+  syncState: ChatPersistenceSyncState;
+  differingSessionCount: number;
+}
+
 interface ChatPersistenceStatus {
   backend: ChatPersistenceBackend;
   availableBackends: ChatPersistenceBackend[];
   storageLabel: string;
+  lastSync: ChatPersistenceSyncMetadata;
+  backendDetails: ChatPersistenceBackendStatus[];
 }
 
 interface ChatMessage {
@@ -536,6 +557,8 @@ export function App(): ReactElement {
     Boolean(persistenceStatus) &&
     selectedPersistenceBackend !== (persistenceStatus?.backend ?? selectedPersistenceBackend) &&
     persistenceState !== "loading";
+  const alternateBackendStatus =
+    persistenceStatus?.backendDetails.find((detail) => detail.backend !== persistenceStatus.backend) ?? null;
 
   return (
     <div className="page-shell">
@@ -844,6 +867,59 @@ export function App(): ReactElement {
                         : "Loading current chat persistence backend."}
                     </span>
                   </div>
+                  {persistenceStatus ? (
+                    <div className="persistence-status-grid">
+                      <div className="persistence-status-card">
+                        <span className="mini-heading">Last Sync</span>
+                        <strong>
+                          {persistenceStatus.lastSync.switchedAt
+                            ? `${formatPersistenceBackendLabel(
+                                persistenceStatus.lastSync.fromBackend
+                              )} -> ${formatPersistenceBackendLabel(persistenceStatus.lastSync.toBackend)}`
+                            : "No switch recorded"}
+                        </strong>
+                        <span>
+                          {persistenceStatus.lastSync.switchedAt
+                            ? `${formatSessionTimestamp(
+                                persistenceStatus.lastSync.switchedAt
+                              )} · ${persistenceStatus.lastSync.synchronizedSessionCount} sessions synchronized`
+                            : "The current backend is using its local state without a recorded migration event."}
+                        </span>
+                      </div>
+
+                      {persistenceStatus.backendDetails.map((detail) => (
+                        <div className="persistence-status-card" key={detail.backend}>
+                          <div className="persistence-status-topline">
+                            <strong>{formatPersistenceBackendLabel(detail.backend)}</strong>
+                            <span
+                              className={`persistence-badge persistence-badge-${detail.syncState}`}
+                            >
+                              {formatPersistenceSyncState(detail.syncState)}
+                            </span>
+                          </div>
+                          <span>{detail.storageLabel}</span>
+                          <span>
+                            {detail.exists
+                              ? `${detail.sessionCount} sessions · ${
+                                  detail.latestUpdatedAt
+                                    ? `latest ${formatSessionTimestamp(detail.latestUpdatedAt)}`
+                                    : "no session writes yet"
+                                }`
+                              : "Local store file has not been created yet."}
+                          </span>
+                          {detail.backend !== persistenceStatus.backend ? (
+                            <span>
+                              {detail.differingSessionCount > 0
+                                ? `${detail.differingSessionCount} sessions differ from the active backend.`
+                                : "No session differences detected against the active backend."}
+                            </span>
+                          ) : (
+                            <span>This is the backend currently serving local chat reads and writes.</span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
                   <label className="form-field">
                     <span>Backend</span>
                     <select
@@ -870,6 +946,15 @@ export function App(): ReactElement {
                       {persistenceState === "loading" ? "Switching..." : "Switch Backend"}
                     </button>
                   </div>
+                  {alternateBackendStatus ? (
+                    <p className="provider-note persistence-note">
+                      {alternateBackendStatus.syncState === "in-sync"
+                        ? `${formatPersistenceBackendLabel(alternateBackendStatus.backend)} is aligned with the active backend.`
+                        : `${formatPersistenceBackendLabel(alternateBackendStatus.backend)} is ${formatPersistenceSyncState(
+                            alternateBackendStatus.syncState
+                          ).toLowerCase()} with ${alternateBackendStatus.differingSessionCount} differing sessions.`}
+                    </p>
+                  ) : null}
                 </div>
 
                 <div className="session-control-card">
@@ -1131,6 +1216,35 @@ async function fetchJson<T>(input: string, init?: RequestInit): Promise<T> {
 
 function formatSessionTimestamp(updatedAt: string): string {
   return new Date(updatedAt).toLocaleString();
+}
+
+function formatPersistenceBackendLabel(backend: ChatPersistenceBackend | null): string {
+  if (backend === "sqlite") {
+    return "SQLite";
+  }
+
+  if (backend === "file") {
+    return "File JSON";
+  }
+
+  return "Unknown";
+}
+
+function formatPersistenceSyncState(state: ChatPersistenceSyncState): string {
+  switch (state) {
+    case "active":
+      return "Active";
+    case "in-sync":
+      return "In Sync";
+    case "behind":
+      return "Behind";
+    case "ahead":
+      return "Ahead";
+    case "diverged":
+      return "Diverged";
+    default:
+      return state;
+  }
 }
 
 function getErrorMessage(error: unknown): string {

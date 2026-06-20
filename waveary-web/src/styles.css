@@ -674,6 +674,63 @@ a {
   font-size: 0.84rem;
 }
 
+.persistence-status-grid {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.persistence-status-card {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.95rem 1rem;
+  border-radius: 16px;
+  background: rgba(3, 14, 23, 0.48);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.persistence-status-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.persistence-status-card span {
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
+.persistence-badge {
+  padding: 0.25rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.persistence-badge-active {
+  background: rgba(240, 180, 41, 0.16);
+  color: var(--accent);
+}
+
+.persistence-badge-in-sync {
+  background: rgba(99, 212, 188, 0.14);
+  color: var(--accent-secondary);
+}
+
+.persistence-badge-behind,
+.persistence-badge-ahead,
+.persistence-badge-diverged {
+  background: rgba(227, 92, 92, 0.12);
+  color: #ffd0d0;
+}
+
+.persistence-note {
+  margin-top: 0.9rem;
+}
+
 .chat-panel,
 .insight-panel {
   padding: 1.25rem;

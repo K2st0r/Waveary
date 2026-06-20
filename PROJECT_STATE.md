@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `4d382bd` - `Add web persistence switching regression tests`
+- `892e50f` - `Sync web persistence test continuity records`
 
 ## Modules
 
@@ -43,6 +43,7 @@ Brand line:
   - local browser chat session persistence is implemented through `.waveary/chat-sessions.json`
   - local persistence backend switching between JSON file and SQLite is implemented through local `/api/chat/persistence`
   - Node-based regression tests now cover local persistence backend switching and cross-backend state synchronization
+  - session persistence UI now surfaces backend-by-backend sync state, last migration metadata, differing session counts, and latest write timestamps
   - main-session default plus optional additional chat sessions are implemented in the web layer
   - non-default sessions can now be renamed and deleted through the web session layer
   - Windows-safe local dev and preview entrypoints are implemented for the current workspace path setup
@@ -73,6 +74,8 @@ Brand line:
 
 ## Verified Commands
 
+- `npm run check --workspace @waveary/web`
+- `npm run test --workspace @waveary/web`
 - `npm run check`
 - `npm run test`
 - `npm run demo`
@@ -96,8 +99,8 @@ Brand line:
 
 ## Next Steps
 
-- surface more explicit backend health and migration details in the `waveary-web` session layer
 - add regression coverage around `/api/chat/persistence` route responses and runtime cache reset behavior
+- verify the richer persistence status payload through real local `/api/chat/persistence` browser-facing checks
 - expand provider-specific request normalization where "OpenAI-compatible" vendors diverge further
 - keep updating `PROJECT_STATE.md` and `docs/session-log.md` after each verified work block
 - keep `START_HERE.md` and continuity files aligned with current workflow

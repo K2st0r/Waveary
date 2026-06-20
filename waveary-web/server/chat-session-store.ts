@@ -17,11 +17,14 @@ import {
 } from "@waveary/core";
 import { SqliteSessionStateRepository as CoreSqliteSessionStateRepository } from "@waveary/core";
 import {
+  CHAT_PERSISTENCE_BACKENDS,
   CHAT_SESSION_JSON_PATH,
   CHAT_SESSION_SQLITE_PATH,
-  getChatPersistenceStatus,
+  createDefaultChatPersistenceConfig,
+  getChatPersistenceStorageLabel,
   loadChatPersistenceConfig,
   saveChatPersistenceConfig,
+  type ChatPersistenceBackendStatus,
   type ChatPersistenceBackend,
   type ChatPersistenceStatus
 } from "./chat-persistence-config.js";
@@ -255,7 +258,7 @@ export function deleteChatSession(sessionId: string): ChatSessionListItem[] {
 }
 
 export function getCurrentChatPersistenceStatus(): ChatPersistenceStatus {
-  return getChatPersistenceStatus();
+  return buildChatPersistenceStatus(loadChatPersistenceConfig());
 }
 
 export function switchChatPersistenceBackend(
@@ -265,7 +268,7 @@ export function switchChatPersistenceBackend(
 
   if (currentBackend === nextBackend) {
     return {
-      persistence: getChatPersistenceStatus(),
+      persistence: buildChatPersistenceStatus(loadChatPersistenceConfig()),
       importedSessionCount: 0
     };
   }
@@ -292,7 +295,15 @@ export function switchChatPersistenceBackend(
       }
     });
 
-    saveChatPersistenceConfig({ backend: nextBackend });
+    saveChatPersistenceConfig({
+      backend: nextBackend,
+      lastSync: {
+        fromBackend: currentBackend,
+        toBackend: nextBackend,
+        switchedAt: new Date().toISOString(),
+        synchronizedSessionCount: importedSessionCount
+      }
+    });
 
     withChatSessionRepository((repository) => {
       ensureSession(DEFAULT_CHAT_SESSION_ID, repository);
@@ -300,7 +311,7 @@ export function switchChatPersistenceBackend(
     });
 
     return {
-      persistence: getChatPersistenceStatus(),
+      persistence: buildChatPersistenceStatus(loadChatPersistenceConfig()),
       importedSessionCount
     };
   } finally {
@@ -498,6 +509,100 @@ function withChatSessionRepository<T>(
 
   try {
     return runner(repository);
+  } finally {
+    repository.close?.();
+  }
+}
+
+function buildChatPersistenceStatus(config: ReturnType<typeof loadChatPersistenceConfig>): ChatPersistenceStatus {
+  const backendRecords = new Map(
+    CHAT_PERSISTENCE_BACKENDS.map((backend) => [backend, loadSessionRecordsForBackend(backend)])
+  );
+  const activeRecords = backendRecords.get(config.backend) ?? [];
+
+  return {
+    ...config,
+    availableBackends: CHAT_PERSISTENCE_BACKENDS,
+    storageLabel: getChatPersistenceStorageLabel(config.backend),
+    backendDetails: CHAT_PERSISTENCE_BACKENDS.map((backend) =>
+      buildBackendStatus(backend, backendRecords.get(backend) ?? [], activeRecords, config.backend)
+    )
+  };
+}
+
+function buildBackendStatus(
+  backend: ChatPersistenceBackend,
+  backendRecords: PersistedSessionStateRecord<PersistedChatSession>[],
+  activeRecords: PersistedSessionStateRecord<PersistedChatSession>[],
+  activeBackend: ChatPersistenceBackend
+): ChatPersistenceBackendStatus {
+  const recordMap = new Map(backendRecords.map((record) => [record.sessionId, record.state]));
+  const activeMap = new Map(activeRecords.map((record) => [record.sessionId, record.state]));
+  const differingSessionIds = new Set<string>();
+  const latestUpdatedAt =
+    backendRecords.reduce<string | null>((latest, record) => {
+      if (!latest || latest.localeCompare(record.state.updatedAt) < 0) {
+        return record.state.updatedAt;
+      }
+
+      return latest;
+    }, null);
+  let hasAhead = false;
+  let hasBehind = false;
+
+  for (const [sessionId, activeState] of activeMap) {
+    const candidate = recordMap.get(sessionId);
+
+    if (!candidate) {
+      differingSessionIds.add(sessionId);
+      hasBehind = true;
+      continue;
+    }
+
+    const comparison = candidate.updatedAt.localeCompare(activeState.updatedAt);
+    if (comparison < 0) {
+      differingSessionIds.add(sessionId);
+      hasBehind = true;
+    } else if (comparison > 0) {
+      differingSessionIds.add(sessionId);
+      hasAhead = true;
+    }
+  }
+
+  for (const sessionId of recordMap.keys()) {
+    if (!activeMap.has(sessionId)) {
+      differingSessionIds.add(sessionId);
+      hasAhead = true;
+    }
+  }
+
+  return {
+    backend,
+    storageLabel: getChatPersistenceStorageLabel(backend),
+    exists: backend === "sqlite" ? existsSync(CHAT_SESSION_SQLITE_PATH) : existsSync(CHAT_SESSION_JSON_PATH),
+    sessionCount: backendRecords.length,
+    latestUpdatedAt,
+    syncState:
+      backend === activeBackend
+        ? "active"
+        : hasAhead && hasBehind
+          ? "diverged"
+          : hasBehind
+            ? "behind"
+            : hasAhead
+              ? "ahead"
+              : "in-sync",
+    differingSessionCount: differingSessionIds.size
+  };
+}
+
+function loadSessionRecordsForBackend(
+  backend: ChatPersistenceBackend
+): PersistedSessionStateRecord<PersistedChatSession>[] {
+  const repository = createChatSessionRepository(backend);
+
+  try {
+    return repository.list();
   } finally {
     repository.close?.();
   }
