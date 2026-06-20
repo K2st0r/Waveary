@@ -99,3 +99,4 @@ Brand line:
 ## Open Issues
 
 - `npm run web:build` should not be executed in parallel with another root build command because package `dist` cleanup can race on Windows
+- local branch is ahead of `origin/main` by two commits because the latest push attempt failed to connect to GitHub over HTTPS
