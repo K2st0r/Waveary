@@ -14,6 +14,7 @@ import {
   InMemoryMemoryStore,
   SimpleMemoryExtractor
 } from "../../waveary-memory/dist/index.js";
+import { loadSavedProviderConfig } from "./provider-config.js";
 
 function createBaseContext(): RuntimeContext {
   return {
@@ -43,44 +44,26 @@ function createBaseContext(): RuntimeContext {
 }
 
 async function runDemo(): Promise<void> {
-  const providerId = process.env.WAVEARY_PROVIDER ?? "openai";
+  const saved = loadSavedProviderConfig();
+  const providerId = process.env.WAVEARY_PROVIDER ?? saved?.provider ?? "openai";
   const preset = resolveProviderPreset(providerId);
-  const resolvedApiKey = process.env.WAVEARY_API_KEY ?? process.env.OPENAI_API_KEY;
+  const resolvedApiKey = process.env.WAVEARY_API_KEY ?? process.env.OPENAI_API_KEY ?? saved?.apiKey;
+  const resolvedModel = process.env.WAVEARY_MODEL ?? saved?.model;
+  const resolvedBaseURL = process.env.WAVEARY_BASE_URL ?? saved?.baseURL ?? preset?.baseURL;
 
-  if (!resolvedApiKey) {
-    throw new Error("Set WAVEARY_API_KEY or OPENAI_API_KEY before running demo:provider.");
-  }
-
-  if (!process.env.WAVEARY_MODEL) {
+  if (!resolvedApiKey || !resolvedModel || !resolvedBaseURL) {
     throw new Error(
-      "Set WAVEARY_MODEL before running demo:provider. You can first run npm run models:provider to inspect available models."
+      "Provider config is incomplete. Run npm run setup:provider, or set WAVEARY_PROVIDER / WAVEARY_API_KEY / WAVEARY_MODEL / WAVEARY_BASE_URL."
     );
   }
 
-  const providerOptions: {
-    provider: string;
-    model?: string;
-    baseURL?: string;
-    apiKey?: string;
-  } = {
-    provider: providerId
-  };
-
-  if (process.env.WAVEARY_MODEL) {
-    providerOptions.model = process.env.WAVEARY_MODEL;
-  }
-
-  const resolvedBaseURL = process.env.WAVEARY_BASE_URL ?? preset?.baseURL;
-  if (resolvedBaseURL) {
-    providerOptions.baseURL = resolvedBaseURL;
-  }
-
-  if (resolvedApiKey) {
-    providerOptions.apiKey = resolvedApiKey;
-  }
-
   const runtime = new WavearyRuntime({
-    chatProvider: new OpenAICompatibleChatProvider(providerOptions),
+    chatProvider: new OpenAICompatibleChatProvider({
+      provider: providerId,
+      apiKey: resolvedApiKey,
+      model: resolvedModel,
+      baseURL: resolvedBaseURL
+    }),
     emotionAnalyzer: new SimpleEmotionAnalyzer(),
     memoryStore: new InMemoryMemoryStore(),
     memoryExtractor: new SimpleMemoryExtractor(),

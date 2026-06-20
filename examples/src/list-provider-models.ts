@@ -2,12 +2,14 @@ import {
   OpenAICompatibleChatProvider,
   resolveProviderPreset
 } from "../../waveary-core/dist/index.js";
+import { loadSavedProviderConfig } from "./provider-config.js";
 
 async function main(): Promise<void> {
-  const providerId = process.env.WAVEARY_PROVIDER ?? "openai";
+  const saved = loadSavedProviderConfig();
+  const providerId = process.env.WAVEARY_PROVIDER ?? saved?.provider ?? "openai";
   const preset = resolveProviderPreset(providerId);
-  const apiKey = process.env.WAVEARY_API_KEY ?? process.env.OPENAI_API_KEY;
-  const baseURL = process.env.WAVEARY_BASE_URL ?? preset?.baseURL;
+  const apiKey = process.env.WAVEARY_API_KEY ?? process.env.OPENAI_API_KEY ?? saved?.apiKey;
+  const baseURL = process.env.WAVEARY_BASE_URL ?? saved?.baseURL ?? preset?.baseURL;
 
   if (!apiKey) {
     throw new Error("Set WAVEARY_API_KEY or OPENAI_API_KEY before listing models.");
