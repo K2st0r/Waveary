@@ -4,6 +4,42 @@
 
 Objective:
 
+Add structured import diagnostics so invalid Waveary session files fail with actionable field-level feedback instead of a generic error.
+
+Summary:
+
+- upgraded the web session import validator to collect multiple structural problems across session metadata, messages, memory archive, and timeline events
+- introduced a dedicated `ChatSessionImportValidationError` so the local API can return both a top-level import failure message and a list of detailed validation findings
+- added route-level regression coverage for malformed session packages and verified that the browser-facing import flow still works for valid packages
+- updated the browser import UI to render the returned validation details as an import diagnostics panel under the session import controls
+
+Files changed:
+
+- `waveary-web/server/chat-session-store.ts`
+- `waveary-web/server/provider-api.ts`
+- `waveary-web/server/provider-api.test.ts`
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run test --workspace @waveary/web`
+- `npm run check --workspace @waveary/web`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-20
+
+Objective:
+
 Upgrade the new Waveary session migration flow from raw text handling into real browser file export and file-based import.
 
 Summary:

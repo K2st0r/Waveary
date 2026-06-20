@@ -824,6 +824,24 @@ a {
   display: none;
 }
 
+.session-import-error-card {
+  display: grid;
+  gap: 0.7rem;
+  margin-top: 0.9rem;
+  padding: 0.95rem 1rem;
+  border-radius: 16px;
+  background: rgba(227, 92, 92, 0.12);
+  border: 1px solid rgba(227, 92, 92, 0.26);
+}
+
+.session-import-error-list {
+  margin: 0;
+  padding-left: 1.1rem;
+  color: #ffd0d0;
+  display: grid;
+  gap: 0.45rem;
+}
+
 .chat-log {
   display: grid;
   gap: 0.85rem;
