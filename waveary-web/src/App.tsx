@@ -1,3 +1,25 @@
+import { useEffect, useState } from "react";
+import type { ChangeEvent, ReactElement } from "react";
+
+interface ProviderPreset {
+  id: string;
+  label: string;
+  baseURL: string;
+}
+
+interface SavedProviderConfig {
+  provider: string;
+  baseURL: string;
+  apiKey: string;
+  model: string;
+}
+
+interface ModelDescriptor {
+  id: string;
+  provider: string;
+  label?: string;
+}
+
 const engineCards = [
   {
     acronym: "WME",
@@ -47,14 +69,6 @@ const roadmap = [
   }
 ] as const;
 
-const providers = [
-  "OpenAI",
-  "DeepSeek",
-  "DashScope",
-  "Volcengine Ark",
-  "SiliconFlow"
-] as const;
-
 const principles = [
   "Memory comes before model.",
   "Relationship comes before features.",
@@ -67,10 +81,142 @@ const setupSteps = [
   "Fetch models",
   "Select model",
   "Save config",
-  "Run Waveary"
+  "Open chat next"
 ] as const;
 
+type LoadState = "idle" | "loading" | "success" | "error";
+
 export function App(): ReactElement {
+  const [presets, setPresets] = useState<ProviderPreset[]>([]);
+  const [savedConfig, setSavedConfig] = useState<SavedProviderConfig | null>(null);
+  const [selectedProvider, setSelectedProvider] = useState("");
+  const [baseURL, setBaseURL] = useState("");
+  const [apiKey, setApiKey] = useState("");
+  const [models, setModels] = useState<ModelDescriptor[]>([]);
+  const [selectedModel, setSelectedModel] = useState("");
+  const [loadState, setLoadState] = useState<LoadState>("idle");
+  const [modelsState, setModelsState] = useState<LoadState>("idle");
+  const [saveState, setSaveState] = useState<LoadState>("idle");
+  const [statusMessage, setStatusMessage] = useState("Loading provider configuration...");
+
+  useEffect(() => {
+    void loadInitialState();
+  }, []);
+
+  async function loadInitialState(): Promise<void> {
+    setLoadState("loading");
+
+    try {
+      const [presetResponse, configResponse] = await Promise.all([
+        fetchJson<{ presets: ProviderPreset[] }>("/api/provider/presets"),
+        fetchJson<{ config?: SavedProviderConfig }>("/api/provider/config")
+      ]);
+
+      const nextPresets = presetResponse.presets;
+      const nextConfig = configResponse.config ?? null;
+      const fallbackPreset = nextPresets[0];
+
+      setPresets(nextPresets);
+      setSavedConfig(nextConfig);
+
+      if (nextConfig) {
+        setSelectedProvider(nextConfig.provider);
+        setBaseURL(nextConfig.baseURL);
+        setApiKey(nextConfig.apiKey);
+        setSelectedModel(nextConfig.model);
+        setModels([
+          {
+            id: nextConfig.model,
+            provider: nextConfig.provider
+          }
+        ]);
+        setStatusMessage("Loaded saved provider configuration from .waveary/provider-config.json.");
+      } else if (fallbackPreset) {
+        setSelectedProvider(fallbackPreset.id);
+        setBaseURL(fallbackPreset.baseURL);
+        setStatusMessage("Choose a provider and fetch the models available to your API key.");
+      } else {
+        setStatusMessage("No provider presets are available.");
+      }
+
+      setLoadState("success");
+    } catch (error) {
+      setLoadState("error");
+      setStatusMessage(getErrorMessage(error));
+    }
+  }
+
+  function handleProviderChange(event: ChangeEvent<HTMLSelectElement>): void {
+    const nextProvider = event.target.value;
+    const preset = presets.find((entry) => entry.id === nextProvider);
+
+    setSelectedProvider(nextProvider);
+    setBaseURL(preset?.baseURL ?? "");
+    setModels([]);
+    setSelectedModel("");
+    setModelsState("idle");
+    setSaveState("idle");
+  }
+
+  async function handleFetchModels(): Promise<void> {
+    setModelsState("loading");
+    setSaveState("idle");
+
+    try {
+      const response = await fetchJson<{ models: ModelDescriptor[] }>("/api/provider/models", {
+        method: "POST",
+        body: JSON.stringify({
+          provider: selectedProvider,
+          baseURL,
+          apiKey
+        })
+      });
+
+      setModels(response.models);
+      setSelectedModel((current) => current || response.models[0]?.id || "");
+      setModelsState("success");
+      setStatusMessage(
+        response.models.length > 0
+          ? `Fetched ${response.models.length} models for ${selectedProvider}.`
+          : "No models were returned for this API key."
+      );
+    } catch (error) {
+      setModels([]);
+      setSelectedModel("");
+      setModelsState("error");
+      setStatusMessage(getErrorMessage(error));
+    }
+  }
+
+  async function handleSaveConfig(): Promise<void> {
+    setSaveState("loading");
+
+    try {
+      const response = await fetchJson<{ config: SavedProviderConfig }>("/api/provider/config", {
+        method: "POST",
+        body: JSON.stringify({
+          provider: selectedProvider,
+          baseURL,
+          apiKey,
+          model: selectedModel
+        })
+      });
+
+      setSavedConfig(response.config);
+      setSaveState("success");
+      setStatusMessage("Provider configuration saved locally. Waveary is ready to use this model.");
+    } catch (error) {
+      setSaveState("error");
+      setStatusMessage(getErrorMessage(error));
+    }
+  }
+
+  const isBusy = loadState === "loading" || modelsState === "loading" || saveState === "loading";
+  const canFetchModels = Boolean(selectedProvider && baseURL.trim() && apiKey.trim()) && modelsState !== "loading";
+  const canSaveConfig =
+    Boolean(selectedProvider && baseURL.trim() && apiKey.trim() && selectedModel) && saveState !== "loading";
+  const selectedPreset = presets.find((preset) => preset.id === selectedProvider) ?? null;
+
   return (
     <div className="page-shell">
       <div className="ambient ambient-left" />
@@ -82,7 +228,7 @@ export function App(): ReactElement {
         </div>
         <nav className="topnav">
           <a href="#engines">Engines</a>
-          <a href="#providers">Providers</a>
+          <a href="#setup">Setup</a>
           <a href="#roadmap">Roadmap</a>
           <a href="#structure">Structure</a>
         </nav>
@@ -98,17 +244,15 @@ export function App(): ReactElement {
               终有回响。
             </h1>
             <p className="hero-lead">
-              Waveary is an open source framework that gives any model long-term
-              memory, relationship growth, life timeline awareness, and the
-              capacity to stay with a user over time.
+              Waveary is an open source framework that gives any model long-term memory,
+              relationship growth, life timeline awareness, and the capacity to stay with a user over time.
             </p>
             <p className="hero-support">
-              It is not an AI girlfriend wrapper. It is a continuity layer for
-              digital companionship.
+              It is not an AI girlfriend wrapper. It is a continuity layer for digital companionship.
             </p>
             <div className="hero-actions">
-              <a className="button button-primary" href="#providers">
-                Provider Compatibility
+              <a className="button button-primary" href="#setup">
+                Open Setup Console
               </a>
               <a className="button button-secondary" href="#roadmap">
                 View Roadmap
@@ -148,15 +292,15 @@ export function App(): ReactElement {
               <div className="timeline-preview">
                 <div className="timeline-row">
                   <span>06/20</span>
-                  <p>Provider selection saved for future sessions.</p>
+                  <p>Framework positioning and provider compatibility are now established.</p>
                 </div>
                 <div className="timeline-row">
                   <span>07/02</span>
-                  <p>Relationship state reflects repeated late-night talks.</p>
+                  <p>Model selection becomes part of a reusable settings flow, not a one-off script.</p>
                 </div>
                 <div className="timeline-row">
                   <span>08/10</span>
-                  <p>Anniversary memory becomes a proactive care trigger.</p>
+                  <p>Next step: open the first in-browser chat surface on top of this configuration layer.</p>
                 </div>
               </div>
             </div>
@@ -179,48 +323,150 @@ export function App(): ReactElement {
           </div>
         </section>
 
-        <section className="section-grid section-block feature-band" id="providers">
+        <section className="section-grid section-block feature-band" id="setup">
           <div className="section-heading">
-            <span className="eyebrow">Provider Compatibility</span>
-            <h2>Connect broad model ecosystems without locking Waveary to one vendor.</h2>
+            <span className="eyebrow">Provider Setup</span>
+            <h2>Choose the vendor, discover the models behind your key, and save one usable runtime path.</h2>
             <p>
-              The current runtime uses an OpenAI-compatible provider layer so
-              domestic and global platforms can share one setup flow.
+              This is the first browser-native configuration flow for Waveary. It keeps provider logic server-side
+              while the web layer owns the interface and interaction.
             </p>
           </div>
-          <div className="provider-layout">
-            <div className="panel provider-panel">
+
+          <div className="setup-layout">
+            <div className="panel setup-overview-panel">
               <div className="panel-header">
-                <span>Supported Setup Flow</span>
-                <span className="panel-tag">Live now</span>
+                <span>Setup Sequence</span>
+                <span className="panel-tag">Interactive</span>
               </div>
               <ol className="step-list">
                 {setupSteps.map((step) => (
                   <li key={step}>{step}</li>
                 ))}
               </ol>
-              <div className="command-block">
-                <code>npm run setup:provider</code>
-                <code>npm run demo:provider</code>
+
+              <div className="saved-config-block">
+                <div className="mini-heading">Saved Configuration</div>
+                {savedConfig ? (
+                  <div className="saved-config-card">
+                    <div>
+                      <span className="saved-label">Provider</span>
+                      <strong>{savedConfig.provider}</strong>
+                    </div>
+                    <div>
+                      <span className="saved-label">Model</span>
+                      <strong>{savedConfig.model}</strong>
+                    </div>
+                    <div>
+                      <span className="saved-label">Base URL</span>
+                      <code>{savedConfig.baseURL}</code>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="provider-note">
+                    No saved provider configuration yet. Complete the flow on the right to create one.
+                  </p>
+                )}
               </div>
             </div>
 
-            <div className="panel provider-panel">
+            <div className="panel provider-console-panel">
               <div className="panel-header">
-                <span>Preset Providers</span>
-                <span className="panel-tag">OpenAI-compatible</span>
+                <span>Setup Console</span>
+                <span className="panel-tag">Local API</span>
               </div>
-              <div className="provider-list">
-                {providers.map((provider) => (
-                  <span className="provider-chip" key={provider}>
-                    {provider}
-                  </span>
-                ))}
+
+              <div
+                className={`status-banner ${
+                  loadState === "error" || modelsState === "error" || saveState === "error"
+                    ? "status-banner-error"
+                    : "status-banner-info"
+                }`}
+              >
+                {statusMessage}
               </div>
-              <p className="provider-note">
-                Base URL, API key, and discovered models stay configurable so
-                the framework can adapt as provider ecosystems change.
-              </p>
+
+              <div className="provider-form-grid">
+                <label className="form-field">
+                  <span>Provider</span>
+                  <select value={selectedProvider} onChange={handleProviderChange} disabled={isBusy}>
+                    <option value="">Select a provider</option>
+                    {presets.map((preset) => (
+                      <option key={preset.id} value={preset.id}>
+                        {preset.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className="form-field form-field-wide">
+                  <span>Base URL</span>
+                  <input
+                    type="text"
+                    value={baseURL}
+                    onChange={(event) => setBaseURL(event.target.value)}
+                    placeholder="https://api.example.com/v1"
+                    disabled={isBusy}
+                  />
+                </label>
+
+                <label className="form-field form-field-wide">
+                  <span>API Key</span>
+                  <input
+                    type="password"
+                    value={apiKey}
+                    onChange={(event) => setApiKey(event.target.value)}
+                    placeholder="sk-..."
+                    disabled={isBusy}
+                  />
+                </label>
+
+                <div className="provider-hint">
+                  <span className="mini-heading">Selected Preset</span>
+                  <p>
+                    {selectedPreset
+                      ? `${selectedPreset.label} will use its OpenAI-compatible endpoint unless you override the base URL.`
+                      : "Pick a provider preset to start from a known compatible endpoint."}
+                  </p>
+                </div>
+              </div>
+
+              <div className="console-actions">
+                <button className="button button-primary" onClick={() => void handleFetchModels()} disabled={!canFetchModels}>
+                  {modelsState === "loading" ? "Fetching Models..." : "Fetch Available Models"}
+                </button>
+              </div>
+
+              <div className="models-section">
+                <div className="mini-heading">Available Models</div>
+                {models.length > 0 ? (
+                  <label className="form-field">
+                    <span>Model</span>
+                    <select
+                      value={selectedModel}
+                      onChange={(event) => setSelectedModel(event.target.value)}
+                      disabled={isBusy}
+                    >
+                      {models.map((model) => (
+                        <option key={model.id} value={model.id}>
+                          {model.label ?? model.id}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                ) : (
+                  <p className="provider-note">
+                    Fetch models after entering a provider, base URL, and API key. The result list comes directly from
+                    the provider&apos;s `/models` endpoint.
+                  </p>
+                )}
+              </div>
+
+              <div className="console-actions">
+                <button className="button button-secondary" onClick={() => void handleSaveConfig()} disabled={!canSaveConfig}>
+                  {saveState === "loading" ? "Saving..." : "Save Provider Configuration"}
+                </button>
+              </div>
             </div>
           </div>
         </section>
@@ -265,9 +511,8 @@ export function App(): ReactElement {
             </div>
             <div className="panel structure-panel">
               <p>
-                `waveary-core` owns runtime orchestration. `waveary-memory`
-                owns memory extraction and storage. `waveary-web` becomes the
-                official interface layer without collapsing framework boundaries.
+                `waveary-core` owns runtime orchestration. `waveary-memory` owns memory extraction and storage.
+                `waveary-web` owns provider setup, user interaction, and future browser runtime surfaces.
               </p>
             </div>
           </div>
@@ -276,4 +521,30 @@ export function App(): ReactElement {
     </div>
   );
 }
-import type { ReactElement } from "react";
+
+async function fetchJson<T>(input: string, init?: RequestInit): Promise<T> {
+  const response = await fetch(input, {
+    ...init,
+    headers: {
+      "Content-Type": "application/json",
+      ...(init?.headers ?? {})
+    }
+  });
+
+  const text = await response.text();
+  const payload = text ? (JSON.parse(text) as Record<string, unknown>) : {};
+
+  if (!response.ok) {
+    throw new Error(typeof payload.error === "string" ? payload.error : `Request failed with status ${response.status}.`);
+  }
+
+  return payload as T;
+}
+
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return "An unexpected error occurred.";
+}

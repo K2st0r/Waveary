@@ -12,7 +12,7 @@ Current scope:
 
 - landing page and project homepage
 - product positioning and roadmap presentation
-- future entry point for provider setup UI
+- first browser-native provider setup flow
 
 Boundary:
 

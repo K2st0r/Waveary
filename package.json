@@ -18,8 +18,9 @@
     "models:provider": "npm run demo:build && node examples/dist/list-provider-models.js",
     "setup:provider": "npm run demo:build && node examples/dist/setup-provider.js",
     "demo:build": "npm run build --workspace @waveary/core && npm run build --workspace @waveary/memory && tsc -p examples/tsconfig.json",
-    "web:dev": "npm run dev --workspace @waveary/web",
-    "web:preview": "npm run preview --workspace @waveary/web",
+    "web:build": "npm run build --workspace @waveary/core && npm run build --workspace @waveary/web",
+    "web:dev": "npm run build --workspace @waveary/core && npm run dev --workspace @waveary/web",
+    "web:preview": "npm run build --workspace @waveary/core && npm run build --workspace @waveary/web && npm run preview --workspace @waveary/web",
     "test": "npm run build --workspaces && npm run test --workspace @waveary/memory && npm run test --workspace @waveary/core"
   }
 }
