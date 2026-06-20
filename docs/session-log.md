@@ -4,6 +4,46 @@
 
 Objective:
 
+Extend provider request compatibility beyond model discovery by encoding the first real vendor-specific chat request differences and making the workspace test scripts reliably execute compiled tests on Windows.
+
+Summary:
+
+- added a provider compatibility profile layer in `waveary-core` so request-shape differences can be handled per provider without forking the whole OpenAI-compatible adapter
+- normalized DeepSeek preset handling so a configured `https://api.deepseek.com/v1` base URL is rewritten to the provider's documented OpenAI-compatible base path before requests are sent
+- updated responses fallback assembly so DeepSeek uses a `system` instruction role instead of `developer`, matching the provider's documented compatibility limitation
+- expanded `waveary-core` adapter tests to cover DeepSeek base URL normalization and responses fallback role behavior
+- replaced the remaining glob-based package test scripts with Node-driven compiled test discovery so `@waveary/core`, `@waveary/memory`, and `@waveary/web` tests execute reliably in the current Windows shell
+
+Files changed:
+
+- `waveary-core/package.json`
+- `waveary-core/src/adapters/openai-compatible-provider.ts`
+- `waveary-core/src/adapters/openai-compatible-provider.test.ts`
+- `waveary-memory/package.json`
+- `waveary-web/package.json`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run test --workspace @waveary/core`
+- `npm run test --workspace @waveary/memory`
+- `npm run test --workspace @waveary/web`
+- `npm run check`
+- `npm run test`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-20
+
+Objective:
+
 Harden the OpenAI-compatible provider layer so browser model discovery tolerates more real vendor payload shapes and the core test scripts actually execute under the current Windows environment.
 
 Summary:

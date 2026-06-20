@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `0c5e5d3` - `Record reverse persistence API verification`
+- `8e1c0b5` - `Harden provider model discovery normalization`
 
 ## Modules
 
@@ -28,6 +28,7 @@ Brand line:
   - OpenAI-compatible multi-provider chat integration is implemented
   - provider model discovery interface is implemented
   - provider model discovery now normalizes multiple OpenAI-compatible `/models` payload shapes, deduplicates repeated IDs, and preserves optional label/context window metadata
+  - provider request compatibility now includes provider-specific base URL normalization and responses-role fallback handling for DeepSeek-style OpenAI-compatible differences
   - persisted session state contract and repository-backed runtime state adapter are implemented
   - SQLite persisted session state repository is implemented
 - `waveary-memory`
@@ -109,6 +110,7 @@ Brand line:
 ## Next Steps
 
 - expand provider-specific chat request normalization where "OpenAI-compatible" vendors diverge beyond the current shared `/chat/completions` and `/responses` paths
+- add route-level or live verification for more provider-specific chat payload divergences after the current DeepSeek compatibility baseline
 - add focused route-level and browser-facing coverage for any remaining persistence edge cases beyond the current file/sqlite symmetry path
 - consider hardening workspace build scripts further against transient Windows dist-lock races
 - keep updating `PROJECT_STATE.md` and `docs/session-log.md` after each verified work block
