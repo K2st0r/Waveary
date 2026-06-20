@@ -1,12 +1,13 @@
 import assert from "node:assert/strict";
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { after, beforeEach, test } from "node:test";
 import { Readable } from "node:stream";
 
-const TEST_DATA_DIR = mkdtempSync(join(tmpdir(), "waveary-web-provider-api-"));
+const TEST_ROOT_DIR = mkdtempSync(join(tmpdir(), "waveary-web-provider-api-"));
+const TEST_DATA_DIR = join(TEST_ROOT_DIR, "data");
 process.env.WAVEARY_DATA_DIR = TEST_DATA_DIR;
 
 const { createProviderApiMiddleware } = await import("./provider-api.js");
@@ -25,8 +26,8 @@ after(() => {
 
   try {
     resetChatRuntimeSessions();
-    saveChatPersistenceConfig(createDefaultChatPersistenceConfig());
-    rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+    resetTestDataDir();
+    rmSync(TEST_ROOT_DIR, { recursive: true, force: true });
   } catch {
     // Ignore final cleanup timing issues on Windows.
   }
@@ -34,8 +35,7 @@ after(() => {
 
 beforeEach(() => {
   resetChatRuntimeSessions();
-  rmSync(TEST_DATA_DIR, { recursive: true, force: true });
-  saveChatPersistenceConfig(createDefaultChatPersistenceConfig());
+  resetTestDataDir();
   globalThis.fetch = originalFetch;
 });
 
@@ -150,6 +150,131 @@ test("chat persistence route resets runtime cache before the next turn", async (
   assert.equal(fetchCalls[1]?.model, "model-b");
 });
 
+test("chat sessions route lists sessions with default session and persistence status", async () => {
+  createChatSession(DEFAULT_CHAT_SESSION_ID);
+  createChatSession("session-alpha", "Alpha Session");
+
+  const middleware = createProviderApiMiddleware();
+  const response = await invokeJsonRoute(middleware, "GET", "/api/chat/sessions");
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.defaultSessionId, DEFAULT_CHAT_SESSION_ID);
+  assert.equal(response.body.persistence.backend, "file");
+  assert.equal(response.body.sessions.length, 2);
+  assert.deepEqual(
+    response.body.sessions.map((session: { sessionId: string }) => session.sessionId).sort(),
+    [DEFAULT_CHAT_SESSION_ID, "session-alpha"].sort()
+  );
+});
+
+test("chat session route returns the requested persisted snapshot", async () => {
+  const middleware = createProviderApiMiddleware();
+
+  saveProviderConfig({
+    provider: "provider-a",
+    baseURL: "https://provider-a.example/v1",
+    apiKey: "key-a",
+    model: "model-a"
+  });
+
+  globalThis.fetch = (async () =>
+    new Response(
+      JSON.stringify({
+        choices: [
+          {
+            message: {
+              content: "remembered reply"
+            }
+          }
+        ]
+      }),
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json"
+        }
+      }
+    )) as typeof fetch;
+
+  await invokeJsonRoute(middleware, "POST", "/api/chat/turn", {
+    sessionId: DEFAULT_CHAT_SESSION_ID,
+    message: "Please remember this route-level session test."
+  });
+
+  const response = await invokeJsonRoute(middleware, "POST", "/api/chat/session", {
+    sessionId: DEFAULT_CHAT_SESSION_ID
+  });
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.session.sessionId, DEFAULT_CHAT_SESSION_ID);
+  assert.equal(response.body.session.messages.length, 2);
+  assert.equal(response.body.session.messages[0]?.content, "Please remember this route-level session test.");
+  assert.equal(response.body.session.messages[1]?.content, "remembered reply");
+});
+
+test("chat session rename route updates non-default sessions and keeps persistence payload", async () => {
+  createChatSession(DEFAULT_CHAT_SESSION_ID);
+  createChatSession("session-rename", "Before Rename");
+
+  const middleware = createProviderApiMiddleware();
+  const response = await invokeJsonRoute(middleware, "POST", "/api/chat/sessions/rename", {
+    sessionId: "session-rename",
+    title: "After Rename"
+  });
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.defaultSessionId, DEFAULT_CHAT_SESSION_ID);
+  assert.equal(response.body.persistence.backend, "file");
+  assert.equal(response.body.session.sessionId, "session-rename");
+  assert.equal(
+    response.body.sessions.find((session: { sessionId: string }) => session.sessionId === "session-rename")?.title,
+    "After Rename"
+  );
+});
+
+test("chat session rename route rejects the default session", async () => {
+  createChatSession(DEFAULT_CHAT_SESSION_ID);
+
+  const middleware = createProviderApiMiddleware();
+  const response = await invokeJsonRoute(middleware, "POST", "/api/chat/sessions/rename", {
+    sessionId: DEFAULT_CHAT_SESSION_ID,
+    title: "Should Fail"
+  });
+
+  assert.equal(response.statusCode, 400);
+  assert.equal(response.body.error, "The default main session cannot be renamed.");
+});
+
+test("chat session delete route removes optional sessions and preserves the default session", async () => {
+  createChatSession(DEFAULT_CHAT_SESSION_ID);
+  createChatSession("session-delete", "Delete Me");
+
+  const middleware = createProviderApiMiddleware();
+  const response = await invokeJsonRoute(middleware, "POST", "/api/chat/sessions/delete", {
+    sessionId: "session-delete"
+  });
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.defaultSessionId, DEFAULT_CHAT_SESSION_ID);
+  assert.equal(response.body.persistence.backend, "file");
+  assert.deepEqual(
+    response.body.sessions.map((session: { sessionId: string }) => session.sessionId),
+    [DEFAULT_CHAT_SESSION_ID]
+  );
+});
+
+test("chat session delete route rejects deleting the default session", async () => {
+  createChatSession(DEFAULT_CHAT_SESSION_ID);
+
+  const middleware = createProviderApiMiddleware();
+  const response = await invokeJsonRoute(middleware, "POST", "/api/chat/sessions/delete", {
+    sessionId: DEFAULT_CHAT_SESSION_ID
+  });
+
+  assert.equal(response.statusCode, 400);
+  assert.equal(response.body.error, "The default main session cannot be deleted.");
+});
+
 async function invokeJsonRoute(
   middleware: ReturnType<typeof createProviderApiMiddleware>,
   method: string,
@@ -214,4 +339,13 @@ function createResponseCapture(): {
     serverResponse: response as unknown as ServerResponse,
     getBody: () => capture.body
   };
+}
+
+function resetTestDataDir(): void {
+  mkdirSync(TEST_DATA_DIR, { recursive: true });
+  rmSync(join(TEST_DATA_DIR, "chat-sessions.json"), { force: true });
+  rmSync(join(TEST_DATA_DIR, "chat-sessions.db"), { force: true });
+  rmSync(join(TEST_DATA_DIR, "chat-persistence.json"), { force: true });
+  rmSync(join(TEST_DATA_DIR, "provider-config.json"), { force: true });
+  saveChatPersistenceConfig(createDefaultChatPersistenceConfig());
 }

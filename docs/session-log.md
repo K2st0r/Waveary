@@ -4,6 +4,43 @@
 
 Objective:
 
+Complete route-level regression coverage for the remaining `waveary-web` session APIs and fix runtime-side sqlite handle cleanup so repeated local verification stays stable on Windows.
+
+Summary:
+
+- extended `waveary-web/server/provider-api.test.ts` to cover `GET /api/chat/sessions`, `POST /api/chat/session`, `POST /api/chat/sessions/rename`, and `POST /api/chat/sessions/delete`
+- added assertions for default main-session protection so rename and delete requests fail cleanly for `waveary-main`
+- tightened the provider API test harness to reset persisted local state between test cases without cross-case leakage
+- added `PersistentChatSessionState.close()` and updated runtime cache reset logic to close cached repositories before clearing session state
+- verified that the full `waveary-web` package and root monorepo checks/tests pass after the sqlite resource cleanup fix
+
+Files changed:
+
+- `waveary-web/server/provider-api.test.ts`
+- `waveary-web/server/chat-runtime.ts`
+- `waveary-web/server/chat-session-store.ts`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run test --workspace @waveary/web`
+- `npm run check --workspace @waveary/web`
+- `npm run check`
+- `npm run test`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-20
+
+Objective:
+
 Verify the richer `waveary-web` persistence payload through a real local dev-server API flow, not only through isolated tests.
 
 Summary:

@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `52f659f` - `Add chat persistence API regression tests`
+- `0442c6b` - `Record live persistence API verification`
 
 ## Modules
 
@@ -44,6 +44,7 @@ Brand line:
   - local persistence backend switching between JSON file and SQLite is implemented through local `/api/chat/persistence`
   - Node-based regression tests now cover local persistence backend switching and cross-backend state synchronization
   - Node-based route tests now cover `/api/chat/persistence` response shape and runtime cache reset behavior
+  - Node-based route tests now cover session listing, session loading, rename, delete, and default-session protection behavior
   - session persistence UI now surfaces backend-by-backend sync state, last migration metadata, differing session counts, and latest write timestamps
   - main-session default plus optional additional chat sessions are implemented in the web layer
   - non-default sessions can now be renamed and deleted through the web session layer
@@ -102,8 +103,8 @@ Brand line:
 ## Next Steps
 
 - expand provider-specific request normalization where "OpenAI-compatible" vendors diverge further
-- add route-level regression coverage for the remaining session mutation endpoints in `waveary-web`
 - add a focused local verification pass for `sqlite -> file` live switch symmetry through the browser-facing API
+- consider hardening workspace build scripts further against transient Windows dist-lock races
 - keep updating `PROJECT_STATE.md` and `docs/session-log.md` after each verified work block
 - keep `START_HERE.md` and continuity files aligned with current workflow
 

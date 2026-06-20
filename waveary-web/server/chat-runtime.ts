@@ -57,10 +57,20 @@ export function loadChatSessionSnapshot(sessionId: string): ChatSessionSnapshot 
     return existing.persistentState.getSnapshot();
   }
 
-  return new PersistentChatSessionState(sessionId).getSnapshot();
+  const persistentState = new PersistentChatSessionState(sessionId);
+
+  try {
+    return persistentState.getSnapshot();
+  } finally {
+    persistentState.close();
+  }
 }
 
 export function resetChatRuntimeSessions(): void {
+  for (const state of sessions.values()) {
+    state.persistentState.close();
+  }
+
   sessions.clear();
 }
 
