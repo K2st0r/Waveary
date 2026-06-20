@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `988bf49` - `Add web chat session export flow`
+- `bcb13b5` - `Add browser file import export flow`
 
 ## Modules
 
