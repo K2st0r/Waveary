@@ -132,3 +132,24 @@ Impact:
 - `waveary-core` should expose a provider abstraction that supports model discovery
 - provider demos should guide users to list models before choosing one
 - future vendor-specific adapters should be added only when a provider cannot fit the compatible path
+
+## 2026-06-20 - Provider Setup UX
+
+Status:
+
+- accepted
+
+Decision:
+
+The first usable provider flow should be interactive setup in the terminal: choose provider, enter key, fetch models, choose model, save config.
+
+Reason:
+
+- it matches the intended user flow more closely than raw environment variables
+- it creates one reusable saved config for later runtime calls
+- it is enough to unblock real usage before a web UI exists
+
+Impact:
+
+- `npm run setup:provider` becomes the first recommended setup path
+- `demo:provider` should load saved config automatically

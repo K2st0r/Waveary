@@ -163,6 +163,43 @@ Push:
 
 Objective:
 
+Match the real provider flow more closely: choose provider, enter API key, discover models, select model, then use the runtime without re-entering everything manually.
+
+Summary:
+
+- added interactive `npm run setup:provider`
+- added saved provider config support through `.waveary/provider-config.json`
+- updated `demo:provider` and `models:provider` to load saved config automatically
+
+Files changed:
+
+- `package.json`
+- `examples/src/provider-config.ts`
+- `examples/src/setup-provider.ts`
+- `examples/src/list-provider-models.ts`
+- `examples/src/run-openai-demo.ts`
+- `PROJECT_STATE.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check`
+- `npm run test`
+- `npm run demo:provider`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-20
+
+Objective:
+
 Make Waveary directly connectable to real model providers while keeping compatibility broad enough for domestic platforms.
 
 Summary:
