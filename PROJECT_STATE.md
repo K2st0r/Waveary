@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `892e50f` - `Sync web persistence test continuity records`
+- `5eb777f` - `Add web persistence status insights`
 
 ## Modules
 
