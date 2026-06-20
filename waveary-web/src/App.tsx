@@ -76,6 +76,13 @@ interface ChatSessionSnapshot {
   updatedAt: string;
 }
 
+interface ExportedChatSession {
+  exportedAt: string;
+  sessionId: string;
+  title: string;
+  snapshot: ChatSessionSnapshot;
+}
+
 interface ChatSessionListItem {
   sessionId: string;
   title: string;
@@ -213,6 +220,8 @@ export function App(): ReactElement {
   const [persistenceStatus, setPersistenceStatus] = useState<ChatPersistenceStatus | null>(null);
   const [selectedPersistenceBackend, setSelectedPersistenceBackend] = useState<ChatPersistenceBackend>("file");
   const [persistenceState, setPersistenceState] = useState<LoadState>("idle");
+  const [sessionExportState, setSessionExportState] = useState<LoadState>("idle");
+  const [sessionExportJson, setSessionExportJson] = useState("");
 
   useEffect(() => {
     void loadInitialState();
@@ -557,6 +566,30 @@ export function App(): ReactElement {
     }
   }
 
+  async function handleExportSession(): Promise<void> {
+    if (!activeSessionId) {
+      return;
+    }
+
+    setSessionExportState("loading");
+
+    try {
+      const response = await fetchJson<{ exported: ExportedChatSession }>("/api/chat/session/export", {
+        method: "POST",
+        body: JSON.stringify({
+          sessionId: activeSessionId
+        })
+      });
+
+      setSessionExportJson(JSON.stringify(response.exported, null, 2));
+      setSessionExportState("success");
+      setStatusMessage(`Exported session package for ${response.exported.title}.`);
+    } catch (error) {
+      setSessionExportState("error");
+      setStatusMessage(getErrorMessage(error));
+    }
+  }
+
   async function handleSendMessage(): Promise<void> {
     const trimmed = chatInput.trim();
     if (!trimmed) {
@@ -649,6 +682,7 @@ export function App(): ReactElement {
     Boolean(persistenceStatus) &&
     selectedPersistenceBackend !== (persistenceStatus?.backend ?? selectedPersistenceBackend) &&
     persistenceState !== "loading";
+  const canExportSession = Boolean(activeSessionId) && sessionExportState !== "loading";
   const alternateBackendStatus =
     persistenceStatus?.backendDetails.find((detail) => detail.backend !== persistenceStatus.backend) ?? null;
   const hasSessionArchive =
@@ -1101,6 +1135,14 @@ export function App(): ReactElement {
                       <div className="session-action-row">
                         <button
                           className="button button-secondary"
+                          onClick={() => void handleExportSession()}
+                          disabled={!canExportSession}
+                          type="button"
+                        >
+                          {sessionExportState === "loading" ? "Exporting..." : "Export Session JSON"}
+                        </button>
+                        <button
+                          className="button button-secondary"
                           onClick={() => void handleResetSession()}
                           disabled={!activeSession.sessionId}
                           type="button"
@@ -1181,6 +1223,21 @@ export function App(): ReactElement {
                   </button>
                 </div>
               </div>
+
+              {sessionExportJson ? (
+                <div className="session-export-panel">
+                  <div className="panel-header">
+                    <span>Session Export</span>
+                    <span className="panel-tag">Structured JSON</span>
+                  </div>
+                  <p className="provider-note">
+                    This export package includes conversation, persisted memories, relationship state, timeline events, and latest insights for the active session.
+                  </p>
+                  <pre className="session-export-block">
+                    <code>{sessionExportJson}</code>
+                  </pre>
+                </div>
+              ) : null}
             </div>
 
             <div className="panel insight-panel">

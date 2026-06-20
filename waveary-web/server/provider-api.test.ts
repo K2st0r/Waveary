@@ -225,6 +225,56 @@ test("chat session route returns the requested persisted snapshot", async () => 
   );
 });
 
+test("chat session export route returns a structured export package for the active session", async () => {
+  const middleware = createProviderApiMiddleware();
+
+  saveProviderConfig({
+    provider: "provider-a",
+    baseURL: "https://provider-a.example/v1",
+    apiKey: "key-a",
+    model: "model-a"
+  });
+
+  globalThis.fetch = (async () =>
+    new Response(
+      JSON.stringify({
+        choices: [
+          {
+            message: {
+              content: "export reply"
+            }
+          }
+        ]
+      }),
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json"
+        }
+      }
+    )) as typeof fetch;
+
+  await invokeJsonRoute(middleware, "POST", "/api/chat/turn", {
+    sessionId: DEFAULT_CHAT_SESSION_ID,
+    message: "Please export this session memory package."
+  });
+
+  const response = await invokeJsonRoute(middleware, "POST", "/api/chat/session/export", {
+    sessionId: DEFAULT_CHAT_SESSION_ID
+  });
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.exported.sessionId, DEFAULT_CHAT_SESSION_ID);
+  assert.equal(response.body.exported.title, "Main Companion Session");
+  assert.equal(response.body.exported.snapshot.messages.length, 2);
+  assert.equal(response.body.exported.snapshot.memoryArchive.length, 1);
+  assert.equal(response.body.exported.snapshot.timelineEvents.length, 1);
+  assert.equal(
+    response.body.exported.snapshot.memoryArchive[0]?.content,
+    "Please export this session memory package."
+  );
+});
+
 test("chat session rename route updates non-default sessions and keeps persistence payload", async () => {
   createChatSession(DEFAULT_CHAT_SESSION_ID);
   createChatSession("session-rename", "Before Rename");
