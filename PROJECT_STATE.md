@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `ec58fe9` - `Sync continuity records for chat persistence`
+- `39f1bf5` - `Add main and optional web chat sessions`
 
 ## Modules
 
@@ -96,4 +96,4 @@ Brand line:
 
 ## Open Issues
 
-- no active repository-side blocker
+- GitHub push is currently failing from the local network; branch is ahead of `origin/main` by one commit
