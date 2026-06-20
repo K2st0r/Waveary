@@ -110,3 +110,25 @@ Impact:
 
 - `npm run test` becomes part of the default verification set
 - future persistence and provider changes should extend this test layer before larger framework adoption
+
+## 2026-06-20 - Provider Integration Strategy
+
+Status:
+
+- accepted
+
+Decision:
+
+Prefer an OpenAI-compatible multi-provider layer over a single-vendor SDK integration for early AI connectivity.
+
+Reason:
+
+- many domestic providers expose OpenAI-style APIs
+- a common `baseURL + apiKey + model` path gives broader compatibility
+- model listing can often be implemented through a shared `/models` endpoint
+
+Impact:
+
+- `waveary-core` should expose a provider abstraction that supports model discovery
+- provider demos should guide users to list models before choosing one
+- future vendor-specific adapters should be added only when a provider cannot fit the compatible path

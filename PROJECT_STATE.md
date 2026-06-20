@@ -25,6 +25,8 @@ Brand line:
   - in-memory relationship, timeline, emotion, and scripted chat adapters are implemented
   - runnable demo flow exists through root `examples/`
   - Node-based runtime tests are implemented
+  - OpenAI-compatible multi-provider chat integration is implemented
+  - provider model discovery interface is implemented
 - `waveary-memory`
   - independent package exists
   - simple memory extractor exists
@@ -36,6 +38,7 @@ Brand line:
 - `npm run check`
 - `npm run test`
 - `npm run demo`
+- `npm run demo:provider` shows required provider configuration guidance
 - `python C:\Users\13571\.codex\skills\.system\skill-creator\scripts\quick_validate.py C:\Users\13571\.codex\skills\waveary-continuity-guard`
 
 ## Decision Sources
@@ -44,6 +47,7 @@ Brand line:
 
 ## Next Steps
 
+- add an interactive provider configuration layer for user-entered keys and model selection
 - add persistence interfaces beyond in-memory storage
 - add persistence tests once non-memory stores exist
 - define `waveary-web` package boundary

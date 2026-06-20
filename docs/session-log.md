@@ -163,6 +163,51 @@ Push:
 
 Objective:
 
+Make Waveary directly connectable to real model providers while keeping compatibility broad enough for domestic platforms.
+
+Summary:
+
+- replaced the single-vendor OpenAI path with an OpenAI-compatible multi-provider adapter
+- added provider presets for OpenAI, DeepSeek, DashScope, Volcengine Ark, and SiliconFlow
+- added model discovery support through a provider `/models` path
+- added `npm run demo:provider`
+- added `npm run models:provider`
+
+Files changed:
+
+- `package.json`
+- `package-lock.json`
+- `tsconfig.base.json`
+- `examples/src/run-openai-demo.ts`
+- `examples/src/list-provider-models.ts`
+- `waveary-core/src/adapters/openai-compatible-provider.ts`
+- `waveary-core/src/adapters/openai-compatible-provider.test.ts`
+- `waveary-core/src/providers/interfaces.ts`
+- `waveary-core/src/index.ts`
+- `waveary-core/README.md`
+- `PROJECT_STATE.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check`
+- `npm run test`
+- `npm run demo`
+- `npm run demo:provider`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-20
+
+Objective:
+
 Start formal development by turning the current runtime and memory behavior into regression-tested code instead of leaving them as unchecked demo logic.
 
 Summary:

@@ -1,5 +1,6 @@
 export * from "./adapters/in-memory-relationship-store.js";
 export * from "./adapters/in-memory-timeline-store.js";
+export * from "./adapters/openai-compatible-provider.js";
 export * from "./adapters/scripted-chat-provider.js";
 export * from "./adapters/simple-emotion-analyzer.js";
 export * from "./adapters/simple-relationship-engine.js";
