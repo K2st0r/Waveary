@@ -13,6 +13,7 @@ Current scope:
 - landing page and project homepage
 - product positioning and roadmap presentation
 - first browser-native provider setup flow
+- first browser-native runtime chat shell
 
 Boundary:
 

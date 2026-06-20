@@ -7,34 +7,75 @@ import {
   resolveProviderPreset
 } from "./openai-compatible-provider.js";
 
-test("OpenAICompatibleChatProvider maps runtime context into a compatible responses request", async () => {
-  const recorded: { url?: string; init: RequestInit | undefined } = { init: undefined };
+test("OpenAICompatibleChatProvider prefers chat completions for broad provider compatibility", async () => {
+  const recorded: Array<{ url: string; init: RequestInit | undefined }> = [];
   const provider = new OpenAICompatibleChatProvider({
     provider: "test-provider",
     apiKey: "test-key",
     baseURL: "https://example.com/v1",
     model: "test-model",
     fetchFn: async (url, init) => {
-      recorded.url = String(url);
-      recorded.init = init;
-      return new Response(JSON.stringify({ output_text: "mock reply" }), { status: 200 });
+      recorded.push({ url: String(url), init });
+      return new Response(
+        JSON.stringify({
+          choices: [{ message: { content: "mock reply" } }]
+        }),
+        { status: 200 }
+      );
     }
   });
 
   const reply = await provider.generateReply(createRequest());
 
   assert.equal(reply, "mock reply");
-  assert.equal(recorded.url, "https://example.com/v1/responses");
+  assert.equal(recorded.length, 1);
+  assert.equal(recorded[0]?.url, "https://example.com/v1/chat/completions");
 
-  const body = JSON.parse(String(recorded.init?.body)) as {
+  const body = JSON.parse(String(recorded[0]?.init?.body)) as {
+    model: string;
+    messages: Array<{ role: string; content: string }>;
+  };
+
+  assert.equal(body.model, "test-model");
+  assert.equal(body.messages[0]?.role, "system");
+  assert.match(body.messages[0]?.content ?? "", /Relevant memories:/);
+  assert.equal(body.messages[1]?.role, "user");
+});
+
+test("OpenAICompatibleChatProvider falls back to responses when chat completions is unavailable", async () => {
+  const recorded: Array<{ url: string; init: RequestInit | undefined }> = [];
+  const provider = new OpenAICompatibleChatProvider({
+    provider: "test-provider",
+    apiKey: "test-key",
+    baseURL: "https://example.com/v1",
+    model: "test-model",
+    fetchFn: async (url, init) => {
+      recorded.push({ url: String(url), init });
+
+      if (String(url).endsWith("/chat/completions")) {
+        return new Response("not found", { status: 404 });
+      }
+
+      return new Response(JSON.stringify({ output_text: "fallback reply" }), { status: 200 });
+    }
+  });
+
+  const reply = await provider.generateReply(createRequest());
+
+  assert.equal(reply, "fallback reply");
+  assert.deepEqual(
+    recorded.map((entry) => entry.url),
+    ["https://example.com/v1/chat/completions", "https://example.com/v1/responses"]
+  );
+
+  const fallbackBody = JSON.parse(String(recorded[1]?.init?.body)) as {
     model: string;
     input: Array<{ role: string; content: string }>;
   };
 
-  assert.equal(body.model, "test-model");
-  assert.equal(body.input[0]?.role, "developer");
-  assert.match(body.input[0]?.content ?? "", /Relevant memories:/);
-  assert.equal(body.input[1]?.role, "user");
+  assert.equal(fallbackBody.model, "test-model");
+  assert.equal(fallbackBody.input[0]?.role, "developer");
+  assert.equal(fallbackBody.input[1]?.role, "user");
 });
 
 test("OpenAICompatibleChatProvider lists models from the provider key", async () => {
