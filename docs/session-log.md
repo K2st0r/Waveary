@@ -4,6 +4,42 @@
 
 Objective:
 
+Add explicit schema versioning to the Waveary browser session package without breaking older exports that were created before version metadata existed.
+
+Summary:
+
+- added `schemaVersion: "waveary-session@1"` to the current `waveary-web` session export package contract
+- kept import backward-compatible for legacy unversioned packages while rejecting unsupported future schema versions with a clear validation error
+- surfaced the active schema version through `/api/chat/session/format`, the browser import reference card, the export callout, and the sample package docs
+- expanded route-level regression coverage for versioned export, legacy import, unsupported-version rejection, and the updated format reference payload
+
+Files changed:
+
+- `waveary-web/server/chat-session-store.ts`
+- `waveary-web/server/provider-api.ts`
+- `waveary-web/server/provider-api.test.ts`
+- `waveary-web/src/App.tsx`
+- `docs/session-file-format.md`
+- `docs/examples/session-export.sample.json`
+
+Verification:
+
+- `npm run check --workspace @waveary/web`
+- `npm run build:server --workspace @waveary/web`
+- `node --test waveary-web/dist-server/server/provider-api.test.js`
+
+Commit:
+
+- `c27f755` - `Add session package schema versioning`
+
+Push:
+
+- pending
+
+## 2026-06-21
+
+Objective:
+
 Surface the Waveary session package format directly inside the browser import/export flow so users can see the safety rule, required fields, and sample package without leaving the product UI.
 
 Summary:
