@@ -153,3 +153,45 @@ Impact:
 
 - `npm run setup:provider` becomes the first recommended setup path
 - `demo:provider` should load saved config automatically
+
+## 2026-06-20 - Web Package Boundary
+
+Status:
+
+- accepted
+
+Decision:
+
+Create `waveary-web` as a separate workspace package and make its first deliverable a formal project homepage before building the browser runtime shell.
+
+Reason:
+
+- the project needs an official web surface that matches the new framework positioning
+- a homepage establishes product identity without pushing UI concerns into `waveary-core`
+- provider settings and chat UI can be layered in later without reworking package boundaries
+
+Impact:
+
+- `waveary-web` owns web presentation and future browser interaction flows
+- the first page should explain positioning, engines, provider compatibility, and roadmap clearly
+- provider setup UI should be added in `waveary-web`, not inside demo scripts or core runtime packages
+
+## 2026-06-20 - Clean Dist Before Build
+
+Status:
+
+- accepted
+
+Decision:
+
+Each package build should remove its `dist` directory before compiling.
+
+Reason:
+
+- stale compiled files can survive refactors and cause false test failures
+- package tests should reflect current source, not leftover output from old adapters
+
+Impact:
+
+- `waveary-core`, `waveary-memory`, and `waveary-web` build scripts clean `dist` first
+- repository verification becomes more reliable across sessions and incremental changes

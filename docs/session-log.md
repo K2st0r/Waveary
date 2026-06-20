@@ -153,48 +153,50 @@ Verification:
 
 Commit:
 
-- pending
+- `291869e` - `Add root continuity entrypoint`
 
 Push:
 
-- pending
+- succeeded
 
 ## 2026-06-20
 
 Objective:
 
-Match the real provider flow more closely: choose provider, enter API key, discover models, select model, then use the runtime without re-entering everything manually.
+Start formal development by turning the current runtime and memory behavior into regression-tested code instead of leaving them as unchecked demo logic.
 
 Summary:
 
-- added interactive `npm run setup:provider`
-- added saved provider config support through `.waveary/provider-config.json`
-- updated `demo:provider` and `models:provider` to load saved config automatically
+- added Node-based tests to `waveary-core`
+- added Node-based tests to `waveary-memory`
+- added root `npm run test`
+- fixed TypeScript config so repeated builds and tests stay stable
 
 Files changed:
 
 - `package.json`
-- `examples/src/provider-config.ts`
-- `examples/src/setup-provider.ts`
-- `examples/src/list-provider-models.ts`
-- `examples/src/run-openai-demo.ts`
-- `PROJECT_STATE.md`
-- `docs/decision-log.md`
-- `docs/session-log.md`
+- `tsconfig.base.json`
+- `examples/tsconfig.json`
+- `waveary-core/package.json`
+- `waveary-core/tsconfig.json`
+- `waveary-core/src/runtime/waveary-runtime.test.ts`
+- `waveary-memory/package.json`
+- `waveary-memory/tsconfig.json`
+- `waveary-memory/src/*.test.ts`
 
 Verification:
 
 - `npm run check`
 - `npm run test`
-- `npm run demo:provider`
+- `npm run demo`
 
 Commit:
 
-- pending
+- `1503868` - `Add initial regression tests for core and memory`
 
 Push:
 
-- pending
+- succeeded
 
 ## 2026-06-20
 
@@ -235,42 +237,86 @@ Verification:
 
 Commit:
 
-- pending
+- `95dfb27` - `Add multi-provider AI integration layer`
 
 Push:
 
-- pending
+- succeeded
 
 ## 2026-06-20
 
 Objective:
 
-Start formal development by turning the current runtime and memory behavior into regression-tested code instead of leaving them as unchecked demo logic.
+Match the real provider flow more closely: choose provider, enter API key, discover models, select model, then use the runtime without re-entering everything manually.
 
 Summary:
 
-- added Node-based tests to `waveary-core`
-- added Node-based tests to `waveary-memory`
-- added root `npm run test`
-- fixed TypeScript config so repeated builds and tests stay stable
+- added interactive `npm run setup:provider`
+- added saved provider config support through `.waveary/provider-config.json`
+- updated `demo:provider` and `models:provider` to load saved config automatically
 
 Files changed:
 
 - `package.json`
-- `tsconfig.base.json`
-- `examples/tsconfig.json`
+- `examples/src/provider-config.ts`
+- `examples/src/setup-provider.ts`
+- `examples/src/list-provider-models.ts`
+- `examples/src/run-openai-demo.ts`
+- `PROJECT_STATE.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check`
+- `npm run test`
+- `npm run demo:provider`
+
+Commit:
+
+- `7f76d2e` - `Add interactive provider setup flow`
+
+Push:
+
+- local commit existed and branch was ahead of origin at the time of recording
+
+## 2026-06-20
+
+Objective:
+
+Stand up the first official `waveary-web` page and define the package boundary for the web surface without collapsing runtime logic into the UI layer.
+
+Summary:
+
+- added a standalone `waveary-web` React and Vite workspace
+- implemented a formal homepage for Waveary positioning, engine stack, provider compatibility, roadmap, and repository structure
+- added root web scripts for dev and preview
+- fixed package build hygiene by cleaning `dist` before compile so stale adapter tests stop leaking into verification
+
+Files changed:
+
+- `package.json`
+- `package-lock.json`
 - `waveary-core/package.json`
-- `waveary-core/tsconfig.json`
-- `waveary-core/src/runtime/waveary-runtime.test.ts`
 - `waveary-memory/package.json`
-- `waveary-memory/tsconfig.json`
-- `waveary-memory/src/*.test.ts`
+- `waveary-web/package.json`
+- `waveary-web/tsconfig.json`
+- `waveary-web/vite.config.ts`
+- `waveary-web/index.html`
+- `waveary-web/README.md`
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/main.tsx`
+- `waveary-web/src/styles.css`
+- `PROJECT_STATE.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
 
 Verification:
 
 - `npm run check`
 - `npm run test`
 - `npm run demo`
+- `npm run build --workspace @waveary/web`
 
 Commit:
 

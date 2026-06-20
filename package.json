@@ -3,7 +3,8 @@
   "private": true,
   "workspaces": [
     "waveary-core",
-    "waveary-memory"
+    "waveary-memory",
+    "waveary-web"
   ],
   "devDependencies": {
     "@types/node": "^24.0.10",
@@ -16,7 +17,9 @@
     "demo:provider": "npm run demo:build && node examples/dist/run-openai-demo.js",
     "models:provider": "npm run demo:build && node examples/dist/list-provider-models.js",
     "setup:provider": "npm run demo:build && node examples/dist/setup-provider.js",
-    "demo:build": "npm run build --workspaces && tsc -p examples/tsconfig.json",
+    "demo:build": "npm run build --workspace @waveary/core && npm run build --workspace @waveary/memory && tsc -p examples/tsconfig.json",
+    "web:dev": "npm run dev --workspace @waveary/web",
+    "web:preview": "npm run preview --workspace @waveary/web",
     "test": "npm run build --workspaces && npm run test --workspace @waveary/memory && npm run test --workspace @waveary/core"
   }
 }
