@@ -55,6 +55,7 @@ Brand line:
   - persisted session snapshots now surface memory archive, relationship snapshot, and timeline history through the local API and browser UI
   - active sessions can now be exported as structured JSON packages from the local API and browser UI
   - exported session packages can now be imported as brand-new local sessions through the local API and browser UI
+  - browser export now downloads a real `.json` file and browser import now supports selecting a local `.json` file in addition to paste input
   - non-default sessions can now be renamed and deleted through the web session layer
   - Windows-safe local dev and preview entrypoints are implemented for the current workspace path setup
   - package boundary is documented for future provider setup and runtime UI work
@@ -120,6 +121,7 @@ Brand line:
 - consider surfacing richer archive filtering or grouped recall views now that persisted session intelligence is visible in the browser
 - consider adding import or downloadable file export flows now that structured session export is available
 - consider validating downloadable file-based import/export or partial merge tools now that session migration is possible in-browser
+- consider adding stronger schema validation and user-facing import diagnostics for malformed session files
 - consider hardening workspace build scripts further against transient Windows dist-lock races
 - keep updating `PROJECT_STATE.md` and `docs/session-log.md` after each verified work block
 - keep `START_HERE.md` and continuity files aligned with current workflow

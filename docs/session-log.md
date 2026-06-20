@@ -4,6 +4,39 @@
 
 Objective:
 
+Upgrade the new Waveary session migration flow from raw text handling into real browser file export and file-based import.
+
+Summary:
+
+- upgraded browser session export so the structured JSON package is downloaded as a real local `.json` file instead of only being shown inline
+- added browser-side file selection for session import while preserving the existing JSON paste path as a fallback
+- kept the migration model unchanged: exports remain structured session packages and imports still restore into a brand-new local session instead of overwriting existing state
+- verified that the `waveary-web` route and type-check coverage still pass after the browser-side file handling upgrade
+
+Files changed:
+
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run test --workspace @waveary/web`
+- `npm run check --workspace @waveary/web`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-20
+
+Objective:
+
 Add safe in-browser session import so a Waveary export package can be restored as a new local companion session without overwriting existing state.
 
 Summary:
