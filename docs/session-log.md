@@ -4,6 +4,48 @@
 
 Objective:
 
+Finish the browser session management flow so non-default sessions can be renamed and deleted without dropping back to terminal or raw APIs.
+
+Summary:
+
+- completed the local `/api/chat/sessions/rename` and `/api/chat/sessions/delete` flow in the web UI
+- replaced the old session dropdown with a session list and management cards
+- kept the default `waveary-main` session protected from rename and delete operations
+- made local session history load even before a provider is configured so persistence remains visible
+- added `.waveary/` to `.gitignore` so local provider and chat state stay out of commits
+
+Files changed:
+
+- `.gitignore`
+- `waveary-web/server/chat-session-store.ts`
+- `waveary-web/server/provider-api.ts`
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check`
+- `npm run web:build`
+- `Invoke-WebRequest http://127.0.0.1:4173/api/chat/sessions`
+- `Invoke-WebRequest http://127.0.0.1:4173/api/chat/session`
+- `Invoke-WebRequest http://127.0.0.1:4173/api/chat/sessions` `POST`
+- `Invoke-WebRequest http://127.0.0.1:4173/api/chat/sessions/rename` `POST`
+- `Invoke-WebRequest http://127.0.0.1:4173/api/chat/sessions/delete` `POST`
+
+Commit:
+
+- `0f80e08` - `Add web session management controls`
+
+Push:
+
+- pending
+
+## 2026-06-20
+
+Objective:
+
 Build the first runnable `waveary-core` flow and split out the initial `waveary-memory` module.
 
 Summary:

@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `39f1bf5` - `Add main and optional web chat sessions`
+- `0f80e08` - `Add web session management controls`
 
 ## Modules
 
@@ -40,6 +40,7 @@ Brand line:
   - first in-browser runtime chat shell is implemented through local `/api/chat/turn`
   - local browser chat session persistence is implemented through `.waveary/chat-sessions.json`
   - main-session default plus optional additional chat sessions are implemented in the web layer
+  - non-default sessions can now be renamed and deleted through the web session layer
   - Windows-safe local dev and preview entrypoints are implemented for the current workspace path setup
   - package boundary is documented for future provider setup and runtime UI work
 
@@ -62,7 +63,7 @@ Brand line:
   - can list provider presets, fetch models through the selected provider key, and save local config
   - can run a first browser chat flow and render memory, relationship, emotion, and timeline signals
   - restores local chat history and latest runtime signals after dev server restart
-  - supports a default main companion session plus user-created additional sessions
+  - supports a default main companion session plus user-created additional sessions with rename and delete management
   - now boots reliably through `npm run web:dev` on the current Windows + Chinese-path workspace
 
 ## Verified Commands
@@ -76,6 +77,8 @@ Brand line:
 - `npm run setup:provider` is available for interactive provider selection and config saving
 - `Invoke-WebRequest http://127.0.0.1:4173/api/chat/session`
 - `Invoke-WebRequest http://127.0.0.1:4173/api/chat/sessions`
+- `Invoke-WebRequest http://127.0.0.1:4173/api/chat/sessions/rename`
+- `Invoke-WebRequest http://127.0.0.1:4173/api/chat/sessions/delete`
 - `Invoke-WebRequest http://127.0.0.1:4173/`
 - `Invoke-WebRequest http://127.0.0.1:4173/api/provider/presets`
 - `Invoke-WebRequest http://127.0.0.1:4173/api/chat/turn`
@@ -89,11 +92,10 @@ Brand line:
 
 - add persistence interfaces beyond in-memory storage
 - add persistence tests once non-memory stores exist
-- allow renaming and deleting non-default sessions
 - expand provider-specific request normalization where "OpenAI-compatible" vendors diverge further
 - keep updating `PROJECT_STATE.md` and `docs/session-log.md` after each verified work block
 - keep `START_HERE.md` and continuity files aligned with current workflow
 
 ## Open Issues
 
-- GitHub push is currently failing from the local network; branch is ahead of `origin/main` by one commit
+- `npm run web:build` should not be executed in parallel with another root build command because package `dist` cleanup can race on Windows
