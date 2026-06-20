@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `e16bb91` - `Add web chat persistence backend switching`
+- `b6f629e` - `Sync persistence switching continuity records`
 
 ## Modules
 
@@ -42,6 +42,7 @@ Brand line:
   - first in-browser runtime chat shell is implemented through local `/api/chat/turn`
   - local browser chat session persistence is implemented through `.waveary/chat-sessions.json`
   - local persistence backend switching between JSON file and SQLite is implemented through local `/api/chat/persistence`
+  - Node-based regression tests now cover local persistence backend switching and cross-backend state synchronization
   - main-session default plus optional additional chat sessions are implemented in the web layer
   - non-default sessions can now be renamed and deleted through the web session layer
   - Windows-safe local dev and preview entrypoints are implemented for the current workspace path setup
@@ -95,8 +96,8 @@ Brand line:
 
 ## Next Steps
 
-- extend automated coverage for local persistence backend switching and state synchronization behavior
 - surface more explicit backend health and migration details in the `waveary-web` session layer
+- add regression coverage around `/api/chat/persistence` route responses and runtime cache reset behavior
 - expand provider-specific request normalization where "OpenAI-compatible" vendors diverge further
 - keep updating `PROJECT_STATE.md` and `docs/session-log.md` after each verified work block
 - keep `START_HERE.md` and continuity files aligned with current workflow

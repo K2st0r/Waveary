@@ -4,6 +4,49 @@
 
 Objective:
 
+Add automated regression coverage for `waveary-web` local persistence backend switching so `file / sqlite` continuity does not rely only on manual browser checks.
+
+Summary:
+
+- added a test-isolated Waveary data directory override for local web server persistence files
+- added a separate Node-side TypeScript build path for `waveary-web/server` tests without changing the browser build path
+- added `waveary-web` regression tests that verify `file -> sqlite` import and `sqlite -> file` synchronization of newer session state
+- wired root `npm run test` to include `@waveary/web` server-side regression coverage
+- verified that the new coverage passes alongside existing `waveary-core` and `waveary-memory` tests
+
+Files changed:
+
+- `package.json`
+- `waveary-web/package.json`
+- `waveary-web/tsconfig.server.json`
+- `waveary-web/server/data-dir.ts`
+- `waveary-web/server/provider-config.ts`
+- `waveary-web/server/chat-persistence-config.ts`
+- `waveary-web/server/chat-runtime.ts`
+- `waveary-web/server/chat-session-store.ts`
+- `waveary-web/server/chat-session-store.test.ts`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/web`
+- `npm run test --workspace @waveary/web`
+- `npm run check`
+- `npm run test`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-20
+
+Objective:
+
 Wire the new local persistence backends into `waveary-web` so the browser chat can switch between JSON file storage and SQLite without losing session continuity.
 
 Summary:

@@ -21,6 +21,6 @@
     "web:build": "npm run build --workspace @waveary/core && npm run build --workspace @waveary/memory && npm run build --workspace @waveary/web",
     "web:dev": "npm run build --workspace @waveary/core && npm run build --workspace @waveary/memory && npm run dev --workspace @waveary/web",
     "web:preview": "npm run build --workspace @waveary/core && npm run build --workspace @waveary/memory && npm run build --workspace @waveary/web && npm run preview --workspace @waveary/web",
-    "test": "npm run build --workspaces && npm run test --workspace @waveary/memory && npm run test --workspace @waveary/core"
+    "test": "npm run build --workspaces && npm run test --workspace @waveary/memory && npm run test --workspace @waveary/core && npm run test --workspace @waveary/web"
   }
 }

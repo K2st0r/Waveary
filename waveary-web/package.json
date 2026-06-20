@@ -6,9 +6,11 @@
   "type": "module",
   "scripts": {
     "build": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\" && vite build",
-    "check": "tsc --noEmit -p tsconfig.json",
+    "check": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.server.json",
     "dev": "node ./server/dev-server.mjs",
-    "preview": "node ./server/preview-server.mjs"
+    "preview": "node ./server/preview-server.mjs",
+    "build:server": "node -e \"require('node:fs').rmSync('dist-server',{recursive:true,force:true})\" && tsc -p tsconfig.server.json",
+    "test": "npm run build --workspace @waveary/core && npm run build --workspace @waveary/memory && npm run build:server && node --test dist-server/server/**/*.test.js"
   },
   "dependencies": {
     "@waveary/core": "^0.1.0",

@@ -23,6 +23,7 @@ yarn-error.log*
 # Node.js
 node_modules/
 dist/
+dist-server/
 build/
 .next/
 .nuxt/

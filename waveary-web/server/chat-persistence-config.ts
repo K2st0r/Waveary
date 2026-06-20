@@ -1,6 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname } from "node:path";
-import { fileURLToPath } from "node:url";
+import { dirname, join } from "node:path";
+
+import { getWavearyDataDir } from "./data-dir.js";
 
 export type ChatPersistenceBackend = "file" | "sqlite";
 
@@ -13,13 +14,10 @@ export interface ChatPersistenceStatus extends ChatPersistenceConfig {
   storageLabel: string;
 }
 
-const CONFIG_PATH = fileURLToPath(new URL("../../.waveary/chat-persistence.json", import.meta.url));
-export const CHAT_SESSION_JSON_PATH = fileURLToPath(
-  new URL("../../.waveary/chat-sessions.json", import.meta.url)
-);
-export const CHAT_SESSION_SQLITE_PATH = fileURLToPath(
-  new URL("../../.waveary/chat-sessions.db", import.meta.url)
-);
+const DATA_DIR = getWavearyDataDir();
+const CONFIG_PATH = join(DATA_DIR, "chat-persistence.json");
+export const CHAT_SESSION_JSON_PATH = join(DATA_DIR, "chat-sessions.json");
+export const CHAT_SESSION_SQLITE_PATH = join(DATA_DIR, "chat-sessions.db");
 export const CHAT_PERSISTENCE_BACKENDS: ChatPersistenceBackend[] = ["file", "sqlite"];
 
 export function loadChatPersistenceConfig(): ChatPersistenceConfig {
