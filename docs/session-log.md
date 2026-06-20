@@ -324,4 +324,47 @@ Commit:
 
 Push:
 
+- succeeded later after continuity records were synced
+
+## 2026-06-20
+
+Objective:
+
+Connect the provider setup flow to `waveary-web` so browser users can choose a provider, fetch models, and save local configuration without dropping into terminal scripts.
+
+Summary:
+
+- replaced the static provider section with a real setup console in `waveary-web`
+- added local same-origin `/api/provider/*` middleware for presets, model discovery, and config persistence
+- reused `@waveary/core` provider presets and OpenAI-compatible model listing instead of duplicating provider logic in the UI
+- updated root web scripts so the browser setup flow can run through the existing workspace
+
+Files changed:
+
+- `package.json`
+- `package-lock.json`
+- `waveary-web/package.json`
+- `waveary-web/vite.config.ts`
+- `waveary-web/README.md`
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `waveary-web/server/provider-api.ts`
+- `waveary-web/server/provider-config.ts`
+- `PROJECT_STATE.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check`
+- `npm run test`
+- `npm run web:dev`
+- `Invoke-WebRequest http://127.0.0.1:4173/api/provider/presets`
+
+Commit:
+
+- pending
+
+Push:
+
 - pending

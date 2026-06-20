@@ -195,3 +195,25 @@ Impact:
 
 - `waveary-core`, `waveary-memory`, and `waveary-web` build scripts clean `dist` first
 - repository verification becomes more reliable across sessions and incremental changes
+
+## 2026-06-20 - Web Provider API Shape
+
+Status:
+
+- accepted
+
+Decision:
+
+Expose the first `waveary-web` provider flow through local same-origin `/api/provider/*` routes instead of calling providers directly from browser code.
+
+Reason:
+
+- keeps provider logic and file persistence outside the UI layer
+- allows the web app to reuse the same configuration flow as terminal setup without leaking structure into the frontend
+- gives the future browser chat surface a stable local API contract to build on
+
+Impact:
+
+- `waveary-web` owns a thin local API layer for presets, model discovery, and config persistence
+- provider keys and model listing remain behind server middleware instead of direct browser-only logic
+- future chat runtime endpoints should follow the same pattern
