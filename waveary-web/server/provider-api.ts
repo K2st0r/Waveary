@@ -1,4 +1,7 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
+import { existsSync, readFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { OpenAICompatibleChatProvider, PROVIDER_PRESETS } from "@waveary/core";
 
@@ -62,7 +65,21 @@ interface ImportChatSessionRequest {
   title?: string;
 }
 
+interface SessionPackageReference {
+  importMode: "new-session-only";
+  importRule: string;
+  topLevelFields: string[];
+  requiredSnapshotCollections: string[];
+  docs: {
+    formatPath: string;
+    samplePath: string;
+  };
+  sample: unknown;
+}
+
 type NextFunction = (error?: unknown) => void;
+
+let cachedSessionPackageReference: SessionPackageReference | null = null;
 
 export function createProviderApiMiddleware() {
   return async function providerApiMiddleware(
@@ -119,6 +136,13 @@ export function createProviderApiMiddleware() {
           sessions: listChatSessions(),
           defaultSessionId: DEFAULT_CHAT_SESSION_ID,
           persistence: getCurrentChatPersistenceStatus()
+        });
+        return;
+      }
+
+      if (request.method === "GET" && request.url === "/api/chat/session/format") {
+        sendJson(response, 200, {
+          reference: getSessionPackageReference()
         });
         return;
       }
@@ -292,4 +316,45 @@ function requirePersistenceBackend(
   }
 
   throw new Error("A valid chat persistence backend is required.");
+}
+
+function getSessionPackageReference(): SessionPackageReference {
+  if (cachedSessionPackageReference) {
+    return cachedSessionPackageReference;
+  }
+
+  cachedSessionPackageReference = {
+    importMode: "new-session-only",
+    importRule:
+      "Waveary validates the package, creates a brand-new local session ID, and never overwrites or merges an existing session during import.",
+    topLevelFields: ["exportedAt", "sessionId", "title", "snapshot"],
+    requiredSnapshotCollections: ["messages", "memoryArchive", "timelineEvents"],
+    docs: {
+      formatPath: "docs/session-file-format.md",
+      samplePath: "docs/examples/session-export.sample.json"
+    },
+    sample: readSessionPackageSample()
+  };
+
+  return cachedSessionPackageReference;
+}
+
+function readSessionPackageSample(): unknown {
+  const samplePath = resolveSessionPackageSamplePath();
+  return JSON.parse(readFileSync(samplePath, "utf8")) as unknown;
+}
+
+function resolveSessionPackageSamplePath(): string {
+  const currentDir = dirname(fileURLToPath(import.meta.url));
+  const candidatePaths = [
+    resolve(currentDir, "..", "..", "docs", "examples", "session-export.sample.json"),
+    resolve(currentDir, "..", "..", "..", "docs", "examples", "session-export.sample.json")
+  ];
+  const matchedPath = candidatePaths.find((candidatePath) => existsSync(candidatePath));
+
+  if (!matchedPath) {
+    throw new Error("Waveary session export sample file could not be located.");
+  }
+
+  return matchedPath;
 }
