@@ -4,6 +4,47 @@
 
 Objective:
 
+Harden the OpenAI-compatible provider layer so browser model discovery tolerates more real vendor payload shapes and the core test scripts actually execute under the current Windows environment.
+
+Summary:
+
+- expanded `waveary-core` model discovery normalization so `/models` can accept string entries plus object entries using fields like `id`, `name`, or `model`
+- preserved optional `label` and `contextWindow` metadata during normalization and deduplicated repeated model IDs so the browser provider picker gets stable results
+- improved upstream model-listing failures to include provider response bodies instead of collapsing into a generic status-only message
+- extended route-level coverage in `waveary-web/server/provider-api.test.ts` so the browser-facing `/api/provider/models` flow is protected against broader OpenAI-compatible payload variants
+- corrected the `@waveary/core` and `@waveary/memory` `test` scripts so their compiled Node tests actually run on the current Windows shell instead of silently matching zero files
+
+Files changed:
+
+- `waveary-core/package.json`
+- `waveary-core/src/adapters/openai-compatible-provider.ts`
+- `waveary-core/src/adapters/openai-compatible-provider.test.ts`
+- `waveary-memory/package.json`
+- `waveary-web/server/provider-api.test.ts`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `node --test dist/adapters/openai-compatible-provider.test.js` in `waveary-core`
+- `node --test dist/runtime/waveary-runtime.test.js dist/storage/repository-backed-session-state.test.js dist/storage/sqlite-session-state-repository.test.js` in `waveary-core`
+- `node --test dist/in-memory-memory-store.test.js dist/simple-memory-extractor.test.js` in `waveary-memory`
+- `npm run test --workspace @waveary/web`
+- `npm run test`
+- `npm run check`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-20
+
+Objective:
+
 Verify that the browser-facing persistence migration flow also works in the reverse `sqlite -> file` direction and record the result in the continuity files.
 
 Summary:

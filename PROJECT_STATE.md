@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `6e249db` - `Add session API regression tests`
+- `0c5e5d3` - `Record reverse persistence API verification`
 
 ## Modules
 
@@ -27,6 +27,7 @@ Brand line:
   - Node-based runtime tests are implemented
   - OpenAI-compatible multi-provider chat integration is implemented
   - provider model discovery interface is implemented
+  - provider model discovery now normalizes multiple OpenAI-compatible `/models` payload shapes, deduplicates repeated IDs, and preserves optional label/context window metadata
   - persisted session state contract and repository-backed runtime state adapter are implemented
   - SQLite persisted session state repository is implemented
 - `waveary-memory`
@@ -39,6 +40,7 @@ Brand line:
   - official homepage is implemented
   - product positioning, engine stack, provider compatibility, roadmap, and repository structure are presented in the first page
   - browser-native provider setup flow is implemented through local `/api/provider/*` routes
+  - provider model discovery routes now return normalized model descriptors even when upstream vendors use broader OpenAI-compatible payload variants
   - first in-browser runtime chat shell is implemented through local `/api/chat/turn`
   - local browser chat session persistence is implemented through `.waveary/chat-sessions.json`
   - local persistence backend switching between JSON file and SQLite is implemented through local `/api/chat/persistence`
@@ -86,6 +88,8 @@ Brand line:
 - `npm run web:build`
 - `npm run demo:provider` shows required provider configuration guidance
 - `npm run setup:provider` is available for interactive provider selection and config saving
+- `npm run test --workspace @waveary/core`
+- `npm run test --workspace @waveary/memory`
 - `Invoke-WebRequest http://127.0.0.1:4173/api/chat/session`
 - `Invoke-WebRequest http://127.0.0.1:4173/api/chat/sessions`
 - `Invoke-WebRequest http://127.0.0.1:4173/api/chat/sessions/rename`
@@ -104,7 +108,7 @@ Brand line:
 
 ## Next Steps
 
-- expand provider-specific request normalization where "OpenAI-compatible" vendors diverge further
+- expand provider-specific chat request normalization where "OpenAI-compatible" vendors diverge beyond the current shared `/chat/completions` and `/responses` paths
 - add focused route-level and browser-facing coverage for any remaining persistence edge cases beyond the current file/sqlite symmetry path
 - consider hardening workspace build scripts further against transient Windows dist-lock races
 - keep updating `PROJECT_STATE.md` and `docs/session-log.md` after each verified work block

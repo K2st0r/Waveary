@@ -101,6 +101,75 @@ test("OpenAICompatibleChatProvider lists models from the provider key", async ()
   ]);
 });
 
+test("OpenAICompatibleChatProvider normalizes broader model payload shapes", async () => {
+  const provider = new OpenAICompatibleChatProvider({
+    provider: "siliconflow",
+    apiKey: "test-key",
+    baseURL: "https://example.com/v1",
+    model: "test-model",
+    fetchFn: async () =>
+      new Response(
+        JSON.stringify({
+          models: [
+            "deepseek-chat",
+            {
+              name: "qwen-turbo",
+              label: "Qwen Turbo",
+              context_length: "131072"
+            },
+            {
+              id: "qwen-turbo",
+              display_name: "Duplicate Should Collapse"
+            },
+            {
+              model: "glm-4.5-air",
+              max_tokens: 65536
+            },
+            {
+              unknown: "skip-me"
+            }
+          ]
+        }),
+        { status: 200 }
+      )
+  });
+
+  const models = await provider.listModels();
+
+  assert.deepEqual(models, [
+    { id: "deepseek-chat", provider: "siliconflow" },
+    {
+      id: "qwen-turbo",
+      provider: "siliconflow",
+      label: "Qwen Turbo",
+      contextWindow: 131072
+    },
+    {
+      id: "glm-4.5-air",
+      provider: "siliconflow",
+      contextWindow: 65536
+    }
+  ]);
+});
+
+test("OpenAICompatibleChatProvider surfaces upstream model listing errors", async () => {
+  const provider = new OpenAICompatibleChatProvider({
+    provider: "dashscope",
+    apiKey: "test-key",
+    baseURL: "https://example.com/v1",
+    model: "test-model",
+    fetchFn: async () =>
+      new Response(JSON.stringify({ error: { message: "invalid api key" } }), {
+        status: 401
+      })
+  });
+
+  await assert.rejects(
+    provider.listModels(),
+    /Model listing failed with status 401\. Body: \{"error":\{"message":"invalid api key"\}\}/
+  );
+});
+
 test("resolveProviderPreset returns configured domestic provider presets", () => {
   assert.deepEqual(resolveProviderPreset("dashscope"), {
     id: "dashscope",
