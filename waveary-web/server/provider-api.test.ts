@@ -275,6 +275,63 @@ test("chat session delete route rejects deleting the default session", async () 
   assert.equal(response.body.error, "The default main session cannot be deleted.");
 });
 
+test("chat session reset route clears the active session while preserving it in the session list", async () => {
+  const middleware = createProviderApiMiddleware();
+
+  saveProviderConfig({
+    provider: "provider-a",
+    baseURL: "https://provider-a.example/v1",
+    apiKey: "key-a",
+    model: "model-a"
+  });
+
+  globalThis.fetch = (async () =>
+    new Response(
+      JSON.stringify({
+        choices: [
+          {
+            message: {
+              content: "reset me"
+            }
+          }
+        ]
+      }),
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json"
+        }
+      }
+    )) as typeof fetch;
+
+  await invokeJsonRoute(middleware, "POST", "/api/chat/turn", {
+    sessionId: DEFAULT_CHAT_SESSION_ID,
+    message: "Please create some history before reset."
+  });
+
+  const response = await invokeJsonRoute(middleware, "POST", "/api/chat/sessions/reset", {
+    sessionId: DEFAULT_CHAT_SESSION_ID
+  });
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.defaultSessionId, DEFAULT_CHAT_SESSION_ID);
+  assert.equal(response.body.session.sessionId, DEFAULT_CHAT_SESSION_ID);
+  assert.equal(response.body.session.messages.length, 0);
+  assert.equal(response.body.session.latestInsights, null);
+  assert.equal(
+    response.body.sessions.some((session: { sessionId: string }) => session.sessionId === DEFAULT_CHAT_SESSION_ID),
+    true
+  );
+
+  const restored = await invokeJsonRoute(middleware, "POST", "/api/chat/session", {
+    sessionId: DEFAULT_CHAT_SESSION_ID
+  });
+
+  assert.equal(restored.statusCode, 200);
+  assert.equal(restored.body.session.messages.length, 0);
+  assert.equal(restored.body.session.latestInsights, null);
+});
+
 test("provider models route returns normalized provider models for the browser flow", async () => {
   globalThis.fetch = (async () =>
     new Response(

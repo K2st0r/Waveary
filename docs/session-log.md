@@ -4,6 +4,43 @@
 
 Objective:
 
+Improve real browser usability by letting the user reset the active local chat session without deleting the session entry, including the default main companion session.
+
+Summary:
+
+- added a `resetChatSession` server-side operation that clears local messages and latest runtime insights while preserving the session identity and title
+- exposed the reset capability through a new `/api/chat/sessions/reset` route and reset the in-memory runtime cache immediately after the reset so the next turn rebuilds from clean persisted state
+- extended route-level coverage to verify that resetting the default main session clears persisted history but keeps the session available in the session list
+- updated the web session management panel so the active session can be reset directly from the browser UI, including the default main companion session
+- kept the change scoped to the web session layer without altering the core runtime or provider abstractions
+
+Files changed:
+
+- `waveary-web/server/chat-session-store.ts`
+- `waveary-web/server/provider-api.ts`
+- `waveary-web/server/provider-api.test.ts`
+- `waveary-web/src/App.tsx`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run test --workspace @waveary/web`
+- `npm run check`
+- `npm run test`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-20
+
+Objective:
+
 Extend provider request compatibility beyond model discovery by encoding the first real vendor-specific chat request differences and making the workspace test scripts reliably execute compiled tests on Windows.
 
 Summary:

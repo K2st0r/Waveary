@@ -263,6 +263,32 @@ export function deleteChatSession(sessionId: string): ChatSessionListItem[] {
   });
 }
 
+export function resetChatSession(sessionId: string): ChatSessionSnapshot {
+  return withChatSessionRepository((repository) => {
+    const previous = repository.load(sessionId);
+    const initialState = createInitialSessionState(sessionId);
+    const nextState: PersistedChatSession = previous?.title
+      ? {
+          ...initialState,
+          title: previous.title,
+          updatedAt: new Date().toISOString()
+        }
+      : {
+          ...initialState,
+          updatedAt: new Date().toISOString()
+        };
+
+    repository.save(sessionId, nextState);
+
+    return {
+      sessionId,
+      messages: [],
+      latestInsights: null,
+      updatedAt: new Date().toISOString()
+    };
+  });
+}
+
 export function getCurrentChatPersistenceStatus(): ChatPersistenceStatus {
   return buildChatPersistenceStatus(loadChatPersistenceConfig());
 }

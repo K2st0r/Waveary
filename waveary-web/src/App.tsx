@@ -434,6 +434,44 @@ export function App(): ReactElement {
     }
   }
 
+  async function handleResetSession(): Promise<void> {
+    if (!activeSessionId) {
+      return;
+    }
+
+    try {
+      const response = await fetchJson<{
+        session: ChatSessionSnapshot;
+        sessions: ChatSessionListItem[];
+        defaultSessionId: string;
+        persistence: ChatPersistenceStatus;
+      }>("/api/chat/sessions/reset", {
+        method: "POST",
+        body: JSON.stringify({
+          sessionId: activeSessionId
+        })
+      });
+
+      setChatSessions(response.sessions);
+      setDefaultSessionId(response.defaultSessionId);
+      setPersistenceStatus(response.persistence);
+      setSelectedPersistenceBackend(response.persistence.backend);
+      setChatMessages(response.session.messages);
+      setChatInsights(response.session.latestInsights);
+      setChatRestoredAt(response.session.updatedAt);
+      setSessionRenameTitle(
+        response.sessions.find((session) => session.sessionId === activeSessionId)?.title ?? ""
+      );
+      setStatusMessage(
+        activeSessionId === defaultSessionId
+          ? "Main companion session reset. Local history and latest signals were cleared."
+          : "Session reset. Local history and latest signals were cleared."
+      );
+    } catch (error) {
+      setStatusMessage(getErrorMessage(error));
+    }
+  }
+
   async function handlePersistenceSwitch(): Promise<void> {
     setPersistenceState("loading");
 
@@ -988,8 +1026,8 @@ export function App(): ReactElement {
                         <strong>{activeSession.title}</strong>
                         <span>
                           {activeSession.sessionId === defaultSessionId
-                            ? "Main companion session. Always preserved."
-                            : "Optional local session. Can be renamed or removed."}
+                            ? "Main companion session. Always preserved, but its local history can be reset."
+                            : "Optional local session. Can be renamed, reset, or removed."}
                         </span>
                       </div>
 
@@ -1005,6 +1043,14 @@ export function App(): ReactElement {
                       </label>
 
                       <div className="session-action-row">
+                        <button
+                          className="button button-secondary"
+                          onClick={() => void handleResetSession()}
+                          disabled={!activeSession.sessionId}
+                          type="button"
+                        >
+                          Reset Session
+                        </button>
                         <button
                           className="button button-secondary"
                           onClick={() => void handleRenameSession()}

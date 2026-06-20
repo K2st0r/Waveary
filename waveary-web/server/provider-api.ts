@@ -14,6 +14,7 @@ import {
   DEFAULT_CHAT_SESSION_ID,
   deleteChatSession,
   listChatSessions,
+  resetChatSession,
   renameChatSession,
   switchChatPersistenceBackend
 } from "./chat-session-store.js";
@@ -134,6 +135,21 @@ export function createProviderApiMiddleware() {
 
         sendJson(response, 200, {
           sessions,
+          defaultSessionId: DEFAULT_CHAT_SESSION_ID,
+          persistence: getCurrentChatPersistenceStatus()
+        });
+        return;
+      }
+
+      if (request.method === "POST" && request.url === "/api/chat/sessions/reset") {
+        const payload = (await readJsonBody(request)) as ChatSessionRequest;
+        const sessionId = requireNonEmpty(payload.sessionId, "Session ID is required.");
+        const session = resetChatSession(sessionId);
+        resetChatRuntimeSessions();
+
+        sendJson(response, 200, {
+          session,
+          sessions: listChatSessions(),
           defaultSessionId: DEFAULT_CHAT_SESSION_ID,
           persistence: getCurrentChatPersistenceStatus()
         });
