@@ -330,15 +330,7 @@ function updateSession(
   repository: ChatSessionRepository = createChatSessionRepository()
 ): PersistedChatSession {
   const current =
-    repository.load(sessionId) ??
-    ({
-      context: createInitialRuntimeContext(sessionId),
-      memories: [],
-      timeline: [],
-      latestInsights: null,
-      updatedAt: new Date().toISOString(),
-      title: sessionId === DEFAULT_CHAT_SESSION_ID ? "Main Companion Session" : undefined
-    } satisfies PersistedChatSession);
+    repository.load(sessionId) ?? createInitialSessionState(sessionId);
   const next = updater(current);
 
   repository.save(sessionId, next);
@@ -386,14 +378,22 @@ function createInitialRuntimeContext(sessionId: string): RuntimeContext {
 }
 
 function createInitialSessionState(sessionId: string): PersistedChatSession {
-  return {
+  const baseState: PersistedChatSession = {
     context: createInitialRuntimeContext(sessionId),
     memories: [],
     timeline: [],
     latestInsights: null,
-    updatedAt: new Date().toISOString(),
-    title: sessionId === DEFAULT_CHAT_SESSION_ID ? "Main Companion Session" : undefined
+    updatedAt: new Date().toISOString()
   };
+
+  if (sessionId === DEFAULT_CHAT_SESSION_ID) {
+    return {
+      ...baseState,
+      title: "Main Companion Session"
+    };
+  }
+
+  return baseState;
 }
 
 function resolveSessionId(sessionId?: string): string {

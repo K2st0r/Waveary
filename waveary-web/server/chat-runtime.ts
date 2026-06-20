@@ -106,13 +106,13 @@ function toReplyPayload(result: RuntimeTurnResult): ChatReplyPayload {
   return {
     reply: result.reply.content,
     relationship: result.relationship,
-    emotion: result.emotion,
     recalledMemories: result.recalledMemories.map((memory) => memory.content),
     storedMemories: result.storedMemories.map((memory) => memory.content),
     timeline: result.timeline.map((event) => ({
       title: event.title,
       type: event.eventType,
       eventTime: event.eventTime
-    }))
+    })),
+    ...(result.emotion ? { emotion: result.emotion } : {})
   };
 }

@@ -1,6 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname } from "node:path";
-import { fileURLToPath } from "node:url";
+import { dirname, join } from "node:path";
+
+import { getWavearyDataDir } from "./data-dir.js";
 
 export interface SavedProviderConfig {
   provider: string;
@@ -9,7 +10,7 @@ export interface SavedProviderConfig {
   model: string;
 }
 
-const CONFIG_PATH = fileURLToPath(new URL("../../.waveary/provider-config.json", import.meta.url));
+const CONFIG_PATH = join(getWavearyDataDir(), "provider-config.json");
 
 export function loadSavedProviderConfig(): SavedProviderConfig | undefined {
   if (!existsSync(CONFIG_PATH)) {
