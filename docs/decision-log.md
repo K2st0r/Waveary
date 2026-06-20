@@ -89,3 +89,24 @@ Impact:
 - update `PROJECT_STATE.md` after each verified work block
 - append to `docs/session-log.md`
 - read `docs/decision-log.md` before major structural changes
+
+## 2026-06-20 - Early Testing Strategy
+
+Status:
+
+- accepted
+
+Decision:
+
+Use Node built-in tests for the early `waveary-core` and `waveary-memory` packages before introducing a larger test framework.
+
+Reason:
+
+- keeps the first testing layer simple
+- avoids adding unnecessary tooling before the runtime contracts stabilize
+- still gives fast regression coverage for memory recall and runtime turn flow
+
+Impact:
+
+- `npm run test` becomes part of the default verification set
+- future persistence and provider changes should extend this test layer before larger framework adoption

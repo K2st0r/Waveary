@@ -158,3 +158,42 @@ Commit:
 Push:
 
 - pending
+
+## 2026-06-20
+
+Objective:
+
+Start formal development by turning the current runtime and memory behavior into regression-tested code instead of leaving them as unchecked demo logic.
+
+Summary:
+
+- added Node-based tests to `waveary-core`
+- added Node-based tests to `waveary-memory`
+- added root `npm run test`
+- fixed TypeScript config so repeated builds and tests stay stable
+
+Files changed:
+
+- `package.json`
+- `tsconfig.base.json`
+- `examples/tsconfig.json`
+- `waveary-core/package.json`
+- `waveary-core/tsconfig.json`
+- `waveary-core/src/runtime/waveary-runtime.test.ts`
+- `waveary-memory/package.json`
+- `waveary-memory/tsconfig.json`
+- `waveary-memory/src/*.test.ts`
+
+Verification:
+
+- `npm run check`
+- `npm run test`
+- `npm run demo`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending

@@ -8,9 +8,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "check": "tsc --noEmit -p tsconfig.json"
-  },
-  "devDependencies": {
-    "typescript": "^5.9.3"
+    "check": "tsc --noEmit -p tsconfig.json",
+    "test": "node --test dist/**/*.test.js"
   }
 }

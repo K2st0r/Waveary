@@ -6,12 +6,14 @@
     "waveary-memory"
   ],
   "devDependencies": {
+    "@types/node": "^24.0.10",
     "typescript": "^5.9.3"
   },
   "scripts": {
     "build": "npm run build --workspaces",
     "check": "npm run build --workspaces && npm run check --workspaces",
     "demo": "npm run demo:build && node examples/dist/run-demo.js",
-    "demo:build": "npm run build --workspaces && tsc -p examples/tsconfig.json"
+    "demo:build": "npm run build --workspaces && tsc -p examples/tsconfig.json",
+    "test": "npm run build --workspaces && npm run test --workspace @waveary/memory && npm run test --workspace @waveary/core"
   }
 }

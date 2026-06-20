@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `76f45e5` - `Strengthen continuity auto-resume entrypoints`
+- `291869e` - `Add root continuity entrypoint`
 
 ## Modules
 
@@ -24,14 +24,17 @@ Brand line:
   - TypeScript runtime skeleton is implemented
   - in-memory relationship, timeline, emotion, and scripted chat adapters are implemented
   - runnable demo flow exists through root `examples/`
+  - Node-based runtime tests are implemented
 - `waveary-memory`
   - independent package exists
   - simple memory extractor exists
   - in-memory memory store exists
+  - Node-based extractor and store tests are implemented
 
 ## Verified Commands
 
 - `npm run check`
+- `npm run test`
 - `npm run demo`
 - `python C:\Users\13571\.codex\skills\.system\skill-creator\scripts\quick_validate.py C:\Users\13571\.codex\skills\waveary-continuity-guard`
 
@@ -42,7 +45,7 @@ Brand line:
 ## Next Steps
 
 - add persistence interfaces beyond in-memory storage
-- add tests for runtime and memory behavior
+- add persistence tests once non-memory stores exist
 - define `waveary-web` package boundary
 - keep updating `PROJECT_STATE.md` and `docs/session-log.md` after each verified work block
 - keep `START_HERE.md` and continuity files aligned with current workflow
