@@ -10,14 +10,16 @@ For every non-trivial work block:
 
 1. Read `PROJECT_STATE.md`
 2. Read `docs/session-log.md`
-3. Inspect `git status --short -b`
-4. Inspect recent commits
-5. Make one cohesive change set
-6. Run verification commands
-7. Update `PROJECT_STATE.md`
-8. Update `docs/session-log.md`
-9. Commit
-10. Push if GitHub is reachable
+3. Read `docs/decision-log.md`
+4. Inspect `git status --short -b`
+5. Inspect recent commits
+6. Make one cohesive change set
+7. Run verification commands
+8. Update `PROJECT_STATE.md`
+9. Update `docs/session-log.md`
+10. Update `docs/decision-log.md` if a meaningful decision was made
+11. Commit
+12. Push if GitHub is reachable
 
 ## Commit Rule
 
@@ -43,4 +45,4 @@ If a new session starts with little or no context:
 
 - rebuild from repository files
 - trust repository evidence over chat memory
-- continue from `PROJECT_STATE.md` and `docs/session-log.md`
+- continue from `PROJECT_STATE.md`, `docs/session-log.md`, and `docs/decision-log.md`

@@ -68,3 +68,34 @@ Commit:
 Push:
 
 - succeeded
+
+## 2026-06-20
+
+Objective:
+
+Strengthen the continuity system by recording major decisions, not just task progress.
+
+Summary:
+
+- added `docs/decision-log.md`
+- linked decision tracking into `PROJECT_STATE.md`
+- updated workflow rules so future sessions must read and update the decision log when needed
+
+Files changed:
+
+- `docs/decision-log.md`
+- `PROJECT_STATE.md`
+- `docs/workflow-rules.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending

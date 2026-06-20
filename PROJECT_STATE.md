@@ -33,11 +33,16 @@ Brand line:
 - `npm run demo`
 - `python C:\Users\13571\.codex\skills\.system\skill-creator\scripts\quick_validate.py C:\Users\13571\.codex\skills\waveary-continuity-guard`
 
+## Decision Sources
+
+- `docs/decision-log.md`
+
 ## Next Steps
 
 - add persistence interfaces beyond in-memory storage
 - add tests for runtime and memory behavior
 - define `waveary-web` package boundary
+- start recording major product and architecture decisions in `docs/decision-log.md`
 - keep updating `PROJECT_STATE.md` and `docs/session-log.md` after each verified work block
 
 ## Open Issues
