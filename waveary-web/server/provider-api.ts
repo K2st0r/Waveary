@@ -8,6 +8,7 @@ import {
   sendChatTurn
 } from "./chat-runtime.js";
 import {
+  ChatSessionImportValidationError,
   createChatSession,
   exportChatSession,
   getCurrentChatPersistenceStatus,
@@ -249,7 +250,8 @@ export function createProviderApiMiddleware() {
       sendJson(response, 404, { error: "Provider API route not found." });
     } catch (error) {
       sendJson(response, 400, {
-        error: error instanceof Error ? error.message : "Unexpected provider API error."
+        error: error instanceof Error ? error.message : "Unexpected provider API error.",
+        ...(error instanceof ChatSessionImportValidationError ? { details: error.details } : {})
       });
     }
   };

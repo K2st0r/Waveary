@@ -347,6 +347,32 @@ test("chat session import route restores an exported package as a new session", 
   );
 });
 
+test("chat session import route returns validation details for malformed packages", async () => {
+  const middleware = createProviderApiMiddleware();
+
+  const response = await invokeJsonRoute(middleware, "POST", "/api/chat/session/import", {
+    exported: {
+      title: "",
+      snapshot: {
+        messages: [{}],
+        memoryArchive: [{}],
+        timelineEvents: [{}]
+      }
+    }
+  });
+
+  assert.equal(response.statusCode, 400);
+  assert.equal(response.body.error, "Exported session package failed validation.");
+  assert.deepEqual(response.body.details, [
+    "Missing `sessionId`.",
+    "Missing `title`.",
+    "Message 1 is missing a string `role`.",
+    "Message 1 is missing a string `content`.",
+    "Memory item 1 is missing a string `content`.",
+    "Timeline event 1 is missing a string `title`."
+  ]);
+});
+
 test("chat session rename route updates non-default sessions and keeps persistence payload", async () => {
   createChatSession(DEFAULT_CHAT_SESSION_ID);
   createChatSession("session-rename", "Before Rename");

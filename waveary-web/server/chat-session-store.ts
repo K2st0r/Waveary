@@ -86,6 +86,16 @@ export interface ImportChatSessionResult {
   importedTitle: string;
 }
 
+export class ChatSessionImportValidationError extends Error {
+  constructor(
+    message: string,
+    readonly details: string[]
+  ) {
+    super(message);
+    this.name = "ChatSessionImportValidationError";
+  }
+}
+
 interface PersistedChatSession extends PersistedSessionState {
   latestInsights: ChatReplyPayload | null;
   title?: string;
@@ -664,32 +674,88 @@ function cloneContext(context: RuntimeContext): RuntimeContext {
 }
 
 function validateExportedChatSession(exported: ExportedChatSession): void {
+  const details: string[] = [];
+
   if (!exported || typeof exported !== "object") {
-    throw new Error("A valid exported session package is required.");
+    throw new ChatSessionImportValidationError("A valid exported session package is required.", [
+      "The import payload must be a JSON object."
+    ]);
   }
 
   if (!exported.sessionId?.trim()) {
-    throw new Error("Exported session package is missing sessionId.");
+    details.push("Missing `sessionId`.");
   }
 
   if (!exported.title?.trim()) {
-    throw new Error("Exported session package is missing title.");
+    details.push("Missing `title`.");
   }
 
   if (!exported.snapshot || typeof exported.snapshot !== "object") {
-    throw new Error("Exported session package is missing snapshot data.");
+    details.push("Missing `snapshot` object.");
+  }
+
+  if (exported.snapshot?.sessionId && typeof exported.snapshot.sessionId !== "string") {
+    details.push("`snapshot.sessionId` must be a string.");
+  }
+
+  if (exported.snapshot?.updatedAt && typeof exported.snapshot.updatedAt !== "string") {
+    details.push("`snapshot.updatedAt` must be a string.");
   }
 
   if (!Array.isArray(exported.snapshot.messages)) {
-    throw new Error("Exported session snapshot is missing messages.");
+    details.push("`snapshot.messages` must be an array.");
+  } else {
+    exported.snapshot.messages.forEach((message, index) => {
+      if (!message || typeof message !== "object") {
+        details.push(`Message ${index + 1} must be an object.`);
+        return;
+      }
+
+      if (typeof message.role !== "string") {
+        details.push(`Message ${index + 1} is missing a string \`role\`.`);
+      }
+
+      if (typeof message.content !== "string") {
+        details.push(`Message ${index + 1} is missing a string \`content\`.`);
+      }
+    });
   }
 
   if (!Array.isArray(exported.snapshot.memoryArchive)) {
-    throw new Error("Exported session snapshot is missing memory archive.");
+    details.push("`snapshot.memoryArchive` must be an array.");
+  } else {
+    exported.snapshot.memoryArchive.forEach((memory, index) => {
+      if (!memory || typeof memory !== "object") {
+        details.push(`Memory item ${index + 1} must be an object.`);
+        return;
+      }
+
+      if (typeof memory.content !== "string") {
+        details.push(`Memory item ${index + 1} is missing a string \`content\`.`);
+      }
+    });
   }
 
   if (!Array.isArray(exported.snapshot.timelineEvents)) {
-    throw new Error("Exported session snapshot is missing timeline events.");
+    details.push("`snapshot.timelineEvents` must be an array.");
+  } else {
+    exported.snapshot.timelineEvents.forEach((event, index) => {
+      if (!event || typeof event !== "object") {
+        details.push(`Timeline event ${index + 1} must be an object.`);
+        return;
+      }
+
+      if (typeof event.title !== "string") {
+        details.push(`Timeline event ${index + 1} is missing a string \`title\`.`);
+      }
+    });
+  }
+
+  if (details.length > 0) {
+    throw new ChatSessionImportValidationError(
+      "Exported session package failed validation.",
+      details
+    );
   }
 }
 

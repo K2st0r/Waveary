@@ -90,6 +90,11 @@ interface ImportedChatSessionResult {
   importedTitle: string;
 }
 
+interface ApiErrorPayload {
+  error?: string;
+  details?: string[];
+}
+
 interface ChatSessionListItem {
   sessionId: string;
   title: string;
@@ -232,6 +237,7 @@ export function App(): ReactElement {
   const [sessionImportState, setSessionImportState] = useState<LoadState>("idle");
   const [sessionImportJson, setSessionImportJson] = useState("");
   const [sessionImportTitle, setSessionImportTitle] = useState("");
+  const [sessionImportErrors, setSessionImportErrors] = useState<string[]>([]);
   const sessionImportFileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
@@ -612,6 +618,7 @@ export function App(): ReactElement {
     try {
       const text = await file.text();
       setSessionImportJson(text);
+      setSessionImportErrors([]);
       setStatusMessage(`Loaded import file: ${file.name}`);
     } catch (error) {
       setStatusMessage(getErrorMessage(error));
@@ -626,6 +633,7 @@ export function App(): ReactElement {
     }
 
     setSessionImportState("loading");
+    setSessionImportErrors([]);
 
     try {
       const exported = JSON.parse(sessionImportJson) as ExportedChatSession;
@@ -655,9 +663,11 @@ export function App(): ReactElement {
       setSessionRelationship(response.imported.session.relationship);
       setSessionTimelineEvents(response.imported.session.timelineEvents);
       setSessionImportState("success");
+      setSessionImportErrors([]);
       setStatusMessage(`Imported session as ${response.imported.importedTitle}.`);
     } catch (error) {
       setSessionImportState("error");
+      setSessionImportErrors(getErrorDetails(error));
       setStatusMessage(getErrorMessage(error));
     }
   }
@@ -1225,6 +1235,16 @@ export function App(): ReactElement {
                       {sessionImportState === "loading" ? "Importing..." : "Import As New Session"}
                     </button>
                   </div>
+                  {sessionImportErrors.length > 0 ? (
+                    <div className="session-import-error-card">
+                      <div className="mini-heading">Import Diagnostics</div>
+                      <ul className="session-import-error-list">
+                        {sessionImportErrors.map((detail) => (
+                          <li key={detail}>{detail}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
                 </div>
 
                 <div className="session-control-card">
@@ -1564,7 +1584,15 @@ async function fetchJson<T>(input: string, init?: RequestInit): Promise<T> {
   const payload = text ? (JSON.parse(text) as Record<string, unknown>) : {};
 
   if (!response.ok) {
-    throw new Error(typeof payload.error === "string" ? payload.error : `Request failed with status ${response.status}.`);
+    const error = new Error(
+      typeof payload.error === "string" ? payload.error : `Request failed with status ${response.status}.`
+    ) as Error & { details?: string[] };
+
+    if (Array.isArray(payload.details)) {
+      error.details = payload.details.filter((detail): detail is string => typeof detail === "string");
+    }
+
+    throw error;
   }
 
   return payload as T;
@@ -1645,4 +1673,16 @@ function getErrorMessage(error: unknown): string {
   }
 
   return "An unexpected error occurred.";
+}
+
+function getErrorDetails(error: unknown): string[] {
+  if (
+    error instanceof Error &&
+    "details" in error &&
+    Array.isArray((error as Error & { details?: string[] }).details)
+  ) {
+    return (error as Error & { details?: string[] }).details ?? [];
+  }
+
+  return [];
 }
