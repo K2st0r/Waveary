@@ -72,6 +72,13 @@ export interface ChatSessionListItem {
   messageCount: number;
 }
 
+export interface ExportedChatSession {
+  exportedAt: string;
+  sessionId: string;
+  title: string;
+  snapshot: ChatSessionSnapshot;
+}
+
 interface PersistedChatSession extends PersistedSessionState {
   latestInsights: ChatReplyPayload | null;
   title?: string;
@@ -352,6 +359,43 @@ export function resetChatSession(sessionId: string): ChatSessionSnapshot {
       relationship: null,
       timelineEvents: [],
       updatedAt: new Date().toISOString()
+    };
+  });
+}
+
+export function exportChatSession(sessionId: string): ExportedChatSession {
+  return withChatSessionRepository((repository) => {
+    const session = ensureSession(sessionId, repository);
+    const title = session.title ?? deriveSessionTitle(sessionId, session);
+
+    return {
+      exportedAt: new Date().toISOString(),
+      sessionId,
+      title,
+      snapshot: {
+        sessionId,
+        messages: session.context.history.filter(
+          (message) => message.role === "user" || message.role === "assistant"
+        ),
+        latestInsights: session.latestInsights,
+        memoryArchive: session.memories.map((memory) => ({
+          id: memory.id,
+          type: memory.type,
+          content: memory.content,
+          importance: memory.importance,
+          createdAt: memory.createdAt
+        })),
+        relationship: session.relationship ?? null,
+        timelineEvents: session.timeline.map((event) => ({
+          id: event.id,
+          title: event.title,
+          description: event.description,
+          type: event.eventType,
+          eventTime: event.eventTime,
+          importance: event.importance
+        })),
+        updatedAt: session.updatedAt
+      }
     };
   });
 }

@@ -4,6 +4,43 @@
 
 Objective:
 
+Add structured single-session export so persisted Waveary companion state can be carried out of the current browser session as a coherent JSON package.
+
+Summary:
+
+- added a local `exportChatSession` flow in the web session layer that packages conversation history, persisted memories, relationship snapshot, timeline events, and latest insights without changing core runtime boundaries
+- exposed the export capability through a new `/api/chat/session/export` route in the same local API family as the existing session endpoints
+- added route-level regression coverage proving that a real session with persisted memory and timeline state can be exported as a structured package
+- updated the browser session management panel with an `Export Session JSON` action and an inline structured JSON preview for the active session
+- kept the change scoped to `waveary-web` so it advances product capability without introducing new storage contracts or cloud assumptions
+
+Files changed:
+
+- `waveary-web/server/chat-session-store.ts`
+- `waveary-web/server/provider-api.ts`
+- `waveary-web/server/provider-api.test.ts`
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run test --workspace @waveary/web`
+- `npm run check --workspace @waveary/web`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-20
+
+Objective:
+
 Make Waveary's persisted session intelligence visible so users can verify long-term memory, relationship state, and timeline continuity after reloads.
 
 Summary:

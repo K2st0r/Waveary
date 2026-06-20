@@ -9,6 +9,7 @@ import {
 } from "./chat-runtime.js";
 import {
   createChatSession,
+  exportChatSession,
   getCurrentChatPersistenceStatus,
   type ChatPersistenceSwitchResult,
   DEFAULT_CHAT_SESSION_ID,
@@ -86,6 +87,16 @@ export function createProviderApiMiddleware() {
         );
 
         sendJson(response, 200, { session: session ?? null });
+        return;
+      }
+
+      if (request.method === "POST" && request.url === "/api/chat/session/export") {
+        const payload = (await readJsonBody(request)) as ChatSessionRequest;
+        const exported = exportChatSession(
+          payload.sessionId?.trim() || DEFAULT_CHAT_SESSION_ID
+        );
+
+        sendJson(response, 200, { exported });
         return;
       }
 
