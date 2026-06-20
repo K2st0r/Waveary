@@ -76,11 +76,13 @@ export interface ChatPersistenceSwitchResult {
 
 export class PersistentChatSessionState {
   private readonly runtimeState: RepositoryBackedSessionState<PersistedChatSession>;
+  private readonly repository: ChatSessionRepository;
 
   constructor(
     private readonly sessionId: string,
     repository: ChatSessionRepository = createChatSessionRepository()
   ) {
+    this.repository = repository;
     this.runtimeState = new RepositoryBackedSessionState({
       sessionId,
       repository,
@@ -151,6 +153,10 @@ export class PersistentChatSessionState {
 
   private readOrCreate(): PersistedChatSession {
     return this.runtimeState.getState();
+  }
+
+  close(): void {
+    this.repository.close?.();
   }
 }
 
