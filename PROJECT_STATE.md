@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `bcb13b5` - `Add browser file import export flow`
+- `22fbcda` - `Add import validation diagnostics`
 
 ## Modules
 
@@ -57,6 +57,7 @@ Brand line:
   - exported session packages can now be imported as brand-new local sessions through the local API and browser UI
   - browser export now downloads a real `.json` file and browser import now supports selecting a local `.json` file in addition to paste input
   - malformed session imports now return structured validation diagnostics and the browser UI renders field-level import failure details
+  - current browser session package shape is now documented for external tooling, with a sample export file under `docs/examples/`
   - non-default sessions can now be renamed and deleted through the web session layer
   - Windows-safe local dev and preview entrypoints are implemented for the current workspace path setup
   - package boundary is documented for future provider setup and runtime UI work
@@ -123,7 +124,8 @@ Brand line:
 - consider adding import or downloadable file export flows now that structured session export is available
 - consider validating downloadable file-based import/export or partial merge tools now that session migration is possible in-browser
 - consider adding stronger schema validation and user-facing import diagnostics for malformed session files
-- consider downloadable schema docs or sample export files so third-party tooling can generate valid session packages
+- consider adding explicit schema versioning so imported session packages can evolve without ambiguous compatibility rules
+- consider surfacing the session package format docs or sample export link directly in the browser import/export UI
 - consider hardening workspace build scripts further against transient Windows dist-lock races
 - keep updating `PROJECT_STATE.md` and `docs/session-log.md` after each verified work block
 - keep `START_HERE.md` and continuity files aligned with current workflow

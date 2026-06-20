@@ -4,6 +4,41 @@
 
 Objective:
 
+Document the current Waveary browser session package so continuity tooling and external generators can target a stable import/export shape.
+
+Summary:
+
+- added a dedicated session file format reference for the current `waveary-web` browser import/export package
+- added a valid sample export JSON file so external tooling has a concrete compatibility target
+- linked the new session package docs from the repository homepage and `waveary-web` package README
+- corrected continuity records so earlier commits and pushes now match the real Git history after the delayed network recovery
+
+Files changed:
+
+- `README.md`
+- `waveary-web/README.md`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+- `docs/session-file-format.md`
+- `docs/examples/session-export.sample.json`
+
+Verification:
+
+- `git status --short -b`
+- `git push origin main`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-20
+
+Objective:
+
 Add structured import diagnostics so invalid Waveary session files fail with actionable field-level feedback instead of a generic error.
 
 Summary:
@@ -30,11 +65,11 @@ Verification:
 
 Commit:
 
-- pending
+- `22fbcda` - `Add import validation diagnostics`
 
 Push:
 
-- pending
+- succeeded later after network recovered and follow-up commits were pushed
 
 ## 2026-06-20
 
@@ -212,11 +247,11 @@ Verification:
 
 Commit:
 
-- pending
+- `80b7360` - `Add browser chat session reset flow`
 
 Push:
 
-- pending
+- succeeded later after network recovered and follow-up commits were pushed
 
 ## 2026-06-20
 
@@ -293,11 +328,11 @@ Verification:
 
 Commit:
 
-- pending
+- `8e1c0b5` - `Harden provider model discovery normalization`
 
 Push:
 
-- pending
+- succeeded later after network recovered and follow-up commits were pushed
 
 ## 2026-06-20
 
@@ -329,11 +364,11 @@ Verification:
 
 Commit:
 
-- pending
+- `0c5e5d3` - `Record reverse persistence API verification`
 
 Push:
 
-- pending
+- succeeded later after network recovered and follow-up commits were pushed
 
 ## 2026-06-20
 
@@ -523,7 +558,7 @@ Commit:
 
 Push:
 
-- pending
+- succeeded later after network recovered and follow-up commits were pushed
 
 ## 2026-06-20
 
