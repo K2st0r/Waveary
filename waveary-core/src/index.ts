@@ -14,3 +14,5 @@ export * from "./domain/timeline.js";
 export * from "./providers/interfaces.js";
 export * from "./runtime/types.js";
 export * from "./runtime/waveary-runtime.js";
+export * from "./storage/repository-backed-session-state.js";
+export * from "./storage/session-state.js";

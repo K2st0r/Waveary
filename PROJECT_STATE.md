@@ -27,6 +27,7 @@ Brand line:
   - Node-based runtime tests are implemented
   - OpenAI-compatible multi-provider chat integration is implemented
   - provider model discovery interface is implemented
+  - persisted session state contract and repository-backed runtime state adapter are implemented
 - `waveary-memory`
   - independent package exists
   - simple memory extractor exists
@@ -90,8 +91,8 @@ Brand line:
 
 ## Next Steps
 
-- add persistence interfaces beyond in-memory storage
-- add persistence tests once non-memory stores exist
+- add a concrete non-file persistence repository such as SQLite on top of the new session state contract
+- add persistence tests once non-memory repositories exist
 - expand provider-specific request normalization where "OpenAI-compatible" vendors diverge further
 - keep updating `PROJECT_STATE.md` and `docs/session-log.md` after each verified work block
 - keep `START_HERE.md` and continuity files aligned with current workflow
@@ -99,4 +100,3 @@ Brand line:
 ## Open Issues
 
 - `npm run web:build` should not be executed in parallel with another root build command because package `dist` cleanup can race on Windows
-- local branch is ahead of `origin/main` by two commits because the latest push attempt failed to connect to GitHub over HTTPS

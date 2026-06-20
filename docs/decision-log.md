@@ -239,3 +239,25 @@ Impact:
 - `waveary-web` now includes a local chat endpoint backed by `WavearyRuntime`
 - the browser UI can show companion signals, not just assistant text
 - future persistence work can swap internal storage without rewriting the frontend contract
+
+## 2026-06-20 - Persistence Contract Boundary
+
+Status:
+
+- accepted
+
+Decision:
+
+Define the core runtime persistence contract in `waveary-core`, and let `waveary-web` extend that state only for web-specific metadata such as session title and latest rendered insights.
+
+Reason:
+
+- persistence is part of the framework boundary, not just a web implementation detail
+- `Session -> Memory -> Relationship -> Timeline` state needs one reusable contract before adding SQLite, Postgres, or cloud-backed stores
+- web-specific UI metadata should not leak back into core runtime abstractions
+
+Impact:
+
+- `waveary-core` now owns a minimal persisted session state contract and a repository-backed session state adapter
+- future storage implementations can plug into the same repository interface without rewriting runtime-adjacent store logic
+- `waveary-web` keeps only UI/session-management metadata on top of the shared persisted runtime state

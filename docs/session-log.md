@@ -4,6 +4,45 @@
 
 Objective:
 
+Move runtime persistence from a web-only local implementation toward a reusable framework contract that later storage backends can adopt safely.
+
+Summary:
+
+- added a persisted session state contract to `waveary-core`
+- added a repository-backed runtime session state adapter that exposes memory, relationship, and timeline stores
+- added a core regression test that verifies persisted context, memory, relationship, and timeline behavior through a repository
+- refactored `waveary-web/server/chat-session-store.ts` to reuse the core repository-backed state while preserving web-only metadata such as session title and latest insights
+- recorded the persistence boundary decision so future sessions do not move runtime persistence back into UI-only code
+
+Files changed:
+
+- `waveary-core/src/index.ts`
+- `waveary-core/src/storage/session-state.ts`
+- `waveary-core/src/storage/repository-backed-session-state.ts`
+- `waveary-core/src/storage/repository-backed-session-state.test.ts`
+- `waveary-web/server/chat-session-store.ts`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+- `docs/decision-log.md`
+
+Verification:
+
+- `npm run check`
+- `npm run test`
+- `npm run web:build`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-20
+
+Objective:
+
 Finish the browser session management flow so non-default sessions can be renamed and deleted without dropping back to terminal or raw APIs.
 
 Summary:
