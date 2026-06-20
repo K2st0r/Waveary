@@ -73,6 +73,45 @@ Push:
 
 Objective:
 
+Replace the single fixed browser chat session with a default main session plus optional additional sessions so conversation context does not collapse into one bucket.
+
+Summary:
+
+- added local session listing and creation support on top of `.waveary/chat-sessions.json`
+- introduced a default `waveary-main` companion session that always exists
+- added browser APIs for listing sessions, creating sessions, and loading a chosen session
+- updated the web UI so the user can switch between the main companion session and additional sessions
+- verified that different sessions keep separate histories after real chat turns
+
+Files changed:
+
+- `waveary-web/server/chat-session-store.ts`
+- `waveary-web/server/provider-api.ts`
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check`
+- `npm run web:build`
+- `Invoke-WebRequest http://127.0.0.1:4173/api/chat/sessions`
+- `Invoke-WebRequest http://127.0.0.1:4173/api/chat/session`
+- `Invoke-WebRequest http://127.0.0.1:4173/api/chat/turn`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-20
+
+Objective:
+
 Persist the browser chat session beyond process memory so the first Waveary web conversation survives a local dev server restart.
 
 Summary:

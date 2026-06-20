@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `ef4e5e3` - `Persist web chat sessions across restarts`
+- `ec58fe9` - `Sync continuity records for chat persistence`
 
 ## Modules
 
@@ -39,6 +39,7 @@ Brand line:
   - browser-native provider setup flow is implemented through local `/api/provider/*` routes
   - first in-browser runtime chat shell is implemented through local `/api/chat/turn`
   - local browser chat session persistence is implemented through `.waveary/chat-sessions.json`
+  - main-session default plus optional additional chat sessions are implemented in the web layer
   - Windows-safe local dev and preview entrypoints are implemented for the current workspace path setup
   - package boundary is documented for future provider setup and runtime UI work
 
@@ -61,6 +62,7 @@ Brand line:
   - can list provider presets, fetch models through the selected provider key, and save local config
   - can run a first browser chat flow and render memory, relationship, emotion, and timeline signals
   - restores local chat history and latest runtime signals after dev server restart
+  - supports a default main companion session plus user-created additional sessions
   - now boots reliably through `npm run web:dev` on the current Windows + Chinese-path workspace
 
 ## Verified Commands
@@ -73,6 +75,7 @@ Brand line:
 - `npm run demo:provider` shows required provider configuration guidance
 - `npm run setup:provider` is available for interactive provider selection and config saving
 - `Invoke-WebRequest http://127.0.0.1:4173/api/chat/session`
+- `Invoke-WebRequest http://127.0.0.1:4173/api/chat/sessions`
 - `Invoke-WebRequest http://127.0.0.1:4173/`
 - `Invoke-WebRequest http://127.0.0.1:4173/api/provider/presets`
 - `Invoke-WebRequest http://127.0.0.1:4173/api/chat/turn`
@@ -86,7 +89,7 @@ Brand line:
 
 - add persistence interfaces beyond in-memory storage
 - add persistence tests once non-memory stores exist
-- expose session list and session switching in the web UI
+- allow renaming and deleting non-default sessions
 - expand provider-specific request normalization where "OpenAI-compatible" vendors diverge further
 - keep updating `PROJECT_STATE.md` and `docs/session-log.md` after each verified work block
 - keep `START_HERE.md` and continuity files aligned with current workflow
