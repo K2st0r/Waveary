@@ -30,6 +30,10 @@ waveary-core/
   README.md
   docs/
     domain-model.md
+  src/
+    domain/
+    providers/
+    runtime/
 ```
 
 后续实现阶段可进一步扩展为：
@@ -43,6 +47,16 @@ waveary-core/
     services/
     storage/
 ```
+
+## Current Status
+
+当前仓库已经提供第一版 TypeScript runtime skeleton，包括：
+
+- 核心领域对象定义
+- provider 接口定义
+- 一个标准 `handleTurn` runtime flow
+
+这版代码的目标不是直接产品化，而是先把长期陪伴框架的最小程序结构钉住。
 
 ## Design Rule
 
