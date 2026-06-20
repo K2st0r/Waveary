@@ -736,6 +736,51 @@ a {
   padding: 1.25rem;
 }
 
+.archive-panel {
+  margin-top: 1rem;
+  padding: 1.25rem;
+}
+
+.archive-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.archive-card {
+  display: grid;
+  gap: 0.85rem;
+  padding: 1rem;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.archive-card-wide {
+  grid-column: 1 / -1;
+}
+
+.archive-metrics {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.archive-list {
+  padding-left: 0;
+  list-style: none;
+}
+
+.archive-list li {
+  display: grid;
+  gap: 0.3rem;
+  padding: 0.9rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.archive-list li:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
 .chat-log {
   display: grid;
   gap: 0.85rem;
@@ -896,6 +941,7 @@ a {
   .setup-layout,
   .session-panel-grid,
   .chat-layout,
+  .archive-grid,
   .provider-layout,
   .structure-layout {
     grid-template-columns: 1fr;

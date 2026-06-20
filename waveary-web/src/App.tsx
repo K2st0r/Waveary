@@ -41,10 +41,38 @@ interface ChatTurnResponse {
   }>;
 }
 
+interface SessionMemoryArchiveItem {
+  id: string;
+  type: string;
+  content: string;
+  importance: number;
+  createdAt: string;
+}
+
+interface SessionRelationshipSnapshot {
+  stage: string;
+  affinityScore: number;
+  trustScore: number;
+  stabilityScore: number;
+  lastUpdatedAt: string;
+}
+
+interface SessionTimelineEvent {
+  id: string;
+  title: string;
+  description: string;
+  type: string;
+  eventTime: string;
+  importance: number;
+}
+
 interface ChatSessionSnapshot {
   sessionId: string;
   messages: ChatMessage[];
   latestInsights: ChatTurnResponse | null;
+  memoryArchive: SessionMemoryArchiveItem[];
+  relationship: SessionRelationshipSnapshot | null;
+  timelineEvents: SessionTimelineEvent[];
   updatedAt: string;
 }
 
@@ -174,6 +202,9 @@ export function App(): ReactElement {
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatInsights, setChatInsights] = useState<ChatTurnResponse | null>(null);
   const [chatRestoredAt, setChatRestoredAt] = useState<string | null>(null);
+  const [sessionMemoryArchive, setSessionMemoryArchive] = useState<SessionMemoryArchiveItem[]>([]);
+  const [sessionRelationship, setSessionRelationship] = useState<SessionRelationshipSnapshot | null>(null);
+  const [sessionTimelineEvents, setSessionTimelineEvents] = useState<SessionTimelineEvent[]>([]);
   const [chatSessions, setChatSessions] = useState<ChatSessionListItem[]>([]);
   const [activeSessionId, setActiveSessionId] = useState("");
   const [defaultSessionId, setDefaultSessionId] = useState("");
@@ -253,12 +284,18 @@ export function App(): ReactElement {
         setChatMessages([]);
         setChatInsights(null);
         setChatRestoredAt(null);
+        setSessionMemoryArchive([]);
+        setSessionRelationship(null);
+        setSessionTimelineEvents([]);
         return;
       }
 
       setChatMessages(response.session.messages);
       setChatInsights(response.session.latestInsights);
       setChatRestoredAt(response.session.updatedAt);
+      setSessionMemoryArchive(response.session.memoryArchive);
+      setSessionRelationship(response.session.relationship);
+      setSessionTimelineEvents(response.session.timelineEvents);
     } catch (error) {
       setStatusMessage(getErrorMessage(error));
     }
@@ -361,6 +398,9 @@ export function App(): ReactElement {
       setChatMessages(response.session.messages);
       setChatInsights(response.session.latestInsights);
       setChatRestoredAt(response.session.updatedAt);
+      setSessionMemoryArchive(response.session.memoryArchive);
+      setSessionRelationship(response.session.relationship);
+      setSessionTimelineEvents(response.session.timelineEvents);
       setNewSessionTitle("");
       setStatusMessage("Created a new local chat session.");
     } catch (error) {
@@ -459,6 +499,9 @@ export function App(): ReactElement {
       setChatMessages(response.session.messages);
       setChatInsights(response.session.latestInsights);
       setChatRestoredAt(response.session.updatedAt);
+      setSessionMemoryArchive(response.session.memoryArchive);
+      setSessionRelationship(response.session.relationship);
+      setSessionTimelineEvents(response.session.timelineEvents);
       setSessionRenameTitle(
         response.sessions.find((session) => session.sessionId === activeSessionId)?.title ?? ""
       );
@@ -544,11 +587,19 @@ export function App(): ReactElement {
         role: "assistant",
         content: response.reply
       };
-      const sessionsResponse = await fetchJson<{
-        sessions: ChatSessionListItem[];
-        defaultSessionId: string;
-        persistence: ChatPersistenceStatus;
-      }>("/api/chat/sessions");
+      const [sessionsResponse, sessionSnapshotResponse] = await Promise.all([
+        fetchJson<{
+          sessions: ChatSessionListItem[];
+          defaultSessionId: string;
+          persistence: ChatPersistenceStatus;
+        }>("/api/chat/sessions"),
+        fetchJson<{ session: ChatSessionSnapshot | null }>("/api/chat/session", {
+          method: "POST",
+          body: JSON.stringify({
+            sessionId: activeSessionId || defaultSessionId
+          })
+        })
+      ]);
 
       setChatMessages((current) => [...current, assistantMessage]);
       setChatInsights(response);
@@ -557,6 +608,9 @@ export function App(): ReactElement {
       setDefaultSessionId(sessionsResponse.defaultSessionId);
       setPersistenceStatus(sessionsResponse.persistence);
       setSelectedPersistenceBackend(sessionsResponse.persistence.backend);
+      setSessionMemoryArchive(sessionSnapshotResponse.session?.memoryArchive ?? []);
+      setSessionRelationship(sessionSnapshotResponse.session?.relationship ?? null);
+      setSessionTimelineEvents(sessionSnapshotResponse.session?.timelineEvents ?? []);
       setChatState("success");
     } catch (error) {
       setChatMessages((current) => [
@@ -597,6 +651,8 @@ export function App(): ReactElement {
     persistenceState !== "loading";
   const alternateBackendStatus =
     persistenceStatus?.backendDetails.find((detail) => detail.backend !== persistenceStatus.backend) ?? null;
+  const hasSessionArchive =
+    sessionMemoryArchive.length > 0 || sessionTimelineEvents.length > 0 || Boolean(sessionRelationship);
 
   return (
     <div className="page-shell">
@@ -1212,6 +1268,84 @@ export function App(): ReactElement {
               )}
             </div>
           </div>
+
+          <div className="panel archive-panel">
+            <div className="panel-header">
+              <span>Persisted Session Archive</span>
+              <span className="panel-tag">Memory + Timeline + Relationship</span>
+            </div>
+
+            {hasSessionArchive ? (
+              <div className="archive-grid">
+                <div className="archive-card">
+                  <div className="mini-heading">Relationship Snapshot</div>
+                  {sessionRelationship ? (
+                    <div className="signal-metrics archive-metrics">
+                      <div className="signal-metric-card">
+                        <span>Stage</span>
+                        <strong>{sessionRelationship.stage}</strong>
+                      </div>
+                      <div className="signal-metric-card">
+                        <span>Affinity</span>
+                        <strong>{sessionRelationship.affinityScore.toFixed(2)}</strong>
+                      </div>
+                      <div className="signal-metric-card">
+                        <span>Trust</span>
+                        <strong>{sessionRelationship.trustScore.toFixed(2)}</strong>
+                      </div>
+                      <div className="signal-metric-card">
+                        <span>Stability</span>
+                        <strong>{sessionRelationship.stabilityScore.toFixed(2)}</strong>
+                      </div>
+                    </div>
+                  ) : (
+                    <p>No persisted relationship snapshot yet.</p>
+                  )}
+                </div>
+
+                <div className="archive-card">
+                  <div className="mini-heading">Session Memory Archive</div>
+                  {sessionMemoryArchive.length > 0 ? (
+                    <ul className="insight-list archive-list">
+                      {sessionMemoryArchive.map((memory) => (
+                        <li key={memory.id}>
+                          <strong>{formatMemoryType(memory.type)}</strong>
+                          <span>{memory.content}</span>
+                          <span>{`importance ${memory.importance.toFixed(2)} 路 ${formatSessionTimestamp(
+                            memory.createdAt
+                          )}`}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p>No persisted memories yet.</p>
+                  )}
+                </div>
+
+                <div className="archive-card archive-card-wide">
+                  <div className="mini-heading">Session Timeline</div>
+                  {sessionTimelineEvents.length > 0 ? (
+                    <ul className="insight-list archive-list">
+                      {sessionTimelineEvents.map((event) => (
+                        <li key={event.id}>
+                          <strong>{event.title}</strong>
+                          <span>{event.description}</span>
+                          <span>{`${event.type} 路 ${formatSessionTimestamp(event.eventTime)} 路 importance ${event.importance.toFixed(2)}`}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p>No persisted timeline events yet.</p>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="empty-chat-state">
+                Send a message worth remembering. This area will show the session&apos;s persisted memory archive,
+                relationship snapshot, and timeline after reloads.
+              </div>
+            )}
+          </div>
         </section>
 
         <section className="section-grid section-block" id="roadmap">
@@ -1290,6 +1424,23 @@ function formatPersistenceSyncState(state: ChatPersistenceSyncState): string {
       return "Diverged";
     default:
       return state;
+  }
+}
+
+function formatMemoryType(type: string): string {
+  switch (type) {
+    case "life_event":
+      return "Life Event";
+    case "preference":
+      return "Preference";
+    case "relationship":
+      return "Relationship";
+    case "reflection":
+      return "Reflection";
+    case "fact":
+      return "Fact";
+    default:
+      return type;
   }
 }
 
