@@ -4,6 +4,8 @@
 
 This file defines the working rules for continuing Waveary safely across multiple Codex sessions.
 
+If Codex starts in this repository with limited context, it should immediately use the local `waveary-continuity-guard` skill and follow this file.
+
 ## Required Routine
 
 For every non-trivial work block:

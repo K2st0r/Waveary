@@ -99,3 +99,32 @@ Commit:
 Push:
 
 - pending
+
+## 2026-06-20
+
+Objective:
+
+Strengthen auto-resume behavior so future Codex sessions in the Waveary repository trigger continuity recovery without needing a manual reminder.
+
+Summary:
+
+- expanded the skill trigger description to match Waveary repository cues
+- added an explicit continuity entry note to `PROJECT_STATE.md`
+- added an explicit continuity note to `docs/workflow-rules.md`
+
+Files changed:
+
+- `PROJECT_STATE.md`
+- `docs/workflow-rules.md`
+
+Verification:
+
+- `python C:\Users\13571\.codex\skills\.system\skill-creator\scripts\quick_validate.py C:\Users\13571\.codex\skills\waveary-continuity-guard`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending

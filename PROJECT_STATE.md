@@ -1,5 +1,7 @@
 # Project State
 
+If a new Codex session starts in this repository, use `waveary-continuity-guard` immediately and rebuild context from this file plus `docs/session-log.md` and `docs/decision-log.md`.
+
 ## Project
 
 Waveary is an open source digital life companion framework.
