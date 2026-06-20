@@ -4,16 +4,16 @@ import { fileURLToPath } from "node:url";
 
 import type {
   EmotionState,
-  MemoryCandidate,
   MemoryItem,
-  MemoryStore,
   Message,
-  RelationshipDelta,
   RelationshipProfile,
-  RelationshipStore,
   RuntimeContext,
-  TimelineEvent,
-  TimelineStore
+  TimelineEvent
+} from "@waveary/core";
+import {
+  RepositoryBackedSessionState,
+  type PersistedSessionState,
+  type SessionStateRepository
 } from "@waveary/core";
 
 export interface ChatReplyPayload {
@@ -43,13 +43,8 @@ export interface ChatSessionListItem {
   messageCount: number;
 }
 
-interface PersistedChatSession {
-  context: RuntimeContext;
-  memories: MemoryItem[];
-  relationship?: RelationshipProfile;
-  timeline: TimelineEvent[];
+interface PersistedChatSession extends PersistedSessionState {
   latestInsights: ChatReplyPayload | null;
-  updatedAt: string;
   title?: string;
 }
 
@@ -59,34 +54,34 @@ const SESSION_STORE_PATH = fileURLToPath(new URL("../../.waveary/chat-sessions.j
 export const DEFAULT_CHAT_SESSION_ID = "waveary-main";
 
 export class PersistentChatSessionState {
-  private readonly memoryStore: MemoryStore;
-  private readonly relationshipStore: RelationshipStore;
-  private readonly timelineStore: TimelineStore;
+  private readonly runtimeState: RepositoryBackedSessionState<PersistedChatSession>;
 
   constructor(private readonly sessionId: string) {
-    this.memoryStore = new FileBackedMemoryStore(this.sessionId);
-    this.relationshipStore = new FileBackedRelationshipStore(this.sessionId);
-    this.timelineStore = new FileBackedTimelineStore(this.sessionId);
+    this.runtimeState = new RepositoryBackedSessionState({
+      sessionId,
+      repository: new FileBackedSessionRepository(),
+      createInitialState: createInitialSessionState
+    });
   }
 
   getContext(): RuntimeContext {
-    return cloneContext(this.readOrCreate().context);
+    return this.runtimeState.getContext();
   }
 
-  getMemoryStore(): MemoryStore {
-    return this.memoryStore;
+  getMemoryStore() {
+    return this.runtimeState.getMemoryStore();
   }
 
-  getRelationshipStore(): RelationshipStore {
-    return this.relationshipStore;
+  getRelationshipStore() {
+    return this.runtimeState.getRelationshipStore();
   }
 
-  getTimelineStore(): TimelineStore {
-    return this.timelineStore;
+  getTimelineStore() {
+    return this.runtimeState.getTimelineStore();
   }
 
   saveTurn(context: RuntimeContext, latestInsights: ChatReplyPayload): void {
-    updateSession(this.sessionId, (current) => ({
+    this.runtimeState.saveState((current) => ({
       ...current,
       context: cloneContext(context),
       latestInsights,
@@ -125,7 +120,7 @@ export class PersistentChatSessionState {
   }
 
   private readOrCreate(): PersistedChatSession {
-    return ensureSession(this.sessionId);
+    return this.runtimeState.getState();
   }
 }
 
@@ -223,14 +218,7 @@ function ensureSession(sessionId: string): PersistedChatSession {
     return existing;
   }
 
-  const created: PersistedChatSession = {
-    context: createInitialRuntimeContext(sessionId),
-    memories: [],
-    timeline: [],
-    latestInsights: null,
-    updatedAt: new Date().toISOString(),
-    title: sessionId === DEFAULT_CHAT_SESSION_ID ? "Main Companion Session" : undefined
-  };
+  const created = createInitialSessionState(sessionId);
 
   updateSession(sessionId, () => created);
   return created;
@@ -298,6 +286,17 @@ function createInitialRuntimeContext(sessionId: string): RuntimeContext {
   };
 }
 
+function createInitialSessionState(sessionId: string): PersistedChatSession {
+  return {
+    context: createInitialRuntimeContext(sessionId),
+    memories: [],
+    timeline: [],
+    latestInsights: null,
+    updatedAt: new Date().toISOString(),
+    title: sessionId === DEFAULT_CHAT_SESSION_ID ? "Main Companion Session" : undefined
+  };
+}
+
 function resolveSessionId(sessionId?: string): string {
   const trimmed = sessionId?.trim();
 
@@ -326,151 +325,20 @@ function cloneContext(context: RuntimeContext): RuntimeContext {
   return JSON.parse(JSON.stringify(context)) as RuntimeContext;
 }
 
-function scoreMemoryMatch(memory: MemoryItem, input: string): number {
-  const tokens = input
-    .toLowerCase()
-    .split(/\s+/)
-    .map((token) => token.trim())
-    .filter(Boolean);
-
-  if (tokens.length === 0) {
-    return 0;
+class FileBackedSessionRepository
+  implements SessionStateRepository<PersistedChatSession>
+{
+  load(sessionId: string): PersistedChatSession | undefined {
+    return loadPersistedChatSession(sessionId);
   }
 
-  const normalizedContent = memory.content.toLowerCase();
-  const hitCount = tokens.filter((token) => normalizedContent.includes(token)).length;
-  return hitCount / tokens.length + memory.importance * 0.25;
-}
-
-class FileBackedMemoryStore implements MemoryStore {
-  constructor(private readonly sessionId: string) {}
-
-  async recallRelevantMemories(userId: string, input: string): Promise<MemoryItem[]> {
-    const persisted = ensureSession(this.sessionId);
-    const memories = persisted.memories.filter((memory) => memory.userId === userId);
-
-    return [...memories]
-      .sort((left, right) => scoreMemoryMatch(right, input) - scoreMemoryMatch(left, input))
-      .slice(0, 5);
+  save(sessionId: string, state: PersistedChatSession): void {
+    updateSession(sessionId, () => state);
   }
 
-  async saveMemories(
-    userId: string,
-    sourceMessage: Message,
-    candidates: MemoryCandidate[]
-  ): Promise<MemoryItem[]> {
-    if (candidates.length === 0) {
-      return [];
-    }
-
-    const created = candidates.map<MemoryItem>((candidate, index) => ({
-      id: `memory-${sourceMessage.id}-${index}`,
-      userId,
-      type: candidate.type,
-      content: candidate.content,
-      importance: candidate.importance,
-      confidence: candidate.confidence,
-      sourceMessageIds: [sourceMessage.id],
-      createdAt: new Date().toISOString()
-    }));
-
-    updateSession(this.sessionId, (current) => ({
-      ...current,
-      memories: [...current.memories, ...created],
-      updatedAt: new Date().toISOString()
-    }));
-
-    return created;
+  delete(sessionId: string): void {
+    const sessions = readAllSessions();
+    delete sessions[sessionId];
+    writeAllSessions(sessions);
   }
-}
-
-class FileBackedRelationshipStore implements RelationshipStore {
-  constructor(private readonly sessionId: string) {}
-
-  async getProfile(userId: string): Promise<RelationshipProfile> {
-    const persisted = ensureSession(this.sessionId);
-    if (persisted.relationship) {
-      return persisted.relationship;
-    }
-
-    const profile: RelationshipProfile = {
-      userId,
-      stage: "new",
-      affinityScore: 0.2,
-      trustScore: 0.2,
-      stabilityScore: 0.5,
-      lastUpdatedAt: new Date().toISOString()
-    };
-
-    updateSession(this.sessionId, (current) => ({
-      ...current,
-      relationship: profile,
-      updatedAt: new Date().toISOString()
-    }));
-
-    return profile;
-  }
-
-  async applyDelta(userId: string, delta: RelationshipDelta): Promise<RelationshipProfile> {
-    const current = await this.getProfile(userId);
-    const next: RelationshipProfile = {
-      ...current,
-      affinityScore: clamp(current.affinityScore + delta.affinityDelta),
-      trustScore: clamp(current.trustScore + delta.trustDelta),
-      stabilityScore: clamp(current.stabilityScore + delta.stabilityDelta),
-      stage: deriveStage(current.stage, delta),
-      lastUpdatedAt: new Date().toISOString()
-    };
-
-    updateSession(this.sessionId, (persisted) => ({
-      ...persisted,
-      relationship: next,
-      updatedAt: new Date().toISOString()
-    }));
-
-    return next;
-  }
-}
-
-class FileBackedTimelineStore implements TimelineStore {
-  constructor(private readonly sessionId: string) {}
-
-  async getRelevantEvents(userId: string): Promise<TimelineEvent[]> {
-    const persisted = ensureSession(this.sessionId);
-    return [...persisted.timeline.filter((event) => event.userId === userId)].slice(-5);
-  }
-
-  async appendEvents(userId: string, events: TimelineEvent[]): Promise<TimelineEvent[]> {
-    if (events.length === 0) {
-      return this.getRelevantEvents(userId);
-    }
-
-    let nextTimeline: TimelineEvent[] = [];
-
-    updateSession(this.sessionId, (persisted) => {
-      nextTimeline = [...persisted.timeline, ...events];
-
-      return {
-        ...persisted,
-        timeline: nextTimeline,
-        updatedAt: new Date().toISOString()
-      };
-    });
-
-    return [...nextTimeline.filter((event) => event.userId === userId)].slice(-10);
-  }
-}
-
-function clamp(value: number): number {
-  return Math.min(1, Math.max(0, value));
-}
-
-function deriveStage(currentStage: string, delta: RelationshipDelta): string {
-  const score = delta.affinityDelta + delta.trustDelta;
-
-  if (score > 0.15) {
-    return currentStage === "new" ? "warming" : "growing";
-  }
-
-  return currentStage;
 }
