@@ -1,0 +1,248 @@
+# Waveary Session File Format
+
+This document defines the current browser-facing import/export package for Waveary local sessions.
+
+Use it when:
+
+- exporting a session from `waveary-web`
+- importing a session into `waveary-web`
+- generating compatible session packages from external tooling
+
+## Purpose
+
+Waveary treats session history, memory, relationship state, and timeline state as durable companion assets.
+
+The session export package is the first portable container for those assets in Waveary CE.
+
+Current design goals:
+
+- human-readable JSON
+- safe local portability
+- compatible with browser export and import
+- import always restores into a new local session
+
+## Current Import Rule
+
+The current `waveary-web` importer does **not** overwrite or merge an existing session.
+
+Instead it:
+
+1. validates the incoming JSON package
+2. creates a brand-new local session ID
+3. restores conversation, memories, relationship, timeline, and latest insights into that new session
+
+This rule is deliberate. It keeps session migration safe during the current CE stage.
+
+## Top-Level Shape
+
+```json
+{
+  "exportedAt": "2026-06-20T00:00:00.000Z",
+  "sessionId": "waveary-main",
+  "title": "Main Companion Session",
+  "snapshot": {
+    "sessionId": "waveary-main",
+    "messages": [],
+    "latestInsights": null,
+    "memoryArchive": [],
+    "relationship": null,
+    "timelineEvents": [],
+    "updatedAt": "2026-06-20T00:00:00.000Z"
+  }
+}
+```
+
+## Field Reference
+
+### `exportedAt`
+
+- type: `string`
+- expected shape: ISO timestamp
+- meaning: when the export package was produced
+
+### `sessionId`
+
+- type: `string`
+- meaning: original session ID at export time
+
+### `title`
+
+- type: `string`
+- meaning: human-readable session title at export time
+
+### `snapshot`
+
+- type: `object`
+- meaning: exported session content and companion state
+
+## Snapshot Fields
+
+### `snapshot.sessionId`
+
+- type: `string`
+- meaning: original session ID inside the snapshot payload
+
+### `snapshot.messages`
+
+- type: `array`
+- required for import: yes
+- imported roles currently expected: `user` and `assistant`
+
+Minimal message shape:
+
+```json
+{
+  "id": "user-1",
+  "role": "user",
+  "content": "I want you to remember this.",
+  "sessionId": "waveary-main"
+}
+```
+
+Required import-safe fields:
+
+- `role`: string
+- `content`: string
+
+Other fields may be preserved if present, but the current importer primarily depends on the fields above.
+
+### `snapshot.latestInsights`
+
+- type: `object | null`
+- meaning: latest runtime response metadata shown by the browser UI
+
+Current shape when present:
+
+```json
+{
+  "reply": "I remember that.",
+  "relationship": {
+    "userId": "user-web-1",
+    "stage": "growing",
+    "affinityScore": 0.55,
+    "trustScore": 0.51,
+    "stabilityScore": 0.62,
+    "lastUpdatedAt": "2026-06-20T00:00:00.000Z"
+  },
+  "emotion": {
+    "userId": "waveary-main",
+    "primaryEmotion": "neutral",
+    "intensity": 0.35,
+    "confidence": 0.6,
+    "windowStart": "2026-06-20T00:00:00.000Z",
+    "windowEnd": "2026-06-20T00:00:00.000Z"
+  },
+  "recalledMemories": [],
+  "storedMemories": [],
+  "timeline": []
+}
+```
+
+### `snapshot.memoryArchive`
+
+- type: `array`
+- required for import: yes
+
+Minimal memory item shape:
+
+```json
+{
+  "id": "memory-1",
+  "type": "reflection",
+  "content": "I want you to remember this.",
+  "importance": 0.7,
+  "createdAt": "2026-06-20T00:00:00.000Z"
+}
+```
+
+Required import-safe fields:
+
+- `content`: string
+
+Recommended fields:
+
+- `id`
+- `type`
+- `importance`
+- `createdAt`
+
+### `snapshot.relationship`
+
+- type: `object | null`
+- meaning: current relationship snapshot for the session
+
+Shape:
+
+```json
+{
+  "stage": "growing",
+  "affinityScore": 0.55,
+  "trustScore": 0.51,
+  "stabilityScore": 0.62,
+  "lastUpdatedAt": "2026-06-20T00:00:00.000Z"
+}
+```
+
+### `snapshot.timelineEvents`
+
+- type: `array`
+- required for import: yes
+
+Minimal timeline event shape:
+
+```json
+{
+  "id": "timeline-1",
+  "title": "Important reflection",
+  "description": "I want you to remember this.",
+  "type": "reflection",
+  "eventTime": "2026-06-20T00:00:00.000Z",
+  "importance": 0.7
+}
+```
+
+Required import-safe fields:
+
+- `title`: string
+
+Recommended fields:
+
+- `description`
+- `type`
+- `eventTime`
+- `importance`
+
+### `snapshot.updatedAt`
+
+- type: `string`
+- expected shape: ISO timestamp
+- meaning: when the session snapshot was last updated before export
+
+## Current Validation Behavior
+
+The current importer returns structured validation diagnostics when the package is malformed.
+
+It currently checks for:
+
+- missing top-level `sessionId`
+- missing top-level `title`
+- missing `snapshot`
+- non-array `snapshot.messages`
+- non-array `snapshot.memoryArchive`
+- non-array `snapshot.timelineEvents`
+- message entries without string `role`
+- message entries without string `content`
+- memory entries without string `content`
+- timeline entries without string `title`
+
+## Compatibility Notes
+
+- This is the current CE browser session package, not a final long-term interchange standard.
+- Future versions may add stricter schema validation, explicit versioning, or richer metadata.
+- External tooling should preserve unknown fields when possible.
+
+## Example
+
+See:
+
+- `docs/examples/session-export.sample.json`

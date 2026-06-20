@@ -182,3 +182,12 @@ The project is currently in its foundation stage.
 
 当前目标不是“打造最强 AI 伴侣”，而是先把开源数字陪伴框架的核心能力做扎实。  
 The immediate goal is not to build the "strongest AI companion", but to build the core of an open digital companionship framework well.
+
+## Documentation
+
+- `docs/vision.md`
+- `docs/architecture.md`
+- `docs/product-invariants.md`
+- `docs/session-file-format.md` for the current browser session import/export package
+- `docs/examples/session-export.sample.json` for a valid sample session package
+- `waveary-web/README.md` for the official web surface boundary

@@ -1,0 +1,79 @@
+{
+  "exportedAt": "2026-06-20T00:00:00.000Z",
+  "sessionId": "waveary-main",
+  "title": "Main Companion Session",
+  "snapshot": {
+    "sessionId": "waveary-main",
+    "messages": [
+      {
+        "id": "user-1",
+        "role": "user",
+        "content": "I am building Waveary as a long-term digital life companion framework.",
+        "sessionId": "waveary-main"
+      },
+      {
+        "id": "assistant-1",
+        "role": "assistant",
+        "content": "I will treat that goal as a continuity-first companion system, not a generic chatbot.",
+        "sessionId": "waveary-main"
+      }
+    ],
+    "latestInsights": {
+      "reply": "I will treat that goal as a continuity-first companion system, not a generic chatbot.",
+      "relationship": {
+        "userId": "user-web-1",
+        "stage": "growing",
+        "affinityScore": 0.55,
+        "trustScore": 0.51,
+        "stabilityScore": 0.62,
+        "lastUpdatedAt": "2026-06-20T00:00:00.000Z"
+      },
+      "emotion": {
+        "userId": "waveary-main",
+        "primaryEmotion": "neutral",
+        "intensity": 0.35,
+        "confidence": 0.6,
+        "windowStart": "2026-06-20T00:00:00.000Z",
+        "windowEnd": "2026-06-20T00:00:00.000Z"
+      },
+      "recalledMemories": [],
+      "storedMemories": [
+        "I am building Waveary as a long-term digital life companion framework."
+      ],
+      "timeline": [
+        {
+          "title": "Waveary framework direction",
+          "type": "reflection",
+          "eventTime": "2026-06-20T00:00:00.000Z"
+        }
+      ]
+    },
+    "memoryArchive": [
+      {
+        "id": "memory-1",
+        "type": "reflection",
+        "content": "I am building Waveary as a long-term digital life companion framework.",
+        "importance": 0.72,
+        "createdAt": "2026-06-20T00:00:00.000Z"
+      }
+    ],
+    "relationship": {
+      "stage": "growing",
+      "affinityScore": 0.55,
+      "trustScore": 0.51,
+      "stabilityScore": 0.62,
+      "lastUpdatedAt": "2026-06-20T00:00:00.000Z"
+    },
+    "timelineEvents": [
+      {
+        "id": "timeline-1",
+        "title": "Waveary framework direction",
+        "description": "I am building Waveary as a long-term digital life companion framework.",
+        "type": "reflection",
+        "eventTime": "2026-06-20T00:00:00.000Z",
+        "importance": 0.72
+      }
+    ],
+    "updatedAt": "2026-06-20T00:00:00.000Z"
+  }
+}
