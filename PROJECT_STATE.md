@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `e257a60` - `Record DeepSeek compatibility push failure`
+- `80b7360` - `Add browser chat session reset flow`
 
 ## Modules
 
@@ -52,6 +52,7 @@ Brand line:
   - session persistence UI now surfaces backend-by-backend sync state, last migration metadata, differing session counts, and latest write timestamps
   - main-session default plus optional additional chat sessions are implemented in the web layer
   - active sessions can now be reset locally without deleting the session identity, including the default main companion session
+  - persisted session snapshots now surface memory archive, relationship snapshot, and timeline history through the local API and browser UI
   - non-default sessions can now be renamed and deleted through the web session layer
   - Windows-safe local dev and preview entrypoints are implemented for the current workspace path setup
   - package boundary is documented for future provider setup and runtime UI work
@@ -114,6 +115,7 @@ Brand line:
 - add route-level or live verification for more provider-specific chat payload divergences after the current DeepSeek compatibility baseline
 - add focused route-level and browser-facing coverage for any remaining persistence edge cases beyond the current file/sqlite symmetry path
 - consider adding finer-grained session controls such as export/import or per-session persistence diagnostics after the current reset capability
+- consider surfacing richer archive filtering or grouped recall views now that persisted session intelligence is visible in the browser
 - consider hardening workspace build scripts further against transient Windows dist-lock races
 - keep updating `PROJECT_STATE.md` and `docs/session-log.md` after each verified work block
 - keep `START_HERE.md` and continuity files aligned with current workflow

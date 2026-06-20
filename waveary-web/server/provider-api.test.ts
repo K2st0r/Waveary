@@ -210,6 +210,19 @@ test("chat session route returns the requested persisted snapshot", async () => 
   assert.equal(response.body.session.messages.length, 2);
   assert.equal(response.body.session.messages[0]?.content, "Please remember this route-level session test.");
   assert.equal(response.body.session.messages[1]?.content, "remembered reply");
+  assert.equal(response.body.session.memoryArchive.length, 1);
+  assert.equal(
+    response.body.session.memoryArchive[0]?.content,
+    "Please remember this route-level session test."
+  );
+  assert.equal(response.body.session.relationship.stage, "new");
+  assert.equal(response.body.session.relationship.affinityScore, 0.28);
+  assert.equal(response.body.session.relationship.trustScore, 0.26);
+  assert.equal(response.body.session.timelineEvents.length, 1);
+  assert.equal(
+    response.body.session.timelineEvents[0]?.description,
+    "Please remember this route-level session test."
+  );
 });
 
 test("chat session rename route updates non-default sessions and keeps persistence payload", async () => {
@@ -318,6 +331,9 @@ test("chat session reset route clears the active session while preserving it in 
   assert.equal(response.body.session.sessionId, DEFAULT_CHAT_SESSION_ID);
   assert.equal(response.body.session.messages.length, 0);
   assert.equal(response.body.session.latestInsights, null);
+  assert.equal(response.body.session.memoryArchive.length, 0);
+  assert.equal(response.body.session.relationship, null);
+  assert.equal(response.body.session.timelineEvents.length, 0);
   assert.equal(
     response.body.sessions.some((session: { sessionId: string }) => session.sessionId === DEFAULT_CHAT_SESSION_ID),
     true
@@ -330,6 +346,9 @@ test("chat session reset route clears the active session while preserving it in 
   assert.equal(restored.statusCode, 200);
   assert.equal(restored.body.session.messages.length, 0);
   assert.equal(restored.body.session.latestInsights, null);
+  assert.equal(restored.body.session.memoryArchive.length, 0);
+  assert.equal(restored.body.session.relationship, null);
+  assert.equal(restored.body.session.timelineEvents.length, 0);
 });
 
 test("provider models route returns normalized provider models for the browser flow", async () => {

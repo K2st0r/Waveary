@@ -46,6 +46,22 @@ export interface ChatSessionSnapshot {
   sessionId: string;
   messages: Message[];
   latestInsights: ChatReplyPayload | null;
+  memoryArchive: Array<{
+    id: string;
+    type: MemoryItem["type"];
+    content: string;
+    importance: number;
+    createdAt: string;
+  }>;
+  relationship: RelationshipProfile | null;
+  timelineEvents: Array<{
+    id: string;
+    title: string;
+    description: string;
+    type: string;
+    eventTime: string;
+    importance: number;
+  }>;
   updatedAt: string;
 }
 
@@ -127,6 +143,22 @@ export class PersistentChatSessionState {
         (message) => message.role === "user" || message.role === "assistant"
       ),
       latestInsights: persisted.latestInsights,
+      memoryArchive: persisted.memories.map((memory) => ({
+        id: memory.id,
+        type: memory.type,
+        content: memory.content,
+        importance: memory.importance,
+        createdAt: memory.createdAt
+      })),
+      relationship: persisted.relationship ?? null,
+      timelineEvents: persisted.timeline.map((event) => ({
+        id: event.id,
+        title: event.title,
+        description: event.description,
+        type: event.eventType,
+        eventTime: event.eventTime,
+        importance: event.importance
+      })),
       updatedAt: persisted.updatedAt
     };
   }
@@ -205,6 +237,22 @@ export function createChatSession(sessionId?: string, title?: string): ChatSessi
         (message) => message.role === "user" || message.role === "assistant"
       ),
       latestInsights: session.latestInsights,
+      memoryArchive: session.memories.map((memory) => ({
+        id: memory.id,
+        type: memory.type,
+        content: memory.content,
+        importance: memory.importance,
+        createdAt: memory.createdAt
+      })),
+      relationship: session.relationship ?? null,
+      timelineEvents: session.timeline.map((event) => ({
+        id: event.id,
+        title: event.title,
+        description: event.description,
+        type: event.eventType,
+        eventTime: event.eventTime,
+        importance: event.importance
+      })),
       updatedAt: session.updatedAt
     };
   });
@@ -240,6 +288,22 @@ export function renameChatSession(sessionId: string, title: string): ChatSession
         (message) => message.role === "user" || message.role === "assistant"
       ),
       latestInsights: session.latestInsights,
+      memoryArchive: session.memories.map((memory) => ({
+        id: memory.id,
+        type: memory.type,
+        content: memory.content,
+        importance: memory.importance,
+        createdAt: memory.createdAt
+      })),
+      relationship: session.relationship ?? null,
+      timelineEvents: session.timeline.map((event) => ({
+        id: event.id,
+        title: event.title,
+        description: event.description,
+        type: event.eventType,
+        eventTime: event.eventTime,
+        importance: event.importance
+      })),
       updatedAt: new Date().toISOString()
     };
   });
@@ -284,6 +348,9 @@ export function resetChatSession(sessionId: string): ChatSessionSnapshot {
       sessionId,
       messages: [],
       latestInsights: null,
+      memoryArchive: [],
+      relationship: null,
+      timelineEvents: [],
       updatedAt: new Date().toISOString()
     };
   });

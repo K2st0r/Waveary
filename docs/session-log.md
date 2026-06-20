@@ -4,6 +4,44 @@
 
 Objective:
 
+Make Waveary's persisted session intelligence visible so users can verify long-term memory, relationship state, and timeline continuity after reloads.
+
+Summary:
+
+- extended the web session snapshot contract to include persisted memory archive entries, relationship snapshot data, and timeline events from stored session state
+- kept the change inside the web session layer by reusing the existing core persistence contract instead of introducing new runtime storage paths
+- added route-level regression assertions proving that reloading `/api/chat/session` returns persisted memory, relationship, and timeline data after a chat turn
+- updated the browser chat surface with a dedicated persisted session archive panel so users can inspect durable memory and continuity artifacts beyond the latest-turn insight cards
+- verified the scoped web package checks and tests, plus the root test flow; root `npm run check` still reproduces the known Windows dist cleanup race and is recorded as an existing issue rather than a new regression
+
+Files changed:
+
+- `waveary-web/server/chat-session-store.ts`
+- `waveary-web/server/provider-api.test.ts`
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run test --workspace @waveary/web`
+- `npm run check --workspace @waveary/web`
+- `npm run test`
+- `npm run check` failed with the existing Windows `dist` cleanup race while rebuilding workspaces in sequence
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-20
+
+Objective:
+
 Improve real browser usability by letting the user reset the active local chat session without deleting the session entry, including the default main companion session.
 
 Summary:
