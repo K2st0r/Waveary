@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `3cbc4f3` - `Add web provider setup console`
+- `9f33468` - `Add browser runtime chat shell`
 
 ## Modules
 
@@ -38,6 +38,7 @@ Brand line:
   - product positioning, engine stack, provider compatibility, roadmap, and repository structure are presented in the first page
   - browser-native provider setup flow is implemented through local `/api/provider/*` routes
   - first in-browser runtime chat shell is implemented through local `/api/chat/turn`
+  - Windows-safe local dev and preview entrypoints are implemented for the current workspace path setup
   - package boundary is documented for future provider setup and runtime UI work
 
 ## Provider Flow
@@ -58,17 +59,20 @@ Brand line:
   - ships a formal project homepage and a working provider setup console
   - can list provider presets, fetch models through the selected provider key, and save local config
   - can run a first browser chat flow and render memory, relationship, emotion, and timeline signals
+  - now boots reliably through `npm run web:dev` on the current Windows + Chinese-path workspace
 
 ## Verified Commands
 
 - `npm run check`
 - `npm run test`
 - `npm run demo`
-- `npm run build --workspace @waveary/web`
 - `npm run web:dev`
-- `npm run build --workspace @waveary/web`
+- `npm run web:build`
 - `npm run demo:provider` shows required provider configuration guidance
 - `npm run setup:provider` is available for interactive provider selection and config saving
+- `Invoke-WebRequest http://127.0.0.1:4173/`
+- `Invoke-WebRequest http://127.0.0.1:4173/api/provider/presets`
+- `Invoke-WebRequest http://127.0.0.1:4173/api/chat/turn`
 - `python C:\Users\13571\.codex\skills\.system\skill-creator\scripts\quick_validate.py C:\Users\13571\.codex\skills\waveary-continuity-guard`
 
 ## Decision Sources
@@ -77,10 +81,10 @@ Brand line:
 
 ## Next Steps
 
-- stabilize `waveary-web` local dev serving on the current Windows path setup
 - persist browser chat session state beyond in-memory process lifetime
 - add persistence interfaces beyond in-memory storage
 - add persistence tests once non-memory stores exist
+- expand provider-specific request normalization where "OpenAI-compatible" vendors diverge further
 - keep updating `PROJECT_STATE.md` and `docs/session-log.md` after each verified work block
 - keep `START_HERE.md` and continuity files aligned with current workflow
 

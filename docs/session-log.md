@@ -400,6 +400,52 @@ Verification:
 
 Commit:
 
+- `9f33468` - `Add browser runtime chat shell`
+
+Push:
+
+- succeeded
+
+## 2026-06-20
+
+Objective:
+
+Stabilize `waveary-web` local development on the current Windows workspace path and make the browser chat flow work against the saved DeepSeek provider configuration.
+
+Summary:
+
+- replaced direct Vite CLI dev and preview entrypoints with Node-based wrappers that resolve `vite.config.ts` safely under the current Windows path
+- updated root web scripts so `waveary-web` always prebuilds both `@waveary/core` and `@waveary/memory`
+- added `@waveary/memory` as an explicit `waveary-web` dependency for the local server runtime
+- updated the OpenAI-compatible provider adapter to prefer `/chat/completions` and fall back to `/responses`
+- switched the primary instruction role to `system` for broader domestic provider compatibility
+- improved provider error reporting so upstream response bodies are surfaced during debugging
+- verified that `npm run web:dev` serves the site and that `/api/chat/turn` returns a real DeepSeek-backed reply
+
+Files changed:
+
+- `package.json`
+- `package-lock.json`
+- `waveary-core/src/adapters/openai-compatible-provider.ts`
+- `waveary-core/src/adapters/openai-compatible-provider.test.ts`
+- `waveary-web/README.md`
+- `waveary-web/package.json`
+- `waveary-web/server/dev-server.mjs`
+- `waveary-web/server/preview-server.mjs`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check`
+- `npm run test`
+- `npm run web:build`
+- `Invoke-WebRequest http://127.0.0.1:4173/`
+- `Invoke-WebRequest http://127.0.0.1:4173/api/provider/presets`
+- `Invoke-WebRequest http://127.0.0.1:4173/api/chat/turn`
+
+Commit:
+
 - pending
 
 Push:

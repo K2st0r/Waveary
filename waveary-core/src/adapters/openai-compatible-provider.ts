@@ -29,6 +29,19 @@ interface OpenAICompatibleResponsePayload {
   }>;
 }
 
+interface OpenAICompatibleChatCompletionsPayload {
+  choices?: Array<{
+    message?: {
+      content?:
+        | string
+        | Array<{
+            type?: string;
+            text?: string;
+          }>;
+    };
+  }>;
+}
+
 export class OpenAICompatibleChatProvider implements ChatProvider, ModelDiscoveryProvider {
   private readonly provider: string;
   private readonly apiKey: string;
@@ -61,6 +74,40 @@ export class OpenAICompatibleChatProvider implements ChatProvider, ModelDiscover
   }
 
   async generateReply(request: ChatProviderRequest): Promise<string> {
+    const chatCompletionsResponse = await this.fetchFn(`${this.baseURL}/chat/completions`, {
+      method: "POST",
+      headers: this.buildHeaders(),
+      body: JSON.stringify({
+        model: this.model,
+        messages: [
+          {
+            role: "system",
+            content: buildDeveloperInstruction(request)
+          },
+          ...request.messages.map((message) => ({
+            role: toCompatibleRole(message.role),
+            content: message.content
+          }))
+        ]
+      })
+    });
+
+    if (chatCompletionsResponse.ok) {
+      const payload =
+        (await chatCompletionsResponse.json()) as OpenAICompatibleChatCompletionsPayload;
+      const text = extractChatCompletionsText(payload);
+
+      if (!text) {
+        throw new Error("Provider response did not include usable text output.");
+      }
+
+      return text;
+    }
+
+    if (chatCompletionsResponse.status !== 404 && chatCompletionsResponse.status !== 405) {
+      throw await this.createProviderError(chatCompletionsResponse);
+    }
+
     const response = await this.fetchFn(`${this.baseURL}/responses`, {
       method: "POST",
       headers: this.buildHeaders(),
@@ -80,7 +127,7 @@ export class OpenAICompatibleChatProvider implements ChatProvider, ModelDiscover
     });
 
     if (!response.ok) {
-      throw new Error(`Provider request failed with status ${response.status}.`);
+      throw await this.createProviderError(response);
     }
 
     const payload = (await response.json()) as OpenAICompatibleResponsePayload;
@@ -116,6 +163,12 @@ export class OpenAICompatibleChatProvider implements ChatProvider, ModelDiscover
       "Content-Type": "application/json",
       Authorization: `Bearer ${this.apiKey}`
     };
+  }
+
+  private async createProviderError(response: Response): Promise<Error> {
+    const body = await response.text();
+    const suffix = body ? ` Body: ${body}` : "";
+    return new Error(`Provider request failed with status ${response.status}.${suffix}`);
   }
 }
 
@@ -195,9 +248,21 @@ function extractResponseText(payload: OpenAICompatibleResponsePayload): string |
     ?.text;
 }
 
-function toCompatibleRole(role: "system" | "user" | "assistant"): "developer" | "user" | "assistant" {
+function extractChatCompletionsText(
+  payload: OpenAICompatibleChatCompletionsPayload
+): string | undefined {
+  const content = payload.choices?.[0]?.message?.content;
+
+  if (typeof content === "string") {
+    return content;
+  }
+
+  return content?.find((item) => item.type === "output_text" || item.type === "text")?.text;
+}
+
+function toCompatibleRole(role: "system" | "user" | "assistant"): "system" | "developer" | "user" | "assistant" {
   if (role === "system") {
-    return "developer";
+    return "system";
   }
 
   return role;
