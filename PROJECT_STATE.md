@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `d9e7cf3` - `Add repository continuity tracking files`
+- `76f45e5` - `Strengthen continuity auto-resume entrypoints`
 
 ## Modules
 
@@ -44,8 +44,8 @@ Brand line:
 - add persistence interfaces beyond in-memory storage
 - add tests for runtime and memory behavior
 - define `waveary-web` package boundary
-- start recording major product and architecture decisions in `docs/decision-log.md`
 - keep updating `PROJECT_STATE.md` and `docs/session-log.md` after each verified work block
+- keep `START_HERE.md` and continuity files aligned with current workflow
 
 ## Open Issues
 

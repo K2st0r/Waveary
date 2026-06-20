@@ -94,11 +94,11 @@ Verification:
 
 Commit:
 
-- pending
+- `d426519` - `Add architectural decision log`
 
 Push:
 
-- pending
+- pushed later as part of continuity cleanup
 
 ## 2026-06-20
 
@@ -120,6 +120,36 @@ Files changed:
 Verification:
 
 - `python C:\Users\13571\.codex\skills\.system\skill-creator\scripts\quick_validate.py C:\Users\13571\.codex\skills\waveary-continuity-guard`
+
+Commit:
+
+- `76f45e5` - `Strengthen continuity auto-resume entrypoints`
+
+Push:
+
+- succeeded
+
+## 2026-06-20
+
+Objective:
+
+Add one last root-level entrypoint so any new session sees the continuity path immediately before touching code.
+
+Summary:
+
+- added `START_HERE.md`
+- updated `PROJECT_STATE.md` to reflect the latest verified continuity commit
+- cleaned up stale pending markers in `docs/session-log.md`
+
+Files changed:
+
+- `START_HERE.md`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `git status --short -b`
 
 Commit:
 
