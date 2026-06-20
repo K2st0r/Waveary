@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `22fbcda` - `Add import validation diagnostics`
+- `ed81dff` - `Document session package format`
 
 ## Modules
 
