@@ -34,4 +34,37 @@ Commit:
 
 Push:
 
-- failed due to GitHub `443` connectivity timeout
+- succeeded after network recovered
+
+## 2026-06-20
+
+Objective:
+
+Add continuity guardrails so a new Codex session can resume work safely, keep progress records current, and reduce refactor mistakes after context reset.
+
+Summary:
+
+- created a local Codex skill at `C:\Users\13571\.codex\skills\waveary-continuity-guard`
+- added `PROJECT_STATE.md`
+- added `docs/session-log.md`
+- added `docs/workflow-rules.md`
+- validated the skill and kept repository verification green
+
+Files changed:
+
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+- `docs/workflow-rules.md`
+
+Verification:
+
+- `python C:\Users\13571\.codex\skills\.system\skill-creator\scripts\quick_validate.py C:\Users\13571\.codex\skills\waveary-continuity-guard`
+- `npm run check`
+
+Commit:
+
+- `d9e7cf3` - `Add repository continuity tracking files`
+
+Push:
+
+- succeeded

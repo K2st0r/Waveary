@@ -14,7 +14,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `7b62365` - `Add runnable core demo and initial memory module`
+- `d9e7cf3` - `Add repository continuity tracking files`
 
 ## Modules
 
@@ -31,14 +31,15 @@ Brand line:
 
 - `npm run check`
 - `npm run demo`
+- `python C:\Users\13571\.codex\skills\.system\skill-creator\scripts\quick_validate.py C:\Users\13571\.codex\skills\waveary-continuity-guard`
 
 ## Next Steps
 
 - add persistence interfaces beyond in-memory storage
 - add tests for runtime and memory behavior
 - define `waveary-web` package boundary
-- push latest local commit when GitHub connectivity is available
+- keep updating `PROJECT_STATE.md` and `docs/session-log.md` after each verified work block
 
 ## Open Issues
 
-- local branch is ahead of remote by one commit when GitHub `443` connectivity is unavailable
+- no active repository-side blocker
