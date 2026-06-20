@@ -2,7 +2,7 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 
 import { OpenAICompatibleChatProvider, PROVIDER_PRESETS } from "@waveary/core";
 
-import { sendChatTurn } from "./chat-runtime.js";
+import { loadChatSessionSnapshot, sendChatTurn } from "./chat-runtime.js";
 import { loadSavedProviderConfig, saveProviderConfig } from "./provider-config.js";
 
 interface ProviderModelsRequest {
@@ -18,6 +18,10 @@ interface ProviderConfigRequest extends ProviderModelsRequest {
 interface ChatTurnRequest {
   sessionId?: string;
   message?: string;
+}
+
+interface ChatSessionRequest {
+  sessionId?: string;
 }
 
 type NextFunction = (error?: unknown) => void;
@@ -42,6 +46,16 @@ export function createProviderApiMiddleware() {
         );
 
         sendJson(response, 200, result);
+        return;
+      }
+
+      if (request.method === "POST" && request.url === "/api/chat/session") {
+        const payload = (await readJsonBody(request)) as ChatSessionRequest;
+        const session = loadChatSessionSnapshot(
+          requireNonEmpty(payload.sessionId, "Session ID is required.")
+        );
+
+        sendJson(response, 200, { session: session ?? null });
         return;
       }
 
