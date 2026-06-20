@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `c8ba594` - `Record session format push failure`
+- `9a81d95` - `Expose session package reference in web UI`
 
 ## Modules
 

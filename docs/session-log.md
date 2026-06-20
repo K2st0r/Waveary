@@ -31,11 +31,11 @@ Verification:
 
 Commit:
 
-- pending
+- `9a81d95` - `Expose session package reference in web UI`
 
 Push:
 
-- pending
+- succeeded
 
 ## 2026-06-20
 
