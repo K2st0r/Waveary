@@ -1,7 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import type { Message, PersistedSessionState, SessionStateRepository } from "../index.js";
+import type {
+  Message,
+  PersistedSessionState,
+  PersistedSessionStateRecord,
+  SessionStateRepository
+} from "../index.js";
 import { RepositoryBackedSessionState } from "../index.js";
 
 test("RepositoryBackedSessionState persists context, memories, relationship, and timeline through a repository", async () => {
@@ -115,5 +120,12 @@ class TestSessionStateRepository
 
   delete(sessionId: string): void {
     this.records.delete(sessionId);
+  }
+
+  list(): PersistedSessionStateRecord<PersistedSessionState>[] {
+    return [...this.records.entries()].map(([sessionId, state]) => ({
+      sessionId,
+      state: JSON.parse(JSON.stringify(state)) as PersistedSessionState
+    }));
   }
 }

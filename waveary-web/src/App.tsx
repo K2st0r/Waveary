@@ -55,6 +55,14 @@ interface ChatSessionListItem {
   messageCount: number;
 }
 
+type ChatPersistenceBackend = "file" | "sqlite";
+
+interface ChatPersistenceStatus {
+  backend: ChatPersistenceBackend;
+  availableBackends: ChatPersistenceBackend[];
+  storageLabel: string;
+}
+
 interface ChatMessage {
   id: string;
   role: "user" | "assistant";
@@ -150,6 +158,9 @@ export function App(): ReactElement {
   const [defaultSessionId, setDefaultSessionId] = useState("");
   const [newSessionTitle, setNewSessionTitle] = useState("");
   const [sessionRenameTitle, setSessionRenameTitle] = useState("");
+  const [persistenceStatus, setPersistenceStatus] = useState<ChatPersistenceStatus | null>(null);
+  const [selectedPersistenceBackend, setSelectedPersistenceBackend] = useState<ChatPersistenceBackend>("file");
+  const [persistenceState, setPersistenceState] = useState<LoadState>("idle");
 
   useEffect(() => {
     void loadInitialState();
@@ -162,7 +173,11 @@ export function App(): ReactElement {
       const [presetResponse, configResponse, sessionsResponse] = await Promise.all([
         fetchJson<{ presets: ProviderPreset[] }>("/api/provider/presets"),
         fetchJson<{ config?: SavedProviderConfig }>("/api/provider/config"),
-        fetchJson<{ sessions: ChatSessionListItem[]; defaultSessionId: string }>("/api/chat/sessions")
+        fetchJson<{
+          sessions: ChatSessionListItem[];
+          defaultSessionId: string;
+          persistence: ChatPersistenceStatus;
+        }>("/api/chat/sessions")
       ]);
 
       const nextPresets = presetResponse.presets;
@@ -178,6 +193,8 @@ export function App(): ReactElement {
       setDefaultSessionId(nextDefaultSessionId);
       setActiveSessionId(nextActiveSessionId);
       setSessionRenameTitle(nextSessions.find((session) => session.sessionId === nextActiveSessionId)?.title ?? "");
+      setPersistenceStatus(sessionsResponse.persistence);
+      setSelectedPersistenceBackend(sessionsResponse.persistence.backend);
       await loadChatSession(nextActiveSessionId);
 
       if (nextConfig) {
@@ -304,6 +321,7 @@ export function App(): ReactElement {
         session: ChatSessionSnapshot;
         sessions: ChatSessionListItem[];
         defaultSessionId: string;
+        persistence: ChatPersistenceStatus;
       }>("/api/chat/sessions", {
         method: "POST",
         body: JSON.stringify({
@@ -313,6 +331,8 @@ export function App(): ReactElement {
 
       setChatSessions(response.sessions);
       setDefaultSessionId(response.defaultSessionId);
+      setPersistenceStatus(response.persistence);
+      setSelectedPersistenceBackend(response.persistence.backend);
       setActiveSessionId(response.session.sessionId);
       setSessionRenameTitle(
         response.sessions.find((session) => session.sessionId === response.session.sessionId)?.title ?? ""
@@ -337,6 +357,7 @@ export function App(): ReactElement {
         session: ChatSessionSnapshot;
         sessions: ChatSessionListItem[];
         defaultSessionId: string;
+        persistence: ChatPersistenceStatus;
       }>("/api/chat/sessions/rename", {
         method: "POST",
         body: JSON.stringify({
@@ -347,6 +368,8 @@ export function App(): ReactElement {
 
       setChatSessions(response.sessions);
       setDefaultSessionId(response.defaultSessionId);
+      setPersistenceStatus(response.persistence);
+      setSelectedPersistenceBackend(response.persistence.backend);
       setSessionRenameTitle(
         response.sessions.find((session) => session.sessionId === activeSessionId)?.title ?? sessionRenameTitle
       );
@@ -365,6 +388,7 @@ export function App(): ReactElement {
       const response = await fetchJson<{
         sessions: ChatSessionListItem[];
         defaultSessionId: string;
+        persistence: ChatPersistenceStatus;
       }>("/api/chat/sessions/delete", {
         method: "POST",
         body: JSON.stringify({
@@ -376,6 +400,8 @@ export function App(): ReactElement {
 
       setChatSessions(response.sessions);
       setDefaultSessionId(response.defaultSessionId);
+      setPersistenceStatus(response.persistence);
+      setSelectedPersistenceBackend(response.persistence.backend);
       setActiveSessionId(fallbackSessionId);
       setSessionRenameTitle(
         response.sessions.find((session) => session.sessionId === fallbackSessionId)?.title ?? ""
@@ -383,6 +409,48 @@ export function App(): ReactElement {
       await loadChatSession(fallbackSessionId);
       setStatusMessage("Session deleted.");
     } catch (error) {
+      setStatusMessage(getErrorMessage(error));
+    }
+  }
+
+  async function handlePersistenceSwitch(): Promise<void> {
+    setPersistenceState("loading");
+
+    try {
+      const response = await fetchJson<{
+        sessions: ChatSessionListItem[];
+        defaultSessionId: string;
+        persistence: ChatPersistenceStatus;
+        importedSessionCount: number;
+      }>("/api/chat/persistence", {
+        method: "POST",
+        body: JSON.stringify({
+          backend: selectedPersistenceBackend
+        })
+      });
+
+      const nextActiveSessionId =
+        response.sessions.find((session) => session.sessionId === activeSessionId)?.sessionId ??
+        response.sessions[0]?.sessionId ??
+        response.defaultSessionId;
+
+      setChatSessions(response.sessions);
+      setDefaultSessionId(response.defaultSessionId);
+      setPersistenceStatus(response.persistence);
+      setSelectedPersistenceBackend(response.persistence.backend);
+      setActiveSessionId(nextActiveSessionId);
+      setSessionRenameTitle(
+        response.sessions.find((session) => session.sessionId === nextActiveSessionId)?.title ?? ""
+      );
+      await loadChatSession(nextActiveSessionId);
+      setPersistenceState("success");
+      setStatusMessage(
+        response.importedSessionCount > 0
+          ? `Switched chat persistence to ${response.persistence.backend}. Imported ${response.importedSessionCount} existing sessions.`
+          : `Switched chat persistence to ${response.persistence.backend}.`
+      );
+    } catch (error) {
+      setPersistenceState("error");
       setStatusMessage(getErrorMessage(error));
     }
   }
@@ -420,6 +488,7 @@ export function App(): ReactElement {
       const sessionsResponse = await fetchJson<{
         sessions: ChatSessionListItem[];
         defaultSessionId: string;
+        persistence: ChatPersistenceStatus;
       }>("/api/chat/sessions");
 
       setChatMessages((current) => [...current, assistantMessage]);
@@ -427,6 +496,8 @@ export function App(): ReactElement {
       setChatRestoredAt(new Date().toISOString());
       setChatSessions(sessionsResponse.sessions);
       setDefaultSessionId(sessionsResponse.defaultSessionId);
+      setPersistenceStatus(sessionsResponse.persistence);
+      setSelectedPersistenceBackend(sessionsResponse.persistence.backend);
       setChatState("success");
     } catch (error) {
       setChatMessages((current) => [
@@ -441,7 +512,11 @@ export function App(): ReactElement {
     }
   }
 
-  const isBusy = loadState === "loading" || modelsState === "loading" || saveState === "loading";
+  const isBusy =
+    loadState === "loading" ||
+    modelsState === "loading" ||
+    saveState === "loading" ||
+    persistenceState === "loading";
   const canFetchModels = Boolean(selectedProvider && baseURL.trim() && apiKey.trim()) && modelsState !== "loading";
   const canSaveConfig =
     Boolean(selectedProvider && baseURL.trim() && apiKey.trim() && selectedModel) && saveState !== "loading";
@@ -457,6 +532,10 @@ export function App(): ReactElement {
     activeSessionId !== defaultSessionId &&
     sessionRenameTitle.trim().length > 0 &&
     sessionRenameTitle.trim() !== activeSession?.title;
+  const canSwitchPersistence =
+    Boolean(persistenceStatus) &&
+    selectedPersistenceBackend !== (persistenceStatus?.backend ?? selectedPersistenceBackend) &&
+    persistenceState !== "loading";
 
   return (
     <div className="page-shell">
@@ -755,6 +834,44 @@ export function App(): ReactElement {
               </div>
 
               <div className="session-controls">
+                <div className="session-control-card">
+                  <div className="mini-heading">Persistence Backend</div>
+                  <div className="session-active-summary">
+                    <strong>{persistenceStatus ? persistenceStatus.backend.toUpperCase() : "Loading..."}</strong>
+                    <span>
+                      {persistenceStatus
+                        ? `Current local store: ${persistenceStatus.storageLabel}`
+                        : "Loading current chat persistence backend."}
+                    </span>
+                  </div>
+                  <label className="form-field">
+                    <span>Backend</span>
+                    <select
+                      value={selectedPersistenceBackend}
+                      onChange={(event) =>
+                        setSelectedPersistenceBackend(event.target.value as ChatPersistenceBackend)
+                      }
+                      disabled={!persistenceStatus || persistenceState === "loading"}
+                    >
+                      {(persistenceStatus?.availableBackends ?? ["file", "sqlite"]).map((backend) => (
+                        <option key={backend} value={backend}>
+                          {backend === "sqlite" ? "SQLite" : "File JSON"}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <div className="console-actions">
+                    <button
+                      className="button button-secondary"
+                      onClick={() => void handlePersistenceSwitch()}
+                      disabled={!canSwitchPersistence}
+                      type="button"
+                    >
+                      {persistenceState === "loading" ? "Switching..." : "Switch Backend"}
+                    </button>
+                  </div>
+                </div>
+
                 <div className="session-control-card">
                   <div className="mini-heading">Create Session</div>
                   <label className="form-field">

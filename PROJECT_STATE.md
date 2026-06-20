@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `14fd6cf` - `Add core persisted session state contract`
+- `2fc7e07` - `Add SQLite session state repository`
 
 ## Modules
 
@@ -41,6 +41,7 @@ Brand line:
   - browser-native provider setup flow is implemented through local `/api/provider/*` routes
   - first in-browser runtime chat shell is implemented through local `/api/chat/turn`
   - local browser chat session persistence is implemented through `.waveary/chat-sessions.json`
+  - local persistence backend switching between JSON file and SQLite is implemented through local `/api/chat/persistence`
   - main-session default plus optional additional chat sessions are implemented in the web layer
   - non-default sessions can now be renamed and deleted through the web session layer
   - Windows-safe local dev and preview entrypoints are implemented for the current workspace path setup
@@ -65,6 +66,7 @@ Brand line:
   - can list provider presets, fetch models through the selected provider key, and save local config
   - can run a first browser chat flow and render memory, relationship, emotion, and timeline signals
   - restores local chat history and latest runtime signals after dev server restart
+  - can switch local chat persistence between `.waveary/chat-sessions.json` and `.waveary/chat-sessions.db`
   - supports a default main companion session plus user-created additional sessions with rename and delete management
   - now boots reliably through `npm run web:dev` on the current Windows + Chinese-path workspace
 
@@ -81,6 +83,7 @@ Brand line:
 - `Invoke-WebRequest http://127.0.0.1:4173/api/chat/sessions`
 - `Invoke-WebRequest http://127.0.0.1:4173/api/chat/sessions/rename`
 - `Invoke-WebRequest http://127.0.0.1:4173/api/chat/sessions/delete`
+- `Invoke-WebRequest http://127.0.0.1:4173/api/chat/persistence`
 - `Invoke-WebRequest http://127.0.0.1:4173/`
 - `Invoke-WebRequest http://127.0.0.1:4173/api/provider/presets`
 - `Invoke-WebRequest http://127.0.0.1:4173/api/chat/turn`
@@ -92,8 +95,8 @@ Brand line:
 
 ## Next Steps
 
-- wire the SQLite session repository into a real runtime entrypoint such as `waveary-web`
-- add migration or import logic between file-backed local state and SQLite-backed state
+- extend automated coverage for local persistence backend switching and state synchronization behavior
+- surface more explicit backend health and migration details in the `waveary-web` session layer
 - expand provider-specific request normalization where "OpenAI-compatible" vendors diverge further
 - keep updating `PROJECT_STATE.md` and `docs/session-log.md` after each verified work block
 - keep `START_HERE.md` and continuity files aligned with current workflow

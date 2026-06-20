@@ -14,6 +14,7 @@ import {
   type ChatReplyPayload,
   type ChatSessionSnapshot
 } from "./chat-session-store.js";
+import { loadChatPersistenceConfig } from "./chat-persistence-config.js";
 import { loadSavedProviderConfig } from "./provider-config.js";
 
 interface ChatSessionState {
@@ -51,7 +52,7 @@ export async function sendChatTurn(sessionId: string, content: string): Promise<
 }
 
 export function loadChatSessionSnapshot(sessionId: string): ChatSessionSnapshot | undefined {
-  const existing = sessions.get(sessionId);
+  const existing = sessions.get(getRuntimeCacheKey(sessionId));
   if (existing) {
     return existing.persistentState.getSnapshot();
   }
@@ -59,8 +60,13 @@ export function loadChatSessionSnapshot(sessionId: string): ChatSessionSnapshot 
   return new PersistentChatSessionState(sessionId).getSnapshot();
 }
 
+export function resetChatRuntimeSessions(): void {
+  sessions.clear();
+}
+
 function createOrReuseSession(sessionId: string): ChatSessionState {
-  const existing = sessions.get(sessionId);
+  const cacheKey = getRuntimeCacheKey(sessionId);
+  const existing = sessions.get(cacheKey);
   if (existing) {
     return existing;
   }
@@ -88,8 +94,12 @@ function createOrReuseSession(sessionId: string): ChatSessionState {
   });
 
   const state = { persistentState, runtime };
-  sessions.set(sessionId, state);
+  sessions.set(cacheKey, state);
   return state;
+}
+
+function getRuntimeCacheKey(sessionId: string): string {
+  return `${loadChatPersistenceConfig().backend}:${sessionId}`;
 }
 
 function toReplyPayload(result: RuntimeTurnResult): ChatReplyPayload {

@@ -1,6 +1,5 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
-import { fileURLToPath } from "node:url";
 
 import type {
   EmotionState,
@@ -13,8 +12,19 @@ import type {
 import {
   RepositoryBackedSessionState,
   type PersistedSessionState,
+  type PersistedSessionStateRecord,
   type SessionStateRepository
 } from "@waveary/core";
+import { SqliteSessionStateRepository as CoreSqliteSessionStateRepository } from "@waveary/core";
+import {
+  CHAT_SESSION_JSON_PATH,
+  CHAT_SESSION_SQLITE_PATH,
+  getChatPersistenceStatus,
+  loadChatPersistenceConfig,
+  saveChatPersistenceConfig,
+  type ChatPersistenceBackend,
+  type ChatPersistenceStatus
+} from "./chat-persistence-config.js";
 
 export interface ChatReplyPayload {
   reply: string;
@@ -50,16 +60,27 @@ interface PersistedChatSession extends PersistedSessionState {
 
 type PersistedChatSessions = Record<string, PersistedChatSession>;
 
-const SESSION_STORE_PATH = fileURLToPath(new URL("../../.waveary/chat-sessions.json", import.meta.url));
 export const DEFAULT_CHAT_SESSION_ID = "waveary-main";
+
+interface ChatSessionRepository extends SessionStateRepository<PersistedChatSession> {
+  close?(): void;
+}
+
+export interface ChatPersistenceSwitchResult {
+  persistence: ChatPersistenceStatus;
+  importedSessionCount: number;
+}
 
 export class PersistentChatSessionState {
   private readonly runtimeState: RepositoryBackedSessionState<PersistedChatSession>;
 
-  constructor(private readonly sessionId: string) {
+  constructor(
+    private readonly sessionId: string,
+    repository: ChatSessionRepository = createChatSessionRepository()
+  ) {
     this.runtimeState = new RepositoryBackedSessionState({
       sessionId,
-      repository: new FileBackedSessionRepository(),
+      repository,
       createInitialState: createInitialSessionState
     });
   }
@@ -112,11 +133,17 @@ export class PersistentChatSessionState {
       return;
     }
 
-    updateSession(this.sessionId, (current) => ({
-      ...current,
-      title: normalized,
-      updatedAt: new Date().toISOString()
-    }));
+    withChatSessionRepository((repository) =>
+      updateSession(
+        this.sessionId,
+        (current) => ({
+          ...current,
+          title: normalized,
+          updatedAt: new Date().toISOString()
+        }),
+        repository
+      )
+    );
   }
 
   private readOrCreate(): PersistedChatSession {
@@ -125,45 +152,53 @@ export class PersistentChatSessionState {
 }
 
 function loadPersistedChatSession(sessionId: string): PersistedChatSession | undefined {
-  return readAllSessions()[sessionId];
+  return withChatSessionRepository((repository) => repository.load(sessionId));
 }
 
 export function listChatSessions(): ChatSessionListItem[] {
-  ensureSession(DEFAULT_CHAT_SESSION_ID);
-  const sessions = readAllSessions();
+  return withChatSessionRepository((repository) => {
+    ensureSession(DEFAULT_CHAT_SESSION_ID, repository);
+    const sessions = repository.list();
 
-  return Object.entries(sessions)
-    .map(([sessionId, session]) => ({
-      sessionId,
-      title: session.title ?? deriveSessionTitle(sessionId, session),
-      updatedAt: session.updatedAt,
-      messageCount: session.context.history.filter(
-        (message) => message.role === "user" || message.role === "assistant"
-      ).length
-    }))
-    .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt));
+    return sessions
+      .map(({ sessionId, state: session }) => ({
+        sessionId,
+        title: session.title ?? deriveSessionTitle(sessionId, session),
+        updatedAt: session.updatedAt,
+        messageCount: session.context.history.filter(
+          (message) => message.role === "user" || message.role === "assistant"
+        ).length
+      }))
+      .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt));
+  });
 }
 
 export function createChatSession(sessionId?: string, title?: string): ChatSessionSnapshot {
-  const resolvedSessionId = resolveSessionId(sessionId);
-  const session = ensureSession(resolvedSessionId);
+  return withChatSessionRepository((repository) => {
+    const resolvedSessionId = resolveSessionId(sessionId);
+    const session = ensureSession(resolvedSessionId, repository);
 
-  if (title?.trim()) {
-    updateSession(resolvedSessionId, (current) => ({
-      ...current,
-      title: title.trim(),
-      updatedAt: new Date().toISOString()
-    }));
-  }
+    if (title?.trim()) {
+      updateSession(
+        resolvedSessionId,
+        (current) => ({
+          ...current,
+          title: title.trim(),
+          updatedAt: new Date().toISOString()
+        }),
+        repository
+      );
+    }
 
-  return {
-    sessionId: resolvedSessionId,
-    messages: session.context.history.filter(
-      (message) => message.role === "user" || message.role === "assistant"
-    ),
-    latestInsights: session.latestInsights,
-    updatedAt: session.updatedAt
-  };
+    return {
+      sessionId: resolvedSessionId,
+      messages: session.context.history.filter(
+        (message) => message.role === "user" || message.role === "assistant"
+      ),
+      latestInsights: session.latestInsights,
+      updatedAt: session.updatedAt
+    };
+  });
 }
 
 export function renameChatSession(sessionId: string, title: string): ChatSessionSnapshot {
@@ -177,22 +212,28 @@ export function renameChatSession(sessionId: string, title: string): ChatSession
     throw new Error("Session title is required.");
   }
 
-  const session = ensureSession(sessionId);
+  return withChatSessionRepository((repository) => {
+    const session = ensureSession(sessionId, repository);
 
-  updateSession(sessionId, (current) => ({
-    ...current,
-    title: normalized,
-    updatedAt: new Date().toISOString()
-  }));
+    updateSession(
+      sessionId,
+      (current) => ({
+        ...current,
+        title: normalized,
+        updatedAt: new Date().toISOString()
+      }),
+      repository
+    );
 
-  return {
-    sessionId,
-    messages: session.context.history.filter(
-      (message) => message.role === "user" || message.role === "assistant"
-    ),
-    latestInsights: session.latestInsights,
-    updatedAt: new Date().toISOString()
-  };
+    return {
+      sessionId,
+      messages: session.context.history.filter(
+        (message) => message.role === "user" || message.role === "assistant"
+      ),
+      latestInsights: session.latestInsights,
+      updatedAt: new Date().toISOString()
+    };
+  });
 }
 
 export function deleteChatSession(sessionId: string): ChatSessionListItem[] {
@@ -200,37 +241,96 @@ export function deleteChatSession(sessionId: string): ChatSessionListItem[] {
     throw new Error("The default main session cannot be deleted.");
   }
 
-  const sessions = readAllSessions();
+  return withChatSessionRepository((repository) => {
+    const sessions = repository.list();
 
-  if (!(sessionId in sessions)) {
+    if (!sessions.some((session) => session.sessionId === sessionId)) {
+      return listChatSessions();
+    }
+
+    repository.delete(sessionId);
+
     return listChatSessions();
-  }
-
-  delete sessions[sessionId];
-  writeAllSessions(sessions);
-
-  return listChatSessions();
+  });
 }
 
-function ensureSession(sessionId: string): PersistedChatSession {
-  const existing = loadPersistedChatSession(sessionId);
+export function getCurrentChatPersistenceStatus(): ChatPersistenceStatus {
+  return getChatPersistenceStatus();
+}
+
+export function switchChatPersistenceBackend(
+  nextBackend: ChatPersistenceBackend
+): ChatPersistenceSwitchResult {
+  const currentBackend = loadChatPersistenceConfig().backend;
+
+  if (currentBackend === nextBackend) {
+    return {
+      persistence: getChatPersistenceStatus(),
+      importedSessionCount: 0
+    };
+  }
+
+  const sourceRepository = createChatSessionRepository(currentBackend);
+  const targetRepository = createChatSessionRepository(nextBackend);
+
+  try {
+    const sourceSessions = sourceRepository.list();
+    const targetSessions = new Map(
+      targetRepository.list().map((record) => [record.sessionId, record.state])
+    );
+    let importedSessionCount = 0;
+
+    sourceSessions.forEach(({ sessionId, state }) => {
+      const existingTargetState = targetSessions.get(sessionId);
+
+      if (
+        !existingTargetState ||
+        existingTargetState.updatedAt.localeCompare(state.updatedAt) < 0
+      ) {
+        targetRepository.save(sessionId, state);
+        importedSessionCount += 1;
+      }
+    });
+
+    saveChatPersistenceConfig({ backend: nextBackend });
+
+    withChatSessionRepository((repository) => {
+      ensureSession(DEFAULT_CHAT_SESSION_ID, repository);
+      return undefined;
+    });
+
+    return {
+      persistence: getChatPersistenceStatus(),
+      importedSessionCount
+    };
+  } finally {
+    sourceRepository.close?.();
+    targetRepository.close?.();
+  }
+}
+
+function ensureSession(
+  sessionId: string,
+  repository: ChatSessionRepository = createChatSessionRepository()
+): PersistedChatSession {
+  const existing = repository.load(sessionId);
   if (existing) {
     return existing;
   }
 
   const created = createInitialSessionState(sessionId);
 
-  updateSession(sessionId, () => created);
+  updateSession(sessionId, () => created, repository);
   return created;
 }
 
 function updateSession(
   sessionId: string,
-  updater: (current: PersistedChatSession) => PersistedChatSession
+  updater: (current: PersistedChatSession) => PersistedChatSession,
+  repository: ChatSessionRepository = createChatSessionRepository()
 ): PersistedChatSession {
-  const sessions = readAllSessions();
   const current =
-    sessions[sessionId] ??
+    repository.load(sessionId) ??
     ({
       context: createInitialRuntimeContext(sessionId),
       memories: [],
@@ -241,22 +341,21 @@ function updateSession(
     } satisfies PersistedChatSession);
   const next = updater(current);
 
-  sessions[sessionId] = next;
-  writeAllSessions(sessions);
+  repository.save(sessionId, next);
   return next;
 }
 
 function readAllSessions(): PersistedChatSessions {
-  if (!existsSync(SESSION_STORE_PATH)) {
+  if (!existsSync(CHAT_SESSION_JSON_PATH)) {
     return {};
   }
 
-  return JSON.parse(readFileSync(SESSION_STORE_PATH, "utf8")) as PersistedChatSessions;
+  return JSON.parse(readFileSync(CHAT_SESSION_JSON_PATH, "utf8")) as PersistedChatSessions;
 }
 
 function writeAllSessions(sessions: PersistedChatSessions): void {
-  mkdirSync(dirname(SESSION_STORE_PATH), { recursive: true });
-  writeFileSync(SESSION_STORE_PATH, JSON.stringify(sessions, null, 2));
+  mkdirSync(dirname(CHAT_SESSION_JSON_PATH), { recursive: true });
+  writeFileSync(CHAT_SESSION_JSON_PATH, JSON.stringify(sessions, null, 2));
 }
 
 function createInitialRuntimeContext(sessionId: string): RuntimeContext {
@@ -329,16 +428,77 @@ class FileBackedSessionRepository
   implements SessionStateRepository<PersistedChatSession>
 {
   load(sessionId: string): PersistedChatSession | undefined {
-    return loadPersistedChatSession(sessionId);
+    return readAllSessions()[sessionId];
   }
 
   save(sessionId: string, state: PersistedChatSession): void {
-    updateSession(sessionId, () => state);
+    const sessions = readAllSessions();
+    sessions[sessionId] = state;
+    writeAllSessions(sessions);
   }
 
   delete(sessionId: string): void {
     const sessions = readAllSessions();
     delete sessions[sessionId];
     writeAllSessions(sessions);
+  }
+
+  list(): PersistedSessionStateRecord<PersistedChatSession>[] {
+    return Object.entries(readAllSessions()).map(([sessionId, state]) => ({
+      sessionId,
+      state
+    }));
+  }
+}
+
+class SqliteBackedChatSessionRepository
+  implements ChatSessionRepository
+{
+  private readonly repository: CoreSqliteSessionStateRepository<PersistedChatSession>;
+
+  constructor() {
+    this.repository = new CoreSqliteSessionStateRepository<PersistedChatSession>({
+      filename: CHAT_SESSION_SQLITE_PATH
+    });
+  }
+
+  load(sessionId: string): PersistedChatSession | undefined {
+    return this.repository.load(sessionId);
+  }
+
+  save(sessionId: string, state: PersistedChatSession): void {
+    this.repository.save(sessionId, state);
+  }
+
+  delete(sessionId: string): void {
+    this.repository.delete(sessionId);
+  }
+
+  list(): PersistedSessionStateRecord<PersistedChatSession>[] {
+    return this.repository.list();
+  }
+
+  close(): void {
+    this.repository.close();
+  }
+}
+
+function createChatSessionRepository(
+  backend: ChatPersistenceBackend = loadChatPersistenceConfig().backend
+): ChatSessionRepository {
+  return backend === "sqlite"
+    ? new SqliteBackedChatSessionRepository()
+    : new FileBackedSessionRepository();
+}
+
+function withChatSessionRepository<T>(
+  runner: (repository: ChatSessionRepository) => T
+): T {
+  const repository = createChatSessionRepository();
+
+  try {
+    return runner(repository);
+  } finally {
+    repository.close?.();
   }
 }

@@ -4,6 +4,52 @@
 
 Objective:
 
+Wire the new local persistence backends into `waveary-web` so the browser chat can switch between JSON file storage and SQLite without losing session continuity.
+
+Summary:
+
+- extended the core `SessionStateRepository` contract with `list()` so storage backends can support session enumeration and migration
+- added a local chat persistence config in `waveary-web` with visible backend status and a browser-side backend switch control
+- wired `waveary-web` session storage and runtime cache to select either JSON file or SQLite based on current local persistence config
+- added `/api/chat/persistence` and updated existing session endpoints to return backend status alongside session data
+- verified real `file -> sqlite -> file` switching through live local API requests, including persistence import and post-switch session recovery
+
+Files changed:
+
+- `waveary-core/src/storage/session-state.ts`
+- `waveary-core/src/storage/sqlite-session-state-repository.ts`
+- `waveary-core/src/storage/repository-backed-session-state.test.ts`
+- `waveary-web/server/chat-persistence-config.ts`
+- `waveary-web/server/chat-runtime.ts`
+- `waveary-web/server/chat-session-store.ts`
+- `waveary-web/server/provider-api.ts`
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check`
+- `npm run test`
+- `Invoke-WebRequest http://127.0.0.1:4173/api/chat/sessions`
+- `Invoke-WebRequest http://127.0.0.1:4173/api/chat/persistence` with `{"backend":"sqlite"}`
+- `Invoke-WebRequest http://127.0.0.1:4173/api/chat/session` with `{"sessionId":"waveary-main"}`
+- `Invoke-WebRequest http://127.0.0.1:4173/api/chat/turn` with `{"sessionId":"waveary-main","message":"Please reply with one short sentence confirming sqlite persistence is active."}`
+- `Invoke-WebRequest http://127.0.0.1:4173/api/chat/persistence` with `{"backend":"file"}`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-20
+
+Objective:
+
 Add the first structured non-file persistence backend on top of the core session state contract.
 
 Summary:
@@ -30,11 +76,11 @@ Verification:
 
 Commit:
 
-- pending
+- `2fc7e07` - `Add SQLite session state repository`
 
 Push:
 
-- pending
+- succeeded
 
 ## 2026-06-20
 
