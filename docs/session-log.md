@@ -4,6 +4,40 @@
 
 Objective:
 
+Add route-level regression coverage for `waveary-web` `/api/chat/persistence` so backend status payloads and runtime cache reset behavior are protected at the middleware layer.
+
+Summary:
+
+- added a dedicated `provider-api` middleware test file in `waveary-web/server`
+- verified that `POST /api/chat/persistence` returns the richer persistence payload, including `lastSync`, `backendDetails`, and synchronized session counts
+- verified that switching persistence backends clears the in-memory runtime cache so the next chat turn is recreated under the new backend key
+- kept the change scoped to the local web API layer without altering runtime or frontend behavior
+
+Files changed:
+
+- `waveary-web/server/provider-api.test.ts`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run test --workspace @waveary/web`
+- `npm run check --workspace @waveary/web`
+- `npm run check`
+- `npm run test`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-20
+
+Objective:
+
 Surface richer local persistence backend status in `waveary-web` so the session layer shows active backend health, alternate-backend sync state, and last migration details.
 
 Summary:

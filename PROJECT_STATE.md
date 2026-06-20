@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `5eb777f` - `Add web persistence status insights`
+- `7c5ef1b` - `Retry push checkpoint`
 
 ## Modules
 
@@ -43,6 +43,7 @@ Brand line:
   - local browser chat session persistence is implemented through `.waveary/chat-sessions.json`
   - local persistence backend switching between JSON file and SQLite is implemented through local `/api/chat/persistence`
   - Node-based regression tests now cover local persistence backend switching and cross-backend state synchronization
+  - Node-based route tests now cover `/api/chat/persistence` response shape and runtime cache reset behavior
   - session persistence UI now surfaces backend-by-backend sync state, last migration metadata, differing session counts, and latest write timestamps
   - main-session default plus optional additional chat sessions are implemented in the web layer
   - non-default sessions can now be renamed and deleted through the web session layer
@@ -99,9 +100,9 @@ Brand line:
 
 ## Next Steps
 
-- add regression coverage around `/api/chat/persistence` route responses and runtime cache reset behavior
 - verify the richer persistence status payload through real local `/api/chat/persistence` browser-facing checks
 - expand provider-specific request normalization where "OpenAI-compatible" vendors diverge further
+- add route-level regression coverage for the remaining session mutation endpoints in `waveary-web`
 - keep updating `PROJECT_STATE.md` and `docs/session-log.md` after each verified work block
 - keep `START_HERE.md` and continuity files aligned with current workflow
 
