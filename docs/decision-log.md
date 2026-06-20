@@ -261,3 +261,25 @@ Impact:
 - `waveary-core` now owns a minimal persisted session state contract and a repository-backed session state adapter
 - future storage implementations can plug into the same repository interface without rewriting runtime-adjacent store logic
 - `waveary-web` keeps only UI/session-management metadata on top of the shared persisted runtime state
+
+## 2026-06-20 - First Non-File Persistence Backend
+
+Status:
+
+- accepted
+
+Decision:
+
+Use SQLite as the first concrete non-file implementation of the core persisted session state repository.
+
+Reason:
+
+- it gives Waveary a real structured persistence backend without introducing server infrastructure yet
+- it fits the current CE stage better than jumping straight to Postgres or cloud-managed storage
+- Node now provides `node:sqlite`, which keeps the dependency footprint smaller and avoids extra native packages
+
+Impact:
+
+- `waveary-core` now includes a SQLite session state repository on top of the shared persistence contract
+- future web or CLI integration can switch from JSON files to SQLite without changing runtime state semantics
+- follow-up persistence work can focus on wiring and migration rather than redefining the storage boundary

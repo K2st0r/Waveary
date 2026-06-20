@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `0f80e08` - `Add web session management controls`
+- `14fd6cf` - `Add core persisted session state contract`
 
 ## Modules
 
@@ -28,6 +28,7 @@ Brand line:
   - OpenAI-compatible multi-provider chat integration is implemented
   - provider model discovery interface is implemented
   - persisted session state contract and repository-backed runtime state adapter are implemented
+  - SQLite persisted session state repository is implemented
 - `waveary-memory`
   - independent package exists
   - simple memory extractor exists
@@ -91,8 +92,8 @@ Brand line:
 
 ## Next Steps
 
-- add a concrete non-file persistence repository such as SQLite on top of the new session state contract
-- add persistence tests once non-memory repositories exist
+- wire the SQLite session repository into a real runtime entrypoint such as `waveary-web`
+- add migration or import logic between file-backed local state and SQLite-backed state
 - expand provider-specific request normalization where "OpenAI-compatible" vendors diverge further
 - keep updating `PROJECT_STATE.md` and `docs/session-log.md` after each verified work block
 - keep `START_HERE.md` and continuity files aligned with current workflow

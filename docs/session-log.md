@@ -4,6 +4,42 @@
 
 Objective:
 
+Add the first structured non-file persistence backend on top of the core session state contract.
+
+Summary:
+
+- added a SQLite session state repository to `waveary-core` using Node's built-in `node:sqlite`
+- kept the implementation aligned with the existing `SessionStateRepository` contract instead of introducing a parallel storage path
+- added a core regression test that verifies SQLite save, load, and delete behavior for persisted companion state
+- recorded SQLite as the first accepted non-file backend for the current CE stage
+
+Files changed:
+
+- `waveary-core/src/index.ts`
+- `waveary-core/src/storage/sqlite-session-state-repository.ts`
+- `waveary-core/src/storage/sqlite-session-state-repository.test.ts`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+- `docs/decision-log.md`
+
+Verification:
+
+- `npm run check`
+- `npm run test`
+- `npm run web:build`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-20
+
+Objective:
+
 Move runtime persistence from a web-only local implementation toward a reusable framework contract that later storage backends can adopt safely.
 
 Summary:
@@ -33,11 +69,11 @@ Verification:
 
 Commit:
 
-- pending
+- `14fd6cf` - `Add core persisted session state contract`
 
 Push:
 
-- pending
+- succeeded
 
 ## 2026-06-20
 
