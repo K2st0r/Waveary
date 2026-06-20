@@ -1,0 +1,17 @@
+{
+  "name": "waveary-monorepo",
+  "private": true,
+  "workspaces": [
+    "waveary-core",
+    "waveary-memory"
+  ],
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  },
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "check": "npm run build --workspaces && npm run check --workspaces",
+    "demo": "npm run demo:build && node examples/dist/run-demo.js",
+    "demo:build": "npm run build --workspaces && tsc -p examples/tsconfig.json"
+  }
+}

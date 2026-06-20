@@ -1,0 +1,16 @@
+{
+  "name": "@waveary/memory",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Memory extraction, storage, and retrieval primitives for Project Waveary.",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "check": "tsc --noEmit -p tsconfig.json"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}

@@ -55,6 +55,8 @@ waveary-core/
 - 核心领域对象定义
 - provider 接口定义
 - 一个标准 `handleTurn` runtime flow
+- 基础内存实现适配
+- 最小可运行 demo
 
 这版代码的目标不是直接产品化，而是先把长期陪伴框架的最小程序结构钉住。
 
