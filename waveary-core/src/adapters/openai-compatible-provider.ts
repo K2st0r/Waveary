@@ -47,6 +47,7 @@ export class OpenAICompatibleChatProvider implements ChatProvider, ModelDiscover
   private readonly baseURL: string;
   private readonly model: string;
   private readonly fetchFn: typeof fetch;
+  private readonly compatibilityProfile: ProviderCompatibilityProfile;
 
   constructor(options: OpenAICompatibleProviderOptions) {
     const apiKey = options.apiKey ?? process.env.WAVEARY_API_KEY;
@@ -67,7 +68,11 @@ export class OpenAICompatibleChatProvider implements ChatProvider, ModelDiscover
 
     this.provider = options.provider;
     this.apiKey = apiKey;
-    this.baseURL = baseURL.replace(/\/+$/, "");
+    this.compatibilityProfile = resolveProviderCompatibilityProfile(options.provider);
+    this.baseURL = normalizeProviderBaseURL(
+      baseURL,
+      this.compatibilityProfile
+    );
     this.model = model;
     this.fetchFn = options.fetchFn ?? fetch;
   }
@@ -76,19 +81,7 @@ export class OpenAICompatibleChatProvider implements ChatProvider, ModelDiscover
     const chatCompletionsResponse = await this.fetchFn(`${this.baseURL}/chat/completions`, {
       method: "POST",
       headers: this.buildHeaders(),
-      body: JSON.stringify({
-        model: this.model,
-        messages: [
-          {
-            role: "system",
-            content: buildDeveloperInstruction(request)
-          },
-          ...request.messages.map((message) => ({
-            role: toCompatibleRole(message.role),
-            content: message.content
-          }))
-        ]
-      })
+      body: JSON.stringify(buildChatCompletionsBody(request, this.model))
     });
 
     if (chatCompletionsResponse.ok) {
@@ -110,19 +103,9 @@ export class OpenAICompatibleChatProvider implements ChatProvider, ModelDiscover
     const response = await this.fetchFn(`${this.baseURL}/responses`, {
       method: "POST",
       headers: this.buildHeaders(),
-      body: JSON.stringify({
-        model: this.model,
-        input: [
-          {
-            role: "developer",
-            content: buildDeveloperInstruction(request)
-          },
-          ...request.messages.map((message) => ({
-            role: toCompatibleRole(message.role),
-            content: message.content
-          }))
-        ]
-      })
+      body: JSON.stringify(
+        buildResponsesBody(request, this.model, this.compatibilityProfile)
+      )
     });
 
     if (!response.ok) {
@@ -182,7 +165,7 @@ export const PROVIDER_PRESETS: ProviderPreset[] = [
   {
     id: "deepseek",
     label: "DeepSeek",
-    baseURL: "https://api.deepseek.com/v1"
+    baseURL: "https://api.deepseek.com"
   },
   {
     id: "dashscope",
@@ -203,6 +186,74 @@ export const PROVIDER_PRESETS: ProviderPreset[] = [
 
 export function resolveProviderPreset(providerId: string): ProviderPreset | undefined {
   return PROVIDER_PRESETS.find((preset) => preset.id === providerId);
+}
+
+interface ProviderCompatibilityProfile {
+  responsesInstructionRole: "system" | "developer";
+  normalizeBaseURL?: (baseURL: string) => string;
+}
+
+function resolveProviderCompatibilityProfile(provider: string): ProviderCompatibilityProfile {
+  if (provider === "deepseek") {
+    return {
+      responsesInstructionRole: "system",
+      normalizeBaseURL: (baseURL) => baseURL.replace(/\/v1$/i, "")
+    };
+  }
+
+  return {
+    responsesInstructionRole: "developer"
+  };
+}
+
+function normalizeProviderBaseURL(
+  baseURL: string,
+  profile: ProviderCompatibilityProfile
+): string {
+  const trimmed = baseURL.replace(/\/+$/, "");
+  return profile.normalizeBaseURL ? profile.normalizeBaseURL(trimmed) : trimmed;
+}
+
+function buildChatCompletionsBody(request: ChatProviderRequest, model: string): {
+  model: string;
+  messages: Array<{ role: "system" | "user" | "assistant"; content: string }>;
+} {
+  return {
+    model,
+    messages: [
+      {
+        role: "system",
+        content: buildDeveloperInstruction(request)
+      },
+      ...request.messages.map((message) => ({
+        role: toChatCompletionsRole(message.role),
+        content: message.content
+      }))
+    ]
+  };
+}
+
+function buildResponsesBody(
+  request: ChatProviderRequest,
+  model: string,
+  profile: ProviderCompatibilityProfile
+): {
+  model: string;
+  input: Array<{ role: "system" | "developer" | "user" | "assistant"; content: string }>;
+} {
+  return {
+    model,
+    input: [
+      {
+        role: profile.responsesInstructionRole,
+        content: buildDeveloperInstruction(request)
+      },
+      ...request.messages.map((message) => ({
+        role: toResponsesRole(message.role),
+        content: message.content
+      }))
+    ]
+  };
 }
 
 function buildDeveloperInstruction(request: ChatProviderRequest): string {
@@ -356,7 +407,11 @@ function firstFiniteNumber(...values: unknown[]): number | undefined {
   return undefined;
 }
 
-function toCompatibleRole(role: "system" | "user" | "assistant"): "system" | "developer" | "user" | "assistant" {
+function toChatCompletionsRole(role: "system" | "user" | "assistant"): "system" | "user" | "assistant" {
+  return role;
+}
+
+function toResponsesRole(role: "system" | "user" | "assistant"): "system" | "developer" | "user" | "assistant" {
   if (role === "system") {
     return "system";
   }

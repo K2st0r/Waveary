@@ -12,6 +12,6 @@
   "scripts": {
     "build": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\" && tsc -p tsconfig.json",
     "check": "tsc --noEmit -p tsconfig.json",
-    "test": "node --test dist/adapters/*.test.js dist/runtime/*.test.js dist/storage/*.test.js"
+    "test": "node -e \"const { readdirSync, statSync } = require('node:fs'); const { join } = require('node:path'); const walk = (dir) => readdirSync(dir).flatMap((entry) => { const full = join(dir, entry); return statSync(full).isDirectory() ? walk(full) : full.endsWith('.test.js') ? [full] : []; }); const files = walk('dist'); if (files.length === 0) { throw new Error('No compiled test files found in dist.'); } require('node:child_process').spawnSync(process.execPath, ['--test', ...files], { stdio: 'inherit' });\""
   }
 }

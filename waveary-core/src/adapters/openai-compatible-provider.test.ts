@@ -78,6 +78,44 @@ test("OpenAICompatibleChatProvider falls back to responses when chat completions
   assert.equal(fallbackBody.input[1]?.role, "user");
 });
 
+test("OpenAICompatibleChatProvider normalizes DeepSeek base URLs and uses system role for responses fallback", async () => {
+  const recorded: Array<{ url: string; init: RequestInit | undefined }> = [];
+  const provider = new OpenAICompatibleChatProvider({
+    provider: "deepseek",
+    apiKey: "test-key",
+    baseURL: "https://api.deepseek.com/v1/",
+    model: "deepseek-chat",
+    fetchFn: async (url, init) => {
+      recorded.push({ url: String(url), init });
+
+      if (String(url).endsWith("/chat/completions")) {
+        return new Response("not found", { status: 404 });
+      }
+
+      return new Response(JSON.stringify({ output_text: "deepseek fallback reply" }), {
+        status: 200
+      });
+    }
+  });
+
+  const reply = await provider.generateReply(createRequest());
+
+  assert.equal(reply, "deepseek fallback reply");
+  assert.deepEqual(
+    recorded.map((entry) => entry.url),
+    ["https://api.deepseek.com/chat/completions", "https://api.deepseek.com/responses"]
+  );
+
+  const fallbackBody = JSON.parse(String(recorded[1]?.init?.body)) as {
+    model: string;
+    input: Array<{ role: string; content: string }>;
+  };
+
+  assert.equal(fallbackBody.model, "deepseek-chat");
+  assert.equal(fallbackBody.input[0]?.role, "system");
+  assert.equal(fallbackBody.input[1]?.role, "user");
+});
+
 test("OpenAICompatibleChatProvider lists models from the provider key", async () => {
   const provider = new OpenAICompatibleChatProvider({
     provider: "dashscope",
@@ -180,6 +218,11 @@ test("resolveProviderPreset returns configured domestic provider presets", () =>
     id: "volcengine-ark",
     label: "Volcengine Ark",
     baseURL: "https://ark.cn-beijing.volces.com/api/v3"
+  });
+  assert.deepEqual(resolveProviderPreset("deepseek"), {
+    id: "deepseek",
+    label: "DeepSeek",
+    baseURL: "https://api.deepseek.com"
   });
 });
 

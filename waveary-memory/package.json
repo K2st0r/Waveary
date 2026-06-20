@@ -9,6 +9,6 @@
   "scripts": {
     "build": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\" && tsc -p tsconfig.json",
     "check": "tsc --noEmit -p tsconfig.json",
-    "test": "node --test dist/*.test.js"
+    "test": "node -e \"const { readdirSync } = require('node:fs'); const { join } = require('node:path'); const files = readdirSync('dist').filter((entry) => entry.endsWith('.test.js')).map((entry) => join('dist', entry)); if (files.length === 0) { throw new Error('No compiled test files found in dist.'); } require('node:child_process').spawnSync(process.execPath, ['--test', ...files], { stdio: 'inherit' });\""
   }
 }
