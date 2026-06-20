@@ -103,11 +103,11 @@ Verification:
 
 Commit:
 
-- pending
+- `ef4e5e3` - `Persist web chat sessions across restarts`
 
 Push:
 
-- pending
+- succeeded
 
 ## 2026-06-20
 

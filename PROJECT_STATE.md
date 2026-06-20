@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `212570b` - `Sync continuity records for web runtime stabilization`
+- `ef4e5e3` - `Persist web chat sessions across restarts`
 
 ## Modules
 
