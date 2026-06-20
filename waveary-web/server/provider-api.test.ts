@@ -275,6 +275,50 @@ test("chat session delete route rejects deleting the default session", async () 
   assert.equal(response.body.error, "The default main session cannot be deleted.");
 });
 
+test("provider models route returns normalized provider models for the browser flow", async () => {
+  globalThis.fetch = (async () =>
+    new Response(
+      JSON.stringify({
+        models: [
+          "deepseek-chat",
+          {
+            name: "qwen-turbo",
+            display_name: "Qwen Turbo",
+            context_length: 131072
+          },
+          {
+            id: "qwen-turbo",
+            label: "Duplicate"
+          }
+        ]
+      }),
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json"
+        }
+      }
+    )) as typeof fetch;
+
+  const middleware = createProviderApiMiddleware();
+  const response = await invokeJsonRoute(middleware, "POST", "/api/provider/models", {
+    provider: "dashscope",
+    baseURL: "https://provider.example/v1",
+    apiKey: "test-key"
+  });
+
+  assert.equal(response.statusCode, 200);
+  assert.deepEqual(response.body.models, [
+    { id: "deepseek-chat", provider: "dashscope" },
+    {
+      id: "qwen-turbo",
+      provider: "dashscope",
+      label: "Qwen Turbo",
+      contextWindow: 131072
+    }
+  ]);
+});
+
 async function invokeJsonRoute(
   middleware: ReturnType<typeof createProviderApiMiddleware>,
   method: string,

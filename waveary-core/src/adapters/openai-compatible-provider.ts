@@ -14,9 +14,8 @@ export interface OpenAICompatibleProviderOptions {
 }
 
 interface OpenAICompatibleModelResponse {
-  data?: Array<{
-    id: string;
-  }>;
+  data?: unknown;
+  models?: unknown;
 }
 
 interface OpenAICompatibleResponsePayload {
@@ -147,15 +146,11 @@ export class OpenAICompatibleChatProvider implements ChatProvider, ModelDiscover
     });
 
     if (!response.ok) {
-      throw new Error(`Model listing failed with status ${response.status}.`);
+      throw await this.createProviderError(response, "Model listing failed");
     }
 
     const payload = (await response.json()) as OpenAICompatibleModelResponse;
-
-    return (payload.data ?? []).map((model) => ({
-      id: model.id,
-      provider: this.provider
-    }));
+    return normalizeModelDescriptors(payload, this.provider);
   }
 
   private buildHeaders(): Record<string, string> {
@@ -165,10 +160,10 @@ export class OpenAICompatibleChatProvider implements ChatProvider, ModelDiscover
     };
   }
 
-  private async createProviderError(response: Response): Promise<Error> {
+  private async createProviderError(response: Response, prefix = "Provider request failed"): Promise<Error> {
     const body = await response.text();
     const suffix = body ? ` Body: ${body}` : "";
-    return new Error(`Provider request failed with status ${response.status}.${suffix}`);
+    return new Error(`${prefix} with status ${response.status}.${suffix}`);
   }
 }
 
@@ -258,6 +253,107 @@ function extractChatCompletionsText(
   }
 
   return content?.find((item) => item.type === "output_text" || item.type === "text")?.text;
+}
+
+function normalizeModelDescriptors(
+  payload: OpenAICompatibleModelResponse,
+  provider: string
+): ModelDescriptor[] {
+  const rawModels = payload.data ?? payload.models ?? [];
+  const items = Array.isArray(rawModels) ? rawModels : [];
+  const seen = new Set<string>();
+  const models: ModelDescriptor[] = [];
+
+  for (const item of items) {
+    const normalized = normalizeSingleModelDescriptor(item, provider);
+
+    if (!normalized || seen.has(normalized.id)) {
+      continue;
+    }
+
+    seen.add(normalized.id);
+    models.push(normalized);
+  }
+
+  return models;
+}
+
+function normalizeSingleModelDescriptor(
+  value: unknown,
+  provider: string
+): ModelDescriptor | undefined {
+  if (typeof value === "string") {
+    return {
+      id: value,
+      provider
+    };
+  }
+
+  if (!value || typeof value !== "object") {
+    return undefined;
+  }
+
+  const record = value as Record<string, unknown>;
+  const id = firstNonEmptyString(record.id, record.name, record.model);
+
+  if (!id) {
+    return undefined;
+  }
+
+  const descriptor: ModelDescriptor = {
+    id,
+    provider
+  };
+
+  const label = firstNonEmptyString(record.label, record.display_name, record.name);
+  const contextWindow = firstFiniteNumber(
+    record.contextWindow,
+    record.context_window,
+    record.contextLength,
+    record.context_length,
+    record.maxContextLength,
+    record.max_context_length,
+    record.max_tokens,
+    record.max_output_tokens
+  );
+
+  if (label && label !== id) {
+    descriptor.label = label;
+  }
+
+  if (contextWindow !== undefined) {
+    descriptor.contextWindow = contextWindow;
+  }
+
+  return descriptor;
+}
+
+function firstNonEmptyString(...values: unknown[]): string | undefined {
+  for (const value of values) {
+    if (typeof value === "string" && value.trim()) {
+      return value.trim();
+    }
+  }
+
+  return undefined;
+}
+
+function firstFiniteNumber(...values: unknown[]): number | undefined {
+  for (const value of values) {
+    if (typeof value === "number" && Number.isFinite(value)) {
+      return value;
+    }
+
+    if (typeof value === "string" && value.trim()) {
+      const parsed = Number(value);
+
+      if (Number.isFinite(parsed)) {
+        return parsed;
+      }
+    }
+  }
+
+  return undefined;
 }
 
 function toCompatibleRole(role: "system" | "user" | "assistant"): "system" | "developer" | "user" | "assistant" {
