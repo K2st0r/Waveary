@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `7c5ef1b` - `Retry push checkpoint`
+- `52f659f` - `Add chat persistence API regression tests`
 
 ## Modules
 
@@ -89,6 +89,7 @@ Brand line:
 - `Invoke-WebRequest http://127.0.0.1:4173/api/chat/sessions/rename`
 - `Invoke-WebRequest http://127.0.0.1:4173/api/chat/sessions/delete`
 - `Invoke-WebRequest http://127.0.0.1:4173/api/chat/persistence`
+- `Invoke-WebRequest http://127.0.0.1:4173/api/chat/persistence` live switch verified with `file -> sqlite`
 - `Invoke-WebRequest http://127.0.0.1:4173/`
 - `Invoke-WebRequest http://127.0.0.1:4173/api/provider/presets`
 - `Invoke-WebRequest http://127.0.0.1:4173/api/chat/turn`
@@ -100,9 +101,9 @@ Brand line:
 
 ## Next Steps
 
-- verify the richer persistence status payload through real local `/api/chat/persistence` browser-facing checks
 - expand provider-specific request normalization where "OpenAI-compatible" vendors diverge further
 - add route-level regression coverage for the remaining session mutation endpoints in `waveary-web`
+- add a focused local verification pass for `sqlite -> file` live switch symmetry through the browser-facing API
 - keep updating `PROJECT_STATE.md` and `docs/session-log.md` after each verified work block
 - keep `START_HERE.md` and continuity files aligned with current workflow
 

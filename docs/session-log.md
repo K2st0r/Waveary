@@ -4,6 +4,42 @@
 
 Objective:
 
+Verify the richer `waveary-web` persistence payload through a real local dev-server API flow, not only through isolated tests.
+
+Summary:
+
+- started the local `waveary-web` dev server and verified the app was serving on `http://127.0.0.1:4173`
+- confirmed that `GET /api/chat/sessions` initially reported `file` as active and `sqlite` as `behind`
+- performed a live `POST /api/chat/persistence` switch from `file` to `sqlite` and verified `lastSync`, `importedSessionCount`, and `backendDetails`
+- sent a real `POST /api/chat/turn` after the switch and verified that the new turn persisted under the sqlite-backed active session
+- confirmed with a follow-up `GET /api/chat/sessions` that `file` became `behind` after the new sqlite write, matching the intended frontend status semantics
+
+Files changed:
+
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run web:dev`
+- `Invoke-WebRequest http://127.0.0.1:4173/`
+- `Invoke-WebRequest http://127.0.0.1:4173/api/chat/sessions`
+- `Invoke-WebRequest http://127.0.0.1:4173/api/chat/session`
+- `Invoke-WebRequest http://127.0.0.1:4173/api/chat/persistence` with `{"backend":"sqlite"}`
+- `Invoke-WebRequest http://127.0.0.1:4173/api/chat/turn`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-20
+
+Objective:
+
 Add route-level regression coverage for `waveary-web` `/api/chat/persistence` so backend status payloads and runtime cache reset behavior are protected at the middleware layer.
 
 Summary:
