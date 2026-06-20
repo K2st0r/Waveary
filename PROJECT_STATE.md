@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `b6f629e` - `Sync persistence switching continuity records`
+- `4d382bd` - `Add web persistence switching regression tests`
 
 ## Modules
 

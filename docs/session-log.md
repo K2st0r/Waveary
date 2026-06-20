@@ -37,7 +37,7 @@ Verification:
 
 Commit:
 
-- pending
+- `4d382bd` - `Add web persistence switching regression tests`
 
 Push:
 
