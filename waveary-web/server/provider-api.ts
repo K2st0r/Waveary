@@ -2,6 +2,7 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 
 import { OpenAICompatibleChatProvider, PROVIDER_PRESETS } from "@waveary/core";
 
+import { sendChatTurn } from "./chat-runtime.js";
 import { loadSavedProviderConfig, saveProviderConfig } from "./provider-config.js";
 
 interface ProviderModelsRequest {
@@ -14,6 +15,11 @@ interface ProviderConfigRequest extends ProviderModelsRequest {
   model?: string;
 }
 
+interface ChatTurnRequest {
+  sessionId?: string;
+  message?: string;
+}
+
 type NextFunction = (error?: unknown) => void;
 
 export function createProviderApiMiddleware() {
@@ -22,12 +28,23 @@ export function createProviderApiMiddleware() {
     response: ServerResponse,
     next: NextFunction
   ): Promise<void> {
-    if (!request.url?.startsWith("/api/provider")) {
+    if (!request.url?.startsWith("/api/provider") && !request.url?.startsWith("/api/chat")) {
       next();
       return;
     }
 
     try {
+      if (request.method === "POST" && request.url === "/api/chat/turn") {
+        const payload = (await readJsonBody(request)) as ChatTurnRequest;
+        const result = await sendChatTurn(
+          requireNonEmpty(payload.sessionId, "Session ID is required."),
+          requireNonEmpty(payload.message, "Message is required.")
+        );
+
+        sendJson(response, 200, result);
+        return;
+      }
+
       if (request.method === "GET" && request.url === "/api/provider/presets") {
         sendJson(response, 200, { presets: PROVIDER_PRESETS });
         return;

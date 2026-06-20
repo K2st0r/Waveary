@@ -20,6 +20,33 @@ interface ModelDescriptor {
   label?: string;
 }
 
+interface ChatTurnResponse {
+  reply: string;
+  relationship: {
+    stage: string;
+    affinityScore: number;
+    trustScore: number;
+    stabilityScore: number;
+  };
+  emotion?: {
+    primaryEmotion: string;
+    intensity: number;
+  };
+  recalledMemories: string[];
+  storedMemories: string[];
+  timeline: Array<{
+    title: string;
+    type: string;
+    eventTime: string;
+  }>;
+}
+
+interface ChatMessage {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+}
+
 const engineCards = [
   {
     acronym: "WME",
@@ -86,6 +113,8 @@ const setupSteps = [
 
 type LoadState = "idle" | "loading" | "success" | "error";
 
+const CHAT_SESSION_ID = "waveary-web-session-1";
+
 export function App(): ReactElement {
   const [presets, setPresets] = useState<ProviderPreset[]>([]);
   const [savedConfig, setSavedConfig] = useState<SavedProviderConfig | null>(null);
@@ -98,6 +127,11 @@ export function App(): ReactElement {
   const [modelsState, setModelsState] = useState<LoadState>("idle");
   const [saveState, setSaveState] = useState<LoadState>("idle");
   const [statusMessage, setStatusMessage] = useState("Loading provider configuration...");
+
+  const [chatInput, setChatInput] = useState("");
+  const [chatState, setChatState] = useState<LoadState>("idle");
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [chatInsights, setChatInsights] = useState<ChatTurnResponse | null>(null);
 
   useEffect(() => {
     void loadInitialState();
@@ -124,12 +158,7 @@ export function App(): ReactElement {
         setBaseURL(nextConfig.baseURL);
         setApiKey(nextConfig.apiKey);
         setSelectedModel(nextConfig.model);
-        setModels([
-          {
-            id: nextConfig.model,
-            provider: nextConfig.provider
-          }
-        ]);
+        setModels([{ id: nextConfig.model, provider: nextConfig.provider }]);
         setStatusMessage("Loaded saved provider configuration from .waveary/provider-config.json.");
       } else if (fallbackPreset) {
         setSelectedProvider(fallbackPreset.id);
@@ -211,11 +240,59 @@ export function App(): ReactElement {
     }
   }
 
+  async function handleSendMessage(): Promise<void> {
+    const trimmed = chatInput.trim();
+    if (!trimmed) {
+      return;
+    }
+
+    const userMessage: ChatMessage = {
+      id: `user-${Date.now()}`,
+      role: "user",
+      content: trimmed
+    };
+
+    setChatInput("");
+    setChatState("loading");
+    setChatMessages((current) => [...current, userMessage]);
+
+    try {
+      const response = await fetchJson<ChatTurnResponse>("/api/chat/turn", {
+        method: "POST",
+        body: JSON.stringify({
+          sessionId: CHAT_SESSION_ID,
+          message: trimmed
+        })
+      });
+
+      const assistantMessage: ChatMessage = {
+        id: `assistant-${Date.now()}`,
+        role: "assistant",
+        content: response.reply
+      };
+
+      setChatMessages((current) => [...current, assistantMessage]);
+      setChatInsights(response);
+      setChatState("success");
+    } catch (error) {
+      setChatMessages((current) => [
+        ...current,
+        {
+          id: `assistant-error-${Date.now()}`,
+          role: "assistant",
+          content: getErrorMessage(error)
+        }
+      ]);
+      setChatState("error");
+    }
+  }
+
   const isBusy = loadState === "loading" || modelsState === "loading" || saveState === "loading";
   const canFetchModels = Boolean(selectedProvider && baseURL.trim() && apiKey.trim()) && modelsState !== "loading";
   const canSaveConfig =
     Boolean(selectedProvider && baseURL.trim() && apiKey.trim() && selectedModel) && saveState !== "loading";
   const selectedPreset = presets.find((preset) => preset.id === selectedProvider) ?? null;
+  const chatReady = Boolean(savedConfig?.provider && savedConfig.model);
 
   return (
     <div className="page-shell">
@@ -229,8 +306,8 @@ export function App(): ReactElement {
         <nav className="topnav">
           <a href="#engines">Engines</a>
           <a href="#setup">Setup</a>
+          <a href="#chat">Chat</a>
           <a href="#roadmap">Roadmap</a>
-          <a href="#structure">Structure</a>
         </nav>
       </header>
 
@@ -251,11 +328,11 @@ export function App(): ReactElement {
               It is not an AI girlfriend wrapper. It is a continuity layer for digital companionship.
             </p>
             <div className="hero-actions">
-              <a className="button button-primary" href="#setup">
-                Open Setup Console
+              <a className="button button-primary" href="#chat">
+                Open Live Chat
               </a>
-              <a className="button button-secondary" href="#roadmap">
-                View Roadmap
+              <a className="button button-secondary" href="#setup">
+                Provider Setup
               </a>
             </div>
             <ul className="principle-list">
@@ -292,15 +369,15 @@ export function App(): ReactElement {
               <div className="timeline-preview">
                 <div className="timeline-row">
                   <span>06/20</span>
-                  <p>Framework positioning and provider compatibility are now established.</p>
+                  <p>Provider compatibility and browser setup are live.</p>
                 </div>
                 <div className="timeline-row">
                   <span>07/02</span>
-                  <p>Model selection becomes part of a reusable settings flow, not a one-off script.</p>
+                  <p>The first in-browser Waveary chat flow now rides on saved provider configuration.</p>
                 </div>
                 <div className="timeline-row">
                   <span>08/10</span>
-                  <p>Next step: open the first in-browser chat surface on top of this configuration layer.</p>
+                  <p>Next step: persist session state beyond this in-memory reference shell.</p>
                 </div>
               </div>
             </div>
@@ -328,8 +405,7 @@ export function App(): ReactElement {
             <span className="eyebrow">Provider Setup</span>
             <h2>Choose the vendor, discover the models behind your key, and save one usable runtime path.</h2>
             <p>
-              This is the first browser-native configuration flow for Waveary. It keeps provider logic server-side
-              while the web layer owns the interface and interaction.
+              This browser-native configuration flow keeps provider logic server-side while the web layer owns the interface.
             </p>
           </div>
 
@@ -471,6 +547,147 @@ export function App(): ReactElement {
           </div>
         </section>
 
+        <section className="section-grid section-block" id="chat">
+          <div className="section-heading">
+            <span className="eyebrow">Browser Chat</span>
+            <h2>Use the saved provider configuration to run the first in-browser Waveary runtime flow.</h2>
+            <p>
+              This reference shell already returns a real reply plus memory recall, relationship change, and timeline output
+              from the underlying runtime.
+            </p>
+          </div>
+
+          <div className="chat-layout">
+            <div className="panel chat-panel">
+              <div className="panel-header">
+                <span>Conversation</span>
+                <span className="panel-tag">{chatReady ? "Runtime Ready" : "Setup Required"}</span>
+              </div>
+
+              <div className="chat-log">
+                {chatMessages.length === 0 ? (
+                  <div className="empty-chat-state">
+                    Save a provider configuration, then send the first message to start a live Waveary session.
+                  </div>
+                ) : (
+                  chatMessages.map((message) => (
+                    <article
+                      className={`chat-bubble ${message.role === "assistant" ? "chat-bubble-assistant" : "chat-bubble-user"}`}
+                      key={message.id}
+                    >
+                      <span className="chat-role">{message.role === "assistant" ? "Waveary" : "You"}</span>
+                      <p>{message.content}</p>
+                    </article>
+                  ))
+                )}
+              </div>
+
+              <div className="chat-composer">
+                <textarea
+                  value={chatInput}
+                  onChange={(event) => setChatInput(event.target.value)}
+                  placeholder="Tell Waveary something worth remembering..."
+                  disabled={!chatReady || chatState === "loading"}
+                />
+                <div className="console-actions">
+                  <button
+                    className="button button-primary"
+                    onClick={() => void handleSendMessage()}
+                    disabled={!chatReady || !chatInput.trim() || chatState === "loading"}
+                  >
+                    {chatState === "loading" ? "Sending..." : "Send Message"}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="panel insight-panel">
+              <div className="panel-header">
+                <span>Runtime Signals</span>
+                <span className="panel-tag">Memory + Relationship</span>
+              </div>
+
+              {chatInsights ? (
+                <div className="insight-stack">
+                  <div className="signal-metrics">
+                    <div className="signal-metric-card">
+                      <span>Relationship Stage</span>
+                      <strong>{chatInsights.relationship.stage}</strong>
+                    </div>
+                    <div className="signal-metric-card">
+                      <span>Affinity</span>
+                      <strong>{chatInsights.relationship.affinityScore.toFixed(2)}</strong>
+                    </div>
+                    <div className="signal-metric-card">
+                      <span>Trust</span>
+                      <strong>{chatInsights.relationship.trustScore.toFixed(2)}</strong>
+                    </div>
+                    <div className="signal-metric-card">
+                      <span>Stability</span>
+                      <strong>{chatInsights.relationship.stabilityScore.toFixed(2)}</strong>
+                    </div>
+                  </div>
+
+                  <div className="insight-card">
+                    <div className="mini-heading">Detected Emotion</div>
+                    <p>
+                      {chatInsights.emotion
+                        ? `${chatInsights.emotion.primaryEmotion} (${chatInsights.emotion.intensity.toFixed(2)})`
+                        : "No strong emotion signal detected for the latest turn."}
+                    </p>
+                  </div>
+
+                  <div className="insight-card">
+                    <div className="mini-heading">Recalled Memories</div>
+                    {chatInsights.recalledMemories.length > 0 ? (
+                      <ul className="insight-list">
+                        {chatInsights.recalledMemories.map((memory) => (
+                          <li key={memory}>{memory}</li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p>No recalled memories yet.</p>
+                    )}
+                  </div>
+
+                  <div className="insight-card">
+                    <div className="mini-heading">Stored Memories</div>
+                    {chatInsights.storedMemories.length > 0 ? (
+                      <ul className="insight-list">
+                        {chatInsights.storedMemories.map((memory) => (
+                          <li key={memory}>{memory}</li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p>No memory candidates were stored in the latest turn.</p>
+                    )}
+                  </div>
+
+                  <div className="insight-card">
+                    <div className="mini-heading">Timeline</div>
+                    {chatInsights.timeline.length > 0 ? (
+                      <ul className="insight-list">
+                        {chatInsights.timeline.map((event) => (
+                          <li key={`${event.eventTime}-${event.title}`}>
+                            <strong>{event.title}</strong>
+                            <span>{`${event.type} · ${event.eventTime}`}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p>No timeline events yet.</p>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="empty-chat-state">
+                  Send a message to see memory recall, relationship changes, and timeline events from the runtime.
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+
         <section className="section-grid section-block" id="roadmap">
           <div className="section-heading">
             <span className="eyebrow">Execution Roadmap</span>
@@ -491,30 +708,6 @@ export function App(): ReactElement {
                 </ul>
               </article>
             ))}
-          </div>
-        </section>
-
-        <section className="section-grid section-block repo-block" id="structure">
-          <div className="section-heading">
-            <span className="eyebrow">Repository Structure</span>
-            <h2>Separate the framework, memory system, and product surfaces cleanly.</h2>
-          </div>
-          <div className="structure-layout">
-            <div className="panel structure-panel">
-              <pre>{`waveary/
-  waveary-core
-  waveary-memory
-  waveary-web
-  waveary-mobile
-  waveary-voice
-  waveary-docs`}</pre>
-            </div>
-            <div className="panel structure-panel">
-              <p>
-                `waveary-core` owns runtime orchestration. `waveary-memory` owns memory extraction and storage.
-                `waveary-web` owns provider setup, user interaction, and future browser runtime surfaces.
-              </p>
-            </div>
           </div>
         </section>
       </main>
