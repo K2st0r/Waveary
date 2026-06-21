@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `3b714cd` - `Add browser-local proactive check loop`
+- `b5fcd27` - `Improve companion dialogue continuity`
 
 ## Modules
 
