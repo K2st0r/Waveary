@@ -259,6 +259,8 @@ It currently checks for:
 - duplicate `id` values inside `snapshot.messages`
 - timeline arrays whose valid `eventTime` values move backward in time
 - duplicate `id` values inside `snapshot.memoryArchive`
+- `snapshot.latestInsights.recalledMemories` entries that do not correspond to a memory item in `snapshot.memoryArchive`
+- `snapshot.latestInsights.storedMemories` entries that do not correspond to a memory item in `snapshot.memoryArchive`
 - duplicate `id` values inside `snapshot.timelineEvents`
 - `snapshot.latestInsights.timeline` entries that do not correspond to an event in `snapshot.timelineEvents`
 

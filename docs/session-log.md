@@ -4,6 +4,41 @@
 
 Objective:
 
+Extend Waveary browser session import semantic validation so `snapshot.latestInsights.recalledMemories` and `snapshot.latestInsights.storedMemories` cannot drift away from the imported memory archive.
+
+Summary:
+
+- added cross-structure semantic checks that require both latest-insight memory summary arrays to match memory content present in `snapshot.memoryArchive`
+- kept the rule deterministic by matching exported memory content strings instead of inventing fuzzy reconciliation or merge behavior
+- expanded the route-level semantic inconsistency package so unmatched recalled and stored memory summaries now fail independently alongside the existing timeline-summary checks
+- documented the new memory-summary consistency rules in the session package format reference for external generators
+
+Files changed:
+
+- `waveary-web/server/chat-session-store.ts`
+- `waveary-web/server/provider-api.test.ts`
+- `docs/session-file-format.md`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/web`
+- `npm run build:server --workspace @waveary/web`
+- `node --test waveary-web/dist-server/server/provider-api.test.js`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-21
+
+Objective:
+
 Extend Waveary browser session import semantic validation so `snapshot.latestInsights.timeline` cannot describe timeline events that are missing from the imported snapshot timeline.
 
 Summary:

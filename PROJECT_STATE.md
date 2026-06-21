@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `9794449` - `Validate session import timeline summary consistency`
+- `pending commit` - `Validate session import memory summary consistency`
 
 ## Modules
 
@@ -66,6 +66,7 @@ Brand line:
   - browser session import validation now also rejects duplicate message IDs inside a single imported snapshot
   - browser session import validation now also rejects duplicate memory and timeline IDs inside a single imported snapshot
   - browser session import validation now also rejects `latestInsights.timeline` entries that do not correspond to the imported snapshot timeline
+  - browser session import validation now also rejects `latestInsights.recalledMemories` and `latestInsights.storedMemories` entries that do not correspond to the imported memory archive
   - non-default sessions can now be renamed and deleted through the web session layer
   - Windows-safe local dev and preview entrypoints are implemented for the current workspace path setup
   - package boundary is documented for future provider setup and runtime UI work
@@ -126,8 +127,8 @@ Brand line:
 
 ## Next Steps
 
+- validate whether `snapshot.latestInsights.relationship` should also stay semantically aligned with `snapshot.relationship`, and add a narrow cross-structure rule if the current export contract supports one cleanly
 - retry pushing local commit `9794449` to `origin/main` when GitHub connectivity recovers, then record the real push result in `docs/session-log.md`
-- consider extending cross-structure import checks from timeline summaries into memory or relationship summaries so high-level insight payloads cannot drift away from persisted snapshot state
 - expand provider-specific chat request normalization where "OpenAI-compatible" vendors diverge beyond the current shared `/chat/completions` and `/responses` paths
 - add route-level or live verification for more provider-specific chat payload divergences after the current DeepSeek compatibility baseline
 - add focused route-level and browser-facing coverage for any remaining persistence edge cases beyond the current file/sqlite symmetry path
