@@ -4,6 +4,42 @@
 
 Objective:
 
+Strengthen real OpenAI-compatible provider dialogue behavior by structuring one primary continuity thread per turn instead of leaving all recalled memories flat in the prompt.
+
+Summary:
+
+- updated `OpenAICompatibleChatProvider` so its developer instruction now includes current-turn focus, one named primary continuity thread, and a secondary recalled-memory block
+- made provider-side continuity selection more conservative for emotionally heavy turns, so weakly related memories are less likely to be forced into the reply just to prove recall
+- added focused regression coverage that checks both the new primary-thread structure and the fallback behavior when no strong thread actually matches the current emotional moment
+- verified the change with `@waveary/core` typecheck plus the build-first compiled-test path already required on Windows
+
+Files changed:
+
+- `waveary-core/src/adapters/openai-compatible-provider.ts`
+- `waveary-core/src/adapters/openai-compatible-provider.test.ts`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/core`
+- `npm run build --workspace @waveary/core`
+- `npm run build --workspace @waveary/core; <direct Node compiled-test invocation>` with explicit `dist/**/*.test.js` expansion succeeded on `2026-06-21`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-21
+
+Objective:
+
 Push `waveary-core` dialogue quality further toward believable companionship by tightening memory recall, broadening user-emotion detection, enriching companion-emotion carryover, and separating reply distance more clearly by relationship stage.
 
 Summary:

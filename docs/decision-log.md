@@ -418,3 +418,25 @@ Impact:
 - memory recall now requires an actual lexical or phrase match instead of letting importance alone surface unrelated memories
 - recalled memories now persist `lastRecalledAt` so future continuity logic can distinguish active remembered threads from stale archive items
 - companion emotion and scripted reply distance should continue to vary by relationship stage and felt context, not only by one generic "warm" tone
+
+## 2026-06-21 - Real Providers Need One Primary Continuity Thread
+
+Status:
+
+- accepted
+
+Decision:
+
+When building prompt guidance for OpenAI-compatible providers, expose one primary continuity thread for the current turn instead of presenting all recalled memories as equally actionable context.
+
+Reason:
+
+- real providers are more likely than the scripted adapter to flatten every recalled item into one reply unless the continuity hierarchy is made explicit
+- companionship quality improves when the model follows one believable thread instead of proving memory breadth
+- emotional turns especially need stronger permission to ignore weakly related remembered details
+
+Impact:
+
+- provider instructions now include current-turn focus, one named primary continuity thread, and a secondary recalled-memory block
+- the prompt now explicitly tells the model not to force weak continuity into emotionally heavy turns
+- follow-up work can decide whether this selection logic should stay provider-local or move toward a shared runtime helper
