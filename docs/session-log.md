@@ -4,6 +4,39 @@
 
 Objective:
 
+Tighten Waveary browser session import from structural validation into value-level validation so obviously bad timestamps, score ranges, and unsupported message roles are rejected before restore.
+
+Summary:
+
+- added value-level validation for ISO timestamps across export, relationship, memory, and timeline fields
+- restricted imported message roles to `user` and `assistant`
+- enforced `0..1` score ranges for relationship metrics, emotion intensity, and importance fields
+- expanded route-level regression coverage for invalid timestamps, invalid score ranges, and unsupported message roles while keeping the valid import path green
+
+Files changed:
+
+- `waveary-web/server/chat-session-store.ts`
+- `waveary-web/server/provider-api.test.ts`
+- `docs/session-file-format.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/web`
+- `npm run build:server --workspace @waveary/web`
+- `node --test waveary-web/dist-server/server/provider-api.test.js`
+
+Commit:
+
+- `4c7ba5b` - `Validate session import field values`
+
+Push:
+
+- pending
+
+## 2026-06-21
+
+Objective:
+
 Harden Waveary browser session import validation so malformed relationship, insight, memory, and timeline payloads fail before a bad package is restored locally.
 
 Summary:

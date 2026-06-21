@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `34a7afd` - `Harden session import snapshot validation`
+- `4c7ba5b` - `Validate session import field values`
 
 ## Modules
 
@@ -129,7 +129,7 @@ Brand line:
 - consider adding import or downloadable file export flows now that structured session export is available
 - consider validating downloadable file-based import/export or partial merge tools now that session migration is possible in-browser
 - consider adding stronger schema validation and user-facing import diagnostics for malformed session files
-- consider extending the versioned session package contract with even stricter timestamp/value-range validation beyond the current structural field checks
+- consider extending the versioned session package contract with semantic validation beyond the current timestamp/range checks, such as cross-field consistency rules
 - consider planning the next schema migration rule before any non-backward-compatible session package change lands
 - consider hardening workspace build scripts further against transient Windows dist-lock races
 - keep updating `PROJECT_STATE.md` and `docs/session-log.md` after each verified work block
