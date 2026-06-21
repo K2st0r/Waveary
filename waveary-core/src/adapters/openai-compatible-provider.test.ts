@@ -137,6 +137,138 @@ test("OpenAICompatibleChatProvider strengthens companionship guidance in the ins
   assert.match(instruction, /Do not over-explain your memory process/i);
 });
 
+test("OpenAICompatibleChatProvider names a primary continuity thread instead of flattening all recall context", async () => {
+  const recorded: Array<{ url: string; init: RequestInit | undefined }> = [];
+  const provider = new OpenAICompatibleChatProvider({
+    provider: "test-provider",
+    apiKey: "test-key",
+    baseURL: "https://example.com/v1",
+    model: "test-model",
+    fetchFn: async (url, init) => {
+      recorded.push({ url: String(url), init });
+      return new Response(
+        JSON.stringify({
+          choices: [{ message: { content: "mock reply" } }]
+        }),
+        { status: 200 }
+      );
+    }
+  });
+
+  await provider.generateReply(
+    createRequest({
+      messages: [
+        {
+          id: "m1",
+          sessionId: "session-1",
+          role: "user",
+          content: "I still want Waveary to feel like a long-term digital life companion, not just a chatbot.",
+          timestamp: new Date().toISOString(),
+          metadata: {}
+        }
+      ],
+      relevantMemories: [
+        {
+          id: "memory-1",
+          userId: "user-1",
+          type: "fact",
+          content: "The user wants Waveary to remain a long-term digital life companion framework.",
+          importance: 0.92,
+          confidence: 0.86,
+          sourceMessageIds: ["m1"],
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: "memory-2",
+          userId: "user-1",
+          type: "preference",
+          content: "The user likes cloudy afternoons and soft music.",
+          importance: 0.64,
+          confidence: 0.71,
+          sourceMessageIds: ["m0"],
+          createdAt: new Date().toISOString()
+        }
+      ]
+    })
+  );
+
+  const body = JSON.parse(String(recorded[0]?.init?.body)) as {
+    messages: Array<{ role: string; content: string }>;
+  };
+  const instruction = body.messages[0]?.content ?? "";
+
+  assert.match(instruction, /Current turn focus: I still want Waveary to feel like a long-term digital life companion/i);
+  assert.match(
+    instruction,
+    /Primary continuity thread: \[memory:fact\] The user wants Waveary to remain a long-term digital life companion framework\./
+  );
+  assert.match(
+    instruction,
+    /Additional recalled memories after the primary thread:\n1\. \[preference\] The user likes cloudy afternoons and soft music\./
+  );
+});
+
+test("OpenAICompatibleChatProvider tells the model not to force continuity when no strong thread matches", async () => {
+  const recorded: Array<{ url: string; init: RequestInit | undefined }> = [];
+  const provider = new OpenAICompatibleChatProvider({
+    provider: "test-provider",
+    apiKey: "test-key",
+    baseURL: "https://example.com/v1",
+    model: "test-model",
+    fetchFn: async (url, init) => {
+      recorded.push({ url: String(url), init });
+      return new Response(
+        JSON.stringify({
+          choices: [{ message: { content: "mock reply" } }]
+        }),
+        { status: 200 }
+      );
+    }
+  });
+
+  await provider.generateReply(
+    createRequest({
+      messages: [
+        {
+          id: "m1",
+          sessionId: "session-1",
+          role: "user",
+          content: "I feel anxious tonight and I do not want to be alone with it.",
+          timestamp: new Date().toISOString(),
+          metadata: {}
+        }
+      ],
+      relevantMemories: [
+        {
+          id: "memory-1",
+          userId: "user-1",
+          type: "preference",
+          content: "The user likes cloudy afternoons and sketching on weekends.",
+          importance: 0.72,
+          confidence: 0.7,
+          sourceMessageIds: ["m0"],
+          createdAt: new Date().toISOString()
+        }
+      ],
+      timeline: []
+    })
+  );
+
+  const body = JSON.parse(String(recorded[0]?.init?.body)) as {
+    messages: Array<{ role: string; content: string }>;
+  };
+  const instruction = body.messages[0]?.content ?? "";
+
+  assert.match(
+    instruction,
+    /This memory is available, but only use it if the current turn clearly connects\. Otherwise stay present with the immediate feeling\./
+  );
+  assert.match(
+    instruction,
+    /If the primary continuity thread does not fit the current emotional moment, do not force it into the reply just to prove memory\./
+  );
+});
+
 test("OpenAICompatibleChatProvider falls back to responses when chat completions is unavailable", async () => {
   const recorded: Array<{ url: string; init: RequestInit | undefined }> = [];
   const provider = new OpenAICompatibleChatProvider({

@@ -260,9 +260,21 @@ function buildResponsesBody(
 }
 
 function buildDeveloperInstruction(request: ChatProviderRequest): string {
+  const latestUserMessage = [...request.messages].reverse().find((message) => message.role === "user");
+  const turnFocus = latestUserMessage
+    ? summarizeCurrentTurnFocus(latestUserMessage.content)
+    : "No explicit user-turn focus was available.";
+  const continuityThread = selectPrimaryContinuityThread(request);
   const memoryBlock =
     request.relevantMemories.length > 0
       ? request.relevantMemories
+          .map((memory, index) => `${index + 1}. [${memory.type}] ${memory.content}`)
+          .join("\n")
+      : "None";
+  const secondaryMemoryBlock =
+    request.relevantMemories.length > 1
+      ? request.relevantMemories
+          .slice(1, 3)
           .map((memory, index) => `${index + 1}. [${memory.type}] ${memory.content}`)
           .join("\n")
       : "None";
@@ -299,8 +311,12 @@ function buildDeveloperInstruction(request: ChatProviderRequest): string {
     `User: ${request.user.displayName}.`,
     `Relationship stage: ${request.relationship.stage}.`,
     `Relationship guidance: ${relationshipGuidance}`,
+    `Current turn focus: ${turnFocus}`,
+    `Primary continuity thread: ${continuityThread.primaryLine}`,
+    `Continuity thread use guidance: ${continuityThread.guidance}`,
     localTimeBlock,
     `Relevant memories:\n${memoryBlock}`,
+    `Additional recalled memories after the primary thread:\n${secondaryMemoryBlock}`,
     `Timeline context:\n${timelineBlock}`,
     request.emotion
       ? `Current companion emotion: ${request.emotion.primaryEmotion} (${request.emotion.intensity}).`
@@ -310,8 +326,9 @@ function buildDeveloperInstruction(request: ChatProviderRequest): string {
       : "Detected user emotion: unknown.",
     "Reply like someone who is continuing a shared life, not like a support bot or productivity assistant.",
     "Respond to the user's felt state first. If they sound hurt, anxious, tender, lonely, or emotionally open, begin with presence and emotional acknowledgment before explanation, analysis, or advice.",
-    "Do not mention every memory mechanically. Only use one memory thread when it genuinely deepens understanding in this moment.",
+    "Do not mention every memory mechanically. Prefer the named primary continuity thread when it genuinely helps, and leave the rest unused unless the user clearly needs them.",
     "Prefer one natural acknowledgment of continuity over a summary list of remembered facts.",
+    "If the primary continuity thread does not fit the current emotional moment, do not force it into the reply just to prove memory.",
     "Let relationship stage change distance and wording. In 'new', be warm but not overly intimate. In 'warming', sound personally continuous and gently more trusting. In 'growing', it is okay to sound softly familiar, closer, and more emotionally settled.",
     "Let the companion emotion shape pacing and tone. Concerned or protective means gentler and slower. Playful means lighter but still attentive. Fond or warm means soft closeness without melodrama.",
     "Keep the reply warm, grounded, and human. Avoid generic assistant disclaimers, bullet-heavy therapy language, and documentation-style phrasing.",
@@ -481,6 +498,148 @@ function describeRelationshipGuidance(stage: string): string {
   }
 
   return "Keep the tone warm and attentive, but do not act overly familiar yet. Earn trust through presence, clarity, and careful memory.";
+}
+
+function summarizeCurrentTurnFocus(content: string): string {
+  const compact = content.replace(/\s+/g, " ").trim();
+
+  if (!compact) {
+    return "No explicit user-turn focus was available.";
+  }
+
+  return compact.length > 120 ? `${compact.slice(0, 120).trim()}...` : compact;
+}
+
+function selectPrimaryContinuityThread(request: ChatProviderRequest): {
+  primaryLine: string;
+  guidance: string;
+} {
+  const latestUserMessage = [...request.messages].reverse().find((message) => message.role === "user");
+  const turnText = latestUserMessage?.content ?? "";
+  const memoryCandidate = request.relevantMemories[0];
+  const timelineCandidate = request.timeline[0];
+  const emotionalTurn = hasHighEmotionalTurnSignal(turnText);
+  const rawMemoryScore = memoryCandidate
+    ? scoreContinuityMatch(memoryCandidate.content, turnText)
+    : 0;
+  const rawTimelineScore = timelineCandidate
+    ? scoreContinuityMatch(
+        `${timelineCandidate.title} ${timelineCandidate.description ?? ""}`,
+        turnText
+      )
+    : 0;
+
+  const memoryScore = memoryCandidate
+    ? rawMemoryScore + (emotionalTurn ? 0 : 0.12)
+    : 0;
+  const timelineScore = timelineCandidate
+    ? rawTimelineScore
+    : 0;
+
+  if (
+    memoryCandidate &&
+    emotionalTurn &&
+    rawMemoryScore < 0.48 &&
+    (!timelineCandidate || rawTimelineScore < 0.48)
+  ) {
+    return {
+      primaryLine: `[memory:${memoryCandidate.type}] ${memoryCandidate.content}`,
+      guidance:
+        "This memory is available, but only use it if the current turn clearly connects. Otherwise stay present with the immediate feeling."
+    };
+  }
+
+  if (memoryCandidate && memoryScore >= timelineScore && memoryScore >= (emotionalTurn ? 0.48 : 0.18)) {
+    return {
+      primaryLine: `[memory:${memoryCandidate.type}] ${memoryCandidate.content}`,
+      guidance:
+        "Use at most one natural reference to this remembered thread if it deepens the user's sense of being understood."
+    };
+  }
+
+  if (timelineCandidate && timelineScore >= 0.18) {
+    return {
+      primaryLine: `[timeline:${timelineCandidate.eventType}] ${timelineCandidate.title}`,
+      guidance:
+        "If continuity helps here, anchor the reply around this shared life thread rather than listing multiple remembered details."
+    };
+  }
+
+  if (memoryCandidate) {
+    return {
+      primaryLine: `[memory:${memoryCandidate.type}] ${memoryCandidate.content}`,
+      guidance:
+        "This memory is available, but only use it if the current turn clearly connects. Otherwise stay present with the immediate feeling."
+    };
+  }
+
+  if (timelineCandidate) {
+    return {
+      primaryLine: `[timeline:${timelineCandidate.eventType}] ${timelineCandidate.title}`,
+      guidance:
+        "This timeline thread is available, but do not force it unless it naturally matches the user's present concern."
+    };
+  }
+
+  return {
+    primaryLine: "None",
+    guidance: "No strong continuity thread is available. Stay with the current emotional moment rather than inventing continuity."
+  };
+}
+
+function scoreContinuityMatch(candidateText: string, turnText: string): number {
+  const candidate = normalizePromptScoringText(candidateText);
+  const turn = normalizePromptScoringText(turnText);
+  const turnTokens = extractPromptScoringTokens(turn);
+
+  if (!candidate || turnTokens.length === 0) {
+    return 0;
+  }
+
+  const tokenHits = turnTokens.filter((token) => candidate.includes(token)).length;
+  const phraseBonus = turn.length >= 10 && candidate.includes(turn) ? 0.35 : 0;
+
+  return tokenHits / turnTokens.length + phraseBonus;
+}
+
+function normalizePromptScoringText(value: string): string {
+  return value.toLowerCase().replace(/\s+/g, " ").trim();
+}
+
+function extractPromptScoringTokens(value: string): string[] {
+  const stopWords = new Set([
+    "the",
+    "and",
+    "for",
+    "that",
+    "with",
+    "this",
+    "have",
+    "your",
+    "from",
+    "just",
+    "want",
+    "like",
+    "really",
+    "about",
+    "into",
+    "feel",
+    "want",
+    "stay",
+    "still",
+    "tonight",
+    "alone",
+    "with",
+    "not"
+  ]);
+  const matches = value.match(/[\p{L}\p{N}]{2,}/gu) ?? [];
+  return [...new Set(matches.filter((token) => !stopWords.has(token)))];
+}
+
+function hasHighEmotionalTurnSignal(value: string): boolean {
+  return /sad|anxious|worried|hurt|alone|afraid|lonely|难过|焦虑|担心|害怕|孤单|失落|委屈/i.test(
+    value
+  );
 }
 
 function extractRawModelItems(payload: OpenAICompatibleModelResponse): unknown[] {
