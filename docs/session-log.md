@@ -4,6 +4,51 @@
 
 Objective:
 
+Push `waveary-core` dialogue quality further toward believable companionship by tightening memory recall, broadening user-emotion detection, enriching companion-emotion carryover, and separating reply distance more clearly by relationship stage.
+
+Summary:
+
+- strengthened repository-backed memory recall so unrelated high-importance memories no longer surface without lexical overlap, and recalled items now persist `lastRecalledAt` for future continuity-aware behavior
+- replaced the old coarse `SimpleEmotionAnalyzer` with broader lightweight detection for sadness, anxiety, joy, affection, and playfulness
+- expanded `SimpleCompanionEmotionEngine` so companion-side emotion responds more richly to vulnerability, reconnection, affection, playfulness, and relationship stage instead of collapsing too often into one neutral/warm path
+- upgraded `ScriptedChatProvider` and OpenAI-compatible developer instructions so `new`, `warming`, and `growing` produce more distinct closeness, continuity wording, and emotional pacing
+- added focused regression coverage for memory relevance filtering, provider prompt guidance, and relationship-stage reply differences
+- verified the core package with a real build plus direct compiled-test execution; noted that the current Windows `npm run test --workspace @waveary/core` path is not sufficient on its own unless build/test ordering is handled carefully
+
+Files changed:
+
+- `waveary-core/src/storage/repository-backed-session-state.ts`
+- `waveary-core/src/storage/repository-backed-session-state.test.ts`
+- `waveary-core/src/adapters/simple-emotion-analyzer.ts`
+- `waveary-core/src/adapters/simple-companion-emotion-engine.ts`
+- `waveary-core/src/adapters/scripted-chat-provider.ts`
+- `waveary-core/src/adapters/openai-compatible-provider.ts`
+- `waveary-core/src/adapters/openai-compatible-provider.test.ts`
+- `waveary-core/src/runtime/waveary-runtime.test.ts`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/core`
+- `npm run build --workspace @waveary/core`
+- `npm run test --workspace @waveary/core` before rebuild reflected the known compiled-output caveat and was not treated as sufficient final verification
+- `npm run build --workspace @waveary/core; <direct Node compiled-test invocation>` with explicit `dist/**/*.test.js` expansion succeeded on `2026-06-21`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-21
+
+Objective:
+
 Extend the new proactive draft contract into the first explicit repeated delivery loop without introducing hidden background behavior.
 
 Summary:

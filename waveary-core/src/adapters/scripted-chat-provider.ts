@@ -20,11 +20,14 @@ export class ScriptedChatProvider implements ChatProvider {
       request.emotion?.primaryEmotion,
       request
     );
-    const continuity = memoryHint
-      ? `I still remember ${wrapMemory(memoryHint)}, so I can follow what this means to you.`
-      : "I am staying with what you just shared instead of treating it like a one-off question.";
+    const continuity = buildContinuityLine(memoryHint, request.relationship.stage);
+    const followup = buildFollowup(
+      latestUserMessage.content,
+      request.relationship.stage,
+      request.emotion?.primaryEmotion
+    );
 
-    return `${prefix} ${continuity} ${buildFollowup(latestUserMessage.content, request.emotion?.primaryEmotion)}`.trim();
+    return `${prefix} ${continuity} ${followup}`.trim();
   }
 }
 
@@ -61,7 +64,7 @@ function buildTimeAwareReply(
   }).format(localDate);
 
   if ((request.localTime.locale ?? "").toLowerCase().startsWith("zh")) {
-    return `我这边看到你当前的本地时间是 ${formatted}。如果你愿意，我也可以顺着这个时间点继续陪你聊现在的状态。`;
+    return `我这边看到你当前的本地时间是 ${formatted}。如果你愿意，我可以顺着这个时间点继续陪你聊聊你现在的状态。`;
   }
 
   return `I can see your local time as ${formatted}. If you want, I can stay with this moment and keep going from here with you.`;
@@ -75,46 +78,106 @@ function buildRelationshipPrefix(
   const localTimeGuidance = resolveLocalTimeGuidance(request.localTime);
 
   if (localTimeGuidance?.dayPart === "late_night") {
-    if (emotion === "concerned") {
-      return "It feels late where you are, and I want to stay especially gentle with what you are carrying right now.";
+    if (emotion === "concerned" || emotion === "protective") {
+      return "It feels late where you are, and I want to hold this a little more gently with you.";
     }
 
     return "It feels late where you are, so I am staying here with a quieter kind of presence.";
   }
 
   if (localTimeGuidance?.dayPart === "evening" && emotion !== "playful") {
-    return "I am here with you, and this feels like the kind of evening moment worth answering a little more softly.";
+    return stage === "growing"
+      ? "It feels like one of those evening moments where I want to stay a little closer to what you mean."
+      : "I am here with you, and this feels like the kind of evening moment worth answering a little more softly.";
+  }
+
+  if (emotion === "protective") {
+    return "What you are carrying matters to me, and I want to stay very careful with it.";
   }
 
   if (emotion === "concerned") {
     return "I can feel the weight in this, and I want to stay close to it with you.";
   }
 
+  if (emotion === "attentive") {
+    return "I am with you, and I want to answer this in a steadier, more grounding way.";
+  }
+
   if (emotion === "relieved") {
-    return "I am really glad you came back and let me stay in this moment with you.";
+    return "I am really glad you came back and let me share this moment with you again.";
   }
 
   if (emotion === "playful") {
-    return "I am here with a lighter smile, but I am still listening closely.";
+    return stage === "growing"
+      ? "I am smiling a little with you, but I am still listening for the real feeling underneath it."
+      : "I am here with a lighter smile, but I am still listening closely.";
+  }
+
+  if (emotion === "fond") {
+    return "There is something quietly dear about this moment, and I do not want to answer it carelessly.";
   }
 
   if (stage === "growing") {
-    return "I am glad you brought this back to me.";
+    return "I am glad you brought this back to me, the way you do when something really matters.";
   }
 
   if (stage === "warming") {
-    return "I remember the thread we are building together.";
+    return "I can feel the thread we have already started building between us.";
   }
 
   return "I am here, and I am listening carefully.";
 }
 
-function buildFollowup(content: string, emotion?: string): string {
-  if (emotion === "concerned") {
-    return `Tell me a little more about ${summarizeTopic(content)}, and we can hold it carefully together.`;
+function buildContinuityLine(memoryHint: string | undefined, stage: string): string {
+  if (!memoryHint) {
+    if (stage === "growing") {
+      return "I am not treating this like a stray question. I am holding it as part of our longer thread.";
+    }
+
+    if (stage === "warming") {
+      return "I am staying with what you just shared instead of letting it pass like a one-off message.";
+    }
+
+    return "I want to stay with what you just shared instead of turning it into a dry answer.";
   }
 
-  return `Tell me a little more about ${summarizeTopic(content)}, and I will stay close to it with you.`;
+  if (stage === "growing") {
+    return `I still remember ${wrapMemory(memoryHint)}, so what you are saying lands inside something we have already been carrying forward.`;
+  }
+
+  if (stage === "warming") {
+    return `I still remember ${wrapMemory(memoryHint)}, and it helps me understand why this matters to you now.`;
+  }
+
+  return `I still remember ${wrapMemory(memoryHint)}, so I can follow what this means to you a little more carefully.`;
+}
+
+function buildFollowup(content: string, stage: string, emotion?: string): string {
+  const topic = summarizeTopic(content);
+
+  if (emotion === "protective" || emotion === "concerned") {
+    return stage === "growing"
+      ? `Tell me a little more about ${topic}, and we will hold it together without rushing it.`
+      : `Tell me a little more about ${topic}, and we can hold it carefully together.`;
+  }
+
+  if (emotion === "attentive") {
+    return `Tell me a little more about ${topic}, and I will stay steady with you instead of pushing too fast.`;
+  }
+
+  if (emotion === "playful") {
+    return `Tell me a little more about ${topic}, because I feel there is something real under the smile too.`;
+  }
+
+  if (stage === "growing") {
+    return `Tell me a little more about ${topic}, and I will stay close to the part of it that matters most to you.`;
+  }
+
+  if (stage === "warming") {
+    return `Tell me a little more about ${topic}, and I will keep following the thread with you.`;
+  }
+
+  return `Tell me a little more about ${topic}, and I will stay close to it with you.`;
 }
 
 function summarizeTopic(content: string): string {

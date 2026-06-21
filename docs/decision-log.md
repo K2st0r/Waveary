@@ -396,3 +396,25 @@ Impact:
 - `waveary-web` now owns the first repeated proactive evaluation loop as a UI-local behavior
 - the loop consumes `/api/chat/proactive/evaluate` and its shared draft output instead of generating parallel browser-only copy
 - future scheduler or automation work should preserve the same explicit consent and visibility expectations unless a higher-trust design is approved deliberately
+
+## 2026-06-21 - Dialogue Quality Should Tighten Recall Before Expanding Tone
+
+Status:
+
+- accepted
+
+Decision:
+
+In the current `waveary-core` dialogue-quality pass, prioritize stricter memory relevance and relationship-aware emotional continuity before adding broader stylistic flourish.
+
+Reason:
+
+- companionship breaks quickly when irrelevant memories surface, even if wording sounds warm
+- the project identity favors continuity and relationship realism over decorative personality
+- better provider instructions are only useful if the recalled thread itself is believable
+
+Impact:
+
+- memory recall now requires an actual lexical or phrase match instead of letting importance alone surface unrelated memories
+- recalled memories now persist `lastRecalledAt` so future continuity logic can distinguish active remembered threads from stale archive items
+- companion emotion and scripted reply distance should continue to vary by relationship stage and felt context, not only by one generic "warm" tone

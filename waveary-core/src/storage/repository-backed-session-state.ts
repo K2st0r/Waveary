@@ -166,12 +166,40 @@ class RepositoryBackedMemoryStore implements MemoryStore {
   async recallRelevantMemories(userId: string, input: string): Promise<MemoryItem[]> {
     const state = this.sessionState.getState();
     const memories = state.memories.filter((memory) => memory.userId === userId);
+    const selected = memories
+      .map((memory) => ({
+        memory,
+        score: this.sessionState.scoreMemory(memory, input)
+      }))
+      .filter(({ score }) => score >= 0.22)
+      .sort((left, right) => right.score - left.score)
+      .slice(0, 3)
+      .map(({ memory }) => memory);
 
-    return [...memories]
-      .sort(
-        (left, right) => this.sessionState.scoreMemory(right, input) - this.sessionState.scoreMemory(left, input)
-      )
-      .slice(0, 5);
+    if (selected.length === 0) {
+      return [];
+    }
+
+    const selectedIds = new Set(selected.map((memory) => memory.id));
+    const recalledAt = new Date().toISOString();
+
+    this.sessionState.saveState((current) => ({
+      ...current,
+      memories: current.memories.map((memory) =>
+        memory.userId === userId && selectedIds.has(memory.id)
+          ? {
+              ...memory,
+              lastRecalledAt: recalledAt
+            }
+          : memory
+      ),
+      updatedAt: recalledAt
+    }));
+
+    return selected.map((memory) => ({
+      ...memory,
+      lastRecalledAt: recalledAt
+    }));
   }
 
   async saveMemories(
@@ -319,19 +347,47 @@ function cloneState<TState extends PersistedSessionState>(state: TState): TState
 }
 
 function defaultScoreMemoryMatch(memory: MemoryItem, input: string): number {
-  const tokens = input
-    .toLowerCase()
-    .split(/\s+/)
-    .map((token) => token.trim())
-    .filter(Boolean);
+  const normalizedInput = normalizeSearchText(input);
+  const normalizedMemory = normalizeSearchText(memory.content);
+  const tokens = extractSearchTokens(normalizedInput);
+  const fragments = extractSearchFragments(normalizedInput);
 
-  if (tokens.length === 0) {
+  if (tokens.length === 0 && fragments.length === 0) {
     return 0;
   }
 
-  const normalizedContent = memory.content.toLowerCase();
-  const hitCount = tokens.filter((token) => normalizedContent.includes(token)).length;
-  return hitCount / tokens.length + memory.importance * 0.25;
+  const tokenHitRatio =
+    tokens.length > 0
+      ? tokens.filter((token) => normalizedMemory.includes(token)).length / tokens.length
+      : 0;
+  const fragmentHits = fragments.filter((fragment) => normalizedMemory.includes(fragment));
+  const fragmentHitRatio =
+    fragments.length > 0 ? fragmentHits.length / fragments.length : 0;
+  const strongestFragmentRatio =
+    fragmentHits.length > 0
+      ? Math.max(...fragmentHits.map((fragment) => Math.min(1, fragment.length / 16)))
+      : 0;
+  const exactInputMatched =
+    normalizedInput.length >= 8 && normalizedMemory.includes(normalizedInput);
+  const exactInputBonus = exactInputMatched ? 0.35 : 0;
+  const hasLexicalMatch =
+    tokenHitRatio > 0 || fragmentHitRatio > 0 || strongestFragmentRatio > 0 || exactInputMatched;
+
+  if (!hasLexicalMatch) {
+    return 0;
+  }
+
+  const freshnessBoost = computeMemoryFreshnessBoost(memory);
+
+  return (
+    tokenHitRatio * 0.44 +
+    fragmentHitRatio * 0.2 +
+    strongestFragmentRatio * 0.18 +
+    exactInputBonus +
+    memory.importance * 0.11 +
+    memory.confidence * 0.07 +
+    freshnessBoost
+  );
 }
 
 function clamp(value: number): number {
@@ -341,9 +397,102 @@ function clamp(value: number): number {
 function defaultDeriveRelationshipStage(currentStage: string, delta: RelationshipDelta): string {
   const score = delta.affinityDelta + delta.trustDelta;
 
-  if (score > 0.15) {
-    return currentStage === "new" ? "warming" : "growing";
+  if (currentStage === "new" && score > 0.14) {
+    return "warming";
+  }
+
+  if (
+    currentStage === "warming" &&
+    (score > 0.12 ||
+      delta.reason === "user_extended_trust" ||
+      delta.reason === "user_shared_vulnerability")
+  ) {
+    return "growing";
   }
 
   return currentStage;
+}
+
+function normalizeSearchText(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function extractSearchTokens(value: string): string[] {
+  const stopWords = new Set([
+    "the",
+    "and",
+    "for",
+    "that",
+    "with",
+    "this",
+    "have",
+    "your",
+    "from",
+    "just",
+    "want",
+    "like",
+    "really",
+    "about",
+    "into"
+  ]);
+  const matches = value.match(/[\p{L}\p{N}]{2,}/gu) ?? [];
+
+  return [...new Set(matches.filter((token) => !stopWords.has(token)))];
+}
+
+function extractSearchFragments(value: string): string[] {
+  const fragments = new Set<string>();
+  const normalized = value.trim();
+
+  if (normalized.length >= 6) {
+    fragments.add(normalized);
+  }
+
+  const hanMatches = normalized.match(/\p{Script=Han}+/gu) ?? [];
+  for (const han of hanMatches) {
+    if (han.length >= 2) {
+      fragments.add(han);
+    }
+
+    for (let index = 0; index < han.length - 1; index += 1) {
+      fragments.add(han.slice(index, index + 2));
+    }
+  }
+
+  const phraseMatches = normalized.match(/[\p{L}\p{N}]+(?:\s+[\p{L}\p{N}]+){1,5}/gu) ?? [];
+  for (const phrase of phraseMatches) {
+    if (phrase.length >= 6) {
+      fragments.add(phrase);
+    }
+  }
+
+  return [...fragments];
+}
+
+function computeMemoryFreshnessBoost(memory: MemoryItem): number {
+  const reference = memory.lastRecalledAt ?? memory.createdAt;
+  const timestamp = Date.parse(reference);
+
+  if (Number.isNaN(timestamp)) {
+    return 0;
+  }
+
+  const ageDays = Math.max(0, (Date.now() - timestamp) / (1000 * 60 * 60 * 24));
+
+  if (ageDays <= 3) {
+    return 0.05;
+  }
+
+  if (ageDays <= 14) {
+    return 0.03;
+  }
+
+  if (ageDays <= 45) {
+    return 0.015;
+  }
+
+  return 0;
 }

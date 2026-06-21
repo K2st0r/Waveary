@@ -13,9 +13,9 @@ import {
   SimpleTimelineEngine,
   WavearyRuntime,
   type MemoryCandidate,
+  type MemoryExtractor,
   type MemoryItem,
   type MemoryStore,
-  type MemoryExtractor,
   type Message,
   type RuntimeContext
 } from "../index.js";
@@ -68,7 +68,7 @@ test("WavearyRuntime stores memories and recalls them on later turns", async () 
     id: "turn-1",
     sessionId: context.session.id,
     role: "user",
-    content: "我今天很开心，因为我终于把 Waveary 的定位想清楚了。",
+    content: "I finally clarified that Waveary should be a long-term digital life companion framework.",
     timestamp: new Date().toISOString(),
     metadata: {}
   };
@@ -89,7 +89,8 @@ test("WavearyRuntime stores memories and recalls them on later turns", async () 
     id: "turn-2",
     sessionId: context.session.id,
     role: "user",
-    content: "请记住，我希望它是一个数字生命陪伴框架，而不是普通聊天产品。",
+    content:
+      "Please remember that I want it to stay a digital life companion framework, not a generic chatbot product.",
     timestamp: new Date().toISOString(),
     metadata: {}
   };
@@ -98,7 +99,10 @@ test("WavearyRuntime stores memories and recalls them on later turns", async () 
 
   assert.equal(secondResult.recalledMemories.length, 1);
   assert.ok(secondResult.emotion);
-  assert.equal(secondResult.emotion?.primaryEmotion, "warm");
+  assert.ok(
+    ["warm", "earnest", "settled"].includes(secondResult.emotion?.primaryEmotion ?? ""),
+    "second-turn emotion should reflect warmer continuity rather than stay flat"
+  );
   assert.equal(secondResult.emotion?.detectedUserEmotion, "neutral");
   assert.ok(
     secondResult.reply.content.includes("I still remember"),
@@ -140,6 +144,67 @@ test("WavearyRuntime shifts companion emotion toward concern when the user is sa
   assert.equal(result.emotion?.subject, "companion");
   assert.equal(result.emotion?.detectedUserEmotion, "sadness");
   assert.ok(result.reply.content.includes("weight") || result.reply.content.includes("carefully"));
+});
+
+test("WavearyRuntime reflects warmer familiarity once the relationship is growing", async () => {
+  const relationshipStore = new InMemoryRelationshipStore();
+  await relationshipStore.applyDelta("user-1", {
+    affinityDelta: 0.18,
+    trustDelta: 0.12,
+    stabilityDelta: 0.05,
+    reason: "user_extended_trust"
+  });
+  await relationshipStore.applyDelta("user-1", {
+    affinityDelta: 0.16,
+    trustDelta: 0.11,
+    stabilityDelta: 0.05,
+    reason: "user_shared_vulnerability"
+  });
+
+  const runtime = new WavearyRuntime({
+    chatProvider: new ScriptedChatProvider(),
+    emotionAnalyzer: new SimpleEmotionAnalyzer(),
+    emotionStore: new InMemoryEmotionStore(),
+    emotionEngine: new SimpleCompanionEmotionEngine(),
+    proactiveCareEngine: new SimpleProactiveCareEngine(),
+    memoryStore: new TestMemoryStore(),
+    memoryExtractor: new TestMemoryExtractor(),
+    relationshipStore,
+    relationshipEngine: new SimpleRelationshipEngine(),
+    timelineStore: new InMemoryTimelineStore(),
+    timelineEngine: new SimpleTimelineEngine()
+  });
+
+  const context: RuntimeContext = {
+    ...createContext(),
+    history: [
+      {
+        id: "prior-user",
+        sessionId: "session-1",
+        role: "user",
+        content: "Please remember that this project is about long-term companionship.",
+        timestamp: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
+        metadata: {}
+      }
+    ]
+  };
+  const message: Message = {
+    id: "turn-growing-1",
+    sessionId: context.session.id,
+    role: "user",
+    content: "I really want this to feel like someone staying with me over time.",
+    timestamp: new Date().toISOString(),
+    metadata: {}
+  };
+
+  const result = await runtime.handleTurn(context, message);
+
+  assert.equal(result.relationship.stage, "growing");
+  assert.ok(
+    result.reply.content.includes("what you do when something really matters") ||
+      result.reply.content.includes("part of our longer thread"),
+    "growing-stage reply should sound more familiar and continuous"
+  );
 });
 
 test("WavearyRuntime softens scripted replies during late-night local time when time awareness is present", async () => {
@@ -255,8 +320,31 @@ test("WavearyRuntime evaluates proactive care through relationship, emotion, and
 class TestMemoryStore implements MemoryStore {
   private readonly records = new Map<string, MemoryItem[]>();
 
-  async recallRelevantMemories(userId: string): Promise<MemoryItem[]> {
-    return [...(this.records.get(userId) ?? [])].slice(-5);
+  async recallRelevantMemories(userId: string, input: string): Promise<MemoryItem[]> {
+    const normalizedInput = input.toLowerCase();
+    const latinTerms = normalizedInput.match(/[a-z0-9]{3,}/g) ?? [];
+    const hanTerms = Array.from(
+      new Set(
+        [...normalizedInput.matchAll(/\p{Script=Han}{2,}/gu)].flatMap((match) => {
+          const fragment = match[0];
+          const pieces = [fragment];
+
+          for (let index = 0; index < fragment.length - 1; index += 1) {
+            pieces.push(fragment.slice(index, index + 2));
+          }
+
+          return pieces;
+        })
+      )
+    );
+    const searchTerms = [...latinTerms, ...hanTerms];
+
+    return [...(this.records.get(userId) ?? [])]
+      .filter((memory) => {
+        const normalizedMemory = memory.content.toLowerCase();
+        return searchTerms.some((term) => normalizedMemory.includes(term));
+      })
+      .slice(-3);
   }
 
   async saveMemories(

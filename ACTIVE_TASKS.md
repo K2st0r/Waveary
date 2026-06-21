@@ -12,10 +12,10 @@ Update it when:
 
 ## Current Focus
 
-1. Turn proactive-care presentation into a reusable message-draft interface.
+1. Continue the `waveary-core` dialogue-quality pass.
    Status: in progress
-   Current state: the proactive message composer has been extracted into its own web utility module, promoted into `/api/chat/proactive/evaluate`, and now reaches the console, browser-notification path, and a bounded browser-local proactive check loop through one server-generated draft contract with `tone`, `deliveryKind`, and `suggestedMessage`.
-   Next cut: keep the next delivery layer aligned with this explicit local-loop model, or decide whether any broader scheduler should remain web-local or move closer to runtime boundaries.
+   Current state: memory recall is now stricter and updates `lastRecalledAt`, user-emotion detection is broader than `joy/sadness/neutral`, companion emotion transitions carry more relationship-aware tone state, and scripted/provider guidance now separates `new`, `warming`, and `growing` more clearly.
+   Next cut: push the same continuity logic harder into live-provider behavior and add more focused regression coverage for multi-turn memory-thread choice, not just scripted phrasing.
 
 2. Keep permissioned local-time awareness bounded and trustworthy.
    Status: in progress
@@ -25,15 +25,15 @@ Update it when:
 3. Preserve continuity discipline under high-frequency iteration.
    Status: ongoing
    Current state: each meaningful step is being verified, committed, pushed, and written back into continuity files.
-   Next cut: keep repository-side state files aligned so session resets do not cause duplicate work or architectural drift.
+   Next cut: keep repository-side state files aligned so session resets do not cause duplicate work or architectural drift, and record any verification caveats like the current Windows `@waveary/core` test-script behavior.
 
 ## Deferred But Important
 
-1. Introduce a formal proactive message draft contract that future delivery channels can consume.
-   Reason: the draft contract now exists on `/api/chat/proactive/evaluate`, but any next delivery path should keep consuming that contract rather than reintroducing per-surface recomputation.
+1. Strengthen live-provider dialogue regression beyond scripted providers.
+   Reason: the current quality pass materially improved runtime instructions and scripted replies, but real OpenAI-compatible providers still need more direct coverage for continuity-thread choice and relationship-distance behavior.
 
-2. Decide when to extract proactive presentation helpers into a dedicated web utility module.
-   Reason: this extraction is complete; the next architectural question is whether those helpers should remain `waveary-web`-local or move closer to a shared runtime boundary before broader delivery orchestration.
+2. Decide whether to harden `@waveary/core` test execution on Windows.
+   Reason: the current package test script depends on compiled `dist` output and can be misleading unless build and test are run in the right order.
 
 3. Continue future presence-aware work only behind explicit permission boundaries.
    Reason: the product direction allows richer presence later, but current trust boundaries must stay narrow and legible.
