@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `9829a9f` - `Localize proactive care decision labels`
+- `67d98d5` - `Strengthen proactive decision visual hierarchy`
 
 ## Modules
 
