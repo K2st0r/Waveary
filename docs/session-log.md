@@ -4,6 +4,43 @@
 
 Objective:
 
+Extend the new permissioned local-time path into a small daypart-aware tone layer so evening and late-night turns feel more companion-like without introducing broader device awareness.
+
+Summary:
+
+- added a shared local-time guidance helper in `waveary-core` that resolves a bounded `dayPart` hint from the already-authorized local time context
+- updated the OpenAI-compatible provider instruction prompt so real model providers now receive explicit daypart tone guidance alongside the raw local time, timezone, and locale
+- adjusted the scripted provider so late-night and evening turns soften their opening tone when time awareness is present, while leaving the broader relationship and emotion flow unchanged
+- kept the change inside `waveary-core`, with no new permissions, no new frontend controls, and no extra persistence fields
+
+Files changed:
+
+- `waveary-core/src/adapters/local-time-guidance.ts`
+- `waveary-core/src/adapters/openai-compatible-provider.test.ts`
+- `waveary-core/src/adapters/openai-compatible-provider.ts`
+- `waveary-core/src/adapters/scripted-chat-provider.ts`
+- `waveary-core/src/index.ts`
+- `waveary-core/src/runtime/waveary-runtime.test.ts`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/core`
+- `npm run test --workspace @waveary/core`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-21
+
+Objective:
+
 Give normal chat turns a permissioned local time awareness path so the companion can answer device-local time/date questions without pretending it has no real-time context.
 
 Summary:

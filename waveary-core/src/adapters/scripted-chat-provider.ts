@@ -1,4 +1,5 @@
 import type { ChatProvider, ChatProviderRequest } from "../index.js";
+import { resolveLocalTimeGuidance } from "./local-time-guidance.js";
 
 export class ScriptedChatProvider implements ChatProvider {
   async generateReply(request: ChatProviderRequest): Promise<string> {
@@ -14,7 +15,11 @@ export class ScriptedChatProvider implements ChatProvider {
       return timeAwareReply;
     }
 
-    const prefix = buildRelationshipPrefix(request.relationship.stage, request.emotion?.primaryEmotion);
+    const prefix = buildRelationshipPrefix(
+      request.relationship.stage,
+      request.emotion?.primaryEmotion,
+      request
+    );
     const continuity = memoryHint
       ? `I still remember ${wrapMemory(memoryHint)}, so I can follow what this means to you.`
       : "I am staying with what you just shared instead of treating it like a one-off question.";
@@ -62,7 +67,25 @@ function buildTimeAwareReply(
   return `I can see your local time as ${formatted}. If you want, I can stay with this moment and keep going from here with you.`;
 }
 
-function buildRelationshipPrefix(stage: string, emotion?: string): string {
+function buildRelationshipPrefix(
+  stage: string,
+  emotion: string | undefined,
+  request: ChatProviderRequest
+): string {
+  const localTimeGuidance = resolveLocalTimeGuidance(request.localTime);
+
+  if (localTimeGuidance?.dayPart === "late_night") {
+    if (emotion === "concerned") {
+      return "It feels late where you are, and I want to stay especially gentle with what you are carrying right now.";
+    }
+
+    return "It feels late where you are, so I am staying here with a quieter kind of presence.";
+  }
+
+  if (localTimeGuidance?.dayPart === "evening" && emotion !== "playful") {
+    return "I am here with you, and this feels like the kind of evening moment worth answering a little more softly.";
+  }
+
   if (emotion === "concerned") {
     return "I can feel the weight in this, and I want to stay close to it with you.";
   }

@@ -142,6 +142,45 @@ test("WavearyRuntime shifts companion emotion toward concern when the user is sa
   assert.ok(result.reply.content.includes("weight") || result.reply.content.includes("carefully"));
 });
 
+test("WavearyRuntime softens scripted replies during late-night local time when time awareness is present", async () => {
+  const runtime = new WavearyRuntime({
+    chatProvider: new ScriptedChatProvider(),
+    emotionAnalyzer: new SimpleEmotionAnalyzer(),
+    emotionStore: new InMemoryEmotionStore(),
+    emotionEngine: new SimpleCompanionEmotionEngine(),
+    proactiveCareEngine: new SimpleProactiveCareEngine(),
+    memoryStore: new TestMemoryStore(),
+    memoryExtractor: new TestMemoryExtractor(),
+    relationshipStore: new InMemoryRelationshipStore(),
+    relationshipEngine: new SimpleRelationshipEngine(),
+    timelineStore: new InMemoryTimelineStore(),
+    timelineEngine: new SimpleTimelineEngine()
+  });
+
+  const context = createContext();
+  const message: Message = {
+    id: "turn-night-1",
+    sessionId: context.session.id,
+    role: "user",
+    content: "I do not really want advice, I just want someone here with me.",
+    timestamp: new Date().toISOString(),
+    metadata: {}
+  };
+
+  const result = await runtime.handleTurn(context, message, {
+    localTime: {
+      iso: "2026-06-21T17:30:00.000Z",
+      timeZone: "Asia/Shanghai",
+      locale: "en-US"
+    }
+  });
+
+  assert.ok(
+    result.reply.content.includes("quieter kind of presence"),
+    "late-night reply should shift into a softer presence-aware tone"
+  );
+});
+
 test("WavearyRuntime evaluates proactive care through relationship, emotion, and policy state", async () => {
   const relationshipStore = new InMemoryRelationshipStore();
   const emotionStore = new InMemoryEmotionStore();
