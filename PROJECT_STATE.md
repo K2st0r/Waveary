@@ -97,6 +97,7 @@ Brand line:
   - the current web surface now provides the first permissioned proactive-care delivery path through browser-local notifications triggered from manual `WPCE` evaluation results
   - the console now also includes a first explicit permission center so users can set local consent preferences for notifications, proactive delivery, time awareness, desktop presence, and future local actions
   - normal browser chat turns now send explicit local time context only when `timeAwareness` permission is allowed, reusing the existing permission center instead of adding a separate hidden time toggle
+  - proactive browser notifications now also soften their lead sentence by morning / evening / late-night daypart when `timeAwareness` is allowed, without changing `WPCE` policy or outreach frequency
   - proactive browser-notification delivery now also records per-session reachout counters and last-delivery time so subsequent `WPCE` evaluations can suppress repeated outreach until the user replies
   - successful new user turns now automatically clear persisted `WPCE` unanswered-reachout state so proactive care can reopen naturally after the user responds without erasing daily send counts or the last reachout timestamp
   - proactive-care evaluation output and browser notification copy now translate raw `WPCE` intent, urgency, and reason codes into user-facing Chinese and English labels instead of exposing internal engine enums directly
@@ -207,6 +208,7 @@ Brand line:
 - keep future desktop awareness or action work behind a separate permissioned presence layer instead of mixing it directly into chat reply generation
 - extend the new permissioned local-time path into richer presence-aware context only after the user can review and grant each source separately, instead of letting time awareness silently expand into broader desktop awareness
 - consider surfacing the current permissioned local daypart in the console or chat shell only if it improves legibility without making the conversation surface feel diagnostic
+- consider moving the new daypart-aware notification tone into a shared proactive-message formatter once browser notifications stop being the only delivery channel
 - expand provider-specific chat request normalization where "OpenAI-compatible" vendors diverge beyond the current shared `/chat/completions` and `/responses` paths
 - add route-level or live verification for more provider-specific chat payload divergences after the current DeepSeek and broader structured-payload compatibility baseline
 - re-run `npm run verify:provider` and `npm run models:provider` with refreshed real credentials, starting with DeepSeek because the currently saved local key now returns `401 invalid api key`

@@ -4,6 +4,39 @@
 
 Objective:
 
+Make browser-side proactive care notifications sound more companion-like across morning, evening, and late-night moments without changing `WPCE` decision policy or adding any new permission source.
+
+Summary:
+
+- updated `deliverProactiveBrowserNotification()` so the notification body now begins with a softer time-of-day-aware lead sentence before the existing intent, urgency, and reason details
+- kept the new tone shaping behind the existing `timeAwareness` permission; if that permission is not allowed, notifications fall back to a neutral lead instead of inferring local time
+- limited the change to browser notification copy only, so `WPCE` evaluation logic, persistence counters, quiet-hour policy, and outreach frequency all remain unchanged
+- kept the implementation entirely inside `waveary-web/src/App.tsx` as a small presentation-layer enhancement rather than pushing notification copy logic into the core engine too early
+
+Files changed:
+
+- `waveary-web/src/App.tsx`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npx tsc --noEmit -p waveary-web/tsconfig.server.json` failed in isolation on `2026-06-21` because the server build path could not resolve `@waveary/core` without refreshed workspace build output; this was a workspace build-order issue, not a TypeScript error caused by the notification-copy change
+- `npm run test --workspace @waveary/web`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-21
+
+Objective:
+
 Extend the new permissioned local-time path into a small daypart-aware tone layer so evening and late-night turns feel more companion-like without introducing broader device awareness.
 
 Summary:
