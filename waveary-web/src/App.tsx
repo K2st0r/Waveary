@@ -104,11 +104,6 @@ interface SessionPackageReference {
   sample: ExportedChatSession;
 }
 
-interface ApiErrorPayload {
-  error?: string;
-  details?: string[];
-}
-
 interface ChatSessionListItem {
   sessionId: string;
   title: string;
@@ -117,7 +112,6 @@ interface ChatSessionListItem {
 }
 
 type ChatPersistenceBackend = "file" | "sqlite";
-
 type ChatPersistenceSyncState = "active" | "in-sync" | "behind" | "ahead" | "diverged";
 
 interface ChatPersistenceSyncMetadata {
@@ -151,156 +145,635 @@ interface ChatMessage {
   content: string;
 }
 
-const engineCards = [
-  {
-    acronym: "WME",
-    name: "Waveary Memory Engine",
-    summary: "Turn conversation into durable memory, not disposable context."
-  },
-  {
-    acronym: "WRE",
-    name: "Waveary Relationship Engine",
-    summary: "Model relationship growth as state, signals, and long-term trust."
-  },
-  {
-    acronym: "WTE",
-    name: "Waveary Timeline Engine",
-    summary: "Organize life events into recallable personal history."
-  },
-  {
-    acronym: "WEE",
-    name: "Waveary Emotion Engine",
-    summary: "Track emotional state to guide tone, care, and continuity."
-  },
-  {
-    acronym: "WVE",
-    name: "Waveary Voice Engine",
-    summary: "Prepare the path from text companionship to real-time voice."
-  }
-] as const;
-
-const roadmap = [
-  {
-    version: "V0.1",
-    timeframe: "30 Days",
-    goal: "Establish the first usable open source digital companion framework.",
-    items: ["Chat", "Long-term memory", "Timeline", "Relationship growth"]
-  },
-  {
-    version: "V0.2",
-    timeframe: "60 Days",
-    goal: "Expand the framework from continuity into emotional presence.",
-    items: ["Voice", "Emotion analysis", "Proactive care"]
-  },
-  {
-    version: "V0.3",
-    timeframe: "90 Days",
-    goal: "Move from asynchronous interaction to live companionship.",
-    items: ["Real-time voice", "Interruptions", "Full duplex conversation"]
-  }
-] as const;
-
-const principles = [
-  "Memory comes before model.",
-  "Relationship comes before features.",
-  "Companionship comes before intelligence."
-] as const;
-
-const setupSteps = [
-  "Choose provider",
-  "Enter API key",
-  "Fetch models",
-  "Select model",
-  "Save config",
-  "Open chat next"
-] as const;
-
-const introductionPanels = [
-  {
-    label: "Open Source Core",
-    title: "A framework layer, not a themed chatbot wrapper.",
-    description:
-      "Waveary turns continuity into product infrastructure so memory, relationship, timeline, and emotional state can survive beyond one turn."
-  },
-  {
-    label: "Model Agnostic",
-    title: "Bring your own provider and keep the continuity layer stable.",
-    description:
-      "Provider setup, model discovery, and runtime orchestration stay separable, so the companion layer does not collapse into one vendor."
-  },
-  {
-    label: "Companion Logic",
-    title: "Remember, relate, and grow across a user's life.",
-    description:
-      "The system is designed to accumulate context, reflect relationship change, and organize life events into a durable personal history."
-  }
-] as const;
-
-const introductionStatements = [
-  "Waveary is designed as a long-term continuity layer for digital companionship.",
-  "It gives any compatible model persistent memory, relationship state, and a life timeline.",
-  "Its goal is not novelty per turn, but coherence across months, years, and personal history."
-] as const;
-
-const frameworkLayers = [
-  {
-    title: "Memory Continuity",
-    description: "Turn conversation fragments into retrievable and persistent memory assets."
-  },
-  {
-    title: "Relationship Continuity",
-    description: "Model trust, familiarity, and stage progression as real runtime state."
-  },
-  {
-    title: "Timeline Continuity",
-    description: "Preserve important moments as a life sequence instead of disposable logs."
-  },
-  {
-    title: "Emotional Continuity",
-    description: "Track short-term feeling and long-term tone so companionship becomes more coherent."
-  }
-] as const;
-
-const repositoryModules = [
-  {
-    name: "waveary-core",
-    role: "Runtime orchestration, provider abstraction, and continuity domain contracts."
-  },
-  {
-    name: "waveary-web",
-    role: "Official web surface for project framing, setup flow, and runtime access."
-  },
-  {
-    name: "waveary-memory",
-    role: "Memory extraction, storage, retrieval, and scoring behavior."
-  },
-  {
-    name: "waveary-voice",
-    role: "Future voice interaction layer for real-time and duplex companionship."
-  }
-] as const;
-
-const manifestoPoints = [
-  {
-    title: "Replace short-term prompt theater",
-    description:
-      "Move continuity into system architecture so memory and relationship do not disappear when the current turn ends."
-  },
-  {
-    title: "Make provider switching survivable",
-    description:
-      "Keep setup, model discovery, and runtime invocation replaceable while the companion layer remains stable."
-  },
-  {
-    title: "Treat personal history as product infrastructure",
-    description:
-      "Turn remembered facts, important moments, and relationship changes into a usable life archive."
-  }
-] as const;
-
+type Locale = "zh" | "en";
 type LoadState = "idle" | "loading" | "success" | "error";
 
+const zhCopy = {
+  brandSubtitle: "回响之境",
+  brandCaption: "数字生命陪伴框架",
+  slogan: "念念不忘，终有回响。",
+  nav: ["首页", "介绍", "引擎", "结构", "控制台", "路线图"] as const,
+  hero: {
+    eyebrow: "Project Waveary",
+    chip: "Waveary CE",
+    kicker: "数字生命陪伴框架",
+    title: ["念念不忘，", "终有回响。"] as const,
+    lead:
+      "Waveary 是一个开源框架，为任意模型赋予长期记忆、关系成长、人生时间轴，以及长期陪伴用户的能力。",
+    support:
+      "Waveary 不试图创造更聪明的聊天机器人。它在构建一层连续性基础设施，让任何模型都能在用户的人生里记住、理解并持续成长。",
+    primary: "阅读框架",
+    secondary: "查看引擎栈"
+  },
+  principles: ["记忆优先于模型。", "关系优先于功能。", "陪伴优先于智能。"] as const,
+  introStatements: [
+    "Waveary 被设计为数字陪伴场景下的长期连续性基础层。",
+    "它让兼容模型拥有持久记忆、关系状态与人生时间轴。",
+    "它追求的不是单轮新鲜感，而是跨越数月、数年与真实人生的稳定一致性。"
+  ] as const,
+  heroCards: {
+    definitionLabel: "项目定义",
+    definitionTitle: "为需要记忆、连续性与陪伴逻辑的模型提供一层操作系统。",
+    definitionBody:
+      "Waveary 不应再被理解为某种 AI 角色应用，而更像是一层位于模型输出与用户人生经历之间的连续性框架。",
+    positioningLabel: "定位",
+    positioningTitle: "框架优先，陪伴其次，默认保持供应商中立。",
+    positioningBody: "不是 AI 女友包装。不是通用聊天壳。不是单一厂商绑定陷阱。",
+    audienceLabel: "面向谁",
+    audienceTitle: "面向建立长期数字陪伴产品与系统的团队。",
+    audienceBody: "当连续性、记忆与关系状态比单轮惊艳更重要时，就该用 Waveary。"
+  },
+  intro: {
+    caption: "框架介绍",
+    title: "Waveary 是模型输出与用户真实人生之间的连续性层。",
+    description:
+      "它旨在为大模型提供稳定的记忆底座、关系系统、人生时间轴，以及长期数字陪伴的基础能力。",
+    essay: [
+      "大多数 AI 产品是靠单次回答看起来够不够聪明来评判的。Waveary 则是看系统能否长期保持一致、记住重要的事，并在供应商或会话切换后关系仍不坍塌。",
+      "这意味着记忆不是附属功能，关系不是 prompt 风味，个人历史不是可随手丢弃的日志，它们都是一等系统能力。"
+    ] as const,
+    panels: [
+      {
+        label: "开源核心",
+        title: "它是一层框架，不是一个主题化聊天壳。",
+        description:
+          "Waveary 把连续性做成产品基础设施，让记忆、关系、时间轴与情绪状态不会在单轮结束后一起蒸发。"
+      },
+      {
+        label: "模型无关",
+        title: "自带供应商，但保持连续性层稳定。",
+        description:
+          "供应商配置、模型发现与运行时编排彼此解耦，陪伴层不会因为绑定某一家模型而失去独立性。"
+      },
+      {
+        label: "陪伴逻辑",
+        title: "跨越用户人生去记住、理解并成长。",
+        description:
+          "系统的目标是持续累积上下文、反映关系变化，并把重要人生事件组织成可回访的个人历史。"
+      }
+    ] as const,
+    thesisCaption: "核心主张",
+    thesisTitle: "记忆优先于模型。关系优先于功能。陪伴优先于智能。",
+    thesisBody:
+      "重点不是让聊天机器人听起来更戏剧化，而是让陪伴在底层模型变化时仍能长期保持一致。"
+  },
+  frameworkLayers: [
+    { title: "记忆连续性", description: "把对话碎片变成可检索、可持久化的记忆资产。" },
+    { title: "关系连续性", description: "把信任、熟悉度与阶段变化建模为真实运行时状态。" },
+    { title: "时间轴连续性", description: "把重要时刻保留为人生序列，而不是一次性日志。" },
+    { title: "情绪连续性", description: "跟踪短期情绪与长期语气，让陪伴更稳定一致。" }
+  ] as const,
+  manifesto: {
+    caption: "框架定位",
+    title: "不是角色扮演外壳，而是数字生命陪伴的连续性系统。",
+    description:
+      "Waveary 位于界面层与模型供应商之间，为任何兼容模型提供持久记忆层、关系状态、人生时间轴，以及情绪与语音存在感的基础。",
+    quote:
+      "它不试图创造更聪明的 AI。它试图创造一个能够记住、理解、成长并长期陪伴用户的人生伙伴。",
+    points: [
+      {
+        title: "替代短期 Prompt 戏法",
+        description: "把连续性下沉到系统架构中，让记忆与关系不会在当前轮结束后立刻消失。"
+      },
+      {
+        title: "让供应商切换可存活",
+        description: "保持配置、模型发现与运行调用可替换，而陪伴层本身保持稳定。"
+      },
+      {
+        title: "把个人历史当成产品基础设施",
+        description: "把被记住的事实、重要时刻与关系变化，沉淀成可使用的人生档案。"
+      }
+    ] as const
+  },
+  engines: {
+    caption: "核心引擎",
+    title: "一个为连续性而生，而非为短期新鲜感而生的框架栈。",
+    description: "每个引擎负责一项稳定的连续性能力，让产品层保持表达力，但不偷走运行时职责。",
+    lens: "架构视角",
+    foundation:
+      "整个产品被组织成连续性操作层：模型接入、记忆、关系状态、归档持久化与未来语音能力彼此独立。",
+    cards: [
+      { acronym: "WME", name: "Waveary Memory Engine", summary: "把对话沉淀为持久记忆，而不是一次性上下文。" },
+      { acronym: "WRE", name: "Waveary Relationship Engine", summary: "把关系成长建模为状态、信号与长期信任。" },
+      { acronym: "WTE", name: "Waveary Timeline Engine", summary: "把人生事件组织成可被回忆的个人历史。" },
+      { acronym: "WEE", name: "Waveary Emotion Engine", summary: "跟踪情绪状态，指导语气、关怀与连续性。" },
+      { acronym: "WVE", name: "Waveary Voice Engine", summary: "为从文字陪伴走向实时语音铺路。" }
+    ] as const
+  },
+  structure: {
+    caption: "项目结构",
+    title: "用仓库形态把连续性逻辑与产品表层严格分开。",
+    description: "Waveary 正被组织成模块化框架，让记忆、运行时、界面与未来语音层不会坍缩成一个应用。",
+    plan: "仓库规划",
+    modules: [
+      { name: "waveary-core", role: "运行时编排、供应商抽象与连续性领域契约。" },
+      { name: "waveary-web", role: "官方 Web 表层，负责项目表达、配置流程与运行时入口。" },
+      { name: "waveary-memory", role: "记忆提取、存储、检索与评分行为。" },
+      { name: "waveary-voice", role: "面向实时与全双工陪伴的未来语音交互层。" }
+    ] as const
+  },
+  console: {
+    caption: "陪伴控制台",
+    title: "官方交互表层放在介绍之后，而不是把介绍淹没在控制台里。",
+    description: "首页先解释框架；这里才开始展示当前 Web 参考实现如何完成配置、连续性与运行时行为。",
+    summary: [
+      ["运行路径", "供应商选择与模型发现留在本地 API 层，而不是塞进浏览器客户端运行时。"],
+      ["会话层", "主会话与附加会话并存，且重置、重命名、导入导出都保持本地可控。"],
+      ["运行状态", "实时对话已经返回回复文本，以及记忆、关系、情绪与时间轴信号。"],
+      ["持久档案", "会话历史可跨进程重启保留，并可在文件或 SQLite 持久化之间迁移。"]
+    ] as const,
+    flow: [
+      ["界面 01", "供应商接入", "选择厂商、验证凭据、拉取模型，并保存一条稳定可用的运行路径。"],
+      ["界面 02", "会话连续性", "会话身份、持久化后端、导入、导出、重置与归档都可观察、可管理。"],
+      ["界面 03", "运行时观测", "对话、信号与持久归档被拆分为主画布与检查侧栏。"]
+    ] as const
+  },
+  setup: {
+    caption: "供应商配置",
+    title: "选择供应商，查看你的密钥可用模型，并固定一条可用运行路径。",
+    description: "这套浏览器原生配置流把供应商逻辑保留在服务端，本页面只负责交互体验。",
+    sequence: "配置顺序",
+    interactive: "交互式",
+    steps: ["选择供应商", "输入 API Key", "获取模型", "选择模型", "保存配置", "进入聊天"] as const,
+    savedConfiguration: "已保存配置",
+    noSavedConfiguration: "还没有已保存的供应商配置。完成右侧流程后即可创建。",
+    presetCoverage: "预设覆盖",
+    setupConsole: "配置控制台",
+    localApi: "本地 API",
+    provider: "供应商",
+    providerPlaceholder: "选择一个供应商",
+    baseUrl: "Base URL",
+    apiKey: "API Key",
+    selectedPreset: "当前预设",
+    selectedPresetFallback: "先选择一个供应商预设，从已知兼容端点开始。",
+    selectedPresetSuffix: "默认会使用其 OpenAI 兼容端点，除非你手动覆盖 Base URL。",
+    fetchModels: "获取可用模型",
+    fetchingModels: "正在获取模型...",
+    models: "可用模型",
+    model: "模型",
+    modelsHint: "输入供应商、Base URL 与 API Key 后再获取模型。结果直接来自供应商的 `/models` 接口。",
+    saveConfig: "保存供应商配置",
+    saving: "正在保存..."
+  },
+  runtime: {
+    caption: "实时运行时",
+    title: "运行当前 Waveary 浏览器流程，查看会话、档案可见性与连续性信号。",
+    description: "这个参考壳层已经能返回真实回复，以及来自底层运行时的记忆召回、关系变化与时间轴输出。",
+    sessionLayer: "会话层",
+    sessionTag: "主会话 + 附加会话",
+    main: "主会话",
+    session: "会话",
+    messages: "条消息",
+    persistence: "持久化后端",
+    loading: "加载中...",
+    currentStore: "当前本地存储：",
+    loadingPersistence: "正在加载当前聊天持久化后端。",
+    lastSync: "最近同步",
+    noSwitch: "暂无切换记录",
+    noMigration: "当前后端正在使用本地状态，但还没有记录到迁移事件。",
+    sessionsSynced: "个会话已同步",
+    localStoreMissing: "本地存储文件尚未创建。",
+    latest: "最近写入",
+    noWrites: "尚无会话写入",
+    sessionsUnit: "个会话",
+    activeBackendDescription: "这个后端当前正在提供本地聊天的读写服务。",
+    noSessionDiff: "与当前激活后端没有检测到会话差异。",
+    backend: "后端",
+    switchBackend: "切换后端",
+    switching: "正在切换...",
+    createSession: "创建会话",
+    newSessionTitle: "新会话标题",
+    newSessionPlaceholder: "深夜回忆、产品脑暴、记忆测试……",
+    importSession: "导入会话 JSON",
+    packageRules: "导入规则",
+    currentSchema: "当前 schema 版本：",
+    topLevelFields: "顶层字段",
+    requiredArrays: "必需的快照数组",
+    importedSessionTitle: "导入后的会话标题",
+    importedSessionPlaceholder: "恢复的陪伴会话……",
+    exportedJson: "导出的 JSON",
+    exportedJsonPlaceholder: "把导出的会话包粘贴到这里……",
+    chooseJsonFile: "选择 JSON 文件",
+    loadSample: "载入示例包",
+    importAsNew: "导入为新会话",
+    importing: "正在导入...",
+    importDiagnostics: "导入诊断",
+    manageSession: "管理当前会话",
+    mainSessionDescription: "这是主陪伴会话。它始终保留，但本地历史可以被重置。",
+    optionalSessionDescription: "这是附加本地会话。可以重命名、重置或删除。",
+    sessionTitle: "会话标题",
+    renamePlaceholder: "重命名这个会话",
+    exportSession: "导出会话 JSON",
+    exporting: "正在导出...",
+    resetSession: "重置会话",
+    renameSession: "重命名会话",
+    deleteSession: "删除会话",
+    noLocalSession: "当前还没有可用的本地会话。",
+    canvas: "对话画布",
+    runtimeReady: "运行时已就绪",
+    setupRequired: "需要先配置",
+    restored: "已恢复本地会话历史，时间：",
+    emptyChat: "先保存一套供应商配置，再发送第一条消息以启动实时 Waveary 会话。",
+    you: "你",
+    assistant: "Waveary",
+    placeholder: "告诉 Waveary 一件值得被记住的事……",
+    sending: "正在发送...",
+    send: "发送消息",
+    sessionExport: "会话导出",
+    structuredJson: "结构化 JSON",
+    exportDescription: "该导出包包含当前会话的对话、持久记忆、关系状态、时间轴事件与最新运行时洞察。",
+    importSafety: "导入安全",
+    currentSchemaShort: "当前 schema：",
+    signals: "运行时信号",
+    signalsTag: "记忆 + 关系",
+    relationshipStage: "关系阶段",
+    affinity: "亲密度",
+    trust: "信任度",
+    stability: "稳定度",
+    emotion: "识别情绪",
+    noEmotion: "最新一轮没有检测到明显情绪信号。",
+    recalledMemories: "召回记忆",
+    noRecalled: "暂时还没有召回记忆。",
+    storedMemories: "写入记忆",
+    noStored: "最新一轮没有存入新的记忆候选。",
+    timeline: "时间轴",
+    noTimeline: "暂时还没有时间轴事件。",
+    runtimeHint: "发送一条消息后，这里会显示记忆召回、关系变化与时间轴事件。",
+    archive: "持久会话档案",
+    archiveTag: "记忆 + 时间轴 + 关系",
+    relationshipSnapshot: "关系快照",
+    noRelationshipSnapshot: "还没有持久化的关系快照。",
+    memoryArchive: "会话记忆档案",
+    noPersistedMemories: "还没有持久化记忆。",
+    sessionTimeline: "会话时间轴",
+    noPersistedTimeline: "还没有持久化时间轴事件。",
+    archiveHint: "发送一条值得记住的消息。重新加载后，这里会显示该会话的持久记忆档案、关系快照与时间轴。"
+  },
+  roadmap: {
+    caption: "执行路线图",
+    title: "先把陪伴层做稳，再逐步扩展体验。",
+    phases: [
+      { version: "V0.1", timeframe: "30 天", goal: "构建第一个可用的开源数字陪伴框架。", items: ["聊天", "长期记忆", "时间轴", "关系成长"] },
+      { version: "V0.2", timeframe: "60 天", goal: "从连续性扩展到情绪存在感。", items: ["语音", "情绪分析", "主动关心"] },
+      { version: "V0.3", timeframe: "90 天", goal: "从异步互动走向实时陪伴。", items: ["实时语音", "打断能力", "全双工对话"] }
+    ] as const
+  },
+  statuses: {
+    loadingProviderConfiguration: "正在加载供应商配置...",
+    loadedSavedConfig: "已从 .waveary/provider-config.json 加载本地保存的供应商配置。",
+    chooseProvider: "选择供应商并获取当前 API Key 可用的模型；已有本地会话仍然可用。",
+    noPresets: "当前没有可用的供应商预设。",
+    noModels: "这个 API Key 没有返回任何可用模型。",
+    configSaved: "供应商配置已保存到本地。Waveary 现在可以使用这个模型。",
+    sessionCreated: "已创建新的本地聊天会话。",
+    sessionRenamed: "会话标题已更新。",
+    sessionDeleted: "会话已删除。",
+    mainSessionReset: "主陪伴会话已重置，本地历史与最近信号都已清空。",
+    sessionReset: "会话已重置，本地历史与最近信号都已清空。",
+    sampleLoaded: "已将 Waveary 示例会话包载入导入编辑器。"
+  },
+  formatting: {
+    backend: { file: "文件 JSON", sqlite: "SQLite", unknown: "未知" },
+    sync: { active: "使用中", "in-sync": "已同步", behind: "落后", ahead: "领先", diverged: "分叉" } as const,
+    memoryType: {
+      life_event: "人生事件",
+      preference: "偏好",
+      relationship: "关系",
+      reflection: "反思",
+      fact: "事实"
+    } as const,
+    runtimeNotConfigured: "尚未配置",
+    localSessionsAvailable: (count: number) => `${count} 个本地会话可用`,
+    noArchive: "还没有持久档案",
+    archiveSummary: (memories: number, timeline: number) => `${memories} 条记忆，${timeline} 个时间轴事件`,
+    ready: "可开始实时对话",
+    waiting: "等待供应商配置",
+    importance: "重要度",
+    sep: " · "
+  }
+} as const;
+
+const enCopy = {
+  brandSubtitle: "Waveary",
+  brandCaption: "Digital Life Companion Framework",
+  slogan: "What is remembered returns as an echo.",
+  nav: ["Home", "Intro", "Engines", "Structure", "Console", "Roadmap"] as const,
+  hero: {
+    eyebrow: "Project Waveary",
+    chip: "Waveary CE",
+    kicker: "Digital Life Companion Framework",
+    title: ["What Is Remembered", "Returns As an Echo."] as const,
+    lead:
+      "Waveary is an open source framework that gives any model long-term memory, relationship growth, life timeline awareness, and the capacity to stay with a user over time.",
+    support:
+      "Waveary does not try to create a smarter chatbot. It builds the continuity layer that lets any model remember, relate, and grow across a user's life.",
+    primary: "Read The Framework",
+    secondary: "View Engine Stack"
+  },
+  principles: ["Memory comes before model.", "Relationship comes before features.", "Companionship comes before intelligence."] as const,
+  introStatements: [
+    "Waveary is designed as a long-term continuity layer for digital companionship.",
+    "It gives any compatible model persistent memory, relationship state, and a life timeline.",
+    "Its goal is not novelty per turn, but coherence across months, years, and personal history."
+  ] as const,
+  heroCards: {
+    definitionLabel: "Project Definition",
+    definitionTitle: "An operating layer for models that need memory, continuity, and companionship logic.",
+    definitionBody:
+      "Waveary should be understood less like an AI character app and more like a continuity framework that sits between model output and a user's life history.",
+    positioningLabel: "Positioning",
+    positioningTitle: "Framework first, companion second, vendor neutral by default.",
+    positioningBody: "Not AI girlfriend branding. Not a generic chatbot shell. Not a one-provider product trap.",
+    audienceLabel: "Who It Is For",
+    audienceTitle: "Teams building persistent digital companionship on top of modern models.",
+    audienceBody: "Use Waveary when continuity, memory, and relationship state matter more than novelty per turn."
+  },
+  intro: {
+    caption: "Framework Introduction",
+    title: "Waveary is the continuity layer between model output and a user's actual life.",
+    description:
+      "It is designed to give large models a stable memory substrate, a relationship system, a life timeline, and the basis for long-term digital companionship.",
+    essay: [
+      "Most AI products are evaluated by whether a single answer feels smart. Waveary is evaluated by whether the system can stay coherent over time, remember what matters, and let a relationship grow without collapsing every time the provider or session changes.",
+      "That means memory is not a side feature, relationship is not prompt flavor, and personal history is not disposable log data. They are first-class system concerns."
+    ] as const,
+    panels: [
+      {
+        label: "Open Source Core",
+        title: "A framework layer, not a themed chatbot wrapper.",
+        description:
+          "Waveary turns continuity into product infrastructure so memory, relationship, timeline, and emotional state can survive beyond one turn."
+      },
+      {
+        label: "Model Agnostic",
+        title: "Bring your own provider and keep the continuity layer stable.",
+        description:
+          "Provider setup, model discovery, and runtime orchestration stay separable, so the companion layer does not collapse into one vendor."
+      },
+      {
+        label: "Companion Logic",
+        title: "Remember, relate, and grow across a user's life.",
+        description:
+          "The system is designed to accumulate context, reflect relationship change, and organize life events into a durable personal history."
+      }
+    ] as const,
+    thesisCaption: "Core Thesis",
+    thesisTitle: "Memory comes before model. Relationship comes before features. Companionship comes before intelligence.",
+    thesisBody:
+      "The point is not to make a chatbot sound more dramatic. The point is to make a companion remain coherent over time, even as the model provider changes underneath it."
+  },
+  frameworkLayers: [
+    { title: "Memory Continuity", description: "Turn conversation fragments into retrievable and persistent memory assets." },
+    { title: "Relationship Continuity", description: "Model trust, familiarity, and stage progression as real runtime state." },
+    { title: "Timeline Continuity", description: "Preserve important moments as a life sequence instead of disposable logs." },
+    { title: "Emotional Continuity", description: "Track short-term feeling and long-term tone so companionship becomes more coherent." }
+  ] as const,
+  manifesto: {
+    caption: "Framework Positioning",
+    title: "Not a roleplay shell. A continuity system for digital life companionship.",
+    description:
+      "Waveary sits between the interface and the model provider. It gives any compatible model a persistent memory layer, a relationship state, a life timeline, and the groundwork for emotional and voice presence.",
+    quote:
+      "It does not try to create a smarter AI. It tries to create a partner that can remember, understand, grow, and stay with a user over time.",
+    points: [
+      {
+        title: "Replace short-term prompt theater",
+        description: "Move continuity into system architecture so memory and relationship do not disappear when the current turn ends."
+      },
+      {
+        title: "Make provider switching survivable",
+        description: "Keep setup, model discovery, and runtime invocation replaceable while the companion layer remains stable."
+      },
+      {
+        title: "Treat personal history as product infrastructure",
+        description: "Turn remembered facts, important moments, and relationship changes into a usable life archive."
+      }
+    ] as const
+  },
+  engines: {
+    caption: "Core Engines",
+    title: "A framework stack built for continuity, not short-term novelty.",
+    description: "Each engine owns a stable continuity concern so the product shell stays expressive without stealing runtime responsibilities.",
+    lens: "Architecture Lens",
+    foundation:
+      "The product is organized like a continuity operating layer: model access, memory, relationship state, archive persistence, and future voice all stay separable.",
+    cards: [
+      { acronym: "WME", name: "Waveary Memory Engine", summary: "Turn conversation into durable memory, not disposable context." },
+      { acronym: "WRE", name: "Waveary Relationship Engine", summary: "Model relationship growth as state, signals, and long-term trust." },
+      { acronym: "WTE", name: "Waveary Timeline Engine", summary: "Organize life events into recallable personal history." },
+      { acronym: "WEE", name: "Waveary Emotion Engine", summary: "Track emotional state to guide tone, care, and continuity." },
+      { acronym: "WVE", name: "Waveary Voice Engine", summary: "Prepare the path from text companionship to real-time voice." }
+    ] as const
+  },
+  structure: {
+    caption: "Project Structure",
+    title: "A repository shape that keeps continuity logic separate from product surfaces.",
+    description:
+      "Waveary is being organized as a modular framework, so memory, runtime, interface, and future voice layers do not collapse into one app.",
+    plan: "Repository Plan",
+    modules: [
+      { name: "waveary-core", role: "Runtime orchestration, provider abstraction, and continuity domain contracts." },
+      { name: "waveary-web", role: "Official web surface for project framing, setup flow, and runtime access." },
+      { name: "waveary-memory", role: "Memory extraction, storage, retrieval, and scoring behavior." },
+      { name: "waveary-voice", role: "Future voice interaction layer for real-time and duplex companionship." }
+    ] as const
+  },
+  console: {
+    caption: "Companion Console",
+    title: "The official interactive surface lives below the introduction, not inside it.",
+    description:
+      "The homepage explains the framework first. This section is where the current web reference surface starts to demonstrate setup, continuity, and runtime behavior.",
+    summary: [
+      ["Runtime Path", "Provider selection and model discovery stay in the local API layer, not in the client runtime."],
+      ["Session Layer", "Main and optional sessions preserve continuity while keeping reset, rename, export, and import local."],
+      ["Runtime State", "Live turns already return reply text plus memory, relationship, emotion, and timeline signals."],
+      ["Persisted Archive", "Conversation history can survive process restarts and move across file or SQLite persistence."]
+    ] as const,
+    flow: [
+      ["Surface 01", "Provider onboarding", "Pick a vendor, validate credentials, fetch models, and save one stable runtime path."],
+      ["Surface 02", "Session continuity", "Session identity, persistence backend, import, export, reset, and archive all remain inspectable."],
+      ["Surface 03", "Runtime observation", "Conversation, signals, and persisted archive are separated into a main canvas and inspection rail."]
+    ] as const
+  },
+  setup: {
+    caption: "Provider Setup",
+    title: "Choose the vendor, inspect the models behind your key, and pin one usable runtime path.",
+    description: "This browser-native configuration flow keeps provider logic server-side while the web layer owns the setup experience.",
+    sequence: "Setup Sequence",
+    interactive: "Interactive",
+    steps: ["Choose provider", "Enter API key", "Fetch models", "Select model", "Save config", "Open chat next"] as const,
+    savedConfiguration: "Saved Configuration",
+    noSavedConfiguration: "No saved provider configuration yet. Complete the flow on the right to create one.",
+    presetCoverage: "Preset Coverage",
+    setupConsole: "Setup Console",
+    localApi: "Local API",
+    provider: "Provider",
+    providerPlaceholder: "Select a provider",
+    baseUrl: "Base URL",
+    apiKey: "API Key",
+    selectedPreset: "Selected Preset",
+    selectedPresetFallback: "Pick a provider preset to start from a known compatible endpoint.",
+    selectedPresetSuffix: "will use its OpenAI-compatible endpoint unless you override the base URL.",
+    fetchModels: "Fetch Available Models",
+    fetchingModels: "Fetching Models...",
+    models: "Available Models",
+    model: "Model",
+    modelsHint: "Fetch models after entering a provider, base URL, and API key. The result list comes directly from the provider's `/models` endpoint.",
+    saveConfig: "Save Provider Configuration",
+    saving: "Saving..."
+  },
+  runtime: {
+    caption: "Live Runtime",
+    title: "Run the current Waveary browser flow with sessions, archive visibility, and continuity signals.",
+    description: "This reference shell already returns a real reply plus memory recall, relationship change, and timeline output from the underlying runtime.",
+    sessionLayer: "Session Layer",
+    sessionTag: "Main + Optional Sessions",
+    main: "Main",
+    session: "Session",
+    messages: "messages",
+    persistence: "Persistence Backend",
+    loading: "Loading...",
+    currentStore: "Current local store:",
+    loadingPersistence: "Loading current chat persistence backend.",
+    lastSync: "Last Sync",
+    noSwitch: "No switch recorded",
+    noMigration: "The current backend is using its local state without a recorded migration event.",
+    sessionsSynced: "sessions synchronized",
+    localStoreMissing: "Local store file has not been created yet.",
+    latest: "latest",
+    noWrites: "no session writes yet",
+    sessionsUnit: "sessions",
+    activeBackendDescription: "This is the backend currently serving local chat reads and writes.",
+    noSessionDiff: "No session differences detected against the active backend.",
+    backend: "Backend",
+    switchBackend: "Switch Backend",
+    switching: "Switching...",
+    createSession: "Create Session",
+    newSessionTitle: "New Session Title",
+    newSessionPlaceholder: "Late night reflection, product brainstorm, memory test...",
+    importSession: "Import Session JSON",
+    packageRules: "Package Rules",
+    currentSchema: "Current schema version:",
+    topLevelFields: "Top-Level Fields",
+    requiredArrays: "Required Snapshot Arrays",
+    importedSessionTitle: "Imported Session Title",
+    importedSessionPlaceholder: "Recovered companion session...",
+    exportedJson: "Exported JSON",
+    exportedJsonPlaceholder: "Paste an exported session package here...",
+    chooseJsonFile: "Choose JSON File",
+    loadSample: "Load Sample Package",
+    importAsNew: "Import As New Session",
+    importing: "Importing...",
+    importDiagnostics: "Import Diagnostics",
+    manageSession: "Manage Active Session",
+    mainSessionDescription: "Main companion session. Always preserved, but its local history can be reset.",
+    optionalSessionDescription: "Optional local session. Can be renamed, reset, or removed.",
+    sessionTitle: "Session Title",
+    renamePlaceholder: "Rename this session",
+    exportSession: "Export Session JSON",
+    exporting: "Exporting...",
+    resetSession: "Reset Session",
+    renameSession: "Rename Session",
+    deleteSession: "Delete Session",
+    noLocalSession: "No local session is available yet.",
+    canvas: "Conversation Canvas",
+    runtimeReady: "Runtime Ready",
+    setupRequired: "Setup Required",
+    restored: "Restored local session history from",
+    emptyChat: "Save a provider configuration, then send the first message to start a live Waveary session.",
+    you: "You",
+    assistant: "Waveary",
+    placeholder: "Tell Waveary something worth remembering...",
+    sending: "Sending...",
+    send: "Send Message",
+    sessionExport: "Session Export",
+    structuredJson: "Structured JSON",
+    exportDescription: "This export package includes conversation, persisted memories, relationship state, timeline events, and latest insights for the active session.",
+    importSafety: "Import safety",
+    currentSchemaShort: "Current schema:",
+    signals: "Runtime Signals",
+    signalsTag: "Memory + Relationship",
+    relationshipStage: "Relationship Stage",
+    affinity: "Affinity",
+    trust: "Trust",
+    stability: "Stability",
+    emotion: "Detected Emotion",
+    noEmotion: "No strong emotion signal detected for the latest turn.",
+    recalledMemories: "Recalled Memories",
+    noRecalled: "No recalled memories yet.",
+    storedMemories: "Stored Memories",
+    noStored: "No memory candidates were stored in the latest turn.",
+    timeline: "Timeline",
+    noTimeline: "No timeline events yet.",
+    runtimeHint: "Send a message to see memory recall, relationship changes, and timeline events from the runtime.",
+    archive: "Persisted Session Archive",
+    archiveTag: "Memory + Timeline + Relationship",
+    relationshipSnapshot: "Relationship Snapshot",
+    noRelationshipSnapshot: "No persisted relationship snapshot yet.",
+    memoryArchive: "Session Memory Archive",
+    noPersistedMemories: "No persisted memories yet.",
+    sessionTimeline: "Session Timeline",
+    noPersistedTimeline: "No persisted timeline events yet.",
+    archiveHint: "Send a message worth remembering. This area will show the session's persisted memory archive, relationship snapshot, and timeline after reloads."
+  },
+  roadmap: {
+    caption: "Execution Roadmap",
+    title: "Build the companion layer first. Expand the experience second.",
+    phases: [
+      { version: "V0.1", timeframe: "30 Days", goal: "Establish the first usable open source digital companion framework.", items: ["Chat", "Long-term memory", "Timeline", "Relationship growth"] },
+      { version: "V0.2", timeframe: "60 Days", goal: "Expand the framework from continuity into emotional presence.", items: ["Voice", "Emotion analysis", "Proactive care"] },
+      { version: "V0.3", timeframe: "90 Days", goal: "Move from asynchronous interaction to live companionship.", items: ["Real-time voice", "Interruptions", "Full duplex conversation"] }
+    ] as const
+  },
+  statuses: {
+    loadingProviderConfiguration: "Loading provider configuration...",
+    loadedSavedConfig: "Loaded saved provider configuration from .waveary/provider-config.json.",
+    chooseProvider: "Choose a provider and fetch the models available to your API key. Existing local sessions remain available.",
+    noPresets: "No provider presets are available.",
+    noModels: "No models were returned for this API key.",
+    configSaved: "Provider configuration saved locally. Waveary is ready to use this model.",
+    sessionCreated: "Created a new local chat session.",
+    sessionRenamed: "Session title updated.",
+    sessionDeleted: "Session deleted.",
+    mainSessionReset: "Main companion session reset. Local history and latest signals were cleared.",
+    sessionReset: "Session reset. Local history and latest signals were cleared.",
+    sampleLoaded: "Loaded the Waveary sample session package into the import editor."
+  },
+  formatting: {
+    backend: { file: "File JSON", sqlite: "SQLite", unknown: "Unknown" },
+    sync: { active: "Active", "in-sync": "In Sync", behind: "Behind", ahead: "Ahead", diverged: "Diverged" } as const,
+    memoryType: {
+      life_event: "Life Event",
+      preference: "Preference",
+      relationship: "Relationship",
+      reflection: "Reflection",
+      fact: "Fact"
+    } as const,
+    runtimeNotConfigured: "Not configured yet",
+    localSessionsAvailable: (count: number) => (count === 1 ? "1 local session available" : `${count} local sessions available`),
+    noArchive: "No persisted archive yet",
+    archiveSummary: (memories: number, timeline: number) => `${memories} memories, ${timeline} timeline events`,
+    ready: "Ready for live turns",
+    waiting: "Waiting for provider setup",
+    importance: "importance",
+    sep: " · "
+  }
+} as const;
+
+function getCopy(locale: Locale): typeof zhCopy | typeof enCopy {
+  return locale === "zh" ? zhCopy : enCopy;
+}
+
 export function App(): ReactElement {
+  const [locale, setLocale] = useState<Locale>(() => {
+    if (typeof window === "undefined") {
+      return "zh";
+    }
+
+    const saved = window.localStorage.getItem("waveary-locale");
+    return saved === "en" || saved === "zh" ? saved : "zh";
+  });
+  const copy = getCopy(locale);
   const [presets, setPresets] = useState<ProviderPreset[]>([]);
   const [savedConfig, setSavedConfig] = useState<SavedProviderConfig | null>(null);
   const [selectedProvider, setSelectedProvider] = useState("");
@@ -311,8 +784,7 @@ export function App(): ReactElement {
   const [loadState, setLoadState] = useState<LoadState>("idle");
   const [modelsState, setModelsState] = useState<LoadState>("idle");
   const [saveState, setSaveState] = useState<LoadState>("idle");
-  const [statusMessage, setStatusMessage] = useState("Loading provider configuration...");
-
+  const [statusMessage, setStatusMessage] = useState<string>(zhCopy.statuses.loadingProviderConfiguration);
   const [chatInput, setChatInput] = useState("");
   const [chatState, setChatState] = useState<LoadState>("idle");
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
@@ -339,11 +811,16 @@ export function App(): ReactElement {
   const sessionImportFileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
+    window.localStorage.setItem("waveary-locale", locale);
+  }, [locale]);
+
+  useEffect(() => {
     void loadInitialState();
   }, []);
 
   async function loadInitialState(): Promise<void> {
     setLoadState("loading");
+    setStatusMessage(copy.statuses.loadingProviderConfiguration);
 
     try {
       const [presetResponse, configResponse, sessionFormatResponse, sessionsResponse] = await Promise.all([
@@ -357,8 +834,8 @@ export function App(): ReactElement {
         }>("/api/chat/sessions")
       ]);
 
-      const nextPresets = presetResponse.presets;
       const nextConfig = configResponse.config ?? null;
+      const nextPresets = presetResponse.presets;
       const fallbackPreset = nextPresets[0];
       const nextSessions = sessionsResponse.sessions;
       const nextDefaultSessionId = sessionsResponse.defaultSessionId;
@@ -381,13 +858,13 @@ export function App(): ReactElement {
         setApiKey(nextConfig.apiKey);
         setSelectedModel(nextConfig.model);
         setModels([{ id: nextConfig.model, provider: nextConfig.provider }]);
-        setStatusMessage("Loaded saved provider configuration from .waveary/provider-config.json.");
+        setStatusMessage(copy.statuses.loadedSavedConfig);
       } else if (fallbackPreset) {
         setSelectedProvider(fallbackPreset.id);
         setBaseURL(fallbackPreset.baseURL);
-        setStatusMessage("Choose a provider and fetch the models available to your API key. Existing local sessions remain available.");
+        setStatusMessage(copy.statuses.chooseProvider);
       } else {
-        setStatusMessage("No provider presets are available.");
+        setStatusMessage(copy.statuses.noPresets);
       }
 
       setLoadState("success");
@@ -401,9 +878,7 @@ export function App(): ReactElement {
     try {
       const response = await fetchJson<{ session: ChatSessionSnapshot | null }>("/api/chat/session", {
         method: "POST",
-        body: JSON.stringify({
-          sessionId
-        })
+        body: JSON.stringify({ sessionId })
       });
 
       if (!response.session) {
@@ -458,8 +933,10 @@ export function App(): ReactElement {
       setModelsState("success");
       setStatusMessage(
         response.models.length > 0
-          ? `Fetched ${response.models.length} models for ${selectedProvider}.`
-          : "No models were returned for this API key."
+          ? locale === "zh"
+            ? `已为 ${selectedProvider} 获取 ${response.models.length} 个模型。`
+            : `Fetched ${response.models.length} models for ${selectedProvider}.`
+          : copy.statuses.noModels
       );
     } catch (error) {
       setModels([]);
@@ -485,7 +962,7 @@ export function App(): ReactElement {
 
       setSavedConfig(response.config);
       setSaveState("success");
-      setStatusMessage("Provider configuration saved locally. Waveary is ready to use this model.");
+      setStatusMessage(copy.statuses.configSaved);
       await loadChatSession(activeSessionId || defaultSessionId);
     } catch (error) {
       setSaveState("error");
@@ -518,9 +995,7 @@ export function App(): ReactElement {
       setPersistenceStatus(response.persistence);
       setSelectedPersistenceBackend(response.persistence.backend);
       setActiveSessionId(response.session.sessionId);
-      setSessionRenameTitle(
-        response.sessions.find((session) => session.sessionId === response.session.sessionId)?.title ?? ""
-      );
+      setSessionRenameTitle(response.sessions.find((session) => session.sessionId === response.session.sessionId)?.title ?? "");
       setChatMessages(response.session.messages);
       setChatInsights(response.session.latestInsights);
       setChatRestoredAt(response.session.updatedAt);
@@ -528,7 +1003,7 @@ export function App(): ReactElement {
       setSessionRelationship(response.session.relationship);
       setSessionTimelineEvents(response.session.timelineEvents);
       setNewSessionTitle("");
-      setStatusMessage("Created a new local chat session.");
+      setStatusMessage(copy.statuses.sessionCreated);
     } catch (error) {
       setStatusMessage(getErrorMessage(error));
     }
@@ -557,10 +1032,8 @@ export function App(): ReactElement {
       setDefaultSessionId(response.defaultSessionId);
       setPersistenceStatus(response.persistence);
       setSelectedPersistenceBackend(response.persistence.backend);
-      setSessionRenameTitle(
-        response.sessions.find((session) => session.sessionId === activeSessionId)?.title ?? sessionRenameTitle
-      );
-      setStatusMessage("Session title updated.");
+      setSessionRenameTitle(response.sessions.find((session) => session.sessionId === activeSessionId)?.title ?? sessionRenameTitle);
+      setStatusMessage(copy.statuses.sessionRenamed);
     } catch (error) {
       setStatusMessage(getErrorMessage(error));
     }
@@ -590,11 +1063,9 @@ export function App(): ReactElement {
       setPersistenceStatus(response.persistence);
       setSelectedPersistenceBackend(response.persistence.backend);
       setActiveSessionId(fallbackSessionId);
-      setSessionRenameTitle(
-        response.sessions.find((session) => session.sessionId === fallbackSessionId)?.title ?? ""
-      );
+      setSessionRenameTitle(response.sessions.find((session) => session.sessionId === fallbackSessionId)?.title ?? "");
       await loadChatSession(fallbackSessionId);
-      setStatusMessage("Session deleted.");
+      setStatusMessage(copy.statuses.sessionDeleted);
     } catch (error) {
       setStatusMessage(getErrorMessage(error));
     }
@@ -628,14 +1099,8 @@ export function App(): ReactElement {
       setSessionMemoryArchive(response.session.memoryArchive);
       setSessionRelationship(response.session.relationship);
       setSessionTimelineEvents(response.session.timelineEvents);
-      setSessionRenameTitle(
-        response.sessions.find((session) => session.sessionId === activeSessionId)?.title ?? ""
-      );
-      setStatusMessage(
-        activeSessionId === defaultSessionId
-          ? "Main companion session reset. Local history and latest signals were cleared."
-          : "Session reset. Local history and latest signals were cleared."
-      );
+      setSessionRenameTitle(response.sessions.find((session) => session.sessionId === activeSessionId)?.title ?? "");
+      setStatusMessage(activeSessionId === defaultSessionId ? copy.statuses.mainSessionReset : copy.statuses.sessionReset);
     } catch (error) {
       setStatusMessage(getErrorMessage(error));
     }
@@ -667,15 +1132,17 @@ export function App(): ReactElement {
       setPersistenceStatus(response.persistence);
       setSelectedPersistenceBackend(response.persistence.backend);
       setActiveSessionId(nextActiveSessionId);
-      setSessionRenameTitle(
-        response.sessions.find((session) => session.sessionId === nextActiveSessionId)?.title ?? ""
-      );
+      setSessionRenameTitle(response.sessions.find((session) => session.sessionId === nextActiveSessionId)?.title ?? "");
       await loadChatSession(nextActiveSessionId);
       setPersistenceState("success");
       setStatusMessage(
         response.importedSessionCount > 0
-          ? `Switched chat persistence to ${response.persistence.backend}. Imported ${response.importedSessionCount} existing sessions.`
-          : `Switched chat persistence to ${response.persistence.backend}.`
+          ? locale === "zh"
+            ? `已切换聊天持久化到 ${response.persistence.backend}，并导入了 ${response.importedSessionCount} 个已有会话。`
+            : `Switched chat persistence to ${response.persistence.backend}. Imported ${response.importedSessionCount} existing sessions.`
+          : locale === "zh"
+            ? `已切换聊天持久化到 ${response.persistence.backend}。`
+            : `Switched chat persistence to ${response.persistence.backend}.`
       );
     } catch (error) {
       setPersistenceState("error");
@@ -701,7 +1168,7 @@ export function App(): ReactElement {
       setSessionExportJson(JSON.stringify(response.exported, null, 2));
       downloadSessionExport(response.exported);
       setSessionExportState("success");
-      setStatusMessage(`Exported session package for ${response.exported.title}.`);
+      setStatusMessage(locale === "zh" ? `已导出会话包：${response.exported.title}。` : `Exported session package for ${response.exported.title}.`);
     } catch (error) {
       setSessionExportState("error");
       setStatusMessage(getErrorMessage(error));
@@ -719,7 +1186,7 @@ export function App(): ReactElement {
       const text = await file.text();
       setSessionImportJson(text);
       setSessionImportErrors([]);
-      setStatusMessage(`Loaded import file: ${file.name}`);
+      setStatusMessage(locale === "zh" ? `已载入导入文件：${file.name}` : `Loaded import file: ${file.name}`);
     } catch (error) {
       setStatusMessage(getErrorMessage(error));
     } finally {
@@ -764,7 +1231,7 @@ export function App(): ReactElement {
       setSessionTimelineEvents(response.imported.session.timelineEvents);
       setSessionImportState("success");
       setSessionImportErrors([]);
-      setStatusMessage(`Imported session as ${response.imported.importedTitle}.`);
+      setStatusMessage(locale === "zh" ? `已导入为新会话：${response.imported.importedTitle}。` : `Imported session as ${response.imported.importedTitle}.`);
     } catch (error) {
       setSessionImportState("error");
       setSessionImportErrors(getErrorDetails(error));
@@ -779,8 +1246,8 @@ export function App(): ReactElement {
 
     setSessionImportJson(JSON.stringify(sessionPackageReference.sample, null, 2));
     setSessionImportErrors([]);
-    setSessionImportTitle("Recovered Sample Session");
-    setStatusMessage("Loaded the Waveary sample session package into the import editor.");
+    setSessionImportTitle(locale === "zh" ? "恢复的示例会话" : "Recovered Sample Session");
+    setStatusMessage(copy.statuses.sampleLoaded);
   }
 
   async function handleSendMessage(): Promise<void> {
@@ -813,6 +1280,7 @@ export function App(): ReactElement {
         role: "assistant",
         content: response.reply
       };
+
       const [sessionsResponse, sessionSnapshotResponse] = await Promise.all([
         fetchJson<{
           sessions: ChatSessionListItem[];
@@ -882,34 +1350,55 @@ export function App(): ReactElement {
     persistenceStatus?.backendDetails.find((detail) => detail.backend !== persistenceStatus.backend) ?? null;
   const hasSessionArchive =
     sessionMemoryArchive.length > 0 || sessionTimelineEvents.length > 0 || Boolean(sessionRelationship);
-  const configuredRuntimeLabel = savedConfig ? `${savedConfig.provider} / ${savedConfig.model}` : "Not configured yet";
-  const sessionSummaryLabel =
-    chatSessions.length === 1 ? "1 local session available" : `${chatSessions.length} local sessions available`;
+  const configuredRuntimeLabel = savedConfig
+    ? `${savedConfig.provider} / ${savedConfig.model}`
+    : copy.formatting.runtimeNotConfigured;
+  const sessionSummaryLabel = copy.formatting.localSessionsAvailable(chatSessions.length);
   const archiveSummaryLabel = hasSessionArchive
-    ? `${sessionMemoryArchive.length} memories, ${sessionTimelineEvents.length} timeline events`
-    : "No persisted archive yet";
-  const runtimeStateLabel = chatReady ? "Ready for live turns" : "Waiting for provider setup";
+    ? copy.formatting.archiveSummary(sessionMemoryArchive.length, sessionTimelineEvents.length)
+    : copy.formatting.noArchive;
+  const runtimeStateLabel = chatReady ? copy.formatting.ready : copy.formatting.waiting;
 
   return (
     <div className="page-shell">
       <div className="ambient ambient-left" />
       <div className="ambient ambient-right" />
+
       <header className="topbar">
         <div className="brand-lockup">
           <span className="brand-mark">Waveary</span>
-          <span className="brand-subtitle">回响之境</span>
-          <span className="brand-caption">Digital Life Companion Framework</span>
+          <span className="brand-subtitle">{copy.brandSubtitle}</span>
+          <span className="brand-caption">{copy.brandCaption}</span>
         </div>
+
         <div className="topbar-utility">
-          <span className="topbar-note">念念不忘，终有回响。</span>
-          <nav className="topnav">
-            <a href="#vision">Home</a>
-            <a href="#intro">Intro</a>
-            <a href="#engines">Engines</a>
-            <a href="#structure">Structure</a>
-            <a href="#console">Console</a>
-            <a href="#roadmap">Roadmap</a>
-          </nav>
+          <span className="topbar-note">{copy.slogan}</span>
+          <div className="topbar-controls">
+            <nav className="topnav">
+              <a href="#vision">{copy.nav[0]}</a>
+              <a href="#intro">{copy.nav[1]}</a>
+              <a href="#engines">{copy.nav[2]}</a>
+              <a href="#structure">{copy.nav[3]}</a>
+              <a href="#console">{copy.nav[4]}</a>
+              <a href="#roadmap">{copy.nav[5]}</a>
+            </nav>
+            <div className="language-toggle" aria-label={locale === "zh" ? "界面语言切换" : "Interface language switch"}>
+              <button
+                className={`language-toggle-button ${locale === "zh" ? "language-toggle-button-active" : ""}`}
+                onClick={() => setLocale("zh")}
+                type="button"
+              >
+                中
+              </button>
+              <button
+                className={`language-toggle-button ${locale === "en" ? "language-toggle-button-active" : ""}`}
+                onClick={() => setLocale("en")}
+                type="button"
+              >
+                EN
+              </button>
+            </div>
+          </div>
         </div>
       </header>
 
@@ -917,33 +1406,27 @@ export function App(): ReactElement {
         <section className="hero section-grid" id="vision">
           <div className="hero-copy">
             <div className="hero-badge-row">
-              <div className="eyebrow">Project Waveary</div>
-              <span className="hero-chip">Waveary CE</span>
+              <div className="eyebrow">{copy.hero.eyebrow}</div>
+              <span className="hero-chip">{copy.hero.chip}</span>
             </div>
-            <p className="hero-kicker">Digital Life Companion Framework</p>
+            <p className="hero-kicker">{copy.hero.kicker}</p>
             <h1>
-              念念不忘，
+              {copy.hero.title[0]}
               <br />
-              终有回响。
+              {copy.hero.title[1]}
             </h1>
-            <p className="hero-lead">
-              Waveary is an open source framework that gives any model long-term memory,
-              relationship growth, life timeline awareness, and the capacity to stay with a user over time.
-            </p>
-            <p className="hero-support">
-              Waveary does not try to create a smarter chatbot. It builds the continuity layer that lets any model
-              remember, relate, and grow across a user&apos;s life.
-            </p>
+            <p className="hero-lead">{copy.hero.lead}</p>
+            <p className="hero-support">{copy.hero.support}</p>
             <div className="hero-actions">
               <a className="button button-primary" href="#intro">
-                Read The Framework
+                {copy.hero.primary}
               </a>
               <a className="button button-secondary" href="#engines">
-                View Engine Stack
+                {copy.hero.secondary}
               </a>
             </div>
             <div className="hero-principle-strip">
-              {principles.map((principle) => (
+              {copy.principles.map((principle) => (
                 <div className="hero-principle-pill" key={principle}>
                   {principle}
                 </div>
@@ -954,30 +1437,28 @@ export function App(): ReactElement {
           <div className="hero-frame">
             <article className="hero-frame-panel hero-frame-panel-primary">
               <div className="hero-frame-label-row">
-                <span className="hero-frame-label">Project Definition</span>
+                <span className="hero-frame-label">{copy.heroCards.definitionLabel}</span>
                 <span className="hero-frame-chip">Waveary CE</span>
               </div>
-              <strong>An operating layer for models that need memory, continuity, and companionship logic.</strong>
-              <p>
-                Waveary should be understood less like an AI character app and more like a continuity framework that
-                sits between model output and a user&apos;s life history.
-              </p>
+              <strong>{copy.heroCards.definitionTitle}</strong>
+              <p>{copy.heroCards.definitionBody}</p>
               <div className="hero-definition-list">
-                {introductionStatements.map((statement) => (
+                {copy.introStatements.map((statement) => (
                   <p key={statement}>{statement}</p>
                 ))}
               </div>
             </article>
+
             <div className="hero-aside-grid">
               <article className="hero-frame-panel hero-aside-panel">
-                <span className="hero-frame-label">Positioning</span>
-                <strong>Framework first, companion second, vendor neutral by default.</strong>
-                <p>Not AI girlfriend branding. Not a generic chatbot shell. Not a one-provider product trap.</p>
+                <span className="hero-frame-label">{copy.heroCards.positioningLabel}</span>
+                <strong>{copy.heroCards.positioningTitle}</strong>
+                <p>{copy.heroCards.positioningBody}</p>
               </article>
               <article className="hero-frame-panel hero-aside-panel">
-                <span className="hero-frame-label">Who It Is For</span>
-                <strong>Teams building persistent digital companionship on top of modern models.</strong>
-                <p>Use Waveary when continuity, memory, and relationship state matter more than novelty per turn.</p>
+                <span className="hero-frame-label">{copy.heroCards.audienceLabel}</span>
+                <strong>{copy.heroCards.audienceTitle}</strong>
+                <p>{copy.heroCards.audienceBody}</p>
               </article>
             </div>
           </div>
@@ -986,29 +1467,20 @@ export function App(): ReactElement {
         <section className="section-grid section-block intro-section" id="intro">
           <div className="intro-layout">
             <div className="section-heading intro-heading">
-              <span className="section-caption">Framework Introduction</span>
-              <h2>Waveary is the continuity layer between model output and a user&apos;s actual life.</h2>
-              <p>
-                It is designed to give large models a stable memory substrate, a relationship system, a life timeline,
-                and the basis for long-term digital companionship.
-              </p>
+              <span className="section-caption">{copy.intro.caption}</span>
+              <h2>{copy.intro.title}</h2>
+              <p>{copy.intro.description}</p>
             </div>
 
             <div className="intro-essay">
-              <p>
-                Most AI products are evaluated by whether a single answer feels smart. Waveary is evaluated by whether
-                the system can stay coherent over time, remember what matters, and let a relationship grow without
-                collapsing every time the provider or session changes.
-              </p>
-              <p>
-                That means memory is not a side feature, relationship is not prompt flavor, and personal history is not
-                disposable log data. They are first-class system concerns.
-              </p>
+              {copy.intro.essay.map((paragraph) => (
+                <p key={paragraph}>{paragraph}</p>
+              ))}
             </div>
           </div>
 
           <div className="intro-grid">
-            {introductionPanels.map((panel) => (
+            {copy.intro.panels.map((panel) => (
               <article className="intro-card" key={panel.title}>
                 <span className="intro-card-label">{panel.label}</span>
                 <h3>{panel.title}</h3>
@@ -1019,15 +1491,12 @@ export function App(): ReactElement {
 
           <div className="framework-band">
             <div className="framework-band-copy">
-              <span className="section-caption">Core Thesis</span>
-              <h3>Memory comes before model. Relationship comes before features. Companionship comes before intelligence.</h3>
-              <p>
-                The point is not to make a chatbot sound more dramatic. The point is to make a companion remain coherent
-                over time, even as the model provider changes underneath it.
-              </p>
+              <span className="section-caption">{copy.intro.thesisCaption}</span>
+              <h3>{copy.intro.thesisTitle}</h3>
+              <p>{copy.intro.thesisBody}</p>
             </div>
             <div className="framework-band-grid">
-              {frameworkLayers.map((layer) => (
+              {copy.frameworkLayers.map((layer) => (
                 <article className="framework-band-card" key={layer.title}>
                   <strong>{layer.title}</strong>
                   <p>{layer.description}</p>
@@ -1041,26 +1510,19 @@ export function App(): ReactElement {
           <div className="manifesto-layout">
             <div className="manifesto-copy">
               <div className="section-heading compact-heading">
-                <span className="section-caption">Framework Positioning</span>
-                <h2>Not a roleplay shell. A continuity system for digital life companionship.</h2>
-                <p>
-                  Waveary sits between the interface and the model provider. It gives any compatible model a persistent
-                  memory layer, a relationship state, a life timeline, and the groundwork for emotional and voice
-                  presence.
-                </p>
+                <span className="section-caption">{copy.manifesto.caption}</span>
+                <h2>{copy.manifesto.title}</h2>
+                <p>{copy.manifesto.description}</p>
               </div>
               <div className="manifesto-quote">
-                <p>
-                  It does not try to create a smarter AI. It tries to create a partner that
-                  can remember, understand, grow, and stay with a user over time.
-                </p>
+                <p>{copy.manifesto.quote}</p>
               </div>
             </div>
 
             <div className="manifesto-rail">
-              {manifestoPoints.map((point) => (
+              {copy.manifesto.points.map((point) => (
                 <article className="manifesto-point" key={point.title}>
-                  <span className="manifesto-label">Goal</span>
+                  <span className="manifesto-label">{locale === "zh" ? "目标" : "Goal"}</span>
                   <strong>{point.title}</strong>
                   <p>{point.description}</p>
                 </article>
@@ -1071,24 +1533,18 @@ export function App(): ReactElement {
 
         <section className="section-grid section-block" id="engines">
           <div className="section-heading">
-            <span className="section-caption">Core Engines</span>
-            <h2>A framework stack built for continuity, not short-term novelty.</h2>
-            <p>
-              Each engine owns a stable continuity concern so the product shell stays expressive
-              without stealing runtime responsibilities.
-            </p>
+            <span className="section-caption">{copy.engines.caption}</span>
+            <h2>{copy.engines.title}</h2>
+            <p>{copy.engines.description}</p>
           </div>
+
           <div className="engine-layout">
             <article className="panel engine-foundation">
               <div className="panel-header">
-                <span>Architecture Lens</span>
+                <span>{copy.engines.lens}</span>
                 <span className="panel-tag">waveary/</span>
               </div>
-              <p>
-                The product is organized like a continuity operating layer: model access,
-                memory, relationship state, archive persistence, and future voice all stay
-                separable.
-              </p>
+              <p>{copy.engines.foundation}</p>
               <div className="engine-foundation-list">
                 <span>waveary-core</span>
                 <span>waveary-web</span>
@@ -1097,8 +1553,9 @@ export function App(): ReactElement {
                 <span>waveary-mobile</span>
               </div>
             </article>
+
             <div className="engine-grid">
-              {engineCards.map((engine) => (
+              {copy.engines.cards.map((engine) => (
                 <article className="panel engine-card" key={engine.acronym}>
                   <span className="engine-acronym">{engine.acronym}</span>
                   <h3>{engine.name}</h3>
@@ -1111,18 +1568,15 @@ export function App(): ReactElement {
 
         <section className="section-grid section-block repo-section" id="structure">
           <div className="section-heading">
-            <span className="section-caption">Project Structure</span>
-            <h2>A repository shape that keeps continuity logic separate from product surfaces.</h2>
-            <p>
-              Waveary is being organized as a modular framework, so memory, runtime,
-              interface, and future voice layers do not collapse into one app.
-            </p>
+            <span className="section-caption">{copy.structure.caption}</span>
+            <h2>{copy.structure.title}</h2>
+            <p>{copy.structure.description}</p>
           </div>
 
           <div className="repo-layout">
             <div className="repo-tree-card">
               <div className="panel-header">
-                <span>Repository Plan</span>
+                <span>{copy.structure.plan}</span>
                 <span className="panel-tag">waveary/</span>
               </div>
               <pre>{`waveary/
@@ -1133,8 +1587,9 @@ export function App(): ReactElement {
   waveary-voice
   waveary-docs`}</pre>
             </div>
+
             <div className="repo-module-grid">
-              {repositoryModules.map((module) => (
+              {copy.structure.modules.map((module) => (
                 <article className="repo-module-card" key={module.name}>
                   <strong>{module.name}</strong>
                   <p>{module.role}</p>
@@ -1148,53 +1603,37 @@ export function App(): ReactElement {
           <div className="console-shell">
             <div className="console-intro">
               <div className="section-heading console-heading">
-                <span className="section-caption">Companion Console</span>
-                <h2>The official interactive surface lives below the introduction, not inside it.</h2>
-                <p>
-                  The homepage explains the framework first. This section is where the current
-                  web reference surface starts to demonstrate setup, continuity, and runtime behavior.
-                </p>
+                <span className="section-caption">{copy.console.caption}</span>
+                <h2>{copy.console.title}</h2>
+                <p>{copy.console.description}</p>
               </div>
 
               <div className="console-summary-grid">
-                <article className="console-summary-card">
-                  <span className="console-summary-label">Runtime Path</span>
-                  <strong>{configuredRuntimeLabel}</strong>
-                  <p>Provider selection and model discovery stay in the local API layer, not in the client runtime.</p>
-                </article>
-                <article className="console-summary-card">
-                  <span className="console-summary-label">Session Layer</span>
-                  <strong>{sessionSummaryLabel}</strong>
-                  <p>Main and optional sessions preserve continuity while keeping reset, rename, export, and import local.</p>
-                </article>
-                <article className="console-summary-card">
-                  <span className="console-summary-label">Runtime State</span>
-                  <strong>{runtimeStateLabel}</strong>
-                  <p>Live turns already return reply text plus memory, relationship, emotion, and timeline signals.</p>
-                </article>
-                <article className="console-summary-card">
-                  <span className="console-summary-label">Persisted Archive</span>
-                  <strong>{archiveSummaryLabel}</strong>
-                  <p>Conversation history can survive process restarts and move across file or SQLite persistence.</p>
-                </article>
+                {copy.console.summary.map(([label, description], index) => (
+                  <article className="console-summary-card" key={label}>
+                    <span className="console-summary-label">{label}</span>
+                    <strong>
+                      {index === 0
+                        ? configuredRuntimeLabel
+                        : index === 1
+                          ? sessionSummaryLabel
+                          : index === 2
+                            ? runtimeStateLabel
+                            : archiveSummaryLabel}
+                    </strong>
+                    <p>{description}</p>
+                  </article>
+                ))}
               </div>
 
               <div className="console-flow-strip">
-                <article className="console-flow-card">
-                  <span>Surface 01</span>
-                  <strong>Provider onboarding</strong>
-                  <p>Pick a vendor, validate credentials, fetch models, and save one stable runtime path.</p>
-                </article>
-                <article className="console-flow-card">
-                  <span>Surface 02</span>
-                  <strong>Session continuity</strong>
-                  <p>Session identity, persistence backend, import, export, reset, and archive all remain inspectable.</p>
-                </article>
-                <article className="console-flow-card">
-                  <span>Surface 03</span>
-                  <strong>Runtime observation</strong>
-                  <p>Conversation, signals, and persisted archive are separated into a main canvas and inspection rail.</p>
-                </article>
+                {copy.console.flow.map(([surface, title, description]) => (
+                  <article className="console-flow-card" key={surface}>
+                    <span>{surface}</span>
+                    <strong>{title}</strong>
+                    <p>{description}</p>
+                  </article>
+                ))}
               </div>
             </div>
           </div>
@@ -1202,52 +1641,48 @@ export function App(): ReactElement {
 
         <section className="section-grid section-block console-stage feature-band" id="setup">
           <div className="section-heading console-stage-heading">
-            <span className="section-caption">Provider Setup</span>
-            <h2>Choose the vendor, inspect the models behind your key, and pin one usable runtime path.</h2>
-            <p>
-              This browser-native configuration flow keeps provider logic server-side while the
-              web layer owns the setup experience.
-            </p>
+            <span className="section-caption">{copy.setup.caption}</span>
+            <h2>{copy.setup.title}</h2>
+            <p>{copy.setup.description}</p>
           </div>
 
           <div className="setup-layout">
             <div className="panel setup-overview-panel">
               <div className="panel-header">
-                <span>Setup Sequence</span>
-                <span className="panel-tag">Interactive</span>
+                <span>{copy.setup.sequence}</span>
+                <span className="panel-tag">{copy.setup.interactive}</span>
               </div>
+
               <ol className="step-list">
-                {setupSteps.map((step) => (
+                {copy.setup.steps.map((step) => (
                   <li key={step}>{step}</li>
                 ))}
               </ol>
 
               <div className="saved-config-block">
-                <div className="mini-heading">Saved Configuration</div>
+                <div className="mini-heading">{copy.setup.savedConfiguration}</div>
                 {savedConfig ? (
                   <div className="saved-config-card">
                     <div>
-                      <span className="saved-label">Provider</span>
+                      <span className="saved-label">{copy.setup.provider}</span>
                       <strong>{savedConfig.provider}</strong>
                     </div>
                     <div>
-                      <span className="saved-label">Model</span>
+                      <span className="saved-label">{copy.setup.model}</span>
                       <strong>{savedConfig.model}</strong>
                     </div>
                     <div>
-                      <span className="saved-label">Base URL</span>
+                      <span className="saved-label">{copy.setup.baseUrl}</span>
                       <code>{savedConfig.baseURL}</code>
                     </div>
                   </div>
                 ) : (
-                  <p className="provider-note">
-                    No saved provider configuration yet. Complete the flow on the right to create one.
-                  </p>
+                  <p className="provider-note">{copy.setup.noSavedConfiguration}</p>
                 )}
               </div>
 
               <div className="saved-config-block">
-                <div className="mini-heading">Preset Coverage</div>
+                <div className="mini-heading">{copy.setup.presetCoverage}</div>
                 <div className="provider-list">
                   {presets.map((preset) => (
                     <span className="provider-chip" key={preset.id}>
@@ -1260,8 +1695,8 @@ export function App(): ReactElement {
 
             <div className="panel provider-console-panel">
               <div className="panel-header">
-                <span>Setup Console</span>
-                <span className="panel-tag">Local API</span>
+                <span>{copy.setup.setupConsole}</span>
+                <span className="panel-tag">{copy.setup.localApi}</span>
               </div>
 
               <div
@@ -1276,9 +1711,9 @@ export function App(): ReactElement {
 
               <div className="provider-form-grid">
                 <label className="form-field">
-                  <span>Provider</span>
+                  <span>{copy.setup.provider}</span>
                   <select value={selectedProvider} onChange={handleProviderChange} disabled={isBusy}>
-                    <option value="">Select a provider</option>
+                    <option value="">{copy.setup.providerPlaceholder}</option>
                     {presets.map((preset) => (
                       <option key={preset.id} value={preset.id}>
                         {preset.label}
@@ -1288,7 +1723,7 @@ export function App(): ReactElement {
                 </label>
 
                 <label className="form-field form-field-wide">
-                  <span>Base URL</span>
+                  <span>{copy.setup.baseUrl}</span>
                   <input
                     type="text"
                     value={baseURL}
@@ -1299,7 +1734,7 @@ export function App(): ReactElement {
                 </label>
 
                 <label className="form-field form-field-wide">
-                  <span>API Key</span>
+                  <span>{copy.setup.apiKey}</span>
                   <input
                     type="password"
                     value={apiKey}
@@ -1310,26 +1745,26 @@ export function App(): ReactElement {
                 </label>
 
                 <div className="provider-hint">
-                  <span className="mini-heading">Selected Preset</span>
+                  <span className="mini-heading">{copy.setup.selectedPreset}</span>
                   <p>
                     {selectedPreset
-                      ? `${selectedPreset.label} will use its OpenAI-compatible endpoint unless you override the base URL.`
-                      : "Pick a provider preset to start from a known compatible endpoint."}
+                      ? `${selectedPreset.label} ${copy.setup.selectedPresetSuffix}`
+                      : copy.setup.selectedPresetFallback}
                   </p>
                 </div>
               </div>
 
               <div className="console-actions">
                 <button className="button button-primary" onClick={() => void handleFetchModels()} disabled={!canFetchModels}>
-                  {modelsState === "loading" ? "Fetching Models..." : "Fetch Available Models"}
+                  {modelsState === "loading" ? copy.setup.fetchingModels : copy.setup.fetchModels}
                 </button>
               </div>
 
               <div className="models-section">
-                <div className="mini-heading">Available Models</div>
+                <div className="mini-heading">{copy.setup.models}</div>
                 {models.length > 0 ? (
                   <label className="form-field">
-                    <span>Model</span>
+                    <span>{copy.setup.model}</span>
                     <select
                       value={selectedModel}
                       onChange={(event) => setSelectedModel(event.target.value)}
@@ -1343,16 +1778,13 @@ export function App(): ReactElement {
                     </select>
                   </label>
                 ) : (
-                  <p className="provider-note">
-                    Fetch models after entering a provider, base URL, and API key. The result list comes directly from
-                    the provider&apos;s `/models` endpoint.
-                  </p>
+                  <p className="provider-note">{copy.setup.modelsHint}</p>
                 )}
               </div>
 
               <div className="console-actions">
                 <button className="button button-secondary" onClick={() => void handleSaveConfig()} disabled={!canSaveConfig}>
-                  {saveState === "loading" ? "Saving..." : "Save Provider Configuration"}
+                  {saveState === "loading" ? copy.setup.saving : copy.setup.saveConfig}
                 </button>
               </div>
             </div>
@@ -1361,19 +1793,17 @@ export function App(): ReactElement {
 
         <section className="section-grid section-block console-stage" id="chat">
           <div className="section-heading console-stage-heading">
-            <span className="section-caption">Live Runtime</span>
-            <h2>Run the current Waveary browser flow with sessions, archive visibility, and continuity signals.</h2>
-            <p>
-              This reference shell already returns a real reply plus memory recall, relationship
-              change, and timeline output from the underlying runtime.
-            </p>
+            <span className="section-caption">{copy.runtime.caption}</span>
+            <h2>{copy.runtime.title}</h2>
+            <p>{copy.runtime.description}</p>
           </div>
 
           <div className="panel session-panel">
             <div className="panel-header">
-              <span>Session Layer</span>
-              <span className="panel-tag">Main + Optional Sessions</span>
+              <span>{copy.runtime.sessionLayer}</span>
+              <span className="panel-tag">{copy.runtime.sessionTag}</span>
             </div>
+
             <div className="session-panel-grid">
               <div className="session-list">
                 {chatSessions.map((session) => {
@@ -1390,12 +1820,12 @@ export function App(): ReactElement {
                       <div className="session-card-topline">
                         <span className="session-card-title">{session.title}</span>
                         <span className={`session-badge ${isMain ? "session-badge-main" : "session-badge-side"}`}>
-                          {isMain ? "Main" : "Session"}
+                          {isMain ? copy.runtime.main : copy.runtime.session}
                         </span>
                       </div>
                       <div className="session-card-meta">
-                        <span>{session.messageCount} messages</span>
-                        <span>{formatSessionTimestamp(session.updatedAt)}</span>
+                        <span>{`${session.messageCount} ${copy.runtime.messages}`}</span>
+                        <span>{formatSessionTimestamp(session.updatedAt, locale)}</span>
                       </div>
                     </button>
                   );
@@ -1404,84 +1834,84 @@ export function App(): ReactElement {
 
               <div className="session-controls">
                 <div className="session-control-card">
-                  <div className="mini-heading">Persistence Backend</div>
+                  <div className="mini-heading">{copy.runtime.persistence}</div>
                   <div className="session-active-summary">
-                    <strong>{persistenceStatus ? persistenceStatus.backend.toUpperCase() : "Loading..."}</strong>
+                    <strong>{persistenceStatus ? persistenceStatus.backend.toUpperCase() : copy.runtime.loading}</strong>
                     <span>
                       {persistenceStatus
-                        ? `Current local store: ${persistenceStatus.storageLabel}`
-                        : "Loading current chat persistence backend."}
+                        ? `${copy.runtime.currentStore} ${persistenceStatus.storageLabel}`
+                        : copy.runtime.loadingPersistence}
                     </span>
                   </div>
+
                   {persistenceStatus ? (
                     <div className="persistence-status-grid">
                       <div className="persistence-status-card">
-                        <span className="mini-heading">Last Sync</span>
+                        <span className="mini-heading">{copy.runtime.lastSync}</span>
                         <strong>
                           {persistenceStatus.lastSync.switchedAt
-                            ? `${formatPersistenceBackendLabel(
-                                persistenceStatus.lastSync.fromBackend
-                              )} -> ${formatPersistenceBackendLabel(persistenceStatus.lastSync.toBackend)}`
-                            : "No switch recorded"}
+                            ? `${formatPersistenceBackendLabel(persistenceStatus.lastSync.fromBackend, locale)} -> ${formatPersistenceBackendLabel(
+                                persistenceStatus.lastSync.toBackend,
+                                locale
+                              )}`
+                            : copy.runtime.noSwitch}
                         </strong>
                         <span>
                           {persistenceStatus.lastSync.switchedAt
-                            ? `${formatSessionTimestamp(
-                                persistenceStatus.lastSync.switchedAt
-                              )} · ${persistenceStatus.lastSync.synchronizedSessionCount} sessions synchronized`
-                            : "The current backend is using its local state without a recorded migration event."}
+                            ? `${formatSessionTimestamp(persistenceStatus.lastSync.switchedAt, locale)}${copy.formatting.sep}${persistenceStatus.lastSync.synchronizedSessionCount} ${copy.runtime.sessionsSynced}`
+                            : copy.runtime.noMigration}
                         </span>
                       </div>
 
                       {persistenceStatus.backendDetails.map((detail) => (
                         <div className="persistence-status-card" key={detail.backend}>
                           <div className="persistence-status-topline">
-                            <strong>{formatPersistenceBackendLabel(detail.backend)}</strong>
-                            <span
-                              className={`persistence-badge persistence-badge-${detail.syncState}`}
-                            >
-                              {formatPersistenceSyncState(detail.syncState)}
+                            <strong>{formatPersistenceBackendLabel(detail.backend, locale)}</strong>
+                            <span className={`persistence-badge persistence-badge-${detail.syncState}`}>
+                              {formatPersistenceSyncState(detail.syncState, locale)}
                             </span>
                           </div>
                           <span>{detail.storageLabel}</span>
                           <span>
                             {detail.exists
-                              ? `${detail.sessionCount} sessions · ${
+                              ? `${detail.sessionCount} ${copy.runtime.sessionsUnit}${copy.formatting.sep}${
                                   detail.latestUpdatedAt
-                                    ? `latest ${formatSessionTimestamp(detail.latestUpdatedAt)}`
-                                    : "no session writes yet"
+                                    ? `${copy.runtime.latest} ${formatSessionTimestamp(detail.latestUpdatedAt, locale)}`
+                                    : copy.runtime.noWrites
                                 }`
-                              : "Local store file has not been created yet."}
+                              : copy.runtime.localStoreMissing}
                           </span>
                           {detail.backend !== persistenceStatus.backend ? (
                             <span>
                               {detail.differingSessionCount > 0
-                                ? `${detail.differingSessionCount} sessions differ from the active backend.`
-                                : "No session differences detected against the active backend."}
+                                ? locale === "zh"
+                                  ? `${detail.differingSessionCount} 个会话与当前激活后端不同。`
+                                  : `${detail.differingSessionCount} sessions differ from the active backend.`
+                                : copy.runtime.noSessionDiff}
                             </span>
                           ) : (
-                            <span>This is the backend currently serving local chat reads and writes.</span>
+                            <span>{copy.runtime.activeBackendDescription}</span>
                           )}
                         </div>
                       ))}
                     </div>
                   ) : null}
+
                   <label className="form-field">
-                    <span>Backend</span>
+                    <span>{copy.runtime.backend}</span>
                     <select
                       value={selectedPersistenceBackend}
-                      onChange={(event) =>
-                        setSelectedPersistenceBackend(event.target.value as ChatPersistenceBackend)
-                      }
+                      onChange={(event) => setSelectedPersistenceBackend(event.target.value as ChatPersistenceBackend)}
                       disabled={!persistenceStatus || persistenceState === "loading"}
                     >
                       {(persistenceStatus?.availableBackends ?? ["file", "sqlite"]).map((backend) => (
                         <option key={backend} value={backend}>
-                          {backend === "sqlite" ? "SQLite" : "File JSON"}
+                          {formatPersistenceBackendLabel(backend, locale)}
                         </option>
                       ))}
                     </select>
                   </label>
+
                   <div className="console-actions">
                     <button
                       className="button button-secondary"
@@ -1489,29 +1919,38 @@ export function App(): ReactElement {
                       disabled={!canSwitchPersistence}
                       type="button"
                     >
-                      {persistenceState === "loading" ? "Switching..." : "Switch Backend"}
+                      {persistenceState === "loading" ? copy.runtime.switching : copy.runtime.switchBackend}
                     </button>
                   </div>
+
                   {alternateBackendStatus ? (
                     <p className="provider-note persistence-note">
                       {alternateBackendStatus.syncState === "in-sync"
-                        ? `${formatPersistenceBackendLabel(alternateBackendStatus.backend)} is aligned with the active backend.`
-                        : `${formatPersistenceBackendLabel(alternateBackendStatus.backend)} is ${formatPersistenceSyncState(
-                            alternateBackendStatus.syncState
-                          ).toLowerCase()} with ${alternateBackendStatus.differingSessionCount} differing sessions.`}
+                        ? locale === "zh"
+                          ? `${formatPersistenceBackendLabel(alternateBackendStatus.backend, locale)} 已与当前激活后端保持一致。`
+                          : `${formatPersistenceBackendLabel(alternateBackendStatus.backend, locale)} is aligned with the active backend.`
+                        : locale === "zh"
+                          ? `${formatPersistenceBackendLabel(alternateBackendStatus.backend, locale)} 当前状态为 ${formatPersistenceSyncState(
+                              alternateBackendStatus.syncState,
+                              locale
+                            )}，共有 ${alternateBackendStatus.differingSessionCount} 个差异会话。`
+                          : `${formatPersistenceBackendLabel(alternateBackendStatus.backend, locale)} is ${formatPersistenceSyncState(
+                              alternateBackendStatus.syncState,
+                              locale
+                            ).toLowerCase()} with ${alternateBackendStatus.differingSessionCount} differing sessions.`}
                     </p>
                   ) : null}
                 </div>
 
                 <div className="session-control-card">
-                  <div className="mini-heading">Create Session</div>
+                  <div className="mini-heading">{copy.runtime.createSession}</div>
                   <label className="form-field">
-                    <span>New Session Title</span>
+                    <span>{copy.runtime.newSessionTitle}</span>
                     <input
                       type="text"
                       value={newSessionTitle}
                       onChange={(event) => setNewSessionTitle(event.target.value)}
-                      placeholder="Late night reflection, product brainstorm, memory test..."
+                      placeholder={copy.runtime.newSessionPlaceholder}
                     />
                   </label>
                   <div className="console-actions">
@@ -1521,25 +1960,23 @@ export function App(): ReactElement {
                       disabled={!canCreateSession}
                       type="button"
                     >
-                      Create Session
+                      {copy.runtime.createSession}
                     </button>
                   </div>
                 </div>
 
                 <div className="session-control-card">
-                  <div className="mini-heading">Import Session JSON</div>
+                  <div className="mini-heading">{copy.runtime.importSession}</div>
                   {sessionPackageReference ? (
                     <div className="session-reference-card">
-                      <div className="mini-heading">Package Rules</div>
+                      <div className="mini-heading">{copy.runtime.packageRules}</div>
+                      <p className="provider-note session-reference-copy">{sessionPackageReference.importRule}</p>
                       <p className="provider-note session-reference-copy">
-                        {sessionPackageReference.importRule}
-                      </p>
-                      <p className="provider-note session-reference-copy">
-                        Current schema version: <code>{sessionPackageReference.currentSchemaVersion}</code>
+                        {copy.runtime.currentSchema} <code>{sessionPackageReference.currentSchemaVersion}</code>
                       </p>
                       <div className="session-reference-grid">
                         <div>
-                          <strong>Top-Level Fields</strong>
+                          <strong>{copy.runtime.topLevelFields}</strong>
                           <ul className="session-reference-list">
                             {sessionPackageReference.topLevelFields.map((field) => (
                               <li key={field}>
@@ -1549,7 +1986,7 @@ export function App(): ReactElement {
                           </ul>
                         </div>
                         <div>
-                          <strong>Required Snapshot Arrays</strong>
+                          <strong>{copy.runtime.requiredArrays}</strong>
                           <ul className="session-reference-list">
                             {sessionPackageReference.requiredSnapshotCollections.map((field) => (
                               <li key={field}>
@@ -1565,6 +2002,7 @@ export function App(): ReactElement {
                       </div>
                     </div>
                   ) : null}
+
                   <input
                     ref={sessionImportFileInputRef}
                     type="file"
@@ -1572,31 +2010,34 @@ export function App(): ReactElement {
                     className="session-import-file-input"
                     onChange={(event) => void handleImportSessionFile(event)}
                   />
+
                   <label className="form-field">
-                    <span>Imported Session Title</span>
+                    <span>{copy.runtime.importedSessionTitle}</span>
                     <input
                       type="text"
                       value={sessionImportTitle}
                       onChange={(event) => setSessionImportTitle(event.target.value)}
-                      placeholder="Recovered companion session..."
+                      placeholder={copy.runtime.importedSessionPlaceholder}
                     />
                   </label>
+
                   <label className="form-field">
-                    <span>Exported JSON</span>
+                    <span>{copy.runtime.exportedJson}</span>
                     <textarea
                       className="session-import-textarea"
                       value={sessionImportJson}
                       onChange={(event) => setSessionImportJson(event.target.value)}
-                      placeholder='Paste an exported session package here...'
+                      placeholder={copy.runtime.exportedJsonPlaceholder}
                     />
                   </label>
+
                   <div className="console-actions">
                     <button
                       className="button button-secondary"
                       onClick={() => sessionImportFileInputRef.current?.click()}
                       type="button"
                     >
-                      Choose JSON File
+                      {copy.runtime.chooseJsonFile}
                     </button>
                     <button
                       className="button button-secondary"
@@ -1604,7 +2045,7 @@ export function App(): ReactElement {
                       disabled={!canLoadSampleSession}
                       type="button"
                     >
-                      Load Sample Package
+                      {copy.runtime.loadSample}
                     </button>
                     <button
                       className="button button-secondary"
@@ -1612,12 +2053,13 @@ export function App(): ReactElement {
                       disabled={!canImportSession}
                       type="button"
                     >
-                      {sessionImportState === "loading" ? "Importing..." : "Import As New Session"}
+                      {sessionImportState === "loading" ? copy.runtime.importing : copy.runtime.importAsNew}
                     </button>
                   </div>
+
                   {sessionImportErrors.length > 0 ? (
                     <div className="session-import-error-card">
-                      <div className="mini-heading">Import Diagnostics</div>
+                      <div className="mini-heading">{copy.runtime.importDiagnostics}</div>
                       <ul className="session-import-error-list">
                         {sessionImportErrors.map((detail) => (
                           <li key={detail}>{detail}</li>
@@ -1628,25 +2070,25 @@ export function App(): ReactElement {
                 </div>
 
                 <div className="session-control-card">
-                  <div className="mini-heading">Manage Active Session</div>
+                  <div className="mini-heading">{copy.runtime.manageSession}</div>
                   {activeSession ? (
                     <>
                       <div className="session-active-summary">
                         <strong>{activeSession.title}</strong>
                         <span>
                           {activeSession.sessionId === defaultSessionId
-                            ? "Main companion session. Always preserved, but its local history can be reset."
-                            : "Optional local session. Can be renamed, reset, or removed."}
+                            ? copy.runtime.mainSessionDescription
+                            : copy.runtime.optionalSessionDescription}
                         </span>
                       </div>
 
                       <label className="form-field">
-                        <span>Session Title</span>
+                        <span>{copy.runtime.sessionTitle}</span>
                         <input
                           type="text"
                           value={sessionRenameTitle}
                           onChange={(event) => setSessionRenameTitle(event.target.value)}
-                          placeholder="Rename this session"
+                          placeholder={copy.runtime.renamePlaceholder}
                           disabled={activeSession.sessionId === defaultSessionId}
                         />
                       </label>
@@ -1658,7 +2100,7 @@ export function App(): ReactElement {
                           disabled={!canExportSession}
                           type="button"
                         >
-                          {sessionExportState === "loading" ? "Exporting..." : "Export Session JSON"}
+                          {sessionExportState === "loading" ? copy.runtime.exporting : copy.runtime.exportSession}
                         </button>
                         <button
                           className="button button-secondary"
@@ -1666,7 +2108,7 @@ export function App(): ReactElement {
                           disabled={!activeSession.sessionId}
                           type="button"
                         >
-                          Reset Session
+                          {copy.runtime.resetSession}
                         </button>
                         <button
                           className="button button-secondary"
@@ -1674,7 +2116,7 @@ export function App(): ReactElement {
                           disabled={!canRenameSession}
                           type="button"
                         >
-                          Rename Session
+                          {copy.runtime.renameSession}
                         </button>
                         <button
                           className="button button-danger"
@@ -1682,12 +2124,12 @@ export function App(): ReactElement {
                           disabled={activeSession.sessionId === defaultSessionId}
                           type="button"
                         >
-                          Delete Session
+                          {copy.runtime.deleteSession}
                         </button>
                       </div>
                     </>
                   ) : (
-                    <p className="provider-note">No local session is available yet.</p>
+                    <p className="provider-note">{copy.runtime.noLocalSession}</p>
                   )}
                 </div>
               </div>
@@ -1698,28 +2140,26 @@ export function App(): ReactElement {
             <div className="runtime-main-column">
               <div className="panel chat-panel">
                 <div className="panel-header">
-                  <span>Conversation Canvas</span>
-                  <span className="panel-tag">{chatReady ? "Runtime Ready" : "Setup Required"}</span>
+                  <span>{copy.runtime.canvas}</span>
+                  <span className="panel-tag">{chatReady ? copy.runtime.runtimeReady : copy.runtime.setupRequired}</span>
                 </div>
 
                 {chatRestoredAt ? (
                   <div className="status-banner status-banner-info">
-                    Restored local session history from {new Date(chatRestoredAt).toLocaleString()}.
+                    {copy.runtime.restored} {formatSessionTimestamp(chatRestoredAt, locale)}.
                   </div>
                 ) : null}
 
                 <div className="chat-log">
                   {chatMessages.length === 0 ? (
-                    <div className="empty-chat-state">
-                      Save a provider configuration, then send the first message to start a live Waveary session.
-                    </div>
+                    <div className="empty-chat-state">{copy.runtime.emptyChat}</div>
                   ) : (
                     chatMessages.map((message) => (
                       <article
                         className={`chat-bubble ${message.role === "assistant" ? "chat-bubble-assistant" : "chat-bubble-user"}`}
                         key={message.id}
                       >
-                        <span className="chat-role">{message.role === "assistant" ? "Waveary" : "You"}</span>
+                        <span className="chat-role">{message.role === "assistant" ? copy.runtime.assistant : copy.runtime.you}</span>
                         <p>{message.content}</p>
                       </article>
                     ))
@@ -1730,7 +2170,7 @@ export function App(): ReactElement {
                   <textarea
                     value={chatInput}
                     onChange={(event) => setChatInput(event.target.value)}
-                    placeholder="Tell Waveary something worth remembering..."
+                    placeholder={copy.runtime.placeholder}
                     disabled={!chatReady || chatState === "loading"}
                   />
                   <div className="console-actions">
@@ -1739,7 +2179,7 @@ export function App(): ReactElement {
                       onClick={() => void handleSendMessage()}
                       disabled={!chatReady || !chatInput.trim() || chatState === "loading"}
                     >
-                      {chatState === "loading" ? "Sending..." : "Send Message"}
+                      {chatState === "loading" ? copy.runtime.sending : copy.runtime.send}
                     </button>
                   </div>
                 </div>
@@ -1747,19 +2187,15 @@ export function App(): ReactElement {
                 {sessionExportJson ? (
                   <div className="session-export-panel">
                     <div className="panel-header">
-                      <span>Session Export</span>
-                      <span className="panel-tag">Structured JSON</span>
+                      <span>{copy.runtime.sessionExport}</span>
+                      <span className="panel-tag">{copy.runtime.structuredJson}</span>
                     </div>
-                    <p className="provider-note">
-                      This export package includes conversation, persisted memories, relationship state, timeline events, and latest insights for the active session.
-                    </p>
+                    <p className="provider-note">{copy.runtime.exportDescription}</p>
                     {sessionPackageReference ? (
                       <div className="session-export-callout">
-                        <strong>Import safety</strong>
+                        <strong>{copy.runtime.importSafety}</strong>
                         <span>
-                          {sessionPackageReference.importRule} Current schema:
-                          {" "}
-                          {sessionPackageReference.currentSchemaVersion}
+                          {sessionPackageReference.importRule} {copy.runtime.currentSchemaShort} {sessionPackageReference.currentSchemaVersion}
                         </span>
                       </div>
                     ) : null}
@@ -1774,42 +2210,42 @@ export function App(): ReactElement {
             <div className="runtime-side-column">
               <div className="panel insight-panel">
                 <div className="panel-header">
-                  <span>Runtime Signals</span>
-                  <span className="panel-tag">Memory + Relationship</span>
+                  <span>{copy.runtime.signals}</span>
+                  <span className="panel-tag">{copy.runtime.signalsTag}</span>
                 </div>
 
                 {chatInsights ? (
                   <div className="insight-stack">
                     <div className="signal-metrics">
                       <div className="signal-metric-card">
-                        <span>Relationship Stage</span>
+                        <span>{copy.runtime.relationshipStage}</span>
                         <strong>{chatInsights.relationship.stage}</strong>
                       </div>
                       <div className="signal-metric-card">
-                        <span>Affinity</span>
+                        <span>{copy.runtime.affinity}</span>
                         <strong>{chatInsights.relationship.affinityScore.toFixed(2)}</strong>
                       </div>
                       <div className="signal-metric-card">
-                        <span>Trust</span>
+                        <span>{copy.runtime.trust}</span>
                         <strong>{chatInsights.relationship.trustScore.toFixed(2)}</strong>
                       </div>
                       <div className="signal-metric-card">
-                        <span>Stability</span>
+                        <span>{copy.runtime.stability}</span>
                         <strong>{chatInsights.relationship.stabilityScore.toFixed(2)}</strong>
                       </div>
                     </div>
 
                     <div className="insight-card">
-                      <div className="mini-heading">Detected Emotion</div>
+                      <div className="mini-heading">{copy.runtime.emotion}</div>
                       <p>
                         {chatInsights.emotion
                           ? `${chatInsights.emotion.primaryEmotion} (${chatInsights.emotion.intensity.toFixed(2)})`
-                          : "No strong emotion signal detected for the latest turn."}
+                          : copy.runtime.noEmotion}
                       </p>
                     </div>
 
                     <div className="insight-card">
-                      <div className="mini-heading">Recalled Memories</div>
+                      <div className="mini-heading">{copy.runtime.recalledMemories}</div>
                       {chatInsights.recalledMemories.length > 0 ? (
                         <ul className="insight-list">
                           {chatInsights.recalledMemories.map((memory) => (
@@ -1817,12 +2253,12 @@ export function App(): ReactElement {
                           ))}
                         </ul>
                       ) : (
-                        <p>No recalled memories yet.</p>
+                        <p>{copy.runtime.noRecalled}</p>
                       )}
                     </div>
 
                     <div className="insight-card">
-                      <div className="mini-heading">Stored Memories</div>
+                      <div className="mini-heading">{copy.runtime.storedMemories}</div>
                       {chatInsights.storedMemories.length > 0 ? (
                         <ul className="insight-list">
                           {chatInsights.storedMemories.map((memory) => (
@@ -1830,108 +2266,101 @@ export function App(): ReactElement {
                           ))}
                         </ul>
                       ) : (
-                        <p>No memory candidates were stored in the latest turn.</p>
+                        <p>{copy.runtime.noStored}</p>
                       )}
                     </div>
 
                     <div className="insight-card">
-                      <div className="mini-heading">Timeline</div>
+                      <div className="mini-heading">{copy.runtime.timeline}</div>
                       {chatInsights.timeline.length > 0 ? (
                         <ul className="insight-list">
                           {chatInsights.timeline.map((event) => (
                             <li key={`${event.eventTime}-${event.title}`}>
                               <strong>{event.title}</strong>
-                              <span>{`${event.type} · ${event.eventTime}`}</span>
+                              <span>{`${event.type}${copy.formatting.sep}${event.eventTime}`}</span>
                             </li>
                           ))}
                         </ul>
                       ) : (
-                        <p>No timeline events yet.</p>
+                        <p>{copy.runtime.noTimeline}</p>
                       )}
                     </div>
                   </div>
                 ) : (
-                  <div className="empty-chat-state">
-                    Send a message to see memory recall, relationship changes, and timeline events from the runtime.
-                  </div>
+                  <div className="empty-chat-state">{copy.runtime.runtimeHint}</div>
                 )}
               </div>
 
               <div className="panel archive-panel">
                 <div className="panel-header">
-                  <span>Persisted Session Archive</span>
-                  <span className="panel-tag">Memory + Timeline + Relationship</span>
+                  <span>{copy.runtime.archive}</span>
+                  <span className="panel-tag">{copy.runtime.archiveTag}</span>
                 </div>
 
                 {hasSessionArchive ? (
                   <div className="archive-grid">
                     <div className="archive-card">
-                      <div className="mini-heading">Relationship Snapshot</div>
+                      <div className="mini-heading">{copy.runtime.relationshipSnapshot}</div>
                       {sessionRelationship ? (
                         <div className="signal-metrics archive-metrics">
                           <div className="signal-metric-card">
-                            <span>Stage</span>
+                            <span>{copy.runtime.relationshipStage}</span>
                             <strong>{sessionRelationship.stage}</strong>
                           </div>
                           <div className="signal-metric-card">
-                            <span>Affinity</span>
+                            <span>{copy.runtime.affinity}</span>
                             <strong>{sessionRelationship.affinityScore.toFixed(2)}</strong>
                           </div>
                           <div className="signal-metric-card">
-                            <span>Trust</span>
+                            <span>{copy.runtime.trust}</span>
                             <strong>{sessionRelationship.trustScore.toFixed(2)}</strong>
                           </div>
                           <div className="signal-metric-card">
-                            <span>Stability</span>
+                            <span>{copy.runtime.stability}</span>
                             <strong>{sessionRelationship.stabilityScore.toFixed(2)}</strong>
                           </div>
                         </div>
                       ) : (
-                        <p>No persisted relationship snapshot yet.</p>
+                        <p>{copy.runtime.noRelationshipSnapshot}</p>
                       )}
                     </div>
 
                     <div className="archive-card">
-                      <div className="mini-heading">Session Memory Archive</div>
+                      <div className="mini-heading">{copy.runtime.memoryArchive}</div>
                       {sessionMemoryArchive.length > 0 ? (
                         <ul className="insight-list archive-list">
                           {sessionMemoryArchive.map((memory) => (
                             <li key={memory.id}>
-                              <strong>{formatMemoryType(memory.type)}</strong>
+                              <strong>{formatMemoryType(memory.type, locale)}</strong>
                               <span>{memory.content}</span>
-                              <span>{`importance ${memory.importance.toFixed(2)} · ${formatSessionTimestamp(
-                                memory.createdAt
-                              )}`}</span>
+                              <span>{`${copy.formatting.importance} ${memory.importance.toFixed(2)}${copy.formatting.sep}${formatSessionTimestamp(memory.createdAt, locale)}`}</span>
                             </li>
                           ))}
                         </ul>
                       ) : (
-                        <p>No persisted memories yet.</p>
+                        <p>{copy.runtime.noPersistedMemories}</p>
                       )}
                     </div>
 
                     <div className="archive-card archive-card-wide">
-                      <div className="mini-heading">Session Timeline</div>
+                      <div className="mini-heading">{copy.runtime.sessionTimeline}</div>
                       {sessionTimelineEvents.length > 0 ? (
                         <ul className="insight-list archive-list">
                           {sessionTimelineEvents.map((event) => (
                             <li key={event.id}>
                               <strong>{event.title}</strong>
                               <span>{event.description}</span>
-                              <span>{`${event.type} · ${formatSessionTimestamp(event.eventTime)} · importance ${event.importance.toFixed(2)}`}</span>
+                              <span>{`${event.type}${copy.formatting.sep}${formatSessionTimestamp(event.eventTime, locale)}${copy.formatting.sep}${copy.formatting.importance} ${event.importance.toFixed(2)}`}</span>
                             </li>
                           ))}
                         </ul>
                       ) : (
-                        <p>No persisted timeline events yet.</p>
+                        <p>{copy.runtime.noPersistedTimeline}</p>
                       )}
                     </div>
                   </div>
                 ) : (
-                  <div className="empty-chat-state">
-                    Send a message worth remembering. This area will show the session&apos;s persisted memory archive,
-                    relationship snapshot, and timeline after reloads.
-                  </div>
+                  <div className="empty-chat-state">{copy.runtime.archiveHint}</div>
                 )}
               </div>
             </div>
@@ -1940,11 +2369,11 @@ export function App(): ReactElement {
 
         <section className="section-grid section-block" id="roadmap">
           <div className="section-heading">
-            <span className="section-caption">Execution Roadmap</span>
-            <h2>Build the companion layer first. Expand the experience second.</h2>
+            <span className="section-caption">{copy.roadmap.caption}</span>
+            <h2>{copy.roadmap.title}</h2>
           </div>
           <div className="roadmap-grid">
-            {roadmap.map((phase) => (
+            {copy.roadmap.phases.map((phase) => (
               <article className="panel roadmap-card" key={phase.version}>
                 <div className="roadmap-topline">
                   <span>{phase.version}</span>
@@ -1992,54 +2421,38 @@ async function fetchJson<T>(input: string, init?: RequestInit): Promise<T> {
   return payload as T;
 }
 
-function formatSessionTimestamp(updatedAt: string): string {
-  return new Date(updatedAt).toLocaleString();
+function formatSessionTimestamp(updatedAt: string, locale: Locale = "en"): string {
+  return new Date(updatedAt).toLocaleString(locale === "zh" ? "zh-CN" : "en-US");
 }
 
-function formatPersistenceBackendLabel(backend: ChatPersistenceBackend | null): string {
+function formatPersistenceBackendLabel(backend: ChatPersistenceBackend | null, locale: Locale): string {
+  const copy = getCopy(locale);
+
   if (backend === "sqlite") {
-    return "SQLite";
+    return copy.formatting.backend.sqlite;
   }
 
   if (backend === "file") {
-    return "File JSON";
+    return copy.formatting.backend.file;
   }
 
-  return "Unknown";
+  return copy.formatting.backend.unknown;
 }
 
-function formatPersistenceSyncState(state: ChatPersistenceSyncState): string {
-  switch (state) {
-    case "active":
-      return "Active";
-    case "in-sync":
-      return "In Sync";
-    case "behind":
-      return "Behind";
-    case "ahead":
-      return "Ahead";
-    case "diverged":
-      return "Diverged";
-    default:
-      return state;
-  }
+function formatPersistenceSyncState(state: ChatPersistenceSyncState, locale: Locale): string {
+  const copy = getCopy(locale);
+  return copy.formatting.sync[state];
 }
 
-function formatMemoryType(type: string): string {
-  switch (type) {
-    case "life_event":
-      return "Life Event";
-    case "preference":
-      return "Preference";
-    case "relationship":
-      return "Relationship";
-    case "reflection":
-      return "Reflection";
-    case "fact":
-      return "Fact";
-    default:
-      return type;
+function formatMemoryType(type: string, locale: Locale): string {
+  const copy = getCopy(locale);
+  const table = copy.formatting.memoryType;
+
+  if (type in table) {
+    return table[type as keyof typeof table];
   }
+
+  return type;
 }
 
 function downloadSessionExport(exported: ExportedChatSession): void {
@@ -2048,10 +2461,11 @@ function downloadSessionExport(exported: ExportedChatSession): void {
   });
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
-  const safeTitle = exported.title
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "") || "waveary-session";
+  const safeTitle =
+    exported.title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "") || "waveary-session";
 
   anchor.href = url;
   anchor.download = `${safeTitle}.json`;
