@@ -30,6 +30,7 @@ Brand line:
   - provider model discovery now normalizes multiple OpenAI-compatible `/models` payload shapes, deduplicates repeated IDs, and preserves optional label/context window metadata
   - provider request compatibility now includes provider-specific base URL normalization and responses-role fallback handling for DeepSeek-style OpenAI-compatible differences
   - provider compatibility now also tolerates model discovery without a preselected chat model, nested `/models` containers, alternate model metadata field names, and broader structured text payload shapes across chat-completions and responses-style providers
+  - provider verification CLI scaffolding now exists so saved or environment-supplied provider credentials can be checked end-to-end for model discovery and one real chat turn without changing the web runtime path
   - persisted session state contract and repository-backed runtime state adapter are implemented
   - SQLite persisted session state repository is implemented
 - `waveary-memory`
@@ -139,6 +140,8 @@ Brand line:
 - `npm run test --workspace @waveary/memory`
 - `npm run build:server --workspace @waveary/web`
 - `npm run build:server --workspace @waveary/web`
+- `npm run verify:provider`
+- `npm run models:provider`
 - `node --test waveary-web/dist-server/server/provider-api.test.js`
 - `Invoke-WebRequest http://127.0.0.1:4173/api/chat/session`
 - `Invoke-WebRequest http://127.0.0.1:4173/api/chat/sessions`
@@ -173,6 +176,7 @@ Brand line:
 
 - expand provider-specific chat request normalization where "OpenAI-compatible" vendors diverge beyond the current shared `/chat/completions` and `/responses` paths
 - add route-level or live verification for more provider-specific chat payload divergences after the current DeepSeek and broader structured-payload compatibility baseline
+- re-run `npm run verify:provider` and `npm run models:provider` with refreshed real credentials, starting with DeepSeek because the currently saved local key now returns `401 invalid api key`
 - add focused route-level and browser-facing coverage for any remaining persistence edge cases beyond the current file/sqlite symmetry path
 - continue polishing the split web shell by tightening session-management density below the console fold and improving message rhythm plus mixed-language balance in the dedicated chat page
 - continue the homepage portrait system with a more deliberate `4 male / 4 female` hand-drawn polaroid-style set so the visual range feels broader and less clustered around one youth archetype

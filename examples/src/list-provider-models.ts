@@ -26,9 +26,25 @@ async function main(): Promise<void> {
     model: process.env.WAVEARY_MODEL ?? "placeholder-model"
   });
 
-  const models = await provider.listModels();
+  try {
+    const models = await provider.listModels();
 
-  console.log(JSON.stringify({ provider: providerId, models }, null, 2));
+    console.log(JSON.stringify({ provider: providerId, baseURL, models }, null, 2));
+  } catch (error) {
+    console.error(
+      JSON.stringify(
+        {
+          provider: providerId,
+          baseURL,
+          step: "list-models",
+          error: error instanceof Error ? error.message : "Unknown provider error."
+        },
+        null,
+        2
+      )
+    );
+    process.exitCode = 1;
+  }
 }
 
 void main();

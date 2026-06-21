@@ -4,6 +4,41 @@
 
 Objective:
 
+Add a repeatable real-provider verification path and use it to check the currently saved DeepSeek configuration end-to-end without relying on the browser flow.
+
+Summary:
+
+- added a dedicated `npm run verify:provider` script that lists models from the active saved or environment-supplied provider config, resolves a usable model, and attempts one real runtime turn
+- hardened the provider verification scripts so model-listing or runtime failures now return structured diagnostics instead of crashing with low-signal output
+- ran both `npm run verify:provider` and `npm run models:provider` against the currently saved local DeepSeek config
+- confirmed the present saved DeepSeek credential is not usable because `/models` returns `401 invalid api key`, so the current blocker is credential freshness rather than adapter compatibility
+
+Files changed:
+
+- `package.json`
+- `examples/src/list-provider-models.ts`
+- `examples/src/verify-provider.ts`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/core`
+- `npm run verify:provider`
+- `npm run models:provider`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-21
+
+Objective:
+
 Harden the OpenAI-compatible provider layer so model discovery and reply extraction stay usable across more domestic-provider payload variations without changing Waveary's framework boundaries.
 
 Summary:
