@@ -12,6 +12,7 @@ export interface ChatProviderRequest {
   relevantMemories: MemoryItem[];
   relationship: RelationshipProfile;
   emotion?: EmotionState;
+  detectedUserEmotion?: EmotionState;
   timeline: TimelineEvent[];
 }
 
@@ -32,6 +33,26 @@ export interface ModelDiscoveryProvider {
 
 export interface EmotionAnalyzer {
   analyze(message: Message): Promise<EmotionState | undefined>;
+}
+
+export interface EmotionStore {
+  getState(userId: string): Promise<EmotionState | undefined>;
+  saveState(userId: string, state: EmotionState): Promise<EmotionState>;
+}
+
+export interface EmotionEngineInput {
+  userId: string;
+  message: Message;
+  history: Message[];
+  relationship: RelationshipProfile;
+  relevantMemories: MemoryItem[];
+  timeline: TimelineEvent[];
+  currentEmotion?: EmotionState;
+  detectedUserEmotion?: EmotionState;
+}
+
+export interface EmotionEngine {
+  transition(input: EmotionEngineInput): Promise<EmotionState | undefined>;
 }
 
 export interface MemoryStore {

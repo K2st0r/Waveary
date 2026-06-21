@@ -1,6 +1,8 @@
 import {
+  InMemoryEmotionStore,
   OpenAICompatibleChatProvider,
   SimpleEmotionAnalyzer,
+  SimpleCompanionEmotionEngine,
   SimpleRelationshipEngine,
   SimpleTimelineEngine,
   WavearyRuntime,
@@ -95,6 +97,10 @@ function createOrReuseSession(sessionId: string): ChatSessionState {
       model: savedConfig.model
     }),
     emotionAnalyzer: new SimpleEmotionAnalyzer(),
+    emotionStore: persistentState.getEmotionStore
+      ? persistentState.getEmotionStore()
+      : new InMemoryEmotionStore(),
+    emotionEngine: new SimpleCompanionEmotionEngine(),
     memoryStore: persistentState.getMemoryStore(),
     memoryExtractor: new SimpleMemoryExtractor(),
     relationshipStore: persistentState.getRelationshipStore(),

@@ -1,8 +1,10 @@
 import {
+  InMemoryEmotionStore,
   InMemoryRelationshipStore,
   InMemoryTimelineStore,
   OpenAICompatibleChatProvider,
   resolveProviderPreset,
+  SimpleCompanionEmotionEngine,
   SimpleEmotionAnalyzer,
   SimpleRelationshipEngine,
   SimpleTimelineEngine,
@@ -65,6 +67,8 @@ async function runDemo(): Promise<void> {
       baseURL: resolvedBaseURL
     }),
     emotionAnalyzer: new SimpleEmotionAnalyzer(),
+    emotionStore: new InMemoryEmotionStore(),
+    emotionEngine: new SimpleCompanionEmotionEngine(),
     memoryStore: new InMemoryMemoryStore(),
     memoryExtractor: new SimpleMemoryExtractor(),
     relationshipStore: new InMemoryRelationshipStore(),
@@ -90,6 +94,7 @@ async function runDemo(): Promise<void> {
       {
         provider: providerId,
         reply: result.reply.content,
+        emotion: result.emotion,
         storedMemories: result.storedMemories.map((memory) => memory.content),
         relationship: result.relationship
       },

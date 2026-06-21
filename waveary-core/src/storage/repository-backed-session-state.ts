@@ -1,4 +1,6 @@
 import type {
+  EmotionState,
+  EmotionStore,
   MemoryCandidate,
   MemoryItem,
   MemoryStore,
@@ -23,11 +25,13 @@ export interface RepositoryBackedSessionStateDependencies<
 }
 
 export class RepositoryBackedSessionState<TState extends PersistedSessionState = PersistedSessionState> {
+  private readonly emotionStore: EmotionStore;
   private readonly memoryStore: MemoryStore;
   private readonly relationshipStore: RelationshipStore;
   private readonly timelineStore: TimelineStore;
 
   constructor(private readonly deps: RepositoryBackedSessionStateDependencies<TState>) {
+    this.emotionStore = new RepositoryBackedEmotionStore(this);
     this.memoryStore = new RepositoryBackedMemoryStore(this);
     this.relationshipStore = new RepositoryBackedRelationshipStore(this);
     this.timelineStore = new RepositoryBackedTimelineStore(this);
@@ -39,6 +43,10 @@ export class RepositoryBackedSessionState<TState extends PersistedSessionState =
 
   getMemoryStore(): MemoryStore {
     return this.memoryStore;
+  }
+
+  getEmotionStore(): EmotionStore {
+    return this.emotionStore;
   }
 
   getRelationshipStore(): RelationshipStore {
@@ -133,6 +141,35 @@ class RepositoryBackedMemoryStore implements MemoryStore {
     }));
 
     return created;
+  }
+}
+
+class RepositoryBackedEmotionStore implements EmotionStore {
+  constructor(private readonly sessionState: RepositoryBackedSessionState) {}
+
+  async getState(userId: string): Promise<EmotionState | undefined> {
+    const state = this.sessionState.getState();
+
+    if (!state.emotion || state.emotion.userId !== userId) {
+      return undefined;
+    }
+
+    return state.emotion;
+  }
+
+  async saveState(userId: string, emotion: EmotionState): Promise<EmotionState> {
+    const next = {
+      ...emotion,
+      userId
+    };
+
+    this.sessionState.saveState((current) => ({
+      ...current,
+      emotion: next,
+      updatedAt: new Date().toISOString()
+    }));
+
+    return next;
   }
 }
 

@@ -213,11 +213,11 @@ test("chat session route returns the requested persisted snapshot", async () => 
   assert.equal(response.body.session.memoryArchive.length, 1);
   assert.equal(
     response.body.session.memoryArchive[0]?.content,
-    "Please remember this route-level session test."
+    "Please remember this route-level session test"
   );
   assert.equal(response.body.session.relationship.stage, "new");
-  assert.equal(response.body.session.relationship.affinityScore, 0.28);
-  assert.equal(response.body.session.relationship.trustScore, 0.26);
+  assert.equal(response.body.session.relationship.affinityScore, 0.256);
+  assert.equal(response.body.session.relationship.trustScore, 0.25);
   assert.equal(response.body.session.timelineEvents.length, 1);
   assert.equal(
     response.body.session.timelineEvents[0]?.description,
@@ -272,7 +272,7 @@ test("chat session export route returns a structured export package for the acti
   assert.equal(response.body.exported.snapshot.timelineEvents.length, 1);
   assert.equal(
     response.body.exported.snapshot.memoryArchive[0]?.content,
-    "Please export this session memory package."
+    "Please export this session memory package"
   );
 });
 

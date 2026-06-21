@@ -141,6 +141,10 @@ export class PersistentChatSessionState {
     return this.runtimeState.getMemoryStore();
   }
 
+  getEmotionStore() {
+    return this.runtimeState.getEmotionStore();
+  }
+
   getRelationshipStore() {
     return this.runtimeState.getRelationshipStore();
   }
