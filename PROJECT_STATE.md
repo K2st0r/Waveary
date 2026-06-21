@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `719e955` - `Record proactive draft API progress`
+- `3b714cd` - `Add browser-local proactive check loop`
 
 ## Modules
 
