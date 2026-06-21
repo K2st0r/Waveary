@@ -4,6 +4,38 @@
 
 Objective:
 
+Restore GitHub push reliability for the Waveary repository by moving the local `origin` remote from HTTPS to SSH and syncing the accumulated local commits to GitHub successfully.
+
+Summary:
+
+- verified that GitHub CLI auth was already valid and confirmed the HTTPS push failures were network-path issues rather than repository or token issues
+- generated a local ed25519 SSH key, authenticated successfully against GitHub over SSH, and switched `origin` from HTTPS to `git@github.com:K2st0r/-Waveary-.git`
+- pushed the previously accumulated local Waveary commits successfully after the SSH remote change
+- left the repository in a clean synchronized state so future pushes can use SSH directly instead of the unstable HTTPS path
+
+Files changed:
+
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `ssh -o StrictHostKeyChecking=accept-new -T git@github.com`
+- `git push origin main`
+- `git status --short -b`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-21
+
+Objective:
+
 Nudge the homepage lighter flame one more step left and upward so the visible ignition point sits even closer to the lighter tip while keeping the rebuilt flame stack and burn timing unchanged.
 
 Summary:

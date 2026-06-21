@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `731ac1a` - `Refine homepage flame anchor again`
+- `b94644e` - `Sync flame anchor retry records`
 
 ## Modules
 
@@ -155,6 +155,8 @@ Brand line:
 - `npx --yes --package @playwright/cli playwright-cli -s=waveary-homepage-polish screenshot`
 - `npm run check --workspace @waveary/web`
 - `npm run web:build`
+- `ssh -o StrictHostKeyChecking=accept-new -T git@github.com`
+- `git push origin main` via SSH remote `git@github.com:K2st0r/-Waveary-.git`
 - `curl.exe -I http://127.0.0.1:4173/`
 - Playwright browser verification for `#home`, `#framework`, and `#console` on `http://127.0.0.1:4173/`
 - Playwright browser verification for `#console` and `#chat` on `http://127.0.0.1:4173/`
