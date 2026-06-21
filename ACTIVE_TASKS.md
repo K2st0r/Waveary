@@ -14,8 +14,8 @@ Update it when:
 
 1. Turn proactive-care presentation into a reusable message-draft interface.
    Status: in progress
-   Current state: the proactive message composer has been extracted into its own web utility module and now returns a structured draft with `tone`, `deliveryKind`, and `suggestedMessage`.
-   Next cut: decide whether the structured proactive draft should stay presentation-layer-only for now or be promoted into a route-visible contract that later delivery channels can consume.
+   Current state: the proactive message composer has been extracted into its own web utility module, promoted into `/api/chat/proactive/evaluate`, and now reaches the console plus browser-notification path through one server-generated draft contract with `tone`, `deliveryKind`, and `suggestedMessage`.
+   Next cut: use that route-visible draft contract in the next delivery surface or scheduler-facing path instead of adding another browser-local copy generator.
 
 2. Keep permissioned local-time awareness bounded and trustworthy.
    Status: in progress
@@ -30,10 +30,10 @@ Update it when:
 ## Deferred But Important
 
 1. Introduce a formal proactive message draft contract that future delivery channels can consume.
-   Reason: the shared composer now has useful structured fields, but they still live inside `waveary-web/src/App.tsx` and are not yet exposed as a reusable contract beyond the current UI surfaces.
+   Reason: the draft contract now exists on `/api/chat/proactive/evaluate`, but any next delivery path should keep consuming that contract rather than reintroducing per-surface recomputation.
 
 2. Decide when to extract proactive presentation helpers into a dedicated web utility module.
-   Reason: do not split it out until at least one more surface besides the current console and browser notification path needs it.
+   Reason: this extraction is complete; the next architectural question is whether those helpers should remain `waveary-web`-local or move closer to a shared runtime boundary before broader delivery orchestration.
 
 3. Continue future presence-aware work only behind explicit permission boundaries.
    Reason: the product direction allows richer presence later, but current trust boundaries must stay narrow and legible.

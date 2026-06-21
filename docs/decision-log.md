@@ -351,3 +351,26 @@ Impact:
 - `WavearyRuntime` now owns `evaluateProactiveCare()` alongside `handleTurn()`
 - `WPCE` can evolve independently into policy persistence and delivery later without distorting the chat-turn contract
 - future web or local-notification work should consume the decision output rather than re-implement trigger logic in the UI
+
+## 2026-06-21 - Proactive Draft Becomes A Route-Visible Web Contract
+
+Status:
+
+- accepted
+
+Decision:
+
+Expose a server-generated proactive message draft on `/api/chat/proactive/evaluate` instead of continuing to recompute user-facing `WPCE` copy separately inside each frontend surface.
+
+Reason:
+
+- the console summary and browser notification path were already converging on one shared draft shape
+- keeping the draft on the server side makes later delivery surfaces consume one evaluated contract instead of each re-deriving tone and suggested copy
+- the change preserves the existing `WPCE decision -> draft -> delivery surface` layering without pushing message-expression concerns down into `waveary-core` too early
+
+Impact:
+
+- `/api/chat/proactive/evaluate` now returns `{ decision, draft, session }`
+- `waveary-web` console and browser notification delivery can read the same draft payload
+- bounded local-time context can shape proactive daypart tone on the server only when the caller explicitly sends permissioned time context
+- future scheduled or reminder-style delivery work should start from this route-visible draft contract rather than adding new browser-local generators

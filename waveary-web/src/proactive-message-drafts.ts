@@ -49,7 +49,50 @@ export function resolveNotificationDayPart(
     return undefined;
   }
 
-  const hour = new Date().getHours();
+  return resolveDayPartFromDate(new Date());
+}
+
+export function resolveDayPartFromLocalTime(
+  localTimeIso: string,
+  timeZone?: string
+): ProactiveDayPart | undefined {
+  const date = new Date(localTimeIso);
+
+  if (Number.isNaN(date.getTime())) {
+    return undefined;
+  }
+
+  try {
+    if (timeZone) {
+      const formatter = new Intl.DateTimeFormat("en-US", {
+        hour: "numeric",
+        hour12: false,
+        timeZone
+      });
+      const hourPart = formatter
+        .formatToParts(date)
+        .find((part) => part.type === "hour")?.value;
+      const hour = hourPart ? Number(hourPart) : Number.NaN;
+
+      if (!Number.isNaN(hour)) {
+        return resolveDayPartFromHour(hour);
+      }
+    }
+  } catch {
+    // Fall back to the timestamp's local hour when the supplied time zone is invalid.
+  }
+
+  return resolveDayPartFromDate(date);
+}
+
+function resolveDayPartFromDate(date: Date): ProactiveDayPart | undefined {
+  return resolveDayPartFromHour(date.getHours());
+}
+
+function resolveDayPartFromHour(hour: number): ProactiveDayPart | undefined {
+  if (Number.isNaN(hour) || hour < 0 || hour > 23) {
+    return undefined;
+  }
 
   if (hour < 5) {
     return "late_night";

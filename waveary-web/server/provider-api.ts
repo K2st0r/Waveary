@@ -56,6 +56,11 @@ interface ChatSessionRequest {
 
 interface EvaluateProactiveCareRequest extends ChatSessionRequest {
   now?: string;
+  timeContext?: {
+    localTimeIso?: string;
+    timeZone?: string;
+    locale?: string;
+  };
   policy?: {
     enabled?: boolean;
     quietHoursStart?: string;
@@ -182,6 +187,7 @@ export function createProviderApiMiddleware() {
           payload.sessionId?.trim() || DEFAULT_CHAT_SESSION_ID,
           {
             ...(payload.now ? { now: payload.now } : {}),
+            ...(payload.timeContext ? { timeContext: payload.timeContext } : {}),
             ...(payload.policy ? { policy: payload.policy } : {}),
             ...(payload.state ? { state: payload.state } : {})
           }

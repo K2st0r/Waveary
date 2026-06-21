@@ -4,6 +4,45 @@
 
 Objective:
 
+Promote the proactive message draft into a route-visible server contract so `WPCE` evaluation, console presentation, and browser notification delivery all consume the same draft output.
+
+Summary:
+
+- extended `waveary-web/server/chat-runtime.ts` so proactive-care evaluation now returns a server-generated draft alongside the existing decision and session snapshot
+- updated `/api/chat/proactive/evaluate` to accept optional permissioned time context and return `{ decision, draft, session }`, allowing bounded local daypart tone shaping without expanding into desktop presence
+- switched the web console and browser notification path to prefer the returned draft instead of recomputing the same message shape locally, while keeping a frontend fallback only as a safety net
+- added route-level regression coverage for affirmative and blocked proactive evaluations so the draft contract is tested directly
+- updated continuity files to record that the proactive draft is no longer presentation-only
+
+Files changed:
+
+- `waveary-web/src/proactive-message-drafts.ts`
+- `waveary-web/server/chat-runtime.ts`
+- `waveary-web/server/provider-api.ts`
+- `waveary-web/server/provider-api.test.ts`
+- `waveary-web/src/App.tsx`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run test --workspace @waveary/web`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-21
+
+Objective:
+
 Extract the proactive message composer out of `App.tsx` into a dedicated web utility module so the draft interface has a cleaner boundary before any future API exposure.
 
 Summary:

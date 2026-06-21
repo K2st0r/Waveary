@@ -15,6 +15,12 @@ import {
   type RuntimeTurnResult
 } from "@waveary/core";
 import { SimpleMemoryExtractor } from "@waveary/memory";
+import {
+  buildProactiveMessageDraft,
+  resolveDayPartFromLocalTime,
+  type Locale,
+  type ProactiveMessageDraft
+} from "../src/proactive-message-drafts.js";
 
 import {
   PersistentChatSessionState,
@@ -33,9 +39,20 @@ export interface ChatProactiveCareEvaluationOptions {
   now?: string;
   policy?: Partial<ProactiveCarePolicy>;
   state?: Partial<ProactiveCareState>;
+  timeContext?: {
+    localTimeIso?: string;
+    timeZone?: string;
+    locale?: string;
+  };
 }
 
 const sessions = new Map<string, ChatSessionState>();
+
+export interface ChatProactiveCareEvaluationResult {
+  decision: Awaited<ReturnType<WavearyRuntime["evaluateProactiveCare"]>>;
+  draft: ProactiveMessageDraft;
+  session: ChatSessionSnapshot | null;
+}
 
 export async function sendChatTurn(
   sessionId: string,
@@ -99,10 +116,7 @@ export function resetChatRuntimeSessions(): void {
 export async function evaluateChatProactiveCare(
   sessionId: string,
   options: ChatProactiveCareEvaluationOptions = {}
-): Promise<{
-  decision: Awaited<ReturnType<WavearyRuntime["evaluateProactiveCare"]>>;
-  session: ChatSessionSnapshot | null;
-}> {
+): Promise<ChatProactiveCareEvaluationResult> {
   const cacheKey = getRuntimeCacheKey(sessionId);
   const cached = sessions.get(cacheKey);
 
@@ -122,6 +136,7 @@ export async function evaluateChatProactiveCare(
 
     return {
       decision,
+      draft: buildProactiveEvaluationDraft(decision, options.timeContext),
       session: cached.persistentState.getSnapshot() ?? null
     };
   }
@@ -144,6 +159,7 @@ export async function evaluateChatProactiveCare(
 
     return {
       decision,
+      draft: buildProactiveEvaluationDraft(decision, options.timeContext),
       session: transientState.persistentState.getSnapshot() ?? null
     };
   } finally {
@@ -231,4 +247,29 @@ function createChatProvider(
       throw new Error("Provider configuration is missing. Save a provider before opening chat.");
     }
   };
+}
+
+function buildProactiveEvaluationDraft(
+  decision: Awaited<ReturnType<WavearyRuntime["evaluateProactiveCare"]>>,
+  timeContext?: {
+    localTimeIso?: string;
+    timeZone?: string;
+    locale?: string;
+  }
+): ProactiveMessageDraft {
+  const locale = normalizeDraftLocale(timeContext?.locale);
+  const dayPart =
+    timeContext?.localTimeIso
+      ? resolveDayPartFromLocalTime(timeContext.localTimeIso, timeContext.timeZone)
+      : undefined;
+
+  return buildProactiveMessageDraft(decision, locale, dayPart);
+}
+
+function normalizeDraftLocale(locale: string | undefined): Locale {
+  if (!locale) {
+    return "en";
+  }
+
+  return locale.toLowerCase().startsWith("zh") ? "zh" : "en";
 }

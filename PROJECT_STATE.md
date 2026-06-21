@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `3fc1fa1` - `Add permissioned local time awareness to chat`
+- `0753371` - `Record proactive utility extraction progress`
 
 ## Modules
 
@@ -102,6 +102,7 @@ Brand line:
   - proactive browser notifications and the `WPCE` console summary now both read from one shared presentation-layer proactive message composer instead of duplicating separate tone logic
   - that shared proactive message composer now returns structured draft fields including `tone`, `deliveryKind`, and `suggestedMessage`, so the current UI is no longer limited to raw prose-only summary composition
   - the proactive message composer now also lives in a dedicated `waveary-web` utility module instead of remaining embedded inside `App.tsx`, reducing UI-surface coupling before any future API exposure
+  - `/api/chat/proactive/evaluate` now also returns a server-generated proactive message draft, so the `WPCE` console card and browser notification path can consume one route-visible draft contract instead of recomputing message copy independently in the browser
   - proactive browser-notification delivery now also records per-session reachout counters and last-delivery time so subsequent `WPCE` evaluations can suppress repeated outreach until the user replies
   - successful new user turns now automatically clear persisted `WPCE` unanswered-reachout state so proactive care can reopen naturally after the user responds without erasing daily send counts or the last reachout timestamp
   - proactive-care evaluation output and browser notification copy now translate raw `WPCE` intent, urgency, and reason codes into user-facing Chinese and English labels instead of exposing internal engine enums directly
@@ -221,7 +222,8 @@ Brand line:
 - consider surfacing the current permissioned local daypart in the console or chat shell only if it improves legibility without making the conversation surface feel diagnostic
 - consider moving the new daypart-aware notification tone into a shared proactive-message formatter once browser notifications stop being the only delivery channel
 - consider extracting the new console-summary and notification-copy helpers into one shared proactive presentation module if a second non-browser delivery surface is added
-- decide whether the new proactive draft structure should remain a web presentation concern or become a route-visible contract before adding another outbound delivery surface
+- use the new route-visible proactive draft contract as the source for any next delivery surface, instead of recomputing outbound copy per-surface in the browser
+- consider whether the draft contract should stay a `waveary-web` server concern for now or move into a more shared runtime-facing layer before scheduled delivery work begins
 - expand provider-specific chat request normalization where "OpenAI-compatible" vendors diverge beyond the current shared `/chat/completions` and `/responses` paths
 - add route-level or live verification for more provider-specific chat payload divergences after the current DeepSeek and broader structured-payload compatibility baseline
 - re-run `npm run verify:provider` and `npm run models:provider` with refreshed real credentials, starting with DeepSeek because the currently saved local key now returns `401 invalid api key`
