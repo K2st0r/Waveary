@@ -4,6 +4,52 @@
 
 Objective:
 
+Implement the first `WPCE` decision-only runtime layer so proactive care becomes a bounded, relationship-aware system capability instead of an unstructured future idea.
+
+Summary:
+
+- added proactive care domain types and defaults for policy, state, intent, urgency, and decision output in `waveary-core`
+- implemented `SimpleProactiveCareEngine` so Waveary can evaluate quiet hours, daily limits, unanswered reachouts, interaction gap, relationship stage, and companion concern before recommending a bounded outreach intent
+- added a dedicated `WavearyRuntime.evaluateProactiveCare()` entrypoint rather than mixing proactive-care logic into `handleTurn`, preserving the architectural boundary between chat replies and outbound-care decisions
+- updated runtime construction points in examples and `waveary-web` so the new engine is wired consistently, while keeping delivery and notifications explicitly out of scope for this step
+
+Files changed:
+
+- `waveary-core/src/domain/proactive-care.ts`
+- `waveary-core/src/providers/interfaces.ts`
+- `waveary-core/src/adapters/simple-proactive-care-engine.ts`
+- `waveary-core/src/adapters/simple-proactive-care-engine.test.ts`
+- `waveary-core/src/runtime/types.ts`
+- `waveary-core/src/runtime/waveary-runtime.ts`
+- `waveary-core/src/runtime/waveary-runtime.test.ts`
+- `waveary-core/src/index.ts`
+- `waveary-web/server/chat-runtime.ts`
+- `examples/src/run-demo.ts`
+- `examples/src/run-openai-demo.ts`
+- `examples/src/verify-provider.ts`
+- `PROJECT_STATE.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/core`
+- `npm run test --workspace @waveary/core`
+- `npm run check --workspace @waveary/web`
+- `npm run test --workspace @waveary/web`
+
+Commit:
+
+- `pending` - `Implement proactive care decision engine foundation`
+
+Push:
+
+- pending
+
+## 2026-06-21
+
+Objective:
+
 Implement the first companion-side emotion runtime layer so Waveary no longer treats emotion as only one-turn user classification, but as persisted companion state that can shape replies and survive across turns.
 
 Summary:

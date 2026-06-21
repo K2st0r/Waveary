@@ -329,3 +329,25 @@ Impact:
 - `Waveary Proactive Care Engine (WPCE)` should evaluate whether outreach is appropriate before any message is generated
 - V0.2 should begin with emotional state, relationship-aware tone variation, and bounded proactive care rather than jumping straight to unrestricted automation
 - future presence or action abilities should be designed as a separate permissioned layer with audit and revocation controls
+
+## 2026-06-21 - WPCE Starts As A Separate Decision Path
+
+Status:
+
+- accepted
+
+Decision:
+
+Implement the first `WPCE` slice as a separate runtime evaluation entrypoint instead of folding proactive-care checks into `handleTurn`.
+
+Reason:
+
+- proactive care is triggered without a new incoming user turn, so its lifecycle does not match reply generation
+- keeping `WPCE` separate preserves a clean boundary between chat orchestration and outbound-care policy evaluation
+- it allows Waveary to verify policy, relationship, and emotion-aware decision logic now while deferring delivery and notification transport safely
+
+Impact:
+
+- `WavearyRuntime` now owns `evaluateProactiveCare()` alongside `handleTurn()`
+- `WPCE` can evolve independently into policy persistence and delivery later without distorting the chat-turn contract
+- future web or local-notification work should consume the decision output rather than re-implement trigger logic in the UI

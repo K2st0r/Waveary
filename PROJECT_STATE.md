@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `35d7e56` - `Add companion emotion runtime foundation`
+- `pending` - `Implement proactive care decision engine foundation`
 
 ## Modules
 
@@ -34,6 +34,7 @@ Brand line:
   - runtime dialogue scaffolding now biases more strongly toward companion-style continuity by using relationship-stage-aware reply guidance, less mechanical memory phrasing, and more behavior-driven relationship growth signals
   - first formal product and architecture draft for companion emotional continuity and proactive care now exists in `docs/emotion-proactive-care.md`, defining `Waveary Emotion Engine (WEE)` and `Waveary Proactive Care Engine (WPCE)` as the next major runtime-facing design targets
   - first companion-side emotion runtime layer is now implemented through a persisted `EmotionStore`, a `SimpleCompanionEmotionEngine`, and runtime wiring that updates and returns companion emotion state on each turn
+  - first `WPCE` decision-only runtime layer is now implemented through proactive care domain types, a `SimpleProactiveCareEngine`, and a dedicated `evaluateProactiveCare()` runtime path that combines policy, relationship stage, interaction gap, and companion emotion without generating outbound messages yet
 - persisted session state contract and repository-backed runtime state adapter are implemented
   - SQLite persisted session state repository is implemented
 - `waveary-memory`
@@ -178,8 +179,8 @@ Brand line:
 
 ## Next Steps
 
-- implement the first `WPCE` policy and decision path for bounded meal, sleep, and absence check-ins with user controls
-- define the first proactive trigger evaluator that can combine interaction gap, relationship stage, emotion state, and user policy without generating messages yet
+- expose the current `WPCE` decision result through a read-only web/runtime inspection path so the first proactive policy can be exercised from the local product surface before delivery is added
+- define and persist the first user-configurable proactive care policy plus care-state counters in the session layer so decision results can reflect real user settings and rate limits across restarts
 - define the first delivery path for proactive care in the web surface, likely browser or local notifications before any broader desktop action layer
 - keep future desktop awareness or action work behind a separate permissioned presence layer instead of mixing it directly into chat reply generation
 - expand provider-specific chat request normalization where "OpenAI-compatible" vendors diverge beyond the current shared `/chat/completions` and `/responses` paths

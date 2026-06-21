@@ -8,6 +8,7 @@ import {
   ScriptedChatProvider,
   SimpleCompanionEmotionEngine,
   SimpleEmotionAnalyzer,
+  SimpleProactiveCareEngine,
   SimpleRelationshipEngine,
   SimpleTimelineEngine,
   WavearyRuntime,
@@ -53,6 +54,7 @@ test("WavearyRuntime stores memories and recalls them on later turns", async () 
     emotionAnalyzer: new SimpleEmotionAnalyzer(),
     emotionStore: new InMemoryEmotionStore(),
     emotionEngine: new SimpleCompanionEmotionEngine(),
+    proactiveCareEngine: new SimpleProactiveCareEngine(),
     memoryStore,
     memoryExtractor: new TestMemoryExtractor(),
     relationshipStore: new InMemoryRelationshipStore(),
@@ -113,6 +115,7 @@ test("WavearyRuntime shifts companion emotion toward concern when the user is sa
     emotionAnalyzer: new SimpleEmotionAnalyzer(),
     emotionStore: new InMemoryEmotionStore(),
     emotionEngine: new SimpleCompanionEmotionEngine(),
+    proactiveCareEngine: new SimpleProactiveCareEngine(),
     memoryStore: new TestMemoryStore(),
     memoryExtractor: new TestMemoryExtractor(),
     relationshipStore: new InMemoryRelationshipStore(),
@@ -137,6 +140,77 @@ test("WavearyRuntime shifts companion emotion toward concern when the user is sa
   assert.equal(result.emotion?.subject, "companion");
   assert.equal(result.emotion?.detectedUserEmotion, "sadness");
   assert.ok(result.reply.content.includes("weight") || result.reply.content.includes("carefully"));
+});
+
+test("WavearyRuntime evaluates proactive care through relationship, emotion, and policy state", async () => {
+  const relationshipStore = new InMemoryRelationshipStore();
+  const emotionStore = new InMemoryEmotionStore();
+  const runtime = new WavearyRuntime({
+    chatProvider: new ScriptedChatProvider(),
+    emotionAnalyzer: new SimpleEmotionAnalyzer(),
+    emotionStore,
+    emotionEngine: new SimpleCompanionEmotionEngine(),
+    proactiveCareEngine: new SimpleProactiveCareEngine(),
+    memoryStore: new TestMemoryStore(),
+    memoryExtractor: new TestMemoryExtractor(),
+    relationshipStore,
+    relationshipEngine: new SimpleRelationshipEngine(),
+    timelineStore: new InMemoryTimelineStore(),
+    timelineEngine: new SimpleTimelineEngine()
+  });
+
+  await relationshipStore.applyDelta("user-1", {
+    affinityDelta: 0.18,
+    trustDelta: 0.12,
+    stabilityDelta: 0.04,
+    reason: "earned_warmth"
+  });
+  await emotionStore.saveState("user-1", {
+    userId: "user-1",
+    subject: "companion",
+    primaryEmotion: "concerned",
+    intensity: 0.78,
+    confidence: 0.81,
+    windowStart: "2026-06-20T21:00:00.000Z",
+    windowEnd: "2026-06-20T21:00:00.000Z",
+    lastUpdatedAt: "2026-06-20T21:00:00.000Z",
+    decayHint: "slow",
+    detectedUserEmotion: "sadness"
+  });
+
+  const context: RuntimeContext = {
+    ...createContext(),
+    history: [
+      {
+        id: "prior-user",
+        sessionId: "session-1",
+        role: "user",
+        content: "I have been stressed and sad all evening.",
+        timestamp: "2026-06-20T21:00:00.000Z",
+        metadata: {}
+      },
+      {
+        id: "prior-reply",
+        sessionId: "session-1",
+        role: "assistant",
+        content: "I am here with you.",
+        timestamp: "2026-06-20T21:01:00.000Z",
+        metadata: {}
+      }
+    ]
+  };
+
+  const decision = await runtime.evaluateProactiveCare(context, {
+    now: "2026-06-21T06:30:00.000Z",
+    policy: {
+      enabled: true
+    }
+  });
+
+  assert.equal(decision.shouldReachOut, true);
+  assert.equal(decision.intent, "stress_followup");
+  assert.equal(decision.urgency, "high");
+  assert.ok(decision.reasons.includes("companion_concern_detected"));
 });
 
 class TestMemoryStore implements MemoryStore {

@@ -1,9 +1,12 @@
 import {
+  InMemoryEmotionStore,
   InMemoryRelationshipStore,
   InMemoryTimelineStore,
   OpenAICompatibleChatProvider,
   resolveProviderPreset,
+  SimpleCompanionEmotionEngine,
   SimpleEmotionAnalyzer,
+  SimpleProactiveCareEngine,
   SimpleRelationshipEngine,
   SimpleTimelineEngine,
   WavearyRuntime,
@@ -79,6 +82,9 @@ async function main(): Promise<void> {
         model: resolvedModel
       }),
       emotionAnalyzer: new SimpleEmotionAnalyzer(),
+      emotionStore: new InMemoryEmotionStore(),
+      emotionEngine: new SimpleCompanionEmotionEngine(),
+      proactiveCareEngine: new SimpleProactiveCareEngine(),
       memoryStore: new InMemoryMemoryStore(),
       memoryExtractor: new SimpleMemoryExtractor(),
       relationshipStore: new InMemoryRelationshipStore(),

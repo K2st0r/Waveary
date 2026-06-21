@@ -1,5 +1,10 @@
 import type { EmotionState } from "../domain/emotion.js";
 import type { MemoryItem } from "../domain/memory.js";
+import type {
+  ProactiveCareDecision,
+  ProactiveCarePolicy,
+  ProactiveCareState
+} from "../domain/proactive-care.js";
 import type { RelationshipProfile } from "../domain/relationship.js";
 import type { Message, PersonaProfile, Session, UserProfile } from "../domain/session.js";
 import type { TimelineEvent } from "../domain/timeline.js";
@@ -19,3 +24,11 @@ export interface RuntimeTurnResult {
   timeline: TimelineEvent[];
   storedMemories: MemoryItem[];
 }
+
+export interface RuntimeProactiveCareOptions {
+  policy?: Partial<ProactiveCarePolicy>;
+  state?: Partial<ProactiveCareState>;
+  now?: string;
+}
+
+export type RuntimeProactiveCareResult = ProactiveCareDecision;
