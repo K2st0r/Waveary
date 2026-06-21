@@ -1693,7 +1693,12 @@ export function App(): ReactElement {
                   </div>
                   <div className="hero-memory-lighter">
                     <img className="hero-memory-lighter-illustration" src="/images/hero/lighter.png" alt="" />
-                    <span className="hero-memory-lighter-flame" />
+                    <span className="hero-memory-lighter-flame" aria-hidden="true">
+                      <span className="hero-memory-lighter-flame-halo" />
+                      <span className="hero-memory-lighter-flame-outer" />
+                      <span className="hero-memory-lighter-flame-inner" />
+                      <span className="hero-memory-lighter-flame-core" />
+                    </span>
                   </div>
                 </div>
               </div>
