@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `b5210b6` - `Record multi-page web split progress`
+- `da036ad` - `Sync multi-page web push status`
 
 ## Modules
 
@@ -78,7 +78,10 @@ Brand line:
   - homepage now supports direct Chinese and English switching through a local UI toggle
   - homepage copy, console labels, provider setup flow labels, session management labels, runtime panels, and roadmap are now bilingual
   - language switching now stays local to presentation state and does not reset the user's in-progress provider form input or current runtime page state
-  - the public web surface is now split into shorter hash-routed views for home, framework, console, and roadmap instead of one very long landing page
+  - the public web surface is now split into shorter hash-routed views for home, console, chat, and roadmap instead of one very long landing page
+  - framework and positioning explanation is now fully absorbed into the homepage instead of living on a separate framework page
+  - the management console now focuses on provider setup, session controls, persistence switching, import/export, and runtime diagnostics
+  - the live conversation experience now has its own dedicated chat page with a stripped-down journal-style canvas and composer
   - the visible persisted-session archive panel has been removed from the runtime rail so the console reads less like a raw internal debug dump
 
 ## Provider Flow
@@ -99,7 +102,8 @@ Brand line:
   - ships a formal project homepage and a working provider setup console
   - now presents the brand layer and the product-shell layer as separate sections, with a console summary band ahead of setup and runtime details
   - now uses a single-page anchor-navigation homepage where the first screen stays framework-introduction-first instead of leading with runtime controls
-  - now uses shorter hash-based page views so the homepage stays brand-first while framework detail, console tooling, and roadmap live on separate screens
+  - now uses shorter hash-based page views so the homepage stays brand-first while console tooling, dedicated chat, and roadmap live on separate screens
+  - now keeps all explanatory framework material on the homepage while reserving the console page for system management and the chat page for the active dialogue only
   - can list provider presets, fetch models through the selected provider key, and save local config
   - can run a first browser chat flow and render memory, relationship, emotion, and timeline signals
   - restores local chat history and latest runtime signals after dev server restart
@@ -142,6 +146,7 @@ Brand line:
 - `npm run web:build`
 - `curl.exe -I http://127.0.0.1:4173/`
 - Playwright browser verification for `#home`, `#framework`, and `#console` on `http://127.0.0.1:4173/`
+- Playwright browser verification for `#console` and `#chat` on `http://127.0.0.1:4173/`
 
 ## Decision Sources
 
@@ -152,9 +157,9 @@ Brand line:
 - expand provider-specific chat request normalization where "OpenAI-compatible" vendors diverge beyond the current shared `/chat/completions` and `/responses` paths
 - add route-level or live verification for more provider-specific chat payload divergences after the current DeepSeek compatibility baseline
 - add focused route-level and browser-facing coverage for any remaining persistence edge cases beyond the current file/sqlite symmetry path
-- continue polishing the console page by tightening session-management density and reducing visual weight in the setup/runtime stack now that the multi-page split is in place
-- validate the bilingual multi-page shell in a broader browser pass and tune any remaining spacing or readability issues caused by mixed Chinese and English line lengths
-- consider a follow-up web pass focused specifically on chat-message rhythm, runtime panel compression, and stronger signal summarization inside the live console
+- continue polishing the split web shell by tightening session-management density in the console and improving message rhythm in the dedicated chat page
+- validate the bilingual home / console / chat shell in a broader browser pass and tune any remaining spacing or readability issues caused by mixed Chinese and English line lengths
+- consider a follow-up web pass focused specifically on richer chat-page signal affordances that do not drag diagnostics clutter back into the conversation view
 - keep session import semantic hardening paused here unless a real malformed package reveals another high-value cross-structure gap
 - consider adding finer-grained session controls such as export/import or per-session persistence diagnostics after the current reset capability
 - consider surfacing richer archive filtering or grouped recall views now that persisted session intelligence is visible in the browser

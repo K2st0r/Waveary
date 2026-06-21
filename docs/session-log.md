@@ -4,6 +4,44 @@
 
 Objective:
 
+Reorganize the `waveary-web` multi-page shell so all explanatory framework content lives on the homepage, the console page focuses on management, and the conversation experience moves into a separate minimal chat page.
+
+Summary:
+
+- removed the separate framework page path and folded its introduction, positioning, engine, and structure content back into the homepage
+- split the old mixed console/runtime page into a management-focused console view plus a dedicated chat page with a much cleaner journal-style conversation canvas
+- preserved provider setup, session switching, persistence switching, import/export, bilingual behavior, and live chat turn handling while only reshaping the render tree
+- verified the change with scoped TypeScript checks, a production web build, live local HTTP access, and real browser checks against `#console` and `#chat`
+
+Files changed:
+
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/web`
+- `npm run web:build`
+- `curl.exe -I http://127.0.0.1:4173/`
+- `npx --yes --package @playwright/cli playwright-cli -s=waveary-home-console-chat-check open http://127.0.0.1:4173/#console --headed`
+- `npx --yes --package @playwright/cli playwright-cli -s=waveary-home-console-chat-check resize 1440 1200`
+- `npx --yes --package @playwright/cli playwright-cli -s=waveary-home-console-chat-check snapshot`
+- `npx --yes --package @playwright/cli playwright-cli -s=waveary-home-console-chat-check open http://127.0.0.1:4173/#chat --headed`
+- `npx --yes --package @playwright/cli playwright-cli -s=waveary-home-console-chat-check resize 1440 1200`
+- `npx --yes --package @playwright/cli playwright-cli -s=waveary-home-console-chat-check snapshot`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+Objective:
+
 Split the `waveary-web` landing surface into shorter multi-page views and remove the visible persisted-session archive panel, without breaking provider setup, session management, runtime chat, or bilingual behavior.
 
 Summary:

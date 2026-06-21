@@ -305,7 +305,7 @@ textarea {
   gap: 0;
 }
 
-.page-main-framework,
+.page-main-chat,
 .page-main-console,
 .page-main-roadmap {
   padding-top: 2.4rem;
@@ -1389,6 +1389,13 @@ textarea {
   align-items: start;
 }
 
+.console-diagnostics-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 0.86fr);
+  gap: 1rem;
+  align-items: start;
+}
+
 .runtime-main-column,
 .runtime-side-column {
   display: grid;
@@ -1432,6 +1439,82 @@ textarea {
   content: "journal page";
   transform: rotate(4deg);
   pointer-events: none;
+}
+
+.chat-page-section {
+  padding-top: 1.4rem;
+}
+
+.chat-page-shell {
+  display: grid;
+  gap: 1.35rem;
+}
+
+.chat-page-header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.chat-page-heading {
+  max-width: 42rem;
+}
+
+.chat-page-actions {
+  display: grid;
+  gap: 0.9rem;
+  justify-items: end;
+}
+
+.chat-session-inline {
+  display: grid;
+  gap: 0.28rem;
+  min-width: min(100%, 19rem);
+  padding: 1rem 1.05rem;
+  border: 1.5px solid rgba(21, 18, 15, 0.14);
+  border-radius: var(--radius-card);
+  background: rgba(255, 251, 246, 0.76);
+  box-shadow: var(--shadow-soft);
+}
+
+.chat-session-inline-label {
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.chat-session-inline strong {
+  color: var(--text-strong);
+  font-size: 1rem;
+}
+
+.chat-session-inline span:last-child {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.chat-panel-focused {
+  min-height: calc(100dvh - 17rem);
+  max-width: 62rem;
+  width: 100%;
+  margin: 0 auto;
+  padding: 1.35rem 1.35rem 1.5rem;
+}
+
+.chat-panel-focused .chat-log {
+  min-height: 32rem;
+  max-height: calc(100dvh - 26rem);
+}
+
+.chat-page-note {
+  margin: 0 auto;
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.6;
+  text-align: center;
 }
 
 .session-panel {
@@ -1782,6 +1865,7 @@ textarea {
   .repo-layout,
   .setup-layout,
   .session-panel-grid,
+  .console-diagnostics-grid,
   .runtime-grid {
     grid-template-columns: 1fr;
   }
@@ -1814,6 +1898,19 @@ textarea {
   .hero {
     min-height: auto;
     padding-top: 3.2rem;
+  }
+
+  .chat-page-header {
+    display: grid;
+    align-items: stretch;
+  }
+
+  .chat-page-actions {
+    justify-items: stretch;
+  }
+
+  .chat-panel-focused {
+    min-height: auto;
   }
 
   .hero-copy h1 {

@@ -147,7 +147,7 @@ interface ChatMessage {
 
 type Locale = "zh" | "en";
 type LoadState = "idle" | "loading" | "success" | "error";
-type AppPage = "home" | "framework" | "console" | "roadmap";
+type AppPage = "home" | "console" | "chat" | "roadmap";
 
 interface PageLocation {
   page: AppPage;
@@ -782,12 +782,14 @@ function parsePageLocation(hash: string): PageLocation {
   const withSection = (page: AppPage): PageLocation => (sectionId ? { page, sectionId } : { page });
 
   switch (rawPage) {
-    case "framework":
-      return withSection("framework");
     case "console":
       return withSection("console");
+    case "chat":
+      return withSection("chat");
     case "roadmap":
       return withSection("roadmap");
+    case "framework":
+      return withSection("home");
     case "home":
     default:
       return withSection("home");
@@ -1468,8 +1470,8 @@ export function App(): ReactElement {
   const runtimeStateLabel = chatReady ? copy.formatting.ready : copy.formatting.waiting;
   const navigationItems: ReadonlyArray<{ page: AppPage; label: string }> = [
     { page: "home", label: copy.nav[0] },
-    { page: "framework", label: copy.nav[1] },
     { page: "console", label: copy.nav[4] },
+    { page: "chat", label: locale === "zh" ? "对话" : "Chat" },
     { page: "roadmap", label: copy.nav[5] }
   ];
 
@@ -1537,10 +1539,10 @@ export function App(): ReactElement {
             <p className="hero-lead">{copy.hero.lead}</p>
             <p className="hero-support">{copy.hero.support}</p>
             <div className="hero-actions">
-              <button className="button button-primary" onClick={() => navigateTo("framework", "intro")} type="button">
+              <button className="button button-primary" onClick={() => navigateTo("home", "intro")} type="button">
                 {copy.hero.primary}
               </button>
-              <button className="button button-secondary" onClick={() => navigateTo("framework", "engines")} type="button">
+              <button className="button button-secondary" onClick={() => navigateTo("home", "engines")} type="button">
                 {copy.hero.secondary}
               </button>
             </div>
@@ -1584,7 +1586,7 @@ export function App(): ReactElement {
         </section>
         ) : null}
 
-        {currentPage === "framework" ? (
+        {currentPage === "home" ? (
         <section className="section-grid section-block intro-section" id="intro">
           <div className="intro-layout">
             <div className="section-heading intro-heading">
@@ -1655,7 +1657,7 @@ export function App(): ReactElement {
         </section>
         ) : null}
 
-        {currentPage === "framework" ? (
+        {currentPage === "home" ? (
         <section className="section-grid section-block" id="engines">
           <div className="section-heading">
             <span className="section-caption">{copy.engines.caption}</span>
@@ -1692,7 +1694,7 @@ export function App(): ReactElement {
         </section>
         ) : null}
 
-        {currentPage === "framework" ? (
+        {currentPage === "home" ? (
         <section className="section-grid section-block repo-section" id="structure">
           <div className="section-heading">
             <span className="section-caption">{copy.structure.caption}</span>
@@ -1924,11 +1926,15 @@ export function App(): ReactElement {
         ) : null}
 
         {currentPage === "console" ? (
-        <section className="section-grid section-block console-stage" id="chat">
+        <section className="section-grid section-block console-stage" id="console-manage">
           <div className="section-heading console-stage-heading">
             <span className="section-caption">{copy.runtime.caption}</span>
-            <h2>{copy.runtime.title}</h2>
-            <p>{copy.runtime.description}</p>
+            <h2>{locale === "zh" ? "会话与持久化控制台" : "Session and persistence console"}</h2>
+            <p>
+              {locale === "zh"
+                ? "这里保留会话管理、持久化切换、导入导出与运行诊断，让对话页面本身保持更轻、更安静。"
+                : "Keep session management, persistence switching, import/export, and runtime diagnostics here so the conversation page itself stays lighter and more focused."}
+            </p>
           </div>
 
           <div className="panel session-panel">
@@ -2269,162 +2275,200 @@ export function App(): ReactElement {
             </div>
           </div>
 
-          <div className="runtime-grid">
-            <div className="runtime-main-column">
-              <div className="panel chat-panel">
-                <div className="panel-header">
-                  <span>{copy.runtime.canvas}</span>
-                  <span className="panel-tag">{chatReady ? copy.runtime.runtimeReady : copy.runtime.setupRequired}</span>
-                </div>
+          <div className="console-diagnostics-grid">
+            <div className="panel insight-panel">
+              <div className="panel-header">
+                <span>{copy.runtime.signals}</span>
+                <span className="panel-tag">{copy.runtime.signalsTag}</span>
+              </div>
 
-                {chatRestoredAt ? (
-                  <div className="status-banner status-banner-info">
-                    {copy.runtime.restored} {formatSessionTimestamp(chatRestoredAt, locale)}.
-                  </div>
-                ) : null}
-
-                <div className="chat-log">
-                  {chatMessages.length === 0 ? (
-                    <div className="empty-chat-state">{copy.runtime.emptyChat}</div>
-                  ) : (
-                    chatMessages.map((message) => (
-                      <article
-                        className={`chat-bubble ${message.role === "assistant" ? "chat-bubble-assistant" : "chat-bubble-user"}`}
-                        key={message.id}
-                      >
-                        <span className="chat-role">{message.role === "assistant" ? copy.runtime.assistant : copy.runtime.you}</span>
-                        <p>{message.content}</p>
-                      </article>
-                    ))
-                  )}
-                </div>
-
-                <div className="chat-composer">
-                  <textarea
-                    value={chatInput}
-                    onChange={(event) => setChatInput(event.target.value)}
-                    placeholder={copy.runtime.placeholder}
-                    disabled={!chatReady || chatState === "loading"}
-                  />
-                  <div className="console-actions">
-                    <button
-                      className="button button-primary"
-                      onClick={() => void handleSendMessage()}
-                      disabled={!chatReady || !chatInput.trim() || chatState === "loading"}
-                    >
-                      {chatState === "loading" ? copy.runtime.sending : copy.runtime.send}
-                    </button>
-                  </div>
-                </div>
-
-                {sessionExportJson ? (
-                  <div className="session-export-panel">
-                    <div className="panel-header">
-                      <span>{copy.runtime.sessionExport}</span>
-                      <span className="panel-tag">{copy.runtime.structuredJson}</span>
+              {chatInsights ? (
+                <div className="insight-stack">
+                  <div className="signal-metrics">
+                    <div className="signal-metric-card">
+                      <span>{copy.runtime.relationshipStage}</span>
+                      <strong>{chatInsights.relationship.stage}</strong>
                     </div>
-                    <p className="provider-note">{copy.runtime.exportDescription}</p>
-                    {sessionPackageReference ? (
-                      <div className="session-export-callout">
-                        <strong>{copy.runtime.importSafety}</strong>
-                        <span>
-                          {sessionPackageReference.importRule} {copy.runtime.currentSchemaShort} {sessionPackageReference.currentSchemaVersion}
-                        </span>
-                      </div>
-                    ) : null}
-                    <pre className="session-export-block">
-                      <code>{sessionExportJson}</code>
-                    </pre>
+                    <div className="signal-metric-card">
+                      <span>{copy.runtime.affinity}</span>
+                      <strong>{chatInsights.relationship.affinityScore.toFixed(2)}</strong>
+                    </div>
+                    <div className="signal-metric-card">
+                      <span>{copy.runtime.trust}</span>
+                      <strong>{chatInsights.relationship.trustScore.toFixed(2)}</strong>
+                    </div>
+                    <div className="signal-metric-card">
+                      <span>{copy.runtime.stability}</span>
+                      <strong>{chatInsights.relationship.stabilityScore.toFixed(2)}</strong>
+                    </div>
                   </div>
-                ) : null}
+
+                  <div className="insight-card">
+                    <div className="mini-heading">{copy.runtime.emotion}</div>
+                    <p>
+                      {chatInsights.emotion
+                        ? `${chatInsights.emotion.primaryEmotion} (${chatInsights.emotion.intensity.toFixed(2)})`
+                        : copy.runtime.noEmotion}
+                    </p>
+                  </div>
+
+                  <div className="insight-card">
+                    <div className="mini-heading">{copy.runtime.recalledMemories}</div>
+                    {chatInsights.recalledMemories.length > 0 ? (
+                      <ul className="insight-list">
+                        {chatInsights.recalledMemories.map((memory) => (
+                          <li key={memory}>{memory}</li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p>{copy.runtime.noRecalled}</p>
+                    )}
+                  </div>
+
+                  <div className="insight-card">
+                    <div className="mini-heading">{copy.runtime.storedMemories}</div>
+                    {chatInsights.storedMemories.length > 0 ? (
+                      <ul className="insight-list">
+                        {chatInsights.storedMemories.map((memory) => (
+                          <li key={memory}>{memory}</li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p>{copy.runtime.noStored}</p>
+                    )}
+                  </div>
+
+                  <div className="insight-card">
+                    <div className="mini-heading">{copy.runtime.timeline}</div>
+                    {chatInsights.timeline.length > 0 ? (
+                      <ul className="insight-list">
+                        {chatInsights.timeline.map((event) => (
+                          <li key={`${event.eventTime}-${event.title}`}>
+                            <strong>{event.title}</strong>
+                            <span>{`${event.type}${copy.formatting.sep}${event.eventTime}`}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p>{copy.runtime.noTimeline}</p>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="empty-chat-state">{copy.runtime.runtimeHint}</div>
+              )}
+            </div>
+
+            <div className="panel console-export-panel">
+              <div className="panel-header">
+                <span>{copy.runtime.sessionExport}</span>
+                <span className="panel-tag">{copy.runtime.structuredJson}</span>
+              </div>
+              {sessionExportJson ? (
+                <>
+                  <p className="provider-note">{copy.runtime.exportDescription}</p>
+                  {sessionPackageReference ? (
+                    <div className="session-export-callout">
+                      <strong>{copy.runtime.importSafety}</strong>
+                      <span>
+                        {sessionPackageReference.importRule} {copy.runtime.currentSchemaShort} {sessionPackageReference.currentSchemaVersion}
+                      </span>
+                    </div>
+                  ) : null}
+                  <pre className="session-export-block">
+                    <code>{sessionExportJson}</code>
+                  </pre>
+                </>
+              ) : (
+                <p className="provider-note">
+                  {locale === "zh"
+                    ? "从上方“管理会话”卡片导出当前会话后，结构化 JSON 会显示在这里。"
+                    : "Export the active session from the manage-session card above and the structured JSON will appear here."}
+                </p>
+              )}
+            </div>
+          </div>
+        </section>
+        ) : null}
+
+        {currentPage === "chat" ? (
+        <section className="section-grid section-block chat-page-section" id="chat">
+          <div className="chat-page-shell">
+            <div className="chat-page-header">
+              <div className="section-heading compact-heading chat-page-heading">
+                <span className="section-caption">{copy.runtime.caption}</span>
+                <h2>{locale === "zh" ? "对话页面" : "Conversation"}</h2>
+                <p>
+                  {locale === "zh"
+                    ? "这里只保留当前会话与输入输出，让陪伴本身比配置、诊断与管理更靠前。"
+                    : "This page keeps only the active conversation and composer so companionship stays ahead of setup, diagnostics, and management."}
+                </p>
+              </div>
+
+              <div className="chat-page-actions">
+                <div className="chat-session-inline">
+                  <span className="chat-session-inline-label">{locale === "zh" ? "当前会话" : "Active session"}</span>
+                  <strong>{activeSession ? activeSession.title : copy.runtime.noLocalSession}</strong>
+                  <span>{chatReady ? copy.runtime.runtimeReady : copy.runtime.setupRequired}</span>
+                </div>
+                <button className="button button-secondary" onClick={() => navigateTo("console")} type="button">
+                  {locale === "zh" ? "打开控制台" : "Open console"}
+                </button>
               </div>
             </div>
 
-            <div className="runtime-side-column">
-              <div className="panel insight-panel">
-                <div className="panel-header">
-                  <span>{copy.runtime.signals}</span>
-                  <span className="panel-tag">{copy.runtime.signalsTag}</span>
+            <div className="panel chat-panel chat-panel-focused">
+              <div className="panel-header">
+                <span>{copy.runtime.canvas}</span>
+                <span className="panel-tag">{chatReady ? copy.runtime.runtimeReady : copy.runtime.setupRequired}</span>
+              </div>
+
+              {chatRestoredAt ? (
+                <div className="status-banner status-banner-info">
+                  {copy.runtime.restored} {formatSessionTimestamp(chatRestoredAt, locale)}.
                 </div>
+              ) : null}
 
-                {chatInsights ? (
-                  <div className="insight-stack">
-                    <div className="signal-metrics">
-                      <div className="signal-metric-card">
-                        <span>{copy.runtime.relationshipStage}</span>
-                        <strong>{chatInsights.relationship.stage}</strong>
-                      </div>
-                      <div className="signal-metric-card">
-                        <span>{copy.runtime.affinity}</span>
-                        <strong>{chatInsights.relationship.affinityScore.toFixed(2)}</strong>
-                      </div>
-                      <div className="signal-metric-card">
-                        <span>{copy.runtime.trust}</span>
-                        <strong>{chatInsights.relationship.trustScore.toFixed(2)}</strong>
-                      </div>
-                      <div className="signal-metric-card">
-                        <span>{copy.runtime.stability}</span>
-                        <strong>{chatInsights.relationship.stabilityScore.toFixed(2)}</strong>
-                      </div>
-                    </div>
-
-                    <div className="insight-card">
-                      <div className="mini-heading">{copy.runtime.emotion}</div>
-                      <p>
-                        {chatInsights.emotion
-                          ? `${chatInsights.emotion.primaryEmotion} (${chatInsights.emotion.intensity.toFixed(2)})`
-                          : copy.runtime.noEmotion}
-                      </p>
-                    </div>
-
-                    <div className="insight-card">
-                      <div className="mini-heading">{copy.runtime.recalledMemories}</div>
-                      {chatInsights.recalledMemories.length > 0 ? (
-                        <ul className="insight-list">
-                          {chatInsights.recalledMemories.map((memory) => (
-                            <li key={memory}>{memory}</li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <p>{copy.runtime.noRecalled}</p>
-                      )}
-                    </div>
-
-                    <div className="insight-card">
-                      <div className="mini-heading">{copy.runtime.storedMemories}</div>
-                      {chatInsights.storedMemories.length > 0 ? (
-                        <ul className="insight-list">
-                          {chatInsights.storedMemories.map((memory) => (
-                            <li key={memory}>{memory}</li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <p>{copy.runtime.noStored}</p>
-                      )}
-                    </div>
-
-                    <div className="insight-card">
-                      <div className="mini-heading">{copy.runtime.timeline}</div>
-                      {chatInsights.timeline.length > 0 ? (
-                        <ul className="insight-list">
-                          {chatInsights.timeline.map((event) => (
-                            <li key={`${event.eventTime}-${event.title}`}>
-                              <strong>{event.title}</strong>
-                              <span>{`${event.type}${copy.formatting.sep}${event.eventTime}`}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <p>{copy.runtime.noTimeline}</p>
-                      )}
-                    </div>
-                  </div>
+              <div className="chat-log">
+                {chatMessages.length === 0 ? (
+                  <div className="empty-chat-state">{copy.runtime.emptyChat}</div>
                 ) : (
-                  <div className="empty-chat-state">{copy.runtime.runtimeHint}</div>
+                  chatMessages.map((message) => (
+                    <article
+                      className={`chat-bubble ${message.role === "assistant" ? "chat-bubble-assistant" : "chat-bubble-user"}`}
+                      key={message.id}
+                    >
+                      <span className="chat-role">{message.role === "assistant" ? copy.runtime.assistant : copy.runtime.you}</span>
+                      <p>{message.content}</p>
+                    </article>
+                  ))
                 )}
               </div>
 
+              <div className="chat-composer">
+                <textarea
+                  value={chatInput}
+                  onChange={(event) => setChatInput(event.target.value)}
+                  placeholder={copy.runtime.placeholder}
+                  disabled={!chatReady || chatState === "loading"}
+                />
+                <div className="console-actions">
+                  <button
+                    className="button button-primary"
+                    onClick={() => void handleSendMessage()}
+                    disabled={!chatReady || !chatInput.trim() || chatState === "loading"}
+                  >
+                    {chatState === "loading" ? copy.runtime.sending : copy.runtime.send}
+                  </button>
+                </div>
+              </div>
             </div>
+
+            <p className="chat-page-note">
+              {locale === "zh"
+                ? "切换会话、导入导出、持久化后端和运行诊断都留在控制台页面。"
+                : "Session switching, import/export, persistence backends, and runtime diagnostics stay in the console page."}
+            </p>
           </div>
         </section>
         ) : null}
