@@ -4,6 +4,39 @@
 
 Objective:
 
+Add semantic consistency validation to Waveary browser session imports so packages with internally contradictory session IDs or out-of-order timestamps are rejected before restore.
+
+Summary:
+
+- added cross-field validation for top-level versus snapshot session IDs
+- added consistency checks for message session IDs and for timestamps that should not exceed `snapshot.updatedAt` or `exportedAt`
+- kept the import contract in `waveary-web` while expanding regression coverage for semantically inconsistent packages
+- updated the session file format docs so external generators know the importer now checks both structure and internal consistency
+
+Files changed:
+
+- `waveary-web/server/chat-session-store.ts`
+- `waveary-web/server/provider-api.test.ts`
+- `docs/session-file-format.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/web`
+- `npm run build:server --workspace @waveary/web`
+- `node --test waveary-web/dist-server/server/provider-api.test.js`
+
+Commit:
+
+- `46f87f2` - `Add session import semantic validation`
+
+Push:
+
+- pending
+
+## 2026-06-21
+
+Objective:
+
 Tighten Waveary browser session import from structural validation into value-level validation so obviously bad timestamps, score ranges, and unsupported message roles are rejected before restore.
 
 Summary:
