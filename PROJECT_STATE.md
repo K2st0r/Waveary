@@ -92,6 +92,7 @@ Brand line:
   - homepage burn vignette now uses a hand-drawn lighter asset under `waveary-web/public/images/hero/lighter.png` instead of a pure CSS block lighter
   - burn timing, glow, scorch, and ash motion are now tuned together so the portrait burn cycle reads more like one repeated memory ritual than one static decorative loop
   - homepage lighter flame now uses a multi-layer animated flame stack with halo, outer flame, inner flame, and core so the burn focal point feels more like a real lighter flame than a flat icon
+  - homepage lighter flame anchor is now nudged slightly further left and upward across desktop and mobile breakpoints so the burn contact point aligns more tightly with the lighter nozzle
 
 ## Provider Flow
 
@@ -171,6 +172,7 @@ Brand line:
 - continue the homepage portrait system with a more deliberate `4 male / 4 female` hand-drawn polaroid-style set so the visual range feels broader and less clustered around one youth archetype
 - consider replacing the current chroma-keyed lighter cutout with a cleaner native-alpha illustration once a final asset pass is approved
 - consider a follow-up homepage motion pass that adds a slightly stronger heat shimmer or ember flicker only if it stays subtle and does not overcomplicate the hero
+- verify the latest lighter flame anchor visually in the browser and stop adjusting once the burn point feels locked, then keep homepage polish focused on asset quality instead of more positional churn
 - consider replacing current raw portrait PNGs with lighter optimized delivery assets once the final portrait set is approved
 - validate the bilingual home / console / chat shell in a broader browser pass and tune any remaining spacing, wrapping, or readability issues caused by mixed Chinese and English line lengths
 - consider a follow-up web pass focused specifically on richer chat-page signal affordances that do not drag diagnostics clutter back into the conversation view
