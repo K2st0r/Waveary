@@ -4,6 +4,41 @@
 
 Objective:
 
+Extend Waveary browser session import semantic validation so message and timeline arrays with backward-moving timestamps are rejected before restore.
+
+Summary:
+
+- added ordering checks for valid message `createdAt` timestamps so imported conversation history cannot move backward in time
+- added ordering checks for `snapshot.timelineEvents` and `snapshot.latestInsights.timeline` so imported recall sequences stay chronologically coherent
+- kept the change scoped to `waveary-web` import semantics and expanded the route-level regression to cover out-of-order arrays
+- documented the stricter ordering rule in the session file format reference for external generators
+
+Files changed:
+
+- `waveary-web/server/chat-session-store.ts`
+- `waveary-web/server/provider-api.test.ts`
+- `docs/session-file-format.md`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/web`
+- `npm run build:server --workspace @waveary/web`
+- `node --test waveary-web/dist-server/server/provider-api.test.js`
+
+Commit:
+
+- pending
+
+Push:
+
+- failed before this change was started: `git push origin main` failed to connect to `github.com:443` after 21 seconds
+
+## 2026-06-21
+
+Objective:
+
 Add semantic consistency validation to Waveary browser session imports so packages with internally contradictory session IDs or out-of-order timestamps are rejected before restore.
 
 Summary:
