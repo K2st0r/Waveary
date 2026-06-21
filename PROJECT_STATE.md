@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `da036ad` - `Sync multi-page web push status`
+- `19b5bc8` - `Split waveary web console and chat surfaces`
 
 ## Modules
 

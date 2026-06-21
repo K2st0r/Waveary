@@ -34,11 +34,11 @@ Verification:
 
 Commit:
 
-- pending
+- `19b5bc8` - `Split waveary web console and chat surfaces`
 
 Push:
 
-- pending
+- succeeded
 
 Objective:
 
