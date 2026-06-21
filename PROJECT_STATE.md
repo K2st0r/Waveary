@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `3f07ce2` - `Add proactive care inspection route`
+- `0cbfe68` - `Persist proactive care session settings`
 
 ## Modules
 
@@ -37,6 +37,7 @@ Brand line:
   - first `WPCE` decision-only runtime layer is now implemented through proactive care domain types, a `SimpleProactiveCareEngine`, and a dedicated `evaluateProactiveCare()` runtime path that combines policy, relationship stage, interaction gap, and companion emotion without generating outbound messages yet
 - persisted session state contract and repository-backed runtime state adapter are implemented
   - SQLite persisted session state repository is implemented
+  - persisted session state now also carries per-session proactive-care policy plus care-state counters so `WPCE` evaluation can survive restarts and respect saved user settings
 - `waveary-memory`
   - independent package exists
   - simple memory extractor exists
@@ -126,6 +127,7 @@ Brand line:
   - can list provider presets, fetch models through the selected provider key, and save local config
   - can run a first browser chat flow and render memory, relationship, emotion, and timeline signals
   - now exposes a read-only `/api/chat/proactive/evaluate` route so the current `WPCE` decision path can be inspected from the local web runtime without generating outbound messages
+  - now exposes `/api/chat/proactive/settings` so per-session proactive-care policy and care-state counters can be saved, reloaded, exported, imported, and reused by later `WPCE` evaluations
   - restores local chat history and latest runtime signals after dev server restart
   - can switch local chat persistence between `.waveary/chat-sessions.json` and `.waveary/chat-sessions.db`
   - supports a default main companion session plus user-created additional sessions with rename and delete management
@@ -173,6 +175,10 @@ Brand line:
 - Playwright browser verification for `#home`, `#framework`, and `#console` on `http://127.0.0.1:4173/`
 - Playwright browser verification for `#console` and `#chat` on `http://127.0.0.1:4173/`
 - Playwright browser verification for refreshed `#home`, `#console`, and `#chat` first screens on `http://127.0.0.1:4173/`
+- `npm run check --workspace @waveary/core`
+- `npm run test --workspace @waveary/core`
+- `npm run test --workspace @waveary/web`
+- `npm run web:build`
 
 ## Decision Sources
 
@@ -180,8 +186,7 @@ Brand line:
 
 ## Next Steps
 
-- define and persist the first user-configurable proactive care policy plus care-state counters in the session layer so decision results can reflect real user settings and rate limits across restarts
-- consider surfacing the new read-only proactive evaluation result in the console/runtime diagnostics UI once the final inspection contract is stable
+- surface the persisted proactive-care policy and evaluation result in the console/runtime diagnostics UI now that the session-layer contract and settings route are stable
 - define the first delivery path for proactive care in the web surface, likely browser or local notifications before any broader desktop action layer
 - keep future desktop awareness or action work behind a separate permissioned presence layer instead of mixing it directly into chat reply generation
 - expand provider-specific chat request normalization where "OpenAI-compatible" vendors diverge beyond the current shared `/chat/completions` and `/responses` paths

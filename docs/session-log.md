@@ -4,6 +4,49 @@
 
 Objective:
 
+Persist per-session `WPCE` policy and care-state settings so proactive-care evaluation can reuse saved limits and user preferences across restarts, export, and import.
+
+Summary:
+
+- extended the core persisted session contract and repository-backed session state adapter so proactive-care policy and care-state counters are stored alongside context, memory, relationship, emotion, and timeline state
+- updated `waveary-web` session snapshots, export/import payloads, and validation rules so proactive-care settings survive local migration and stay backward-compatible when older packages omit them
+- added a writable `/api/chat/proactive/settings` route and updated `evaluateChatProactiveCare()` so later `WPCE` evaluations reuse persisted policy/state by default instead of only one-off request overrides
+- added route-level regression coverage proving proactive-care settings persist, appear in session snapshots, and affect later read-only evaluation results without requiring provider configuration
+
+Files changed:
+
+- `waveary-core/src/storage/session-state.ts`
+- `waveary-core/src/storage/repository-backed-session-state.ts`
+- `waveary-core/src/storage/repository-backed-session-state.test.ts`
+- `waveary-web/server/chat-runtime.ts`
+- `waveary-web/server/chat-session-store.ts`
+- `waveary-web/server/provider-api.ts`
+- `waveary-web/server/provider-api.test.ts`
+- `docs/session-file-format.md`
+- `docs/examples/session-export.sample.json`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/core`
+- `npm run test --workspace @waveary/core`
+- `npm run check --workspace @waveary/web`
+- `npm run test --workspace @waveary/web`
+- `npm run web:build`
+
+Commit:
+
+- `0cbfe68` - `Persist proactive care session settings`
+
+Push:
+
+- succeeded: `git push origin main` pushed `0cbfe68` to the SSH remote `git@github.com:K2st0r/-Waveary-.git`
+
+## 2026-06-21
+
+Objective:
+
 Expose the current `WPCE` decision output through a read-only local web route so proactive-care policy evaluation can be exercised from the product surface before delivery is implemented.
 
 Summary:
