@@ -256,13 +256,18 @@ textarea {
   color: #fffaf3;
 }
 
-.topnav a {
+.topnav-link {
   position: relative;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
   padding-bottom: 0.15rem;
   transition: color 160ms ease;
 }
 
-.topnav a::after {
+.topnav-link::after {
   position: absolute;
   left: 0;
   right: 0;
@@ -278,11 +283,13 @@ textarea {
     transform 180ms ease;
 }
 
-.topnav a:hover {
+.topnav-link:hover,
+.topnav-link-active {
   color: var(--text-strong);
 }
 
-.topnav a:hover::after {
+.topnav-link:hover::after,
+.topnav-link-active::after {
   opacity: 1;
   transform: scaleX(1);
 }
@@ -290,6 +297,18 @@ textarea {
 .page-main {
   display: grid;
   padding-bottom: 6rem;
+  min-height: calc(100dvh - 6rem);
+  align-content: start;
+}
+
+.page-main-home {
+  gap: 0;
+}
+
+.page-main-framework,
+.page-main-console,
+.page-main-roadmap {
+  padding-top: 2.4rem;
 }
 
 .hero {
@@ -951,8 +970,7 @@ textarea {
 .setup-overview-panel,
 .session-panel,
 .chat-panel,
-.insight-panel,
-.archive-panel {
+.insight-panel {
   padding: 1.25rem;
 }
 
@@ -1222,8 +1240,6 @@ textarea {
 .insight-stack,
 .insight-card,
 .signal-metrics,
-.archive-card,
-.archive-list,
 .session-reference-card,
 .session-export-panel,
 .session-import-error-card {
@@ -1235,7 +1251,6 @@ textarea {
 .provider-hint,
 .session-control-card,
 .persistence-status-card,
-.archive-card,
 .signal-metric-card,
 .insight-card,
 .session-export-panel {
@@ -1246,7 +1261,6 @@ textarea {
   position: relative;
 }
 
-.archive-card::before,
 .signal-metric-card::before,
 .insight-card::before,
 .session-export-panel::before,
@@ -1383,7 +1397,6 @@ textarea {
 
 .chat-panel,
 .insight-panel,
-.archive-panel,
 .session-panel {
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(248, 242, 232, 0.95)),
@@ -1670,8 +1683,7 @@ textarea {
   font-size: 1.24rem;
 }
 
-.signal-metrics,
-.archive-metrics {
+.signal-metrics {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
@@ -1685,8 +1697,7 @@ textarea {
   letter-spacing: 0.02em;
 }
 
-.insight-list li,
-.archive-list li {
+.insight-list li {
   color: var(--text);
 }
 
@@ -1699,47 +1710,17 @@ textarea {
 }
 
 .insight-card p,
-.insight-list li,
-.archive-list li {
+.insight-list li {
   font-family: "Caveat", "Ma Shan Zheng", cursive;
   font-size: 1.1rem;
   line-height: 1.56;
 }
 
 .insight-list span,
-.archive-list span,
 .signal-metric-card span {
   font-family: "Caveat", "Ma Shan Zheng", cursive;
   font-size: 1rem;
   letter-spacing: 0.01em;
-}
-
-.archive-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1rem;
-}
-
-.archive-card-wide {
-  grid-column: 1 / -1;
-}
-
-.archive-list {
-  padding-left: 0;
-  list-style: none;
-}
-
-.archive-list li {
-  display: grid;
-  gap: 0.28rem;
-  padding-top: 0.95rem;
-  padding-left: 0.2rem;
-  border-top: 1px dashed rgba(21, 18, 15, 0.14);
-}
-
-.archive-list li:first-child {
-  padding-top: 0;
-  border-top: 0;
 }
 
 .session-export-block {
@@ -1752,17 +1733,14 @@ textarea {
   font-family: "IBM Plex Mono", "Cascadia Code", Consolas, monospace;
 }
 
-.archive-card:nth-child(1),
 .insight-card:nth-child(1) {
   transform: rotate(-0.7deg);
 }
 
-.archive-card:nth-child(2),
 .insight-card:nth-child(2) {
   transform: rotate(0.8deg);
 }
 
-.archive-card:nth-child(3),
 .insight-card:nth-child(3) {
   transform: rotate(-0.5deg);
 }
