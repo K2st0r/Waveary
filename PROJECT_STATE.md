@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `317f59f` - `Document emotion and proactive care architecture`
+- `35d7e56` - `Add companion emotion runtime foundation`
 
 ## Modules
 
