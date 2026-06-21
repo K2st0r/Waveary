@@ -4,6 +4,42 @@
 
 Objective:
 
+Refactor the `waveary-web` homepage so it reads as a formal open source framework site first and a companion console second, without changing existing provider, session, or chat behavior.
+
+Summary:
+
+- split the landing experience into clearer layers: brand hero, framework positioning, engine stack, companion console overview, provider setup, and live runtime
+- preserved the existing provider setup, session management, persistence switching, import/export, and runtime chat flows while changing how they are introduced and grouped
+- reworked the visual system so the top of the page feels like a framework homepage while the lower shell feels like an intentional product console instead of one repeated dark panel stack
+- verified the refactor through TypeScript checks, server build, production web build, live local page request, and desktop-plus-mobile browser layout inspection
+
+Files changed:
+
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/web`
+- `npm run build:server --workspace @waveary/web`
+- `npm run web:build`
+- `Invoke-WebRequest http://127.0.0.1:4173/`
+- Playwright browser screenshot pass against `http://127.0.0.1:4173/` on desktop and mobile widths
+
+Commit:
+
+- `1ca74b4` - `Refine waveary web landing and console hierarchy`
+
+Push:
+
+- succeeded
+
+## 2026-06-21
+
+Objective:
+
 Extend Waveary browser session import semantic validation so `snapshot.latestInsights.relationship` cannot drift away from `snapshot.relationship`.
 
 Summary:
@@ -33,7 +69,12 @@ Commit:
 
 Push:
 
-- succeeded for `fd6688b`; follow-up continuity commit `d588015` is still local because `git push origin main` failed to connect to `github.com:443` after 21 seconds
+- succeeded for `fd6688b`; follow-up continuity commits `d588015` and `6722140` were later pushed successfully together with `1ca74b4`
+
+Continuation note:
+
+- this import-semantic hardening line is intentionally paused after relationship, memory, and timeline summary consistency
+- if resumed later, the next optional check is content-level duplicate handling across imported summaries, but it is not current priority
 
 ## 2026-06-21
 

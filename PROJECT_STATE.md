@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `d588015` - `Record relationship summary validation progress`
+- `1ca74b4` - `Refine waveary web landing and console hierarchy`
 
 ## Modules
 
@@ -40,6 +40,7 @@ Brand line:
   - standalone React and Vite workspace exists
   - official homepage is implemented
   - product positioning, engine stack, provider compatibility, roadmap, and repository structure are presented in the first page
+  - homepage information architecture now separates brand vision, framework positioning, and the companion console so the product no longer reads like one long debug dashboard
   - browser-native provider setup flow is implemented through local `/api/provider/*` routes
   - provider model discovery routes now return normalized model descriptors even when upstream vendors use broader OpenAI-compatible payload variants
   - first in-browser runtime chat shell is implemented through local `/api/chat/turn`
@@ -68,6 +69,7 @@ Brand line:
   - browser session import validation now also rejects `latestInsights.timeline` entries that do not correspond to the imported snapshot timeline
   - browser session import validation now also rejects `latestInsights.recalledMemories` and `latestInsights.storedMemories` entries that do not correspond to the imported memory archive
   - browser session import validation now also rejects `latestInsights.relationship` payloads that drift away from `snapshot.relationship`
+  - current cross-structure import hardening pass is complete through relationship, memory, and timeline summary consistency; deeper content-level duplicate checks are deferred for later
   - non-default sessions can now be renamed and deleted through the web session layer
   - Windows-safe local dev and preview entrypoints are implemented for the current workspace path setup
   - package boundary is documented for future provider setup and runtime UI work
@@ -88,6 +90,7 @@ Brand line:
 - `waveary-web`
   - owns the official web interface layer
   - ships a formal project homepage and a working provider setup console
+  - now presents the brand layer and the product-shell layer as separate sections, with a console summary band ahead of setup and runtime details
   - can list provider presets, fetch models through the selected provider key, and save local config
   - can run a first browser chat flow and render memory, relationship, emotion, and timeline signals
   - restores local chat history and latest runtime signals after dev server restart
@@ -120,6 +123,7 @@ Brand line:
 - `Invoke-WebRequest http://127.0.0.1:4173/`
 - `Invoke-WebRequest http://127.0.0.1:4173/api/provider/presets`
 - `Invoke-WebRequest http://127.0.0.1:4173/api/chat/turn`
+- desktop and mobile browser layout verification for `http://127.0.0.1:4173/` via Playwright screenshot pass after the landing-page hierarchy refactor
 - `python C:\Users\13571\.codex\skills\.system\skill-creator\scripts\quick_validate.py C:\Users\13571\.codex\skills\waveary-continuity-guard`
 
 ## Decision Sources
@@ -128,10 +132,11 @@ Brand line:
 
 ## Next Steps
 
-- consider whether imported memory or timeline summaries should also reject duplicate content-level entries when the archive or event IDs remain technically unique
 - expand provider-specific chat request normalization where "OpenAI-compatible" vendors diverge beyond the current shared `/chat/completions` and `/responses` paths
 - add route-level or live verification for more provider-specific chat payload divergences after the current DeepSeek compatibility baseline
 - add focused route-level and browser-facing coverage for any remaining persistence edge cases beyond the current file/sqlite symmetry path
+- continue polishing the web shell by tightening the session and runtime panel density now that the high-level brand-versus-console hierarchy is in place
+- keep session import semantic hardening paused here unless a real malformed package reveals another high-value cross-structure gap
 - consider adding finer-grained session controls such as export/import or per-session persistence diagnostics after the current reset capability
 - consider surfacing richer archive filtering or grouped recall views now that persisted session intelligence is visible in the browser
 - consider adding import or downloadable file export flows now that structured session export is available
