@@ -106,6 +106,8 @@ interface ProactiveCareEvaluationResult {
   session: ChatSessionSnapshot | null;
 }
 
+type ProactiveAutoCheckOutcome = "notified" | "recommended" | "wait";
+
 type ProactiveCareIntent = NonNullable<ProactiveCareDecision["intent"]>;
 type ProactiveCareUrgency = NonNullable<ProactiveCareDecision["urgency"]>;
 
@@ -470,6 +472,16 @@ const zhCopy = {
     notificationPermission: "通知权限",
     notificationAutoDelivery: "建议触达时自动发通知",
     notificationHint: "仅在当前浏览器本地生效。评估结果为建议触达且你已授权时，Waveary 才会投递通知。",
+    proactiveLocalLoop: "本地巡检循环",
+    proactiveLocalLoopEnabled: "当前标签页可见时定期评估",
+    proactiveLocalLoopInterval: "评估间隔",
+    proactiveLocalLoopHint: "只在当前浏览器标签页打开且可见时运行，不会在后台静默执行。",
+    proactiveLocalLoopLastRun: "上次巡检",
+    proactiveLocalLoopOutcome: "最近结果",
+    proactiveLocalLoopNever: "尚未执行本地巡检。",
+    proactiveAutoOutcomeNotified: "已完成通知投递",
+    proactiveAutoOutcomeRecommended: "建议触达，但本轮未投递通知",
+    proactiveAutoOutcomeWait: "当前继续等待更合适",
     requestNotificationPermission: "请求通知权限",
     requestingNotificationPermission: "请求中...",
     notificationDelivered: "已发送浏览器通知。",
@@ -833,6 +845,16 @@ const enCopy = {
     notificationPermission: "Permission",
     notificationAutoDelivery: "Auto-notify when reachout is recommended",
     notificationHint: "This stays local to the current browser. Waveary only delivers a notification when the evaluation recommends a reachout and permission has been granted.",
+    proactiveLocalLoop: "Local Check Loop",
+    proactiveLocalLoopEnabled: "Periodically evaluate while this tab is visible",
+    proactiveLocalLoopInterval: "Evaluation interval",
+    proactiveLocalLoopHint: "This only runs while the current browser tab stays open and visible. It does not perform hidden background automation.",
+    proactiveLocalLoopLastRun: "Last local check",
+    proactiveLocalLoopOutcome: "Latest outcome",
+    proactiveLocalLoopNever: "No local check has run yet.",
+    proactiveAutoOutcomeNotified: "Delivered a notification",
+    proactiveAutoOutcomeRecommended: "Recommended a reachout but did not deliver a notification",
+    proactiveAutoOutcomeWait: "Waiting remains the better move",
     requestNotificationPermission: "Request Notification Permission",
     requestingNotificationPermission: "Requesting...",
     notificationDelivered: "Delivered a browser notification.",
@@ -1141,6 +1163,9 @@ const heroPortraitCards: HeroPortraitCard[] = [
 ];
 
 const HERO_BURN_CYCLE_MS = 12000;
+const PROACTIVE_AUTO_CHECK_STORAGE_KEY = "waveary-proactive-auto-check-enabled";
+const PROACTIVE_AUTO_CHECK_INTERVAL_STORAGE_KEY = "waveary-proactive-auto-check-interval-minutes";
+const DEFAULT_PROACTIVE_AUTO_CHECK_INTERVAL_MINUTES = 20;
 
 export function App(): ReactElement {
   const [locale, setLocale] = useState<Locale>(() => {
@@ -1194,6 +1219,24 @@ export function App(): ReactElement {
     return loadPermissionProfile();
   });
   const [notificationPermissionState, setNotificationPermissionState] = useState<LoadState>("idle");
+  const [proactiveAutoCheckEnabled, setProactiveAutoCheckEnabled] = useState<boolean>(() => {
+    if (typeof window === "undefined") {
+      return false;
+    }
+
+    return window.localStorage.getItem(PROACTIVE_AUTO_CHECK_STORAGE_KEY) === "true";
+  });
+  const [proactiveAutoCheckIntervalMinutes, setProactiveAutoCheckIntervalMinutes] = useState<number>(() => {
+    if (typeof window === "undefined") {
+      return DEFAULT_PROACTIVE_AUTO_CHECK_INTERVAL_MINUTES;
+    }
+
+    const raw = Number(window.localStorage.getItem(PROACTIVE_AUTO_CHECK_INTERVAL_STORAGE_KEY) ?? "");
+    return Number.isFinite(raw) && raw >= 5 ? raw : DEFAULT_PROACTIVE_AUTO_CHECK_INTERVAL_MINUTES;
+  });
+  const [proactiveAutoCheckLastRunAt, setProactiveAutoCheckLastRunAt] = useState<string | null>(null);
+  const [proactiveAutoCheckLastOutcome, setProactiveAutoCheckLastOutcome] =
+    useState<ProactiveAutoCheckOutcome | null>(null);
   const [chatSessions, setChatSessions] = useState<ChatSessionListItem[]>([]);
   const [activeSessionId, setActiveSessionId] = useState("");
   const [defaultSessionId, setDefaultSessionId] = useState("");
@@ -1246,8 +1289,82 @@ export function App(): ReactElement {
   }, [permissionProfile]);
 
   useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    window.localStorage.setItem(
+      PROACTIVE_AUTO_CHECK_STORAGE_KEY,
+      proactiveAutoCheckEnabled ? "true" : "false"
+    );
+  }, [proactiveAutoCheckEnabled]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    window.localStorage.setItem(
+      PROACTIVE_AUTO_CHECK_INTERVAL_STORAGE_KEY,
+      String(proactiveAutoCheckIntervalMinutes)
+    );
+  }, [proactiveAutoCheckIntervalMinutes]);
+
+  useEffect(() => {
     void loadInitialState();
   }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    if (!proactiveAutoCheckEnabled || !activeSessionId || !savedConfig) {
+      return;
+    }
+
+    if (permissionProfile.proactiveNotifications !== "allow") {
+      return;
+    }
+
+    const runIfVisible = (): void => {
+      if (document.visibilityState !== "visible") {
+        return;
+      }
+
+      if (proactiveEvaluateState === "loading" || chatState === "loading") {
+        return;
+      }
+
+      void runProactiveCareEvaluation({ source: "auto" }).catch((error: unknown) => {
+        setStatusMessage(getErrorMessage(error));
+      });
+    };
+
+    const intervalId = window.setInterval(
+      runIfVisible,
+      proactiveAutoCheckIntervalMinutes * 60 * 1000
+    );
+
+    const handleVisibilityChange = (): void => {
+      runIfVisible();
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      window.clearInterval(intervalId);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [
+    activeSessionId,
+    chatState,
+    permissionProfile.proactiveNotifications,
+    proactiveAutoCheckEnabled,
+    proactiveAutoCheckIntervalMinutes,
+    proactiveEvaluateState,
+    savedConfig
+  ]);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -1807,12 +1924,14 @@ export function App(): ReactElement {
     }
   }
 
-  async function handleEvaluateProactiveCare(): Promise<void> {
-    if (!activeSessionId) {
-      return;
+  async function runProactiveCareEvaluation(
+    options: {
+      source: "manual" | "auto";
     }
-
-    setProactiveEvaluateState("loading");
+  ): Promise<ProactiveAutoCheckOutcome | null> {
+    if (!activeSessionId) {
+      return null;
+    }
 
     try {
       const timeContext = buildChatTurnTimeContext(permissionProfile);
@@ -1830,7 +1949,17 @@ export function App(): ReactElement {
 
       setProactiveDecision(response.decision);
       setProactiveDraft(response.draft);
-      setProactiveEvaluateState("success");
+      const nextOutcome: ProactiveAutoCheckOutcome = response.decision.shouldReachOut
+        ? proactiveNotificationEnabled && browserNotificationPermission === "granted"
+          ? "notified"
+          : "recommended"
+        : "wait";
+
+      if (options.source === "auto") {
+        setProactiveAutoCheckLastRunAt(response.decision.evaluatedAt);
+        setProactiveAutoCheckLastOutcome(nextOutcome);
+      }
+
       if (proactiveNotificationEnabled && response.decision.shouldReachOut) {
         if (browserNotificationPermission === "granted") {
           deliverProactiveBrowserNotification(
@@ -1840,19 +1969,62 @@ export function App(): ReactElement {
             response.draft
           );
           await recordDeliveredProactiveReachout(response.decision);
-          setStatusMessage(copy.runtime.notificationDelivered);
+          setStatusMessage(
+            options.source === "auto"
+              ? locale === "zh"
+                ? "本地巡检已命中建议触达，并已发送浏览器通知。"
+                : "The local check recommended outreach and delivered a browser notification."
+              : copy.runtime.notificationDelivered
+          );
         } else if (browserNotificationPermission === "default") {
-          setStatusMessage(copy.runtime.notificationNeedsPermission);
+          setStatusMessage(
+            options.source === "auto"
+              ? locale === "zh"
+                ? "本地巡检命中了建议触达，但浏览器通知权限尚未授权。"
+                : "The local check recommended outreach, but notification permission has not been granted."
+              : copy.runtime.notificationNeedsPermission
+          );
         } else {
-          setStatusMessage(copy.runtime.proactiveEvaluationReady);
+          setStatusMessage(
+            options.source === "auto"
+              ? locale === "zh"
+                ? "本地巡检命中了建议触达，但本轮没有投递通知。"
+                : "The local check recommended outreach, but no notification was delivered in this pass."
+              : copy.runtime.proactiveEvaluationReady
+          );
         }
       } else {
         setStatusMessage(
-          response.decision.shouldReachOut
-            ? copy.runtime.proactiveEvaluationReady
-            : copy.runtime.notificationNoReachout
+          options.source === "auto"
+            ? locale === "zh"
+              ? "本地巡检已完成，当前继续等待更合适。"
+              : "The local check completed and waiting remains the better move."
+            : response.decision.shouldReachOut
+              ? copy.runtime.proactiveEvaluationReady
+              : copy.runtime.notificationNoReachout
         );
       }
+
+      return nextOutcome;
+    } catch (error) {
+      if (options.source === "auto") {
+        setProactiveAutoCheckLastRunAt(new Date().toISOString());
+      }
+
+      throw error;
+    }
+  }
+
+  async function handleEvaluateProactiveCare(): Promise<void> {
+    if (!activeSessionId) {
+      return;
+    }
+
+    setProactiveEvaluateState("loading");
+
+    try {
+      await runProactiveCareEvaluation({ source: "manual" });
+      setProactiveEvaluateState("success");
     } catch (error) {
       setProactiveEvaluateState("error");
       setStatusMessage(getErrorMessage(error));
@@ -3232,6 +3404,54 @@ export function App(): ReactElement {
                       ) : null}
                     </div>
 
+                    <div className="session-reference-card proactive-state-card">
+                      <strong>{copy.runtime.proactiveLocalLoop}</strong>
+                      <span>{copy.runtime.proactiveLocalLoopHint}</span>
+                      <label className="proactive-toggle">
+                        <input
+                          type="checkbox"
+                          checked={proactiveAutoCheckEnabled}
+                          onChange={(event) => setProactiveAutoCheckEnabled(event.target.checked)}
+                          disabled={
+                            permissionProfile.proactiveNotifications !== "allow" ||
+                            !savedConfig
+                          }
+                        />
+                        <span>
+                          {copy.runtime.proactiveLocalLoopEnabled}
+                          {copy.formatting.sep}
+                          {proactiveAutoCheckEnabled ? copy.runtime.yes : copy.runtime.no}
+                        </span>
+                      </label>
+                      <label className="form-field">
+                        <span>{copy.runtime.proactiveLocalLoopInterval}</span>
+                        <input
+                          type="number"
+                          min={5}
+                          step={5}
+                          value={proactiveAutoCheckIntervalMinutes}
+                          onChange={(event) =>
+                            setProactiveAutoCheckIntervalMinutes(
+                              Math.max(5, Number(event.target.value || DEFAULT_PROACTIVE_AUTO_CHECK_INTERVAL_MINUTES))
+                            )
+                          }
+                          disabled={!proactiveAutoCheckEnabled}
+                        />
+                      </label>
+                      <span>
+                        {copy.runtime.proactiveLocalLoopLastRun}
+                        {copy.formatting.sep}
+                        {proactiveAutoCheckLastRunAt
+                          ? formatSessionTimestamp(proactiveAutoCheckLastRunAt, locale)
+                          : copy.runtime.proactiveLocalLoopNever}
+                      </span>
+                      <span>
+                        {copy.runtime.proactiveLocalLoopOutcome}
+                        {copy.formatting.sep}
+                        {formatProactiveAutoCheckOutcome(proactiveAutoCheckLastOutcome, locale)}
+                      </span>
+                    </div>
+
                     <div className="console-actions">
                       <button
                         className="button button-secondary"
@@ -3767,6 +3987,27 @@ function formatBrowserNotificationPermission(
   }
 
   return locale === "zh" ? "未决定" : "default";
+}
+
+function formatProactiveAutoCheckOutcome(
+  outcome: ProactiveAutoCheckOutcome | null,
+  locale: Locale
+): string {
+  if (!outcome) {
+    return locale === "zh" ? "尚未执行" : "Not run yet";
+  }
+
+  const copy = getCopy(locale);
+
+  if (outcome === "notified") {
+    return copy.runtime.proactiveAutoOutcomeNotified;
+  }
+
+  if (outcome === "recommended") {
+    return copy.runtime.proactiveAutoOutcomeRecommended;
+  }
+
+  return copy.runtime.proactiveAutoOutcomeWait;
 }
 
 function deliverProactiveBrowserNotification(
