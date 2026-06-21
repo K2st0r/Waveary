@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `pending` - `Add bilingual homepage language toggle`
+- `45d5cc3` - `Add bilingual homepage language toggle`
 
 ## Modules
 
