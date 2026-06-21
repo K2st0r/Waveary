@@ -24,7 +24,8 @@ import {
   listChatSessions,
   resetChatSession,
   renameChatSession,
-  switchChatPersistenceBackend
+  switchChatPersistenceBackend,
+  updateChatSessionProactiveCare
 } from "./chat-session-store.js";
 import type { ChatPersistenceBackend } from "./chat-persistence-config.js";
 import { loadSavedProviderConfig, saveProviderConfig } from "./provider-config.js";
@@ -50,6 +51,23 @@ interface ChatSessionRequest {
 
 interface EvaluateProactiveCareRequest extends ChatSessionRequest {
   now?: string;
+  policy?: {
+    enabled?: boolean;
+    quietHoursStart?: string;
+    quietHoursEnd?: string;
+    maxDailyReachouts?: number;
+    allowMealCare?: boolean;
+    allowSleepCare?: boolean;
+    allowAbsenceCheckins?: boolean;
+  };
+  state?: {
+    dailyReachoutsSent?: number;
+    unansweredReachoutCount?: number;
+    lastReachOutAt?: string;
+  };
+}
+
+interface UpdateProactiveCareSettingsRequest extends ChatSessionRequest {
   policy?: {
     enabled?: boolean;
     quietHoursStart?: string;
@@ -141,6 +159,20 @@ export function createProviderApiMiddleware() {
           payload.sessionId?.trim() || DEFAULT_CHAT_SESSION_ID,
           {
             ...(payload.now ? { now: payload.now } : {}),
+            ...(payload.policy ? { policy: payload.policy } : {}),
+            ...(payload.state ? { state: payload.state } : {})
+          }
+        );
+
+        sendJson(response, 200, result);
+        return;
+      }
+
+      if (request.method === "POST" && request.url === "/api/chat/proactive/settings") {
+        const payload = (await readJsonBody(request)) as UpdateProactiveCareSettingsRequest;
+        const result = updateChatSessionProactiveCare(
+          payload.sessionId?.trim() || DEFAULT_CHAT_SESSION_ID,
+          {
             ...(payload.policy ? { policy: payload.policy } : {}),
             ...(payload.state ? { state: payload.state } : {})
           }

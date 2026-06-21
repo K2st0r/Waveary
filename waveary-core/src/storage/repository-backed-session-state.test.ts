@@ -75,6 +75,15 @@ test("RepositoryBackedSessionState persists context, memories, relationship, and
   const recalled = await sessionState
     .getMemoryStore()
     .recallRelevantMemories(context.user.id, "remember design note");
+  const proactiveCarePolicy = sessionState.saveProactiveCarePolicy({
+    enabled: true,
+    maxDailyReachouts: 3
+  });
+  const proactiveCareState = sessionState.saveProactiveCareState({
+    dailyReachoutsSent: 1,
+    unansweredReachoutCount: 1,
+    lastReachOutAt: "2026-06-21T12:00:00.000Z"
+  });
 
   const saved = repository.load("session-1");
 
@@ -82,12 +91,18 @@ test("RepositoryBackedSessionState persists context, memories, relationship, and
   assert.equal(saved?.context.history.length, 1);
   assert.equal(saved?.memories.length, 1);
   assert.equal(saved?.emotion?.primaryEmotion, "warm");
+  assert.equal(saved?.proactiveCarePolicy?.enabled, true);
+  assert.equal(saved?.proactiveCarePolicy?.maxDailyReachouts, 3);
+  assert.equal(saved?.proactiveCareState?.dailyReachoutsSent, 1);
+  assert.equal(saved?.proactiveCareState?.unansweredReachoutCount, 1);
   assert.equal(saved?.relationship?.stage, "warming");
   assert.equal(saved?.timeline.length, 1);
   assert.equal(storedMemories.length, 1);
   assert.equal(recalled.length, 1);
   assert.equal(relationship.userId, context.user.id);
   assert.equal(timeline.length, 1);
+  assert.equal(proactiveCarePolicy.enabled, true);
+  assert.equal(proactiveCareState.dailyReachoutsSent, 1);
 });
 
 function createInitialState(sessionId: string): PersistedSessionState {

@@ -222,11 +222,79 @@ test("chat session route returns the requested persisted snapshot", async () => 
   assert.equal(response.body.session.relationship.stage, "new");
   assert.equal(response.body.session.relationship.affinityScore, 0.256);
   assert.equal(response.body.session.relationship.trustScore, 0.25);
+  assert.equal(response.body.session.proactiveCarePolicy.enabled, false);
+  assert.equal(response.body.session.proactiveCarePolicy.maxDailyReachouts, 2);
+  assert.equal(response.body.session.proactiveCareState.dailyReachoutsSent, 0);
+  assert.equal(response.body.session.proactiveCareState.unansweredReachoutCount, 0);
   assert.equal(response.body.session.timelineEvents.length, 1);
   assert.equal(
     response.body.session.timelineEvents[0]?.description,
     "Please remember this route-level session test."
   );
+});
+
+test("chat proactive settings route persists proactive policy and state for later evaluation", async () => {
+  const middleware = createProviderApiMiddleware();
+
+  const settingsResponse = await invokeJsonRoute(
+    middleware,
+    "POST",
+    "/api/chat/proactive/settings",
+    {
+      sessionId: DEFAULT_CHAT_SESSION_ID,
+      policy: {
+        enabled: true,
+        quietHoursStart: "00:00",
+        quietHoursEnd: "06:00",
+        maxDailyReachouts: 3,
+        allowAbsenceCheckins: true
+      },
+      state: {
+        dailyReachoutsSent: 1,
+        unansweredReachoutCount: 2,
+        lastReachOutAt: "2026-06-20T08:00:00.000Z"
+      }
+    }
+  );
+
+  assert.equal(settingsResponse.statusCode, 200);
+  assert.equal(settingsResponse.body.session.sessionId, DEFAULT_CHAT_SESSION_ID);
+  assert.equal(settingsResponse.body.session.proactiveCarePolicy.enabled, true);
+  assert.equal(settingsResponse.body.session.proactiveCarePolicy.maxDailyReachouts, 3);
+  assert.equal(settingsResponse.body.session.proactiveCareState.dailyReachoutsSent, 1);
+  assert.equal(settingsResponse.body.session.proactiveCareState.unansweredReachoutCount, 2);
+  assert.equal(
+    settingsResponse.body.session.proactiveCareState.lastReachOutAt,
+    "2026-06-20T08:00:00.000Z"
+  );
+
+  const evaluateResponse = await invokeJsonRoute(
+    middleware,
+    "POST",
+    "/api/chat/proactive/evaluate",
+    {
+      sessionId: DEFAULT_CHAT_SESSION_ID,
+      now: "2026-06-21T12:00:00.000Z"
+    }
+  );
+
+  assert.equal(evaluateResponse.statusCode, 200);
+  assert.equal(evaluateResponse.body.session.proactiveCarePolicy.enabled, true);
+  assert.equal(evaluateResponse.body.session.proactiveCareState.dailyReachoutsSent, 1);
+  assert.equal(evaluateResponse.body.decision.shouldReachOut, false);
+  assert.equal(
+    evaluateResponse.body.decision.reasons.includes("awaiting_user_response"),
+    true
+  );
+
+  const sessionResponse = await invokeJsonRoute(middleware, "POST", "/api/chat/session", {
+    sessionId: DEFAULT_CHAT_SESSION_ID
+  });
+
+  assert.equal(sessionResponse.statusCode, 200);
+  assert.equal(sessionResponse.body.session.proactiveCarePolicy.enabled, true);
+  assert.equal(sessionResponse.body.session.proactiveCareState.dailyReachoutsSent, 1);
+  assert.equal(sessionResponse.body.session.proactiveCareState.unansweredReachoutCount, 2);
 });
 
 test("chat proactive evaluation route returns a read-only decision without requiring provider config", async () => {
@@ -256,6 +324,19 @@ test("chat proactive evaluation route returns a read-only decision without requi
         }
       ],
       latestInsights: null,
+      proactiveCarePolicy: {
+        enabled: true,
+        quietHoursStart: "23:00",
+        quietHoursEnd: "08:00",
+        maxDailyReachouts: 2,
+        allowMealCare: true,
+        allowSleepCare: true,
+        allowAbsenceCheckins: true
+      },
+      proactiveCareState: {
+        dailyReachoutsSent: 0,
+        unansweredReachoutCount: 0
+      },
       memoryArchive: [],
       relationship: {
         userId: "user-web-1",
@@ -285,6 +366,8 @@ test("chat proactive evaluation route returns a read-only decision without requi
   assert.equal(response.body.decision.intent, "absence_reachout");
   assert.equal(response.body.decision.urgency, "medium");
   assert.equal(response.body.decision.reasons.includes("long_absence_gap"), true);
+  assert.equal(response.body.session.proactiveCarePolicy.enabled, true);
+  assert.equal(response.body.session.proactiveCareState.dailyReachoutsSent, 0);
 });
 
 test("chat session export route returns a structured export package for the active session", async () => {
@@ -332,6 +415,8 @@ test("chat session export route returns a structured export package for the acti
   assert.equal(response.body.exported.snapshot.messages.length, 2);
   assert.equal(response.body.exported.snapshot.memoryArchive.length, 1);
   assert.equal(response.body.exported.snapshot.timelineEvents.length, 1);
+  assert.equal(response.body.exported.snapshot.proactiveCarePolicy.enabled, false);
+  assert.equal(response.body.exported.snapshot.proactiveCareState.dailyReachoutsSent, 0);
   assert.equal(
     response.body.exported.snapshot.memoryArchive[0]?.content,
     "Please export this session memory package"
@@ -363,6 +448,20 @@ test("chat session import route restores an exported package as a new session", 
         }
       ],
       latestInsights: null,
+      proactiveCarePolicy: {
+        enabled: true,
+        quietHoursStart: "22:30",
+        quietHoursEnd: "07:30",
+        maxDailyReachouts: 4,
+        allowMealCare: true,
+        allowSleepCare: false,
+        allowAbsenceCheckins: true
+      },
+      proactiveCareState: {
+        dailyReachoutsSent: 2,
+        unansweredReachoutCount: 1,
+        lastReachOutAt: "2026-06-20T00:00:00.000Z"
+      },
       memoryArchive: [
         {
           id: "memory-1",
@@ -403,6 +502,13 @@ test("chat session import route restores an exported package as a new session", 
   assert.equal(response.body.imported.importedTitle, "Recovered Session");
   assert.notEqual(response.body.imported.session.sessionId, "session-original");
   assert.equal(response.body.imported.session.messages.length, 2);
+  assert.equal(response.body.imported.session.proactiveCarePolicy.enabled, true);
+  assert.equal(response.body.imported.session.proactiveCarePolicy.allowSleepCare, false);
+  assert.equal(response.body.imported.session.proactiveCareState.dailyReachoutsSent, 2);
+  assert.equal(
+    response.body.imported.session.proactiveCareState.lastReachOutAt,
+    "2026-06-20T00:00:00.000Z"
+  );
   assert.equal(response.body.imported.session.memoryArchive.length, 1);
   assert.equal(response.body.imported.session.timelineEvents.length, 1);
   assert.equal(
@@ -420,6 +526,17 @@ test("chat session import route returns validation details for malformed package
       title: "",
       snapshot: {
         latestInsights: undefined,
+        proactiveCarePolicy: {
+          enabled: "yes",
+          quietHoursStart: 2300,
+          maxDailyReachouts: -1,
+          allowMealCare: "sometimes"
+        },
+        proactiveCareState: {
+          dailyReachoutsSent: -2,
+          unansweredReachoutCount: "many",
+          lastReachOutAt: "later"
+        },
         relationship: undefined,
         messages: [{}],
         memoryArchive: [{}],
@@ -437,6 +554,15 @@ test("chat session import route returns validation details for malformed package
     "Missing `snapshot.updatedAt`.",
     "Missing `snapshot.latestInsights`.",
     "Missing `snapshot.relationship`.",
+    "`snapshot.proactiveCarePolicy.enabled` must be a boolean.",
+    "`snapshot.proactiveCarePolicy.quietHoursStart` must be a string if present.",
+    "`snapshot.proactiveCarePolicy.maxDailyReachouts` must be 0 or greater.",
+    "`snapshot.proactiveCarePolicy.allowMealCare` must be a boolean.",
+    "`snapshot.proactiveCarePolicy.allowSleepCare` must be a boolean.",
+    "`snapshot.proactiveCarePolicy.allowAbsenceCheckins` must be a boolean.",
+    "`snapshot.proactiveCareState.dailyReachoutsSent` must be 0 or greater.",
+    "`snapshot.proactiveCareState.unansweredReachoutCount` must be a number.",
+    "`snapshot.proactiveCareState.lastReachOutAt` must be a valid ISO timestamp if present.",
     "Message 1 is missing a string `role`.",
     "Message 1 is missing a string `content`.",
     "Memory item 1 is missing a string `type`.",

@@ -98,7 +98,17 @@ export async function evaluateChatProactiveCare(
 
   if (cached) {
     const context = cached.persistentState.getContext();
-    const decision = await cached.runtime.evaluateProactiveCare(context, options);
+    const decision = await cached.runtime.evaluateProactiveCare(context, {
+      ...(options.now ? { now: options.now } : {}),
+      policy: {
+        ...cached.persistentState.getProactiveCarePolicy(),
+        ...(options.policy ?? {})
+      },
+      state: {
+        ...cached.persistentState.getProactiveCareState(),
+        ...(options.state ?? {})
+      }
+    });
 
     return {
       decision,
@@ -110,7 +120,17 @@ export async function evaluateChatProactiveCare(
 
   try {
     const context = transientState.persistentState.getContext();
-    const decision = await transientState.runtime.evaluateProactiveCare(context, options);
+    const decision = await transientState.runtime.evaluateProactiveCare(context, {
+      ...(options.now ? { now: options.now } : {}),
+      policy: {
+        ...transientState.persistentState.getProactiveCarePolicy(),
+        ...(options.policy ?? {})
+      },
+      state: {
+        ...transientState.persistentState.getProactiveCareState(),
+        ...(options.state ?? {})
+      }
+    });
 
     return {
       decision,

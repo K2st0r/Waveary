@@ -5,12 +5,20 @@ import type {
   MemoryItem,
   MemoryStore,
   Message,
+  ProactiveCarePolicy,
+  ProactiveCareState,
   RelationshipDelta,
   RelationshipProfile,
   RelationshipStore,
   RuntimeContext,
   TimelineEvent,
   TimelineStore
+} from "../index.js";
+import {
+  createDefaultProactiveCarePolicy,
+  createDefaultProactiveCareState,
+  resolveProactiveCarePolicy,
+  resolveProactiveCareState
 } from "../index.js";
 import type { PersistedSessionState, SessionStateRepository } from "./session-state.js";
 
@@ -67,6 +75,58 @@ export class RepositoryBackedSessionState<TState extends PersistedSessionState =
 
   getState(): TState {
     return cloneState(this.readOrCreate());
+  }
+
+  getProactiveCarePolicy(): ProactiveCarePolicy {
+    const state = this.getState();
+    return resolveProactiveCarePolicy(
+      state.proactiveCarePolicy ?? createDefaultProactiveCarePolicy()
+    );
+  }
+
+  saveProactiveCarePolicy(policyPatch: Partial<ProactiveCarePolicy>): ProactiveCarePolicy {
+    let nextPolicy = createDefaultProactiveCarePolicy();
+
+    this.saveState((current) => {
+      nextPolicy = resolveProactiveCarePolicy({
+        ...(current.proactiveCarePolicy ?? createDefaultProactiveCarePolicy()),
+        ...policyPatch
+      });
+
+      return {
+        ...current,
+        proactiveCarePolicy: nextPolicy,
+        updatedAt: new Date().toISOString()
+      };
+    });
+
+    return nextPolicy;
+  }
+
+  getProactiveCareState(): ProactiveCareState {
+    const state = this.getState();
+    return resolveProactiveCareState(
+      state.proactiveCareState ?? createDefaultProactiveCareState()
+    );
+  }
+
+  saveProactiveCareState(statePatch: Partial<ProactiveCareState>): ProactiveCareState {
+    let nextState = createDefaultProactiveCareState();
+
+    this.saveState((current) => {
+      nextState = resolveProactiveCareState({
+        ...(current.proactiveCareState ?? createDefaultProactiveCareState()),
+        ...statePatch
+      });
+
+      return {
+        ...current,
+        proactiveCareState: nextState,
+        updatedAt: new Date().toISOString()
+      };
+    });
+
+    return nextState;
   }
 
   saveState(updater: (current: TState) => TState): TState {

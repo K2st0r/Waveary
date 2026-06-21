@@ -45,6 +45,19 @@ This rule is deliberate. It keeps session migration safe during the current CE s
     "sessionId": "waveary-main",
     "messages": [],
     "latestInsights": null,
+    "proactiveCarePolicy": {
+      "enabled": false,
+      "quietHoursStart": "23:00",
+      "quietHoursEnd": "08:00",
+      "maxDailyReachouts": 2,
+      "allowMealCare": true,
+      "allowSleepCare": true,
+      "allowAbsenceCheckins": true
+    },
+    "proactiveCareState": {
+      "dailyReachoutsSent": 0,
+      "unansweredReachoutCount": 0
+    },
     "memoryArchive": [],
     "relationship": null,
     "timelineEvents": [],
@@ -173,6 +186,46 @@ Recommended fields:
 - `importance`
 - `createdAt`
 
+### `snapshot.proactiveCarePolicy`
+
+- type: `object`
+- meaning: persisted per-session proactive-care policy used by `WPCE`
+
+Current shape when present:
+
+```json
+{
+  "enabled": false,
+  "quietHoursStart": "23:00",
+  "quietHoursEnd": "08:00",
+  "maxDailyReachouts": 2,
+  "allowMealCare": true,
+  "allowSleepCare": true,
+  "allowAbsenceCheckins": true
+}
+```
+
+This field is currently optional for import.
+When missing, Waveary restores default proactive-care policy values.
+
+### `snapshot.proactiveCareState`
+
+- type: `object`
+- meaning: persisted per-session proactive-care counters and latest reachout state
+
+Current shape when present:
+
+```json
+{
+  "dailyReachoutsSent": 0,
+  "unansweredReachoutCount": 0,
+  "lastReachOutAt": "2026-06-20T00:00:00.000Z"
+}
+```
+
+This field is currently optional for import.
+When missing, Waveary restores default proactive-care state values.
+
 ### `snapshot.relationship`
 
 - type: `object | null`
@@ -253,6 +306,8 @@ It currently checks for:
 - timeline entries with invalid ISO timestamps
 - relationship and latest insight score fields outside `0..1`
 - relationship and latest insight timestamp fields that are not valid ISO timestamps
+- malformed proactive-care policy fields when `snapshot.proactiveCarePolicy` is present
+- malformed proactive-care state fields when `snapshot.proactiveCareState` is present
 - mismatched `sessionId` values between top-level package, snapshot payload, and message entries
 - timestamps that are structurally valid but semantically later than `snapshot.updatedAt` or `exportedAt`
 - message arrays whose valid `createdAt` values move backward in time

@@ -5,12 +5,18 @@ import type {
   EmotionState,
   MemoryItem,
   Message,
+  ProactiveCarePolicy,
+  ProactiveCareState,
   RelationshipProfile,
   RuntimeContext,
   TimelineEvent
 } from "@waveary/core";
 import {
   RepositoryBackedSessionState,
+  createDefaultProactiveCarePolicy,
+  createDefaultProactiveCareState,
+  resolveProactiveCarePolicy,
+  resolveProactiveCareState,
   type PersistedSessionState,
   type PersistedSessionStateRecord,
   type SessionStateRepository
@@ -46,6 +52,8 @@ export interface ChatSessionSnapshot {
   sessionId: string;
   messages: Message[];
   latestInsights: ChatReplyPayload | null;
+  proactiveCarePolicy: ProactiveCarePolicy;
+  proactiveCareState: ProactiveCareState;
   memoryArchive: Array<{
     id: string;
     type: MemoryItem["type"];
@@ -70,6 +78,13 @@ export interface ChatSessionListItem {
   title: string;
   updatedAt: string;
   messageCount: number;
+}
+
+export interface UpdateChatProactiveCareResult {
+  session: ChatSessionSnapshot;
+  sessions: ChatSessionListItem[];
+  defaultSessionId: string;
+  persistence: ChatPersistenceStatus;
 }
 
 export interface ExportedChatSession {
@@ -153,6 +168,31 @@ export class PersistentChatSessionState {
     return this.runtimeState.getTimelineStore();
   }
 
+  getProactiveCarePolicy(): ProactiveCarePolicy {
+    return this.runtimeState.getProactiveCarePolicy();
+  }
+
+  getProactiveCareState(): ProactiveCareState {
+    return this.runtimeState.getProactiveCareState();
+  }
+
+  saveProactiveCareSettings(input: {
+    policy?: Partial<ProactiveCarePolicy>;
+    state?: Partial<ProactiveCareState>;
+  }): {
+    policy: ProactiveCarePolicy;
+    state: ProactiveCareState;
+  } {
+    const policy = input.policy
+      ? this.runtimeState.saveProactiveCarePolicy(input.policy)
+      : this.runtimeState.getProactiveCarePolicy();
+    const state = input.state
+      ? this.runtimeState.saveProactiveCareState(input.state)
+      : this.runtimeState.getProactiveCareState();
+
+    return { policy, state };
+  }
+
   saveTurn(context: RuntimeContext, latestInsights: ChatReplyPayload): void {
     this.runtimeState.saveState((current) => ({
       ...current,
@@ -174,6 +214,12 @@ export class PersistentChatSessionState {
         (message) => message.role === "user" || message.role === "assistant"
       ),
       latestInsights: persisted.latestInsights,
+      proactiveCarePolicy: resolveProactiveCarePolicy(
+        persisted.proactiveCarePolicy ?? createDefaultProactiveCarePolicy()
+      ),
+      proactiveCareState: resolveProactiveCareState(
+        persisted.proactiveCareState ?? createDefaultProactiveCareState()
+      ),
       memoryArchive: persisted.memories.map((memory) => ({
         id: memory.id,
         type: memory.type,
@@ -268,6 +314,12 @@ export function createChatSession(sessionId?: string, title?: string): ChatSessi
         (message) => message.role === "user" || message.role === "assistant"
       ),
       latestInsights: session.latestInsights,
+      proactiveCarePolicy: resolveProactiveCarePolicy(
+        session.proactiveCarePolicy ?? createDefaultProactiveCarePolicy()
+      ),
+      proactiveCareState: resolveProactiveCareState(
+        session.proactiveCareState ?? createDefaultProactiveCareState()
+      ),
       memoryArchive: session.memories.map((memory) => ({
         id: memory.id,
         type: memory.type,
@@ -319,6 +371,12 @@ export function renameChatSession(sessionId: string, title: string): ChatSession
         (message) => message.role === "user" || message.role === "assistant"
       ),
       latestInsights: session.latestInsights,
+      proactiveCarePolicy: resolveProactiveCarePolicy(
+        session.proactiveCarePolicy ?? createDefaultProactiveCarePolicy()
+      ),
+      proactiveCareState: resolveProactiveCareState(
+        session.proactiveCareState ?? createDefaultProactiveCareState()
+      ),
       memoryArchive: session.memories.map((memory) => ({
         id: memory.id,
         type: memory.type,
@@ -379,6 +437,12 @@ export function resetChatSession(sessionId: string): ChatSessionSnapshot {
       sessionId,
       messages: [],
       latestInsights: null,
+      proactiveCarePolicy: resolveProactiveCarePolicy(
+        nextState.proactiveCarePolicy ?? createDefaultProactiveCarePolicy()
+      ),
+      proactiveCareState: resolveProactiveCareState(
+        nextState.proactiveCareState ?? createDefaultProactiveCareState()
+      ),
       memoryArchive: [],
       relationship: null,
       timelineEvents: [],
@@ -403,6 +467,12 @@ export function exportChatSession(sessionId: string): ExportedChatSession {
           (message) => message.role === "user" || message.role === "assistant"
         ),
         latestInsights: session.latestInsights,
+        proactiveCarePolicy: resolveProactiveCarePolicy(
+          session.proactiveCarePolicy ?? createDefaultProactiveCarePolicy()
+        ),
+        proactiveCareState: resolveProactiveCareState(
+          session.proactiveCareState ?? createDefaultProactiveCareState()
+        ),
         memoryArchive: session.memories.map((memory) => ({
           id: memory.id,
           type: memory.type,
@@ -471,6 +541,12 @@ export function importChatSession(
         linkedMemoryIds: []
       })),
       latestInsights: snapshot.latestInsights,
+      proactiveCarePolicy: resolveProactiveCarePolicy(
+        snapshot.proactiveCarePolicy ?? createDefaultProactiveCarePolicy()
+      ),
+      proactiveCareState: resolveProactiveCareState(
+        snapshot.proactiveCareState ?? createDefaultProactiveCareState()
+      ),
       title: importedTitle,
       updatedAt: now
     };
@@ -491,6 +567,16 @@ export function importChatSession(
           (message) => message.role === "user" || message.role === "assistant"
         ),
         latestInsights: importedState.latestInsights,
+        proactiveCarePolicy: resolveProactiveCarePolicy(
+          importedState.proactiveCarePolicy ??
+            snapshot.proactiveCarePolicy ??
+            createDefaultProactiveCarePolicy()
+        ),
+        proactiveCareState: resolveProactiveCareState(
+          importedState.proactiveCareState ??
+            snapshot.proactiveCareState ??
+            createDefaultProactiveCareState()
+        ),
         memoryArchive: snapshot.memoryArchive,
         relationship: snapshot.relationship,
         timelineEvents: snapshot.timelineEvents,
@@ -505,6 +591,29 @@ export function importChatSession(
 
 export function getCurrentChatPersistenceStatus(): ChatPersistenceStatus {
   return buildChatPersistenceStatus(loadChatPersistenceConfig());
+}
+
+export function updateChatSessionProactiveCare(
+  sessionId: string,
+  input: {
+    policy?: Partial<ProactiveCarePolicy>;
+    state?: Partial<ProactiveCareState>;
+  }
+): UpdateChatProactiveCareResult {
+  const persistentState = new PersistentChatSessionState(sessionId);
+
+  try {
+    persistentState.saveProactiveCareSettings(input);
+
+    return {
+      session: persistentState.getSnapshot() ?? createChatSession(sessionId),
+      sessions: listChatSessions(),
+      defaultSessionId: DEFAULT_CHAT_SESSION_ID,
+      persistence: getCurrentChatPersistenceStatus()
+    };
+  } finally {
+    persistentState.close();
+  }
 }
 
 export function switchChatPersistenceBackend(
@@ -640,6 +749,8 @@ function createInitialSessionState(sessionId: string): PersistedChatSession {
     memories: [],
     timeline: [],
     latestInsights: null,
+    proactiveCarePolicy: createDefaultProactiveCarePolicy(),
+    proactiveCareState: createDefaultProactiveCareState(),
     updatedAt: new Date().toISOString()
   };
 
@@ -765,6 +876,36 @@ function validateExportedChatSession(exported: ExportedChatSession): void {
     details.push("`snapshot.relationship` must be an object or null.");
   } else if (isRecord(exported.snapshot.relationship)) {
     validateRelationshipSnapshot(exported.snapshot.relationship, "snapshot.relationship", details);
+  }
+
+  if (
+    exported.snapshot?.proactiveCarePolicy !== undefined &&
+    exported.snapshot.proactiveCarePolicy !== null
+  ) {
+    if (!isRecord(exported.snapshot.proactiveCarePolicy)) {
+      details.push("`snapshot.proactiveCarePolicy` must be an object if present.");
+    } else {
+      validateProactiveCarePolicySnapshot(
+        exported.snapshot.proactiveCarePolicy,
+        "snapshot.proactiveCarePolicy",
+        details
+      );
+    }
+  }
+
+  if (
+    exported.snapshot?.proactiveCareState !== undefined &&
+    exported.snapshot.proactiveCareState !== null
+  ) {
+    if (!isRecord(exported.snapshot.proactiveCareState)) {
+      details.push("`snapshot.proactiveCareState` must be an object if present.");
+    } else {
+      validateProactiveCareStateSnapshot(
+        exported.snapshot.proactiveCareState,
+        "snapshot.proactiveCareState",
+        details
+      );
+    }
   }
 
   if (!Array.isArray(exported.snapshot.messages)) {
@@ -1251,6 +1392,74 @@ function validateRelationshipSnapshot(
     details.push(`\`${fieldPath}.lastUpdatedAt\` must be a string.`);
   } else if (!isIsoTimestamp(relationship.lastUpdatedAt)) {
     details.push(`\`${fieldPath}.lastUpdatedAt\` must be a valid ISO timestamp.`);
+  }
+}
+
+function validateProactiveCarePolicySnapshot(
+  policy: Record<string, unknown>,
+  fieldPath: string,
+  details: string[]
+): void {
+  if (typeof policy.enabled !== "boolean") {
+    details.push(`\`${fieldPath}.enabled\` must be a boolean.`);
+  }
+
+  if (
+    policy.quietHoursStart !== undefined &&
+    typeof policy.quietHoursStart !== "string"
+  ) {
+    details.push(`\`${fieldPath}.quietHoursStart\` must be a string if present.`);
+  }
+
+  if (
+    policy.quietHoursEnd !== undefined &&
+    typeof policy.quietHoursEnd !== "string"
+  ) {
+    details.push(`\`${fieldPath}.quietHoursEnd\` must be a string if present.`);
+  }
+
+  if (!isFiniteNumber(policy.maxDailyReachouts)) {
+    details.push(`\`${fieldPath}.maxDailyReachouts\` must be a number.`);
+  } else if (policy.maxDailyReachouts < 0) {
+    details.push(`\`${fieldPath}.maxDailyReachouts\` must be 0 or greater.`);
+  }
+
+  if (typeof policy.allowMealCare !== "boolean") {
+    details.push(`\`${fieldPath}.allowMealCare\` must be a boolean.`);
+  }
+
+  if (typeof policy.allowSleepCare !== "boolean") {
+    details.push(`\`${fieldPath}.allowSleepCare\` must be a boolean.`);
+  }
+
+  if (typeof policy.allowAbsenceCheckins !== "boolean") {
+    details.push(`\`${fieldPath}.allowAbsenceCheckins\` must be a boolean.`);
+  }
+}
+
+function validateProactiveCareStateSnapshot(
+  state: Record<string, unknown>,
+  fieldPath: string,
+  details: string[]
+): void {
+  if (!isFiniteNumber(state.dailyReachoutsSent)) {
+    details.push(`\`${fieldPath}.dailyReachoutsSent\` must be a number.`);
+  } else if (state.dailyReachoutsSent < 0) {
+    details.push(`\`${fieldPath}.dailyReachoutsSent\` must be 0 or greater.`);
+  }
+
+  if (!isFiniteNumber(state.unansweredReachoutCount)) {
+    details.push(`\`${fieldPath}.unansweredReachoutCount\` must be a number.`);
+  } else if (state.unansweredReachoutCount < 0) {
+    details.push(`\`${fieldPath}.unansweredReachoutCount\` must be 0 or greater.`);
+  }
+
+  if (state.lastReachOutAt !== undefined) {
+    if (typeof state.lastReachOutAt !== "string") {
+      details.push(`\`${fieldPath}.lastReachOutAt\` must be a string if present.`);
+    } else if (!isIsoTimestamp(state.lastReachOutAt)) {
+      details.push(`\`${fieldPath}.lastReachOutAt\` must be a valid ISO timestamp if present.`);
+    }
   }
 }
 
