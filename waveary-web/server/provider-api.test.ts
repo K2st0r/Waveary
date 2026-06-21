@@ -354,8 +354,11 @@ test("chat session import route returns validation details for malformed package
 
   const response = await invokeJsonRoute(middleware, "POST", "/api/chat/session/import", {
     exported: {
+      exportedAt: "",
       title: "",
       snapshot: {
+        latestInsights: undefined,
+        relationship: undefined,
         messages: [{}],
         memoryArchive: [{}],
         timelineEvents: [{}]
@@ -367,11 +370,22 @@ test("chat session import route returns validation details for malformed package
   assert.equal(response.body.error, "Exported session package failed validation.");
   assert.deepEqual(response.body.details, [
     "Missing `sessionId`.",
+    "Missing `exportedAt`.",
     "Missing `title`.",
+    "Missing `snapshot.updatedAt`.",
+    "Missing `snapshot.latestInsights`.",
+    "Missing `snapshot.relationship`.",
     "Message 1 is missing a string `role`.",
     "Message 1 is missing a string `content`.",
+    "Memory item 1 is missing a string `type`.",
     "Memory item 1 is missing a string `content`.",
-    "Timeline event 1 is missing a string `title`."
+    "Memory item 1 is missing a numeric `importance`.",
+    "Memory item 1 is missing a string `createdAt`.",
+    "Timeline event 1 is missing a string `title`.",
+    "Timeline event 1 is missing a string `description`.",
+    "Timeline event 1 is missing a string `type`.",
+    "Timeline event 1 is missing a string `eventTime`.",
+    "Timeline event 1 is missing a numeric `importance`."
   ]);
 });
 
@@ -432,6 +446,71 @@ test("chat session import route rejects unsupported schema versions", async () =
   assert.equal(response.body.error, "Exported session package failed validation.");
   assert.deepEqual(response.body.details, [
     "Unsupported `schemaVersion` \"waveary-session@2\". Supported version: `waveary-session@1`."
+  ]);
+});
+
+test("chat session import route rejects malformed relationship and latest insights payloads", async () => {
+  const middleware = createProviderApiMiddleware();
+
+  const response = await invokeJsonRoute(middleware, "POST", "/api/chat/session/import", {
+    exported: {
+      schemaVersion: "waveary-session@1",
+      exportedAt: "2026-06-20T00:00:00.000Z",
+      sessionId: "broken-signals",
+      title: "Broken Signals",
+      snapshot: {
+        sessionId: "broken-signals",
+        messages: [],
+        latestInsights: {
+          reply: 123,
+          relationship: {
+            stage: 7,
+            affinityScore: "high",
+            trustScore: null,
+            stabilityScore: "steady"
+          },
+          recalledMemories: [42],
+          storedMemories: [true],
+          timeline: [{}],
+          emotion: {
+            primaryEmotion: 8,
+            intensity: "strong"
+          }
+        },
+        memoryArchive: [],
+        relationship: {
+          stage: 7,
+          affinityScore: "high",
+          trustScore: null,
+          stabilityScore: "steady"
+        },
+        timelineEvents: [],
+        updatedAt: "2026-06-20T00:00:00.000Z"
+      }
+    }
+  });
+
+  assert.equal(response.statusCode, 400);
+  assert.equal(response.body.error, "Exported session package failed validation.");
+  assert.deepEqual(response.body.details, [
+    "`snapshot.latestInsights.reply` must be a string.",
+    "`snapshot.latestInsights.relationship.stage` must be a string.",
+    "`snapshot.latestInsights.relationship.affinityScore` must be a number.",
+    "`snapshot.latestInsights.relationship.trustScore` must be a number.",
+    "`snapshot.latestInsights.relationship.stabilityScore` must be a number.",
+    "`snapshot.latestInsights.relationship.lastUpdatedAt` must be a string.",
+    "Recalled memory 1 in `snapshot.latestInsights.recalledMemories` must be a string.",
+    "Stored memory 1 in `snapshot.latestInsights.storedMemories` must be a string.",
+    "Latest insight timeline entry 1 is missing a string `title`.",
+    "Latest insight timeline entry 1 is missing a string `type`.",
+    "Latest insight timeline entry 1 is missing a string `eventTime`.",
+    "`snapshot.latestInsights.emotion.primaryEmotion` must be a string.",
+    "`snapshot.latestInsights.emotion.intensity` must be a number.",
+    "`snapshot.relationship.stage` must be a string.",
+    "`snapshot.relationship.affinityScore` must be a number.",
+    "`snapshot.relationship.trustScore` must be a number.",
+    "`snapshot.relationship.stabilityScore` must be a number.",
+    "`snapshot.relationship.lastUpdatedAt` must be a string."
   ]);
 });
 

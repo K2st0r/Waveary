@@ -698,6 +698,10 @@ function validateExportedChatSession(exported: ExportedChatSession): void {
     details.push("Missing `sessionId`.");
   }
 
+  if (!exported.exportedAt?.trim()) {
+    details.push("Missing `exportedAt`.");
+  }
+
   if (!exported.title?.trim()) {
     details.push("Missing `title`.");
   }
@@ -710,8 +714,32 @@ function validateExportedChatSession(exported: ExportedChatSession): void {
     details.push("`snapshot.sessionId` must be a string.");
   }
 
-  if (exported.snapshot?.updatedAt && typeof exported.snapshot.updatedAt !== "string") {
+  if (!exported.snapshot?.updatedAt) {
+    details.push("Missing `snapshot.updatedAt`.");
+  } else if (typeof exported.snapshot.updatedAt !== "string") {
     details.push("`snapshot.updatedAt` must be a string.");
+  }
+
+  if (exported.snapshot?.latestInsights === undefined) {
+    details.push("Missing `snapshot.latestInsights`.");
+  } else if (
+    exported.snapshot.latestInsights !== null &&
+    !isRecord(exported.snapshot.latestInsights)
+  ) {
+    details.push("`snapshot.latestInsights` must be an object or null.");
+  } else if (isRecord(exported.snapshot.latestInsights)) {
+    validateLatestInsights(exported.snapshot.latestInsights, details);
+  }
+
+  if (exported.snapshot?.relationship === undefined) {
+    details.push("Missing `snapshot.relationship`.");
+  } else if (
+    exported.snapshot.relationship !== null &&
+    !isRecord(exported.snapshot.relationship)
+  ) {
+    details.push("`snapshot.relationship` must be an object or null.");
+  } else if (isRecord(exported.snapshot.relationship)) {
+    validateRelationshipSnapshot(exported.snapshot.relationship, "snapshot.relationship", details);
   }
 
   if (!Array.isArray(exported.snapshot.messages)) {
@@ -742,8 +770,20 @@ function validateExportedChatSession(exported: ExportedChatSession): void {
         return;
       }
 
+      if (typeof memory.type !== "string") {
+        details.push(`Memory item ${index + 1} is missing a string \`type\`.`);
+      }
+
       if (typeof memory.content !== "string") {
         details.push(`Memory item ${index + 1} is missing a string \`content\`.`);
+      }
+
+      if (!isFiniteNumber(memory.importance)) {
+        details.push(`Memory item ${index + 1} is missing a numeric \`importance\`.`);
+      }
+
+      if (typeof memory.createdAt !== "string") {
+        details.push(`Memory item ${index + 1} is missing a string \`createdAt\`.`);
       }
     });
   }
@@ -760,6 +800,22 @@ function validateExportedChatSession(exported: ExportedChatSession): void {
       if (typeof event.title !== "string") {
         details.push(`Timeline event ${index + 1} is missing a string \`title\`.`);
       }
+
+      if (typeof event.description !== "string") {
+        details.push(`Timeline event ${index + 1} is missing a string \`description\`.`);
+      }
+
+      if (typeof event.type !== "string") {
+        details.push(`Timeline event ${index + 1} is missing a string \`type\`.`);
+      }
+
+      if (typeof event.eventTime !== "string") {
+        details.push(`Timeline event ${index + 1} is missing a string \`eventTime\`.`);
+      }
+
+      if (!isFiniteNumber(event.importance)) {
+        details.push(`Timeline event ${index + 1} is missing a numeric \`importance\`.`);
+      }
     });
   }
 
@@ -769,6 +825,120 @@ function validateExportedChatSession(exported: ExportedChatSession): void {
       details
     );
   }
+}
+
+function validateLatestInsights(
+  latestInsights: Record<string, unknown>,
+  details: string[]
+): void {
+  if (typeof latestInsights.reply !== "string") {
+    details.push("`snapshot.latestInsights.reply` must be a string.");
+  }
+
+  if (!isRecord(latestInsights.relationship)) {
+    details.push("`snapshot.latestInsights.relationship` must be an object.");
+  } else {
+    validateRelationshipSnapshot(
+      latestInsights.relationship,
+      "snapshot.latestInsights.relationship",
+      details
+    );
+  }
+
+  if (!Array.isArray(latestInsights.recalledMemories)) {
+    details.push("`snapshot.latestInsights.recalledMemories` must be an array.");
+  } else {
+    latestInsights.recalledMemories.forEach((memory, index) => {
+      if (typeof memory !== "string") {
+        details.push(
+          `Recalled memory ${index + 1} in \`snapshot.latestInsights.recalledMemories\` must be a string.`
+        );
+      }
+    });
+  }
+
+  if (!Array.isArray(latestInsights.storedMemories)) {
+    details.push("`snapshot.latestInsights.storedMemories` must be an array.");
+  } else {
+    latestInsights.storedMemories.forEach((memory, index) => {
+      if (typeof memory !== "string") {
+        details.push(
+          `Stored memory ${index + 1} in \`snapshot.latestInsights.storedMemories\` must be a string.`
+        );
+      }
+    });
+  }
+
+  if (!Array.isArray(latestInsights.timeline)) {
+    details.push("`snapshot.latestInsights.timeline` must be an array.");
+  } else {
+    latestInsights.timeline.forEach((event, index) => {
+      if (!isRecord(event)) {
+        details.push(`Latest insight timeline entry ${index + 1} must be an object.`);
+        return;
+      }
+
+      if (typeof event.title !== "string") {
+        details.push(`Latest insight timeline entry ${index + 1} is missing a string \`title\`.`);
+      }
+
+      if (typeof event.type !== "string") {
+        details.push(`Latest insight timeline entry ${index + 1} is missing a string \`type\`.`);
+      }
+
+      if (typeof event.eventTime !== "string") {
+        details.push(`Latest insight timeline entry ${index + 1} is missing a string \`eventTime\`.`);
+      }
+    });
+  }
+
+  if (latestInsights.emotion !== undefined) {
+    if (!isRecord(latestInsights.emotion)) {
+      details.push("`snapshot.latestInsights.emotion` must be an object if present.");
+    } else {
+      if (typeof latestInsights.emotion.primaryEmotion !== "string") {
+        details.push("`snapshot.latestInsights.emotion.primaryEmotion` must be a string.");
+      }
+
+      if (!isFiniteNumber(latestInsights.emotion.intensity)) {
+        details.push("`snapshot.latestInsights.emotion.intensity` must be a number.");
+      }
+    }
+  }
+}
+
+function validateRelationshipSnapshot(
+  relationship: Record<string, unknown>,
+  fieldPath: string,
+  details: string[]
+): void {
+  if (typeof relationship.stage !== "string") {
+    details.push(`\`${fieldPath}.stage\` must be a string.`);
+  }
+
+  if (!isFiniteNumber(relationship.affinityScore)) {
+    details.push(`\`${fieldPath}.affinityScore\` must be a number.`);
+  }
+
+  if (!isFiniteNumber(relationship.trustScore)) {
+    details.push(`\`${fieldPath}.trustScore\` must be a number.`);
+  }
+
+  if (!isFiniteNumber(relationship.stabilityScore)) {
+    details.push(`\`${fieldPath}.stabilityScore\` must be a number.`);
+  }
+
+  if (typeof relationship.lastUpdatedAt !== "string") {
+    details.push(`\`${fieldPath}.lastUpdatedAt\` must be a string.`);
+  }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value);
 }
 
 class FileBackedSessionRepository
