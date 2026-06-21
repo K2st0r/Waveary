@@ -623,11 +623,25 @@ test("chat session import route rejects semantically inconsistent session packag
         sessionId: "inner-session",
         messages: [
           {
+            id: "user-0",
+            role: "user",
+            content: "Earlier message in the array.",
+            sessionId: "inner-session",
+            createdAt: "2026-06-20T00:00:09.000Z"
+          },
+          {
             id: "user-1",
             role: "user",
             content: "Mismatched session id on message.",
             sessionId: "wrong-message-session",
             createdAt: "2026-06-20T00:00:11.000Z"
+          },
+          {
+            id: "assistant-2",
+            role: "assistant",
+            content: "This timestamp goes backwards.",
+            sessionId: "inner-session",
+            createdAt: "2026-06-20T00:00:08.000Z"
           }
         ],
         latestInsights: {
@@ -643,9 +657,19 @@ test("chat session import route rejects semantically inconsistent session packag
           storedMemories: [],
           timeline: [
             {
+              title: "Later insight event",
+              type: "reflection",
+              eventTime: "2026-06-20T00:00:09.500Z"
+            },
+            {
               title: "Late insight event",
               type: "reflection",
               eventTime: "2026-06-20T00:00:13.000Z"
+            },
+            {
+              title: "Out of order insight event",
+              type: "reflection",
+              eventTime: "2026-06-20T00:00:09.200Z"
             }
           ]
         },
@@ -667,11 +691,27 @@ test("chat session import route rejects semantically inconsistent session packag
         },
         timelineEvents: [
           {
+            id: "timeline-0",
+            title: "Later timeline event first",
+            description: "Comes before a smaller timestamp.",
+            type: "reflection",
+            eventTime: "2026-06-20T00:00:09.700Z",
+            importance: 0.6
+          },
+          {
             id: "timeline-1",
             title: "Late timeline event",
             description: "Occurs after snapshot update.",
             type: "reflection",
             eventTime: "2026-06-20T00:00:16.000Z",
+            importance: 0.6
+          },
+          {
+            id: "timeline-2",
+            title: "Out of order timeline event",
+            description: "Earlier than the previous event.",
+            type: "reflection",
+            eventTime: "2026-06-20T00:00:09.300Z",
             importance: 0.6
           }
         ],
@@ -684,14 +724,17 @@ test("chat session import route rejects semantically inconsistent session packag
   assert.equal(response.body.error, "Exported session package failed validation.");
   assert.deepEqual(response.body.details, [
     "`sessionId` must match `snapshot.sessionId`.",
-    "Message 1 `sessionId` must match `snapshot.sessionId`.",
-    "Message 1 `createdAt` cannot be later than `snapshot.updatedAt`.",
+    "Message 2 `sessionId` must match `snapshot.sessionId`.",
+    "Message 2 `createdAt` cannot be later than `snapshot.updatedAt`.",
     "Memory item 1 `createdAt` cannot be later than `snapshot.updatedAt`.",
-    "Timeline event 1 `eventTime` cannot be later than `snapshot.updatedAt`.",
+    "Timeline event 2 `eventTime` cannot be later than `snapshot.updatedAt`.",
     "`snapshot.updatedAt` cannot be later than `exportedAt`.",
+    "Message 3 `createdAt` cannot be earlier than the previous message timestamp.",
+    "Timeline event 3 `eventTime` cannot be earlier than the previous timeline event.",
     "`snapshot.relationship.lastUpdatedAt` cannot be later than `snapshot.updatedAt`.",
     "`snapshot.latestInsights.relationship.lastUpdatedAt` cannot be later than `snapshot.updatedAt`.",
-    "Latest insight timeline entry 1 `eventTime` cannot be later than `snapshot.updatedAt`."
+    "Latest insight timeline entry 2 `eventTime` cannot be later than `snapshot.updatedAt`.",
+    "Latest insight timeline entry 3 `eventTime` cannot be earlier than the previous latest insight timeline entry."
   ]);
 });
 

@@ -1001,6 +1001,42 @@ function validateExportedSessionSemantics(
     details.push("`snapshot.updatedAt` cannot be later than `exportedAt`.");
   }
 
+  let previousMessageCreatedAt: number | null = null;
+
+  exported.snapshot.messages.forEach((message, index) => {
+    if (
+      "createdAt" in message &&
+      typeof message.createdAt === "string" &&
+      isIsoTimestamp(message.createdAt)
+    ) {
+      const createdAt = Date.parse(message.createdAt);
+
+      if (previousMessageCreatedAt !== null && createdAt < previousMessageCreatedAt) {
+        details.push(
+          `Message ${index + 1} \`createdAt\` cannot be earlier than the previous message timestamp.`
+        );
+      }
+
+      previousMessageCreatedAt = createdAt;
+    }
+  });
+
+  let previousTimelineEventTime: number | null = null;
+
+  exported.snapshot.timelineEvents.forEach((event, index) => {
+    if (typeof event.eventTime === "string" && isIsoTimestamp(event.eventTime)) {
+      const eventTime = Date.parse(event.eventTime);
+
+      if (previousTimelineEventTime !== null && eventTime < previousTimelineEventTime) {
+        details.push(
+          `Timeline event ${index + 1} \`eventTime\` cannot be earlier than the previous timeline event.`
+        );
+      }
+
+      previousTimelineEventTime = eventTime;
+    }
+  });
+
   if (exported.snapshot.relationship && isRecord(exported.snapshot.relationship)) {
     const relationshipLastUpdatedAt = exported.snapshot.relationship.lastUpdatedAt;
 
@@ -1028,6 +1064,8 @@ function validateExportedSessionSemantics(
     }
 
     if (Array.isArray(exported.snapshot.latestInsights.timeline)) {
+      let previousLatestInsightTimelineTime: number | null = null;
+
       exported.snapshot.latestInsights.timeline.forEach((event, index) => {
         if (
           isRecord(event) &&
@@ -1038,6 +1076,25 @@ function validateExportedSessionSemantics(
           details.push(
             `Latest insight timeline entry ${index + 1} \`eventTime\` cannot be later than \`snapshot.updatedAt\`.`
           );
+        }
+
+        if (
+          isRecord(event) &&
+          typeof event.eventTime === "string" &&
+          isIsoTimestamp(event.eventTime)
+        ) {
+          const eventTime = Date.parse(event.eventTime);
+
+          if (
+            previousLatestInsightTimelineTime !== null &&
+            eventTime < previousLatestInsightTimelineTime
+          ) {
+            details.push(
+              `Latest insight timeline entry ${index + 1} \`eventTime\` cannot be earlier than the previous latest insight timeline entry.`
+            );
+          }
+
+          previousLatestInsightTimelineTime = eventTime;
         }
       });
     }
