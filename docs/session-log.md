@@ -4,6 +4,39 @@
 
 Objective:
 
+Upgrade the shared proactive message composer from presentation-only copy into a structured suggested-message draft interface that future delivery channels can reuse.
+
+Summary:
+
+- expanded the web-side `ProactiveMessageDraft` shape so it now carries `tone`, `deliveryKind`, and `suggestedMessage` in addition to the existing `lead`, `title`, and `body`
+- updated the `WPCE` console card to surface the new structured draft fields directly, including the recommended tone and a first concrete suggested proactive message
+- kept the change inside `waveary-web` for now, so the draft interface is real and visible without prematurely promoting it into `WPCE` engine state or a backend contract
+- updated continuity state so the next step is now the architectural decision of whether this draft should stay presentation-layer-only or become a reusable route-visible contract
+
+Files changed:
+
+- `waveary-web/src/App.tsx`
+- `ACTIVE_TASKS.md`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run test --workspace @waveary/web`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-21
+
+Objective:
+
 Strengthen the repository-side continuity layer so Waveary can survive heavy long-running use with less drift, less wrong resumption, and less reliance on fragile chat memory.
 
 Summary:

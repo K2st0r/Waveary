@@ -100,6 +100,7 @@ Brand line:
   - proactive browser notifications now also soften their lead sentence by morning / evening / late-night daypart when `timeAwareness` is allowed, without changing `WPCE` policy or outreach frequency
   - the `WPCE` console decision card now mirrors that same daypart-aware tone in its top-level summary copy, so the local console and browser notification surfaces describe the same recommendation style
   - proactive browser notifications and the `WPCE` console summary now both read from one shared presentation-layer proactive message composer instead of duplicating separate tone logic
+  - that shared proactive message composer now returns structured draft fields including `tone`, `deliveryKind`, and `suggestedMessage`, so the current UI is no longer limited to raw prose-only summary composition
   - proactive browser-notification delivery now also records per-session reachout counters and last-delivery time so subsequent `WPCE` evaluations can suppress repeated outreach until the user replies
   - successful new user turns now automatically clear persisted `WPCE` unanswered-reachout state so proactive care can reopen naturally after the user responds without erasing daily send counts or the last reachout timestamp
   - proactive-care evaluation output and browser notification copy now translate raw `WPCE` intent, urgency, and reason codes into user-facing Chinese and English labels instead of exposing internal engine enums directly
@@ -220,6 +221,7 @@ Brand line:
 - consider moving the new daypart-aware notification tone into a shared proactive-message formatter once browser notifications stop being the only delivery channel
 - consider extracting the new console-summary and notification-copy helpers into one shared proactive presentation module if a second non-browser delivery surface is added
 - move the new proactive message composer out of `App.tsx` into a small dedicated web utility module once another surface besides the current console and browser notification needs it
+- decide whether the new proactive draft structure should remain a web presentation concern or become a route-visible contract before adding another outbound delivery surface
 - expand provider-specific chat request normalization where "OpenAI-compatible" vendors diverge beyond the current shared `/chat/completions` and `/responses` paths
 - add route-level or live verification for more provider-specific chat payload divergences after the current DeepSeek and broader structured-payload compatibility baseline
 - re-run `npm run verify:provider` and `npm run models:provider` with refreshed real credentials, starting with DeepSeek because the currently saved local key now returns `401 invalid api key`

@@ -14,8 +14,8 @@ Update it when:
 
 1. Turn proactive-care presentation into a reusable message-draft interface.
    Status: in progress
-   Current state: browser notification copy and `WPCE` console summary now share one web-side proactive message composer.
-   Next cut: extend that composer output from presentation text into a structured suggested-message draft with fields such as `tone`, `deliveryKind`, and `suggestedMessage`.
+   Current state: browser notification copy and `WPCE` console summary now share one web-side proactive message composer, and that composer now returns a structured draft with `tone`, `deliveryKind`, and `suggestedMessage`.
+   Next cut: decide whether the structured proactive draft should stay presentation-layer-only for now or be promoted into a route-visible contract that later delivery channels can consume.
 
 2. Keep permissioned local-time awareness bounded and trustworthy.
    Status: in progress
@@ -30,7 +30,7 @@ Update it when:
 ## Deferred But Important
 
 1. Introduce a formal proactive message draft contract that future delivery channels can consume.
-   Reason: current shared composer still lives inside `waveary-web/src/App.tsx` and returns presentation-first fields.
+   Reason: the shared composer now has useful structured fields, but they still live inside `waveary-web/src/App.tsx` and are not yet exposed as a reusable contract beyond the current UI surfaces.
 
 2. Decide when to extract proactive presentation helpers into a dedicated web utility module.
    Reason: do not split it out until at least one more surface besides the current console and browser notification path needs it.
