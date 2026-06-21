@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `18997cd` - `Improve dialogue continuity heuristics`
+- `317f59f` - `Document emotion and proactive care architecture`
 
 ## Modules
 
