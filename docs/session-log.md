@@ -4,6 +4,42 @@
 
 Objective:
 
+Make the `WPCE` console result easier to scan by visually separating proactive recommendations from blocked evaluations instead of rendering both as the same neutral card.
+
+Summary:
+
+- restructured the proactive decision card into a clearer header, badge, summary, and detail layout so the outcome is readable before users inspect the raw fields
+- added distinct visual states for affirmative reachout recommendations versus blocked evaluations, using restrained but noticeable surface and accent differences
+- kept the scope inside `waveary-web` so the change improves trust and legibility without modifying `WPCE` engine logic or persistence behavior
+- reused the existing bilingual decision labels and kept the card aligned with the current notebook-style console language rather than introducing a new component vocabulary
+
+Files changed:
+
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run test --workspace @waveary/web`
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npx tsc --noEmit -p waveary-web/tsconfig.server.json`
+- `npm run web:build`
+- `npm run check --workspace @waveary/web` failed once due to a Windows `waveary-core/dist` cleanup `EPERM` file-lock on `2026-06-21`; the failure occurred during `@waveary/core` prebuild cleanup rather than from a TypeScript error in this UI change
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-21
+
+Objective:
+
 Translate raw `WPCE` decision metadata into user-facing bilingual labels so proactive-care output reads like product behavior instead of internal engine diagnostics.
 
 Summary:

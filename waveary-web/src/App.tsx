@@ -3242,8 +3242,37 @@ export function App(): ReactElement {
                     </div>
 
                     {proactiveDecision ? (
-                      <div className="insight-card proactive-decision-card">
-                        <div className="mini-heading">{copy.runtime.proactiveDecision}</div>
+                      <div
+                        className={`insight-card proactive-decision-card ${proactiveDecision.shouldReachOut ? "proactive-decision-card-positive" : "proactive-decision-card-blocked"}`}
+                      >
+                        <div className="proactive-decision-header">
+                          <div className="mini-heading">{copy.runtime.proactiveDecision}</div>
+                          <span
+                            className={`proactive-decision-badge ${proactiveDecision.shouldReachOut ? "proactive-decision-badge-positive" : "proactive-decision-badge-blocked"}`}
+                          >
+                            {proactiveDecision.shouldReachOut ? copy.runtime.proactiveShouldReachOut : copy.runtime.proactiveReasons}
+                          </span>
+                        </div>
+                        <div className="proactive-decision-summary">
+                          <strong>
+                            {proactiveDecision.shouldReachOut
+                              ? locale === "zh"
+                                ? "当前会话适合进行一次主动关怀。"
+                                : "The active session is ready for a proactive reachout."
+                              : locale === "zh"
+                                ? "当前会话暂时不适合主动触达。"
+                                : "The active session is currently blocked from proactive outreach."}
+                          </strong>
+                          <p>
+                            {proactiveDecision.shouldReachOut
+                              ? locale === "zh"
+                                ? "这次评估给出了正向建议，你可以参考意图、紧急程度和建议延迟来决定是否立即触达。"
+                                : "This evaluation returned a positive recommendation. Use the intent, urgency, and suggested delay to decide whether to reach out now."
+                              : locale === "zh"
+                                ? "这次评估被当前策略或状态拦住了，下面的原因会解释为什么还不能主动触达。"
+                                : "This evaluation was blocked by the current policy or session state. The reasons below explain why outreach should wait."}
+                          </p>
+                        </div>
                         <div className="proactive-decision-grid">
                           <div>
                             <span>{copy.runtime.proactiveShouldReachOut}</span>

@@ -2441,6 +2441,95 @@ textarea {
   color: var(--text-strong);
 }
 
+.proactive-decision-card {
+  gap: 0.9rem;
+  overflow: hidden;
+}
+
+.proactive-decision-card::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0.42rem;
+  border-radius: 999px;
+  opacity: 0.95;
+}
+
+.proactive-decision-card-positive {
+  border-color: rgba(48, 104, 71, 0.26);
+  background:
+    linear-gradient(135deg, rgba(230, 246, 236, 0.92), rgba(255, 251, 246, 0.78) 55%);
+  box-shadow: 0 18px 32px rgba(48, 104, 71, 0.09);
+}
+
+.proactive-decision-card-positive::after {
+  background: linear-gradient(180deg, rgba(48, 104, 71, 0.92), rgba(117, 155, 113, 0.7));
+}
+
+.proactive-decision-card-blocked {
+  border-color: rgba(123, 92, 38, 0.24);
+  background:
+    linear-gradient(135deg, rgba(250, 241, 224, 0.94), rgba(255, 251, 246, 0.78) 58%);
+  box-shadow: 0 18px 30px rgba(123, 92, 38, 0.08);
+}
+
+.proactive-decision-card-blocked::after {
+  background: linear-gradient(180deg, rgba(123, 92, 38, 0.88), rgba(171, 135, 70, 0.68));
+}
+
+.proactive-decision-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.9rem;
+  padding-right: 1.35rem;
+}
+
+.proactive-decision-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2rem;
+  padding: 0.32rem 0.72rem;
+  border-radius: 999px;
+  border: 1.3px solid transparent;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.proactive-decision-badge-positive {
+  color: #25573d;
+  background: rgba(237, 250, 241, 0.88);
+  border-color: rgba(48, 104, 71, 0.22);
+}
+
+.proactive-decision-badge-blocked {
+  color: #6e5220;
+  background: rgba(255, 247, 233, 0.9);
+  border-color: rgba(123, 92, 38, 0.2);
+}
+
+.proactive-decision-summary {
+  display: grid;
+  gap: 0.32rem;
+}
+
+.proactive-decision-summary strong {
+  display: block;
+  padding-right: 1.2rem;
+  font-size: 1.02rem;
+  line-height: 1.45;
+}
+
+.proactive-decision-summary p {
+  margin: 0;
+  max-width: 58ch;
+  color: var(--muted-strong);
+}
+
 .proactive-state-card span,
 .proactive-decision-grid span {
   color: var(--muted);
