@@ -876,6 +876,8 @@ const heroPortraitCards: HeroPortraitCard[] = [
   }
 ];
 
+const HERO_BURN_CYCLE_MS = 12000;
+
 export function App(): ReactElement {
   const [locale, setLocale] = useState<Locale>(() => {
     if (typeof window === "undefined") {
@@ -921,6 +923,7 @@ export function App(): ReactElement {
   const [sessionImportErrors, setSessionImportErrors] = useState<string[]>([]);
   const [sessionPackageReference, setSessionPackageReference] = useState<SessionPackageReference | null>(null);
   const sessionImportFileInputRef = useRef<HTMLInputElement | null>(null);
+  const [activeBurnPortraitIndex, setActiveBurnPortraitIndex] = useState(1);
   const [currentPage, setCurrentPage] = useState<AppPage>(() => {
     if (typeof window === "undefined") {
       return "home";
@@ -935,6 +938,24 @@ export function App(): ReactElement {
 
   useEffect(() => {
     void loadInitialState();
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      return;
+    }
+
+    const intervalId = window.setInterval(() => {
+      setActiveBurnPortraitIndex((currentIndex) => (currentIndex + 1) % heroPortraitCards.length);
+    }, HERO_BURN_CYCLE_MS);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
   }, []);
 
   useEffect(() => {
@@ -1550,6 +1571,7 @@ export function App(): ReactElement {
     { page: "chat", label: locale === "zh" ? "对话" : "Chat" },
     { page: "roadmap", label: copy.nav[5] }
   ];
+  const activeBurnPortrait = heroPortraitCards[activeBurnPortraitIndex] ?? heroPortraitCards[0]!;
 
   return (
     <div className="page-shell">
@@ -1659,17 +1681,18 @@ export function App(): ReactElement {
                   ))}
                 </div>
                 <div className="hero-memory-burner">
-                  <div className="hero-memory-burn-card">
+                  <div className="hero-memory-burn-card" key={activeBurnPortrait.src}>
                     <div className="hero-memory-burn-frame">
-                      <img src="/images/portraits/portrait-02.png" alt="" />
+                      <img src={activeBurnPortrait.src} alt="" />
                       <span className="hero-memory-burn-glow" />
+                      <span className="hero-memory-burn-scorch" />
                       <span className="hero-memory-burn-ash hero-memory-burn-ash-one" />
                       <span className="hero-memory-burn-ash hero-memory-burn-ash-two" />
                       <span className="hero-memory-burn-ash hero-memory-burn-ash-three" />
                     </div>
                   </div>
                   <div className="hero-memory-lighter">
-                    <span className="hero-memory-lighter-body" />
+                    <img className="hero-memory-lighter-illustration" src="/images/hero/lighter.png" alt="" />
                     <span className="hero-memory-lighter-flame" />
                   </div>
                 </div>

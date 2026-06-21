@@ -777,6 +777,21 @@ textarea {
   animation: hero-burn-image 12s linear infinite;
 }
 
+.hero-memory-burn-scorch {
+  position: absolute;
+  right: -6%;
+  bottom: 1%;
+  width: 40%;
+  height: 22%;
+  background:
+    radial-gradient(circle at 35% 45%, rgba(31, 21, 14, 0.82), rgba(31, 21, 14, 0.56) 38%, rgba(31, 21, 14, 0.08) 72%, transparent 100%),
+    radial-gradient(circle at 20% 55%, rgba(245, 146, 56, 0.28), transparent 58%);
+  mix-blend-mode: multiply;
+  opacity: 0;
+  filter: blur(0.16rem);
+  animation: hero-burn-scorch 12s linear infinite;
+}
+
 .hero-memory-burn-glow {
   position: absolute;
   right: -10%;
@@ -821,49 +836,32 @@ textarea {
 
 .hero-memory-lighter {
   position: relative;
-  width: 3.6rem;
-  height: 4.5rem;
+  width: 5.4rem;
+  height: 5.2rem;
+  transform: translateX(0.45rem) rotate(-5deg);
 }
 
-.hero-memory-lighter-body {
+.hero-memory-lighter-illustration {
   position: absolute;
-  inset: auto 0 0 0;
-  height: 3.2rem;
-  border: 1.5px solid rgba(21, 18, 15, 0.18);
-  border-radius: 1rem 1rem 0.95rem 0.95rem;
-  background:
-    linear-gradient(180deg, rgba(49, 37, 25, 0.12), rgba(255, 255, 255, 0.45)),
-    rgba(246, 238, 227, 0.92);
-  box-shadow:
-    0 0.75rem 1.1rem rgba(49, 37, 25, 0.12),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.4);
-}
-
-.hero-memory-lighter-body::before {
-  position: absolute;
-  top: -0.65rem;
-  left: 0.38rem;
-  width: 2rem;
-  height: 0.9rem;
-  border: 1.5px solid rgba(21, 18, 15, 0.16);
-  border-radius: 0.6rem 0.6rem 0.35rem 0.35rem;
-  background: rgba(246, 238, 227, 0.94);
-  content: "";
-  transform: rotate(-7deg);
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: grayscale(1) contrast(1.02) brightness(1.01) drop-shadow(0 0.75rem 1rem rgba(49, 37, 25, 0.18));
 }
 
 .hero-memory-lighter-flame {
   position: absolute;
-  top: -0.55rem;
-  left: 1.1rem;
-  width: 1.15rem;
-  height: 1.55rem;
+  top: 0.4rem;
+  left: 2.9rem;
+  width: 1.2rem;
+  height: 1.65rem;
   border-radius: 60% 60% 70% 70%;
   background:
     radial-gradient(circle at 50% 76%, rgba(255, 235, 186, 0.95) 0 28%, rgba(255, 181, 82, 0.85) 29% 58%, rgba(255, 118, 47, 0.7) 59% 78%, transparent 79%);
   transform-origin: bottom center;
   animation: hero-flame 1.8s ease-in-out infinite;
-  filter: blur(0.02rem);
+  filter: blur(0.02rem) drop-shadow(0 0 0.6rem rgba(255, 151, 52, 0.6));
 }
 
 @keyframes hero-photo-drift {
@@ -891,67 +889,101 @@ textarea {
 
 @keyframes hero-burn-card {
   0%,
-  18% {
-    transform: translate3d(0.8rem, 0.3rem, 0) rotate(8deg) scale(0.92);
+  14% {
+    transform: translate3d(1.1rem, 0.65rem, 0) rotate(10deg) scale(0.9);
     opacity: 0;
   }
 
-  26%,
-  44% {
+  22%,
+  42% {
     transform: translate3d(0, 0, 0) rotate(6deg) scale(1);
     opacity: 0.96;
   }
 
-  58% {
-    transform: translate3d(-0.25rem, -0.1rem, 0) rotate(4deg) scale(0.99);
+  56% {
+    transform: translate3d(-0.28rem, -0.08rem, 0) rotate(4deg) scale(0.985);
     opacity: 0.92;
   }
 
-  72% {
-    transform: translate3d(0.2rem, -0.45rem, 0) rotate(2deg) scale(0.96);
-    opacity: 0.42;
+  68% {
+    transform: translate3d(0.12rem, -0.42rem, 0) rotate(1deg) scale(0.955);
+    opacity: 0.72;
+  }
+
+  82% {
+    transform: translate3d(0.62rem, -0.72rem, 0) rotate(-1deg) scale(0.9);
+    opacity: 0.22;
   }
 
   100% {
-    transform: translate3d(1rem, -0.9rem, 0) rotate(0deg) scale(0.88);
+    transform: translate3d(1.25rem, -1rem, 0) rotate(-2deg) scale(0.84);
     opacity: 0;
   }
 }
 
 @keyframes hero-burn-image {
   0%,
-  45% {
+  38% {
     filter: grayscale(1) contrast(1.02) brightness(0.98);
+    opacity: 1;
   }
 
-  62% {
+  54% {
     filter: grayscale(1) contrast(1.06) brightness(0.92) sepia(0.18);
   }
 
-  78%,
+  68% {
+    filter: grayscale(1) contrast(0.92) brightness(0.9) sepia(0.32);
+    opacity: 0.8;
+  }
+
+  82%,
   100% {
     filter: grayscale(1) contrast(0.8) brightness(1.08);
-    opacity: 0.16;
+    opacity: 0.1;
   }
 }
 
 @keyframes hero-burn-glow {
   0%,
-  44% {
+  40% {
     opacity: 0;
   }
 
-  54%,
-  66% {
+  50%,
+  64% {
     opacity: 0.92;
   }
 
-  82% {
+  76% {
     opacity: 0.2;
   }
 
   100% {
     opacity: 0;
+  }
+}
+
+@keyframes hero-burn-scorch {
+  0%,
+  46% {
+    opacity: 0;
+    transform: scale(0.72) rotate(-8deg);
+  }
+
+  60% {
+    opacity: 0.88;
+    transform: scale(1) rotate(-2deg);
+  }
+
+  80% {
+    opacity: 0.54;
+    transform: scale(1.05) rotate(3deg);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(1.08) rotate(6deg);
   }
 }
 
@@ -967,7 +999,7 @@ textarea {
 
   100% {
     opacity: 0;
-    transform: translate3d(-2rem, -4rem, 0) scale(0.2);
+    transform: translate3d(-2.6rem, -4.8rem, 0) scale(0.14);
   }
 }
 
@@ -2284,6 +2316,16 @@ textarea {
     bottom: 1rem;
   }
 
+  .hero-memory-lighter {
+    width: 4.7rem;
+    height: 4.5rem;
+  }
+
+  .hero-memory-lighter-flame {
+    top: 0.34rem;
+    left: 2.5rem;
+  }
+
   .hero-frame-panel-primary {
     min-height: 33rem;
   }
@@ -2337,6 +2379,19 @@ textarea {
 
   .hero-memory-burn-card {
     width: 7rem;
+  }
+
+  .hero-memory-lighter {
+    width: 4.1rem;
+    height: 4rem;
+    transform: translateX(0.25rem) rotate(-5deg);
+  }
+
+  .hero-memory-lighter-flame {
+    top: 0.26rem;
+    left: 2.16rem;
+    width: 1rem;
+    height: 1.38rem;
   }
 
   .hero-frame-panel-primary {
