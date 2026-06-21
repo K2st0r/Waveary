@@ -67,10 +67,46 @@ interface SessionTimelineEvent {
   importance: number;
 }
 
+interface ProactiveCarePolicy {
+  enabled: boolean;
+  quietHoursStart?: string;
+  quietHoursEnd?: string;
+  maxDailyReachouts: number;
+  allowMealCare: boolean;
+  allowSleepCare: boolean;
+  allowAbsenceCheckins: boolean;
+}
+
+interface ProactiveCareState {
+  dailyReachoutsSent: number;
+  unansweredReachoutCount: number;
+  lastReachOutAt?: string;
+}
+
+interface ProactiveCareDecision {
+  shouldReachOut: boolean;
+  reasons: string[];
+  evaluatedAt: string;
+  intent?:
+    | "check_in"
+    | "meal_care"
+    | "sleep_care"
+    | "stress_followup"
+    | "absence_reachout"
+    | "milestone_recall"
+    | "gentle_reminder"
+    | "celebration"
+    | "comfort";
+  urgency?: "low" | "medium" | "high";
+  suggestedDelayMinutes?: number;
+}
+
 interface ChatSessionSnapshot {
   sessionId: string;
   messages: ChatMessage[];
   latestInsights: ChatTurnResponse | null;
+  proactiveCarePolicy: ProactiveCarePolicy;
+  proactiveCareState: ProactiveCareState;
   memoryArchive: SessionMemoryArchiveItem[];
   relationship: SessionRelationshipSnapshot | null;
   timelineEvents: SessionTimelineEvent[];
@@ -391,6 +427,37 @@ const zhCopy = {
     exportDescription: "该导出包包含当前会话的对话、持久记忆、关系状态、时间轴事件与最新运行时洞察。",
     importSafety: "导入安全",
     currentSchemaShort: "当前 schema：",
+    proactiveCare: "主动关怀",
+    proactiveCareTag: "WPCE",
+    proactiveCareDescription: "查看并保存当前会话的主动关怀策略，然后基于持久化状态做一次即时评估。",
+    proactiveEnabled: "启用主动关怀",
+    quietHoursStart: "静默开始",
+    quietHoursEnd: "静默结束",
+    maxDailyReachouts: "每日最多触达",
+    allowMealCare: "允许用餐关怀",
+    allowSleepCare: "允许睡眠关怀",
+    allowAbsenceCheckins: "允许失联关怀",
+    dailyReachoutsSent: "今日已触达",
+    unansweredReachoutCount: "未回应次数",
+    lastReachOutAt: "上次触达",
+    noReachOutYet: "尚未记录主动触达。",
+    saveProactiveSettings: "保存关怀设置",
+    savingProactiveSettings: "正在保存...",
+    evaluateProactiveNow: "立即评估",
+    evaluatingProactive: "正在评估...",
+    proactiveSettingsSaved: "当前会话的主动关怀设置已保存。",
+    proactiveEvaluationReady: "已完成当前会话的主动关怀评估。",
+    proactiveDecision: "评估结果",
+    proactiveShouldReachOut: "建议触达",
+    proactiveIntent: "触达意图",
+    proactiveUrgency: "紧急程度",
+    proactiveReasons: "决策原因",
+    proactiveSuggestedDelay: "建议延迟",
+    proactiveEvaluatedAt: "评估时间",
+    proactiveNoDecision: "还没有执行主动关怀评估。",
+    yes: "是",
+    no: "否",
+    minutes: "分钟",
     signals: "运行时信号",
     signalsTag: "记忆 + 关系",
     relationshipStage: "关系阶段",
@@ -698,6 +765,37 @@ const enCopy = {
     exportDescription: "This export package includes conversation, persisted memories, relationship state, timeline events, and latest insights for the active session.",
     importSafety: "Import safety",
     currentSchemaShort: "Current schema:",
+    proactiveCare: "Proactive Care",
+    proactiveCareTag: "WPCE",
+    proactiveCareDescription: "Review and save the active session's proactive-care policy, then run an immediate evaluation against the persisted state.",
+    proactiveEnabled: "Enable proactive care",
+    quietHoursStart: "Quiet hours start",
+    quietHoursEnd: "Quiet hours end",
+    maxDailyReachouts: "Max daily reachouts",
+    allowMealCare: "Allow meal care",
+    allowSleepCare: "Allow sleep care",
+    allowAbsenceCheckins: "Allow absence check-ins",
+    dailyReachoutsSent: "Reachouts sent today",
+    unansweredReachoutCount: "Unanswered reachouts",
+    lastReachOutAt: "Last reachout",
+    noReachOutYet: "No proactive reachout has been recorded yet.",
+    saveProactiveSettings: "Save care settings",
+    savingProactiveSettings: "Saving...",
+    evaluateProactiveNow: "Evaluate now",
+    evaluatingProactive: "Evaluating...",
+    proactiveSettingsSaved: "Saved proactive-care settings for the active session.",
+    proactiveEvaluationReady: "Completed proactive-care evaluation for the active session.",
+    proactiveDecision: "Evaluation Result",
+    proactiveShouldReachOut: "Should reach out",
+    proactiveIntent: "Intent",
+    proactiveUrgency: "Urgency",
+    proactiveReasons: "Reasons",
+    proactiveSuggestedDelay: "Suggested delay",
+    proactiveEvaluatedAt: "Evaluated at",
+    proactiveNoDecision: "No proactive-care evaluation has been run yet.",
+    yes: "Yes",
+    no: "No",
+    minutes: "minutes",
     signals: "Runtime Signals",
     signalsTag: "Memory + Relationship",
     relationshipStage: "Relationship Stage",
@@ -908,6 +1006,11 @@ export function App(): ReactElement {
   const [sessionMemoryArchive, setSessionMemoryArchive] = useState<SessionMemoryArchiveItem[]>([]);
   const [sessionRelationship, setSessionRelationship] = useState<SessionRelationshipSnapshot | null>(null);
   const [sessionTimelineEvents, setSessionTimelineEvents] = useState<SessionTimelineEvent[]>([]);
+  const [proactiveCarePolicy, setProactiveCarePolicy] = useState<ProactiveCarePolicy | null>(null);
+  const [proactiveCareState, setProactiveCareState] = useState<ProactiveCareState | null>(null);
+  const [proactiveDecision, setProactiveDecision] = useState<ProactiveCareDecision | null>(null);
+  const [proactiveSaveState, setProactiveSaveState] = useState<LoadState>("idle");
+  const [proactiveEvaluateState, setProactiveEvaluateState] = useState<LoadState>("idle");
   const [chatSessions, setChatSessions] = useState<ChatSessionListItem[]>([]);
   const [activeSessionId, setActiveSessionId] = useState("");
   const [defaultSessionId, setDefaultSessionId] = useState("");
@@ -1090,24 +1193,38 @@ export function App(): ReactElement {
       });
 
       if (!response.session) {
-        setChatMessages([]);
-        setChatInsights(null);
-        setChatRestoredAt(null);
-        setSessionMemoryArchive([]);
-        setSessionRelationship(null);
-        setSessionTimelineEvents([]);
+        applySessionSnapshot(null);
         return;
       }
 
-      setChatMessages(response.session.messages);
-      setChatInsights(response.session.latestInsights);
-      setChatRestoredAt(response.session.updatedAt);
-      setSessionMemoryArchive(response.session.memoryArchive);
-      setSessionRelationship(response.session.relationship);
-      setSessionTimelineEvents(response.session.timelineEvents);
+      applySessionSnapshot(response.session);
+      setProactiveDecision(null);
     } catch (error) {
       setStatusMessage(getErrorMessage(error));
     }
+  }
+
+  function applySessionSnapshot(session: ChatSessionSnapshot | null): void {
+    if (!session) {
+      setChatMessages([]);
+      setChatInsights(null);
+      setChatRestoredAt(null);
+      setSessionMemoryArchive([]);
+      setSessionRelationship(null);
+      setSessionTimelineEvents([]);
+      setProactiveCarePolicy(null);
+      setProactiveCareState(null);
+      return;
+    }
+
+    setChatMessages(session.messages);
+    setChatInsights(session.latestInsights);
+    setChatRestoredAt(session.updatedAt);
+    setSessionMemoryArchive(session.memoryArchive);
+    setSessionRelationship(session.relationship);
+    setSessionTimelineEvents(session.timelineEvents);
+    setProactiveCarePolicy(session.proactiveCarePolicy);
+    setProactiveCareState(session.proactiveCareState);
   }
 
   function handleProviderChange(event: ChangeEvent<HTMLSelectElement>): void {
@@ -1204,12 +1321,8 @@ export function App(): ReactElement {
       setSelectedPersistenceBackend(response.persistence.backend);
       setActiveSessionId(response.session.sessionId);
       setSessionRenameTitle(response.sessions.find((session) => session.sessionId === response.session.sessionId)?.title ?? "");
-      setChatMessages(response.session.messages);
-      setChatInsights(response.session.latestInsights);
-      setChatRestoredAt(response.session.updatedAt);
-      setSessionMemoryArchive(response.session.memoryArchive);
-      setSessionRelationship(response.session.relationship);
-      setSessionTimelineEvents(response.session.timelineEvents);
+      applySessionSnapshot(response.session);
+      setProactiveDecision(null);
       setNewSessionTitle("");
       setStatusMessage(copy.statuses.sessionCreated);
     } catch (error) {
@@ -1301,12 +1414,8 @@ export function App(): ReactElement {
       setDefaultSessionId(response.defaultSessionId);
       setPersistenceStatus(response.persistence);
       setSelectedPersistenceBackend(response.persistence.backend);
-      setChatMessages(response.session.messages);
-      setChatInsights(response.session.latestInsights);
-      setChatRestoredAt(response.session.updatedAt);
-      setSessionMemoryArchive(response.session.memoryArchive);
-      setSessionRelationship(response.session.relationship);
-      setSessionTimelineEvents(response.session.timelineEvents);
+      applySessionSnapshot(response.session);
+      setProactiveDecision(null);
       setSessionRenameTitle(response.sessions.find((session) => session.sessionId === activeSessionId)?.title ?? "");
       setStatusMessage(activeSessionId === defaultSessionId ? copy.statuses.mainSessionReset : copy.statuses.sessionReset);
     } catch (error) {
@@ -1431,12 +1540,8 @@ export function App(): ReactElement {
       setSelectedPersistenceBackend(response.persistence.backend);
       setActiveSessionId(response.imported.session.sessionId);
       setSessionRenameTitle(response.imported.importedTitle);
-      setChatMessages(response.imported.session.messages);
-      setChatInsights(response.imported.session.latestInsights);
-      setChatRestoredAt(response.imported.session.updatedAt);
-      setSessionMemoryArchive(response.imported.session.memoryArchive);
-      setSessionRelationship(response.imported.session.relationship);
-      setSessionTimelineEvents(response.imported.session.timelineEvents);
+      applySessionSnapshot(response.imported.session);
+      setProactiveDecision(null);
       setSessionImportState("success");
       setSessionImportErrors([]);
       setStatusMessage(locale === "zh" ? `已导入为新会话：${response.imported.importedTitle}。` : `Imported session as ${response.imported.importedTitle}.`);
@@ -1456,6 +1561,72 @@ export function App(): ReactElement {
     setSessionImportErrors([]);
     setSessionImportTitle(locale === "zh" ? "恢复的示例会话" : "Recovered Sample Session");
     setStatusMessage(copy.statuses.sampleLoaded);
+  }
+
+  async function handleSaveProactiveCareSettings(): Promise<void> {
+    if (!activeSessionId || !proactiveCarePolicy || !proactiveCareState) {
+      return;
+    }
+
+    setProactiveSaveState("loading");
+
+    try {
+      const response = await fetchJson<{
+        session: ChatSessionSnapshot;
+        sessions: ChatSessionListItem[];
+        defaultSessionId: string;
+        persistence: ChatPersistenceStatus;
+      }>("/api/chat/proactive/settings", {
+        method: "POST",
+        body: JSON.stringify({
+          sessionId: activeSessionId,
+          policy: proactiveCarePolicy,
+          state: proactiveCareState
+        })
+      });
+
+      setChatSessions(response.sessions);
+      setDefaultSessionId(response.defaultSessionId);
+      setPersistenceStatus(response.persistence);
+      setSelectedPersistenceBackend(response.persistence.backend);
+      applySessionSnapshot(response.session);
+      setProactiveSaveState("success");
+      setStatusMessage(copy.runtime.proactiveSettingsSaved);
+    } catch (error) {
+      setProactiveSaveState("error");
+      setStatusMessage(getErrorMessage(error));
+    }
+  }
+
+  async function handleEvaluateProactiveCare(): Promise<void> {
+    if (!activeSessionId) {
+      return;
+    }
+
+    setProactiveEvaluateState("loading");
+
+    try {
+      const response = await fetchJson<{
+        decision: ProactiveCareDecision;
+        session: ChatSessionSnapshot | null;
+      }>("/api/chat/proactive/evaluate", {
+        method: "POST",
+        body: JSON.stringify({
+          sessionId: activeSessionId
+        })
+      });
+
+      if (response.session) {
+        applySessionSnapshot(response.session);
+      }
+
+      setProactiveDecision(response.decision);
+      setProactiveEvaluateState("success");
+      setStatusMessage(copy.runtime.proactiveEvaluationReady);
+    } catch (error) {
+      setProactiveEvaluateState("error");
+      setStatusMessage(getErrorMessage(error));
+    }
   }
 
   async function handleSendMessage(): Promise<void> {
@@ -1510,9 +1681,10 @@ export function App(): ReactElement {
       setDefaultSessionId(sessionsResponse.defaultSessionId);
       setPersistenceStatus(sessionsResponse.persistence);
       setSelectedPersistenceBackend(sessionsResponse.persistence.backend);
-      setSessionMemoryArchive(sessionSnapshotResponse.session?.memoryArchive ?? []);
-      setSessionRelationship(sessionSnapshotResponse.session?.relationship ?? null);
-      setSessionTimelineEvents(sessionSnapshotResponse.session?.timelineEvents ?? []);
+      if (sessionSnapshotResponse.session) {
+        applySessionSnapshot(sessionSnapshotResponse.session);
+      }
+      setProactiveDecision(null);
       setChatState("success");
     } catch (error) {
       setChatMessages((current) => [
@@ -1554,6 +1726,10 @@ export function App(): ReactElement {
   const canExportSession = Boolean(activeSessionId) && sessionExportState !== "loading";
   const canImportSession = Boolean(sessionImportJson.trim()) && sessionImportState !== "loading";
   const canLoadSampleSession = Boolean(sessionPackageReference) && sessionImportState !== "loading";
+  const canSaveProactiveSettings =
+    Boolean(activeSessionId && proactiveCarePolicy && proactiveCareState) && proactiveSaveState !== "loading";
+  const canEvaluateProactive =
+    Boolean(activeSessionId) && proactiveEvaluateState !== "loading";
   const alternateBackendStatus =
     persistenceStatus?.backendDetails.find((detail) => detail.backend !== persistenceStatus.backend) ?? null;
   const hasSessionArchive =
@@ -2440,6 +2616,277 @@ export function App(): ReactElement {
           <div className="console-diagnostics-grid">
             <div className="panel insight-panel">
               <div className="panel-header">
+                <span>{copy.runtime.proactiveCare}</span>
+                <span className="panel-tag">{copy.runtime.proactiveCareTag}</span>
+              </div>
+
+              <div className="insight-stack">
+                <p className="provider-note">{copy.runtime.proactiveCareDescription}</p>
+
+                {proactiveCarePolicy && proactiveCareState ? (
+                  <>
+                    <div className="proactive-care-grid">
+                      <label className="form-field proactive-checkbox-field">
+                        <span>{copy.runtime.proactiveEnabled}</span>
+                        <label className="proactive-toggle">
+                          <input
+                            type="checkbox"
+                            checked={proactiveCarePolicy.enabled}
+                            onChange={(event) =>
+                              setProactiveCarePolicy((current) =>
+                                current
+                                  ? {
+                                      ...current,
+                                      enabled: event.target.checked
+                                    }
+                                  : current
+                              )
+                            }
+                          />
+                          <span>{proactiveCarePolicy.enabled ? copy.runtime.yes : copy.runtime.no}</span>
+                        </label>
+                      </label>
+
+                      <label className="form-field">
+                        <span>{copy.runtime.quietHoursStart}</span>
+                        <input
+                          type="time"
+                          value={proactiveCarePolicy.quietHoursStart ?? ""}
+                          onChange={(event) =>
+                            setProactiveCarePolicy((current) =>
+                              current
+                                ? patchOptionalTimeField(current, "quietHoursStart", event.target.value)
+                                : current
+                            )
+                          }
+                        />
+                      </label>
+
+                      <label className="form-field">
+                        <span>{copy.runtime.quietHoursEnd}</span>
+                        <input
+                          type="time"
+                          value={proactiveCarePolicy.quietHoursEnd ?? ""}
+                          onChange={(event) =>
+                            setProactiveCarePolicy((current) =>
+                              current
+                                ? patchOptionalTimeField(current, "quietHoursEnd", event.target.value)
+                                : current
+                            )
+                          }
+                        />
+                      </label>
+
+                      <label className="form-field">
+                        <span>{copy.runtime.maxDailyReachouts}</span>
+                        <input
+                          type="number"
+                          min={0}
+                          value={proactiveCarePolicy.maxDailyReachouts}
+                          onChange={(event) =>
+                            setProactiveCarePolicy((current) =>
+                              current
+                                ? {
+                                    ...current,
+                                    maxDailyReachouts: Math.max(0, Number(event.target.value || 0))
+                                  }
+                                : current
+                            )
+                          }
+                        />
+                      </label>
+
+                      <label className="form-field proactive-checkbox-field">
+                        <span>{copy.runtime.allowMealCare}</span>
+                        <label className="proactive-toggle">
+                          <input
+                            type="checkbox"
+                            checked={proactiveCarePolicy.allowMealCare}
+                            onChange={(event) =>
+                              setProactiveCarePolicy((current) =>
+                                current
+                                  ? {
+                                      ...current,
+                                      allowMealCare: event.target.checked
+                                    }
+                                  : current
+                              )
+                            }
+                          />
+                          <span>{proactiveCarePolicy.allowMealCare ? copy.runtime.yes : copy.runtime.no}</span>
+                        </label>
+                      </label>
+
+                      <label className="form-field proactive-checkbox-field">
+                        <span>{copy.runtime.allowSleepCare}</span>
+                        <label className="proactive-toggle">
+                          <input
+                            type="checkbox"
+                            checked={proactiveCarePolicy.allowSleepCare}
+                            onChange={(event) =>
+                              setProactiveCarePolicy((current) =>
+                                current
+                                  ? {
+                                      ...current,
+                                      allowSleepCare: event.target.checked
+                                    }
+                                  : current
+                              )
+                            }
+                          />
+                          <span>{proactiveCarePolicy.allowSleepCare ? copy.runtime.yes : copy.runtime.no}</span>
+                        </label>
+                      </label>
+
+                      <label className="form-field proactive-checkbox-field">
+                        <span>{copy.runtime.allowAbsenceCheckins}</span>
+                        <label className="proactive-toggle">
+                          <input
+                            type="checkbox"
+                            checked={proactiveCarePolicy.allowAbsenceCheckins}
+                            onChange={(event) =>
+                              setProactiveCarePolicy((current) =>
+                                current
+                                  ? {
+                                      ...current,
+                                      allowAbsenceCheckins: event.target.checked
+                                    }
+                                  : current
+                              )
+                            }
+                          />
+                          <span>{proactiveCarePolicy.allowAbsenceCheckins ? copy.runtime.yes : copy.runtime.no}</span>
+                        </label>
+                      </label>
+
+                      <label className="form-field">
+                        <span>{copy.runtime.dailyReachoutsSent}</span>
+                        <input
+                          type="number"
+                          min={0}
+                          value={proactiveCareState.dailyReachoutsSent}
+                          onChange={(event) =>
+                            setProactiveCareState((current) =>
+                              current
+                                ? {
+                                    ...current,
+                                    dailyReachoutsSent: Math.max(0, Number(event.target.value || 0))
+                                  }
+                                : current
+                            )
+                          }
+                        />
+                      </label>
+
+                      <label className="form-field">
+                        <span>{copy.runtime.unansweredReachoutCount}</span>
+                        <input
+                          type="number"
+                          min={0}
+                          value={proactiveCareState.unansweredReachoutCount}
+                          onChange={(event) =>
+                            setProactiveCareState((current) =>
+                              current
+                                ? {
+                                    ...current,
+                                    unansweredReachoutCount: Math.max(0, Number(event.target.value || 0))
+                                  }
+                                : current
+                            )
+                          }
+                        />
+                      </label>
+                    </div>
+
+                    <div className="session-reference-card proactive-state-card">
+                      <strong>{copy.runtime.lastReachOutAt}</strong>
+                      <span>
+                        {proactiveCareState.lastReachOutAt
+                          ? formatSessionTimestamp(proactiveCareState.lastReachOutAt, locale)
+                          : copy.runtime.noReachOutYet}
+                      </span>
+                    </div>
+
+                    <div className="console-actions">
+                      <button
+                        className="button button-secondary"
+                        onClick={() => void handleSaveProactiveCareSettings()}
+                        disabled={!canSaveProactiveSettings}
+                        type="button"
+                      >
+                        {proactiveSaveState === "loading"
+                          ? copy.runtime.savingProactiveSettings
+                          : copy.runtime.saveProactiveSettings}
+                      </button>
+                      <button
+                        className="button button-secondary"
+                        onClick={() => void handleEvaluateProactiveCare()}
+                        disabled={!canEvaluateProactive}
+                        type="button"
+                      >
+                        {proactiveEvaluateState === "loading"
+                          ? copy.runtime.evaluatingProactive
+                          : copy.runtime.evaluateProactiveNow}
+                      </button>
+                    </div>
+
+                    {proactiveDecision ? (
+                      <div className="insight-card proactive-decision-card">
+                        <div className="mini-heading">{copy.runtime.proactiveDecision}</div>
+                        <div className="proactive-decision-grid">
+                          <div>
+                            <span>{copy.runtime.proactiveShouldReachOut}</span>
+                            <strong>{proactiveDecision.shouldReachOut ? copy.runtime.yes : copy.runtime.no}</strong>
+                          </div>
+                          <div>
+                            <span>{copy.runtime.proactiveIntent}</span>
+                            <strong>{proactiveDecision.intent ?? "-"}</strong>
+                          </div>
+                          <div>
+                            <span>{copy.runtime.proactiveUrgency}</span>
+                            <strong>{proactiveDecision.urgency ?? "-"}</strong>
+                          </div>
+                          <div>
+                            <span>{copy.runtime.proactiveSuggestedDelay}</span>
+                            <strong>
+                              {typeof proactiveDecision.suggestedDelayMinutes === "number"
+                                ? `${proactiveDecision.suggestedDelayMinutes} ${copy.runtime.minutes}`
+                                : "-"}
+                            </strong>
+                          </div>
+                        </div>
+                        <div className="proactive-reasons-block">
+                          <strong>{copy.runtime.proactiveReasons}</strong>
+                          {proactiveDecision.reasons.length > 0 ? (
+                            <ul className="insight-list">
+                              {proactiveDecision.reasons.map((reason) => (
+                                <li key={reason}>{reason}</li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <p>-</p>
+                          )}
+                        </div>
+                        <p>
+                          {copy.runtime.proactiveEvaluatedAt}
+                          {copy.formatting.sep}
+                          {formatSessionTimestamp(proactiveDecision.evaluatedAt, locale)}
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="session-reference-card proactive-state-card">
+                        <span>{copy.runtime.proactiveNoDecision}</span>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="empty-chat-state">{copy.runtime.noLocalSession}</div>
+                )}
+              </div>
+            </div>
+
+            <div className="panel insight-panel">
+              <div className="panel-header">
                 <span>{copy.runtime.signals}</span>
                 <span className="panel-tag">{copy.runtime.signalsTag}</span>
               </div>
@@ -2747,6 +3194,23 @@ function formatMemoryType(type: string, locale: Locale): string {
   }
 
   return type;
+}
+
+function patchOptionalTimeField<T extends { quietHoursStart?: string; quietHoursEnd?: string }>(
+  current: T,
+  field: "quietHoursStart" | "quietHoursEnd",
+  value: string
+): T {
+  if (!value) {
+    const next = { ...current };
+    delete next[field];
+    return next;
+  }
+
+  return {
+    ...current,
+    [field]: value
+  };
 }
 
 function downloadSessionExport(exported: ExportedChatSession): void {

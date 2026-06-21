@@ -1804,7 +1804,8 @@ textarea {
 .persistence-status-card,
 .signal-metric-card,
 .insight-card,
-.session-export-panel {
+.session-export-panel,
+.proactive-state-card {
   padding: 1rem;
   border: 1.5px solid rgba(21, 18, 15, 0.12);
   border-radius: var(--radius-card);
@@ -1876,6 +1877,13 @@ textarea {
   gap: 1rem;
 }
 
+.proactive-care-grid,
+.proactive-decision-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
 .form-field {
   display: grid;
   gap: 0.55rem;
@@ -1915,6 +1923,28 @@ textarea {
 .session-import-textarea::placeholder,
 .chat-composer textarea::placeholder {
   color: rgba(145, 164, 178, 0.74);
+}
+
+.proactive-checkbox-field {
+  align-content: space-between;
+}
+
+.proactive-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 3.2rem;
+  padding: 0.78rem 1rem;
+  border: 1.5px solid rgba(21, 18, 15, 0.16);
+  border-radius: var(--radius-control);
+  background: rgba(255, 252, 247, 0.95);
+  color: var(--text);
+}
+
+.proactive-toggle input {
+  width: auto;
+  min-height: 0;
+  margin: 0;
 }
 
 .console-actions {
@@ -2368,6 +2398,23 @@ textarea {
   letter-spacing: 0.01em;
 }
 
+.proactive-state-card strong,
+.proactive-reasons-block strong,
+.proactive-decision-grid strong {
+  color: var(--text-strong);
+}
+
+.proactive-state-card span,
+.proactive-decision-grid span {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.proactive-reasons-block {
+  display: grid;
+  gap: 0.55rem;
+}
+
 .session-export-block {
   margin: 0;
   overflow-x: auto;
@@ -2478,6 +2525,8 @@ textarea {
   .repo-module-grid,
   .provider-form-grid,
   .session-reference-grid,
+  .proactive-care-grid,
+  .proactive-decision-grid,
   .signal-grid,
   .signal-metrics,
   .engine-grid,
