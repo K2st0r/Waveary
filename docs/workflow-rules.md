@@ -11,20 +11,24 @@ If Codex starts in this repository with limited context, it should immediately u
 For every non-trivial work block:
 
 1. Read `PROJECT_STATE.md`
-2. Read `docs/session-log.md`
-3. Read `docs/decision-log.md`
-4. Inspect `git status --short -b`
-5. Inspect recent commits
-6. Make one cohesive change set
-7. Run verification commands
-8. Update `PROJECT_STATE.md`
-9. Update `docs/session-log.md`
-10. Update `docs/decision-log.md` if a meaningful decision was made
-11. Record the next recommended step in `PROJECT_STATE.md`
-12. Commit the functional change
-13. Push the functional commit if GitHub is reachable
-14. If state files still contain `pending` placeholders after the push result is known, update them immediately
-15. Commit and push that continuity sync as a separate follow-up record when needed
+2. Read `ACTIVE_TASKS.md`
+3. Read `docs/product-preferences.md`
+4. Read `docs/session-log.md`
+5. Read `docs/decision-log.md`
+6. Inspect `git status --short -b`
+7. Inspect recent commits
+8. Make one cohesive change set
+9. Run verification commands
+10. Update `PROJECT_STATE.md`
+11. Update `ACTIVE_TASKS.md` when the active queue or current implementation target changes
+12. Update `docs/product-preferences.md` when a stable long-term preference becomes explicit enough to preserve
+13. Update `docs/session-log.md`
+14. Update `docs/decision-log.md` if a meaningful decision was made
+15. Record the next recommended step in `PROJECT_STATE.md`
+16. Commit the functional change
+17. Push the functional commit if GitHub is reachable
+18. If state files still contain `pending` placeholders after the push result is known, update them immediately
+19. Commit and push that continuity sync as a separate follow-up record when needed
 
 ## Completion Rule
 
@@ -66,4 +70,4 @@ If a new session starts with little or no context:
 
 - rebuild from repository files
 - trust repository evidence over chat memory
-- continue from `PROJECT_STATE.md`, `docs/session-log.md`, and `docs/decision-log.md`
+- continue from `PROJECT_STATE.md`, `ACTIVE_TASKS.md`, `docs/product-preferences.md`, `docs/session-log.md`, and `docs/decision-log.md`

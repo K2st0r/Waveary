@@ -4,6 +4,43 @@
 
 Objective:
 
+Strengthen the repository-side continuity layer so Waveary can survive heavy long-running use with less drift, less wrong resumption, and less reliance on fragile chat memory.
+
+Summary:
+
+- added `ACTIVE_TASKS.md` as a short-horizon execution queue so a resumed session can see the current implementation focus, current cut, and key deferred work without reconstructing it from chat history
+- added `docs/product-preferences.md` to preserve stable product, tone, permission-boundary, UX, and workflow preferences that should survive context compression
+- updated `START_HERE.md`, `docs/workflow-rules.md`, `PROJECT_STATE.md`, and the local `waveary-continuity-guard` skill so future sessions read these new files as part of the default recovery routine
+- kept the goal focused on continuity quality and recovery accuracy rather than token minimization; the intent is to make long-term high-intensity development easier to resume correctly
+
+Files changed:
+
+- `ACTIVE_TASKS.md`
+- `docs/product-preferences.md`
+- `START_HERE.md`
+- `docs/workflow-rules.md`
+- `PROJECT_STATE.md`
+- `C:\Users\13571\.codex\skills\waveary-continuity-guard\SKILL.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `git diff --check`
+- `git status --short --branch`
+- `python C:\Users\13571\.codex\skills\.system\skill-creator\scripts\quick_validate.py C:\Users\13571\.codex\skills\waveary-continuity-guard`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-21
+
+Objective:
+
 Refactor the daypart-aware proactive copy into one reusable web-side message composer so console summaries and browser notifications stop carrying separate tone logic.
 
 Summary:

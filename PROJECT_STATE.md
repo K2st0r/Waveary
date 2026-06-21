@@ -146,6 +146,13 @@ Brand line:
   - supports a default main companion session plus user-created additional sessions with rename and delete management
   - now boots reliably through `npm run web:dev` on the current Windows + Chinese-path workspace
 
+## Continuity Layer
+
+- `PROJECT_STATE.md` remains the source of truth for current architecture, verified commit state, and next recommended step
+- `ACTIVE_TASKS.md` now tracks the live implementation queue so a resumed session can continue the current cut without reconstructing it from chat history
+- `docs/product-preferences.md` now records durable product, tone, trust-boundary, and workflow preferences that should survive heavy context compression
+- `docs/session-log.md` and `docs/decision-log.md` continue to serve as chronological execution and architecture records
+
 ## Verified Commands
 
 - `npm run check --workspace @waveary/web`
@@ -236,6 +243,7 @@ Brand line:
 - consider planning the next schema migration rule before any non-backward-compatible session package change lands
 - consider hardening workspace build scripts further against transient Windows dist-lock races
 - keep updating `PROJECT_STATE.md` and `docs/session-log.md` after each verified work block
+- keep `ACTIVE_TASKS.md` and `docs/product-preferences.md` short, current, and high-signal so they stay useful under heavy long-term use
 - keep `START_HERE.md` and continuity files aligned with current workflow
 
 ## Open Issues

@@ -6,10 +6,12 @@ First do this:
 
 1. Use `waveary-continuity-guard`
 2. Read `PROJECT_STATE.md`
-3. Read `docs/session-log.md`
-4. Read `docs/decision-log.md`
-5. Read `docs/workflow-rules.md`
-6. Check `git status --short -b`
+3. Read `ACTIVE_TASKS.md`
+4. Read `docs/product-preferences.md`
+5. Read `docs/session-log.md`
+6. Read `docs/decision-log.md`
+7. Read `docs/workflow-rules.md`
+8. Check `git status --short -b`
 
 Before ending any non-trivial work block, do this:
 

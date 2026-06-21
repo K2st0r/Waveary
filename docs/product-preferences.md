@@ -1,0 +1,49 @@
+# Product Preferences
+
+This file records stable product preferences that have been stated clearly enough to matter across many sessions.
+
+Use it to reduce drift after context compression.
+
+Only write preferences here when they are likely to remain useful over time.
+
+## Product Identity
+
+- Waveary must be understood as an open source digital life companion framework, not an AI girlfriend project, AI boyfriend project, or generic chatbot wrapper.
+- The brand line is `念念不忘，终有回响。`
+- The product should feel like a continuity layer for life companionship, not like a roleplay shell or benchmark-driven assistant skin.
+
+## Product Priorities
+
+- Companionship matters more than raw intelligence.
+- Memory matters more than model novelty.
+- Relationship continuity matters more than feature count.
+- The system should feel emotionally present, not mechanically “helpful”.
+
+## Interaction Preferences
+
+- The companion should feel like a person with emotional range, not a dry Q&A engine.
+- Replies should carry warmth, concern, softness, and restraint where appropriate instead of sounding like tooling or documentation.
+- Proactive care should feel细致入微 and human, but never spammy or manipulative.
+- Time-of-day and emotional context should shape tone when permission allows it.
+
+## Trust And Permission Boundaries
+
+- The user should be able to choose the companion's permissions explicitly.
+- Higher-trust abilities must be visible, revocable, and permissioned before they exist.
+- Local time awareness is acceptable as a bounded input.
+- Time awareness must not silently expand into broader desktop presence or local action authority.
+- Future desktop reading, local control, or automation should stay clearly separated from ordinary chat behavior.
+
+## UX And Presentation
+
+- The current web product should feel like a serious formal project, not a debug dashboard.
+- The homepage should stay introduction-first and not collapse back into one long tools page.
+- The chat experience should stay simpler and more companion-focused than the console.
+- The user prefers a more emotional, higher-quality, less generic frontend feel over generic utility UI.
+
+## Development Workflow Preferences
+
+- Frequent commit and push is preferred.
+- Continuity and resumability matter more than minimal process overhead.
+- Important decisions should be written into repository files rather than left only in chat.
+- The goal is not merely lower token usage; the goal is a workflow that keeps the project easier to continue correctly.
