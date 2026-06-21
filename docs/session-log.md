@@ -29,11 +29,11 @@ Verification:
 
 Commit:
 
-- pending
+- `a0e62a5` - `Validate session import duplicate message identities`
 
 Push:
 
-- pending
+- succeeded
 
 ## 2026-06-21
 
