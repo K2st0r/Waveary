@@ -147,6 +147,12 @@ interface ChatMessage {
 
 type Locale = "zh" | "en";
 type LoadState = "idle" | "loading" | "success" | "error";
+type AppPage = "home" | "framework" | "console" | "roadmap";
+
+interface PageLocation {
+  page: AppPage;
+  sectionId?: string;
+}
 
 const zhCopy = {
   brandSubtitle: "回响之境",
@@ -764,6 +770,34 @@ function getCopy(locale: Locale): typeof zhCopy | typeof enCopy {
   return locale === "zh" ? zhCopy : enCopy;
 }
 
+function parsePageLocation(hash: string): PageLocation {
+  const normalized = hash.replace(/^#/, "").trim();
+
+  if (!normalized) {
+    return { page: "home" };
+  }
+
+  const [rawPage, rawSection] = normalized.split("/", 2);
+  const sectionId = rawSection?.trim() ? rawSection.trim() : undefined;
+  const withSection = (page: AppPage): PageLocation => (sectionId ? { page, sectionId } : { page });
+
+  switch (rawPage) {
+    case "framework":
+      return withSection("framework");
+    case "console":
+      return withSection("console");
+    case "roadmap":
+      return withSection("roadmap");
+    case "home":
+    default:
+      return withSection("home");
+  }
+}
+
+function formatPageLocation(page: AppPage, sectionId?: string): string {
+  return `#${page}${sectionId ? `/${sectionId}` : ""}`;
+}
+
 export function App(): ReactElement {
   const [locale, setLocale] = useState<Locale>(() => {
     if (typeof window === "undefined") {
@@ -809,6 +843,13 @@ export function App(): ReactElement {
   const [sessionImportErrors, setSessionImportErrors] = useState<string[]>([]);
   const [sessionPackageReference, setSessionPackageReference] = useState<SessionPackageReference | null>(null);
   const sessionImportFileInputRef = useRef<HTMLInputElement | null>(null);
+  const [currentPage, setCurrentPage] = useState<AppPage>(() => {
+    if (typeof window === "undefined") {
+      return "home";
+    }
+
+    return parsePageLocation(window.location.hash).page;
+  });
 
   useEffect(() => {
     window.localStorage.setItem("waveary-locale", locale);
@@ -817,6 +858,73 @@ export function App(): ReactElement {
   useEffect(() => {
     void loadInitialState();
   }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const applyLocation = (location: PageLocation, behavior: ScrollBehavior): void => {
+      setCurrentPage(location.page);
+
+      window.requestAnimationFrame(() => {
+        if (location.sectionId) {
+          document.getElementById(location.sectionId)?.scrollIntoView({
+            behavior,
+            block: "start"
+          });
+          return;
+        }
+
+        window.scrollTo({
+          top: 0,
+          behavior
+        });
+      });
+    };
+
+    const handleHashChange = (): void => {
+      applyLocation(parsePageLocation(window.location.hash), "auto");
+    };
+
+    if (!window.location.hash) {
+      window.history.replaceState(null, "", "#home");
+    }
+
+    handleHashChange();
+    window.addEventListener("hashchange", handleHashChange);
+
+    return () => {
+      window.removeEventListener("hashchange", handleHashChange);
+    };
+  }, []);
+
+  function navigateTo(page: AppPage, sectionId?: string): void {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const nextHash = formatPageLocation(page, sectionId);
+
+    if (window.location.hash === nextHash) {
+      if (sectionId) {
+        document.getElementById(sectionId)?.scrollIntoView({
+          behavior: "smooth",
+          block: "start"
+        });
+      } else {
+        window.scrollTo({
+          top: 0,
+          behavior: "smooth"
+        });
+      }
+
+      setCurrentPage(page);
+      return;
+    }
+
+    window.location.hash = nextHash;
+  }
 
   async function loadInitialState(): Promise<void> {
     setLoadState("loading");
@@ -1358,6 +1466,12 @@ export function App(): ReactElement {
     ? copy.formatting.archiveSummary(sessionMemoryArchive.length, sessionTimelineEvents.length)
     : copy.formatting.noArchive;
   const runtimeStateLabel = chatReady ? copy.formatting.ready : copy.formatting.waiting;
+  const navigationItems: ReadonlyArray<{ page: AppPage; label: string }> = [
+    { page: "home", label: copy.nav[0] },
+    { page: "framework", label: copy.nav[1] },
+    { page: "console", label: copy.nav[4] },
+    { page: "roadmap", label: copy.nav[5] }
+  ];
 
   return (
     <div className="page-shell">
@@ -1375,12 +1489,16 @@ export function App(): ReactElement {
           <span className="topbar-note">{copy.slogan}</span>
           <div className="topbar-controls">
             <nav className="topnav">
-              <a href="#vision">{copy.nav[0]}</a>
-              <a href="#intro">{copy.nav[1]}</a>
-              <a href="#engines">{copy.nav[2]}</a>
-              <a href="#structure">{copy.nav[3]}</a>
-              <a href="#console">{copy.nav[4]}</a>
-              <a href="#roadmap">{copy.nav[5]}</a>
+              {navigationItems.map((item) => (
+                <button
+                  className={`topnav-link ${currentPage === item.page ? "topnav-link-active" : ""}`}
+                  key={item.page}
+                  onClick={() => navigateTo(item.page)}
+                  type="button"
+                >
+                  {item.label}
+                </button>
+              ))}
             </nav>
             <div className="language-toggle" aria-label={locale === "zh" ? "界面语言切换" : "Interface language switch"}>
               <button
@@ -1402,8 +1520,9 @@ export function App(): ReactElement {
         </div>
       </header>
 
-      <main className="page-main">
-        <section className="hero section-grid" id="vision">
+      <main className={`page-main page-main-${currentPage}`}>
+        {currentPage === "home" ? (
+        <section className="hero section-grid" id="home">
           <div className="hero-copy">
             <div className="hero-badge-row">
               <div className="eyebrow">{copy.hero.eyebrow}</div>
@@ -1418,12 +1537,12 @@ export function App(): ReactElement {
             <p className="hero-lead">{copy.hero.lead}</p>
             <p className="hero-support">{copy.hero.support}</p>
             <div className="hero-actions">
-              <a className="button button-primary" href="#intro">
+              <button className="button button-primary" onClick={() => navigateTo("framework", "intro")} type="button">
                 {copy.hero.primary}
-              </a>
-              <a className="button button-secondary" href="#engines">
+              </button>
+              <button className="button button-secondary" onClick={() => navigateTo("framework", "engines")} type="button">
                 {copy.hero.secondary}
-              </a>
+              </button>
             </div>
             <div className="hero-principle-strip">
               {copy.principles.map((principle) => (
@@ -1463,7 +1582,9 @@ export function App(): ReactElement {
             </div>
           </div>
         </section>
+        ) : null}
 
+        {currentPage === "framework" ? (
         <section className="section-grid section-block intro-section" id="intro">
           <div className="intro-layout">
             <div className="section-heading intro-heading">
@@ -1505,7 +1626,9 @@ export function App(): ReactElement {
             </div>
           </div>
         </section>
+        ) : null}
 
+        {currentPage === "home" ? (
         <section className="section-grid section-block manifesto-block">
           <div className="manifesto-layout">
             <div className="manifesto-copy">
@@ -1530,7 +1653,9 @@ export function App(): ReactElement {
             </div>
           </div>
         </section>
+        ) : null}
 
+        {currentPage === "framework" ? (
         <section className="section-grid section-block" id="engines">
           <div className="section-heading">
             <span className="section-caption">{copy.engines.caption}</span>
@@ -1565,7 +1690,9 @@ export function App(): ReactElement {
             </div>
           </div>
         </section>
+        ) : null}
 
+        {currentPage === "framework" ? (
         <section className="section-grid section-block repo-section" id="structure">
           <div className="section-heading">
             <span className="section-caption">{copy.structure.caption}</span>
@@ -1598,7 +1725,9 @@ export function App(): ReactElement {
             </div>
           </div>
         </section>
+        ) : null}
 
+        {currentPage === "console" ? (
         <section className="section-grid section-block console-section" id="console">
           <div className="console-shell">
             <div className="console-intro">
@@ -1638,7 +1767,9 @@ export function App(): ReactElement {
             </div>
           </div>
         </section>
+        ) : null}
 
+        {currentPage === "console" ? (
         <section className="section-grid section-block console-stage feature-band" id="setup">
           <div className="section-heading console-stage-heading">
             <span className="section-caption">{copy.setup.caption}</span>
@@ -1790,7 +1921,9 @@ export function App(): ReactElement {
             </div>
           </div>
         </section>
+        ) : null}
 
+        {currentPage === "console" ? (
         <section className="section-grid section-block console-stage" id="chat">
           <div className="section-heading console-stage-heading">
             <span className="section-caption">{copy.runtime.caption}</span>
@@ -2291,86 +2424,21 @@ export function App(): ReactElement {
                 )}
               </div>
 
-              <div className="panel archive-panel">
-                <div className="panel-header">
-                  <span>{copy.runtime.archive}</span>
-                  <span className="panel-tag">{copy.runtime.archiveTag}</span>
-                </div>
-
-                {hasSessionArchive ? (
-                  <div className="archive-grid">
-                    <div className="archive-card">
-                      <div className="mini-heading">{copy.runtime.relationshipSnapshot}</div>
-                      {sessionRelationship ? (
-                        <div className="signal-metrics archive-metrics">
-                          <div className="signal-metric-card">
-                            <span>{copy.runtime.relationshipStage}</span>
-                            <strong>{sessionRelationship.stage}</strong>
-                          </div>
-                          <div className="signal-metric-card">
-                            <span>{copy.runtime.affinity}</span>
-                            <strong>{sessionRelationship.affinityScore.toFixed(2)}</strong>
-                          </div>
-                          <div className="signal-metric-card">
-                            <span>{copy.runtime.trust}</span>
-                            <strong>{sessionRelationship.trustScore.toFixed(2)}</strong>
-                          </div>
-                          <div className="signal-metric-card">
-                            <span>{copy.runtime.stability}</span>
-                            <strong>{sessionRelationship.stabilityScore.toFixed(2)}</strong>
-                          </div>
-                        </div>
-                      ) : (
-                        <p>{copy.runtime.noRelationshipSnapshot}</p>
-                      )}
-                    </div>
-
-                    <div className="archive-card">
-                      <div className="mini-heading">{copy.runtime.memoryArchive}</div>
-                      {sessionMemoryArchive.length > 0 ? (
-                        <ul className="insight-list archive-list">
-                          {sessionMemoryArchive.map((memory) => (
-                            <li key={memory.id}>
-                              <strong>{formatMemoryType(memory.type, locale)}</strong>
-                              <span>{memory.content}</span>
-                              <span>{`${copy.formatting.importance} ${memory.importance.toFixed(2)}${copy.formatting.sep}${formatSessionTimestamp(memory.createdAt, locale)}`}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <p>{copy.runtime.noPersistedMemories}</p>
-                      )}
-                    </div>
-
-                    <div className="archive-card archive-card-wide">
-                      <div className="mini-heading">{copy.runtime.sessionTimeline}</div>
-                      {sessionTimelineEvents.length > 0 ? (
-                        <ul className="insight-list archive-list">
-                          {sessionTimelineEvents.map((event) => (
-                            <li key={event.id}>
-                              <strong>{event.title}</strong>
-                              <span>{event.description}</span>
-                              <span>{`${event.type}${copy.formatting.sep}${formatSessionTimestamp(event.eventTime, locale)}${copy.formatting.sep}${copy.formatting.importance} ${event.importance.toFixed(2)}`}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <p>{copy.runtime.noPersistedTimeline}</p>
-                      )}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="empty-chat-state">{copy.runtime.archiveHint}</div>
-                )}
-              </div>
             </div>
           </div>
         </section>
+        ) : null}
 
+        {currentPage === "roadmap" ? (
         <section className="section-grid section-block" id="roadmap">
           <div className="section-heading">
             <span className="section-caption">{copy.roadmap.caption}</span>
             <h2>{copy.roadmap.title}</h2>
+            <p>
+              {locale === "zh"
+                ? "先把聊天、长期记忆、时间轴与关系成长做稳，再逐步推进语音、情绪和实时双工能力。"
+                : "Stabilize chat, long-term memory, timeline, and relationship growth first, then expand into voice, emotion, and real-time duplex interaction."}
+            </p>
           </div>
           <div className="roadmap-grid">
             {copy.roadmap.phases.map((phase) => (
@@ -2389,6 +2457,7 @@ export function App(): ReactElement {
             ))}
           </div>
         </section>
+        ) : null}
       </main>
     </div>
   );
