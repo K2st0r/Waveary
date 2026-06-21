@@ -370,6 +370,91 @@ test("chat proactive evaluation route returns a read-only decision without requi
   assert.equal(response.body.session.proactiveCareState.dailyReachoutsSent, 0);
 });
 
+test("chat proactive settings route can record a delivered reachout that suppresses the next evaluation", async () => {
+  const imported = importChatSession({
+    schemaVersion: "waveary-session@1",
+    exportedAt: "2026-06-21T12:00:00.000Z",
+    sessionId: "session-proactive-delivery-source",
+    title: "Delivered Reachout Session",
+    snapshot: {
+      sessionId: "session-proactive-delivery-source",
+      messages: [
+        {
+          id: "user-1",
+          role: "user",
+          content: "I have been feeling off lately.",
+          sessionId: "session-proactive-delivery-source",
+          timestamp: "2026-06-19T20:00:00.000Z",
+          metadata: {}
+        }
+      ],
+      latestInsights: null,
+      proactiveCarePolicy: {
+        enabled: true,
+        quietHoursStart: "23:00",
+        quietHoursEnd: "08:00",
+        maxDailyReachouts: 2,
+        allowMealCare: true,
+        allowSleepCare: true,
+        allowAbsenceCheckins: true
+      },
+      proactiveCareState: {
+        dailyReachoutsSent: 0,
+        unansweredReachoutCount: 0
+      },
+      memoryArchive: [],
+      relationship: {
+        userId: "user-web-1",
+        stage: "warming",
+        affinityScore: 0.48,
+        trustScore: 0.46,
+        stabilityScore: 0.58,
+        lastUpdatedAt: "2026-06-19T20:01:00.000Z"
+      },
+      timelineEvents: [],
+      updatedAt: "2026-06-21T11:00:00.000Z"
+    }
+  });
+
+  const middleware = createProviderApiMiddleware();
+  const firstEvaluation = await invokeJsonRoute(middleware, "POST", "/api/chat/proactive/evaluate", {
+    sessionId: imported.session.sessionId,
+    now: "2026-06-21T10:30:00.000Z"
+  });
+
+  assert.equal(firstEvaluation.statusCode, 200);
+  assert.equal(firstEvaluation.body.decision.shouldReachOut, true);
+
+  const deliveryRecord = await invokeJsonRoute(middleware, "POST", "/api/chat/proactive/settings", {
+    sessionId: imported.session.sessionId,
+    state: {
+      dailyReachoutsSent: 1,
+      unansweredReachoutCount: 1,
+      lastReachOutAt: "2026-06-21T10:30:00.000Z"
+    }
+  });
+
+  assert.equal(deliveryRecord.statusCode, 200);
+  assert.equal(deliveryRecord.body.session.proactiveCareState.dailyReachoutsSent, 1);
+  assert.equal(deliveryRecord.body.session.proactiveCareState.unansweredReachoutCount, 1);
+  assert.equal(
+    deliveryRecord.body.session.proactiveCareState.lastReachOutAt,
+    "2026-06-21T10:30:00.000Z"
+  );
+
+  const secondEvaluation = await invokeJsonRoute(middleware, "POST", "/api/chat/proactive/evaluate", {
+    sessionId: imported.session.sessionId,
+    now: "2026-06-21T11:00:00.000Z"
+  });
+
+  assert.equal(secondEvaluation.statusCode, 200);
+  assert.equal(secondEvaluation.body.decision.shouldReachOut, false);
+  assert.equal(
+    secondEvaluation.body.decision.reasons.includes("awaiting_user_response"),
+    true
+  );
+});
+
 test("chat session export route returns a structured export package for the active session", async () => {
   const middleware = createProviderApiMiddleware();
 

@@ -4,6 +4,40 @@
 
 Objective:
 
+Close the first proactive-notification loop by recording delivery state back into the persisted session so `WPCE` does not recommend repeated outreach immediately after one notification is sent.
+
+Summary:
+
+- updated the `waveary-web` proactive notification flow so a delivered browser notification now writes `dailyReachoutsSent`, `unansweredReachoutCount`, and `lastReachOutAt` back through the existing proactive settings route
+- kept the change scoped to post-delivery bookkeeping rather than introducing any new background scheduler or hidden automation path
+- added route-level regression coverage proving that once a delivered reachout is recorded, the next proactive evaluation is suppressed with `awaiting_user_response`
+- preserved the existing frontend permission model and manual evaluation flow while making the first delivery path behaviorally safer
+
+Files changed:
+
+- `waveary-web/src/App.tsx`
+- `waveary-web/server/provider-api.test.ts`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/web`
+- `npm run test --workspace @waveary/web`
+- `npm run web:build`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-21
+
+Objective:
+
 Introduce an explicit permission center in `waveary-web` so users can choose Waveary's local consent boundaries instead of inheriting hidden or scattered capability toggles.
 
 Summary:
