@@ -637,7 +637,7 @@ textarea {
 .hero-frame-panel-primary {
   position: relative;
   overflow: hidden;
-  min-height: 19.5rem;
+  min-height: 40rem;
   padding: 1.55rem;
   border-color: rgba(21, 18, 15, 0.2);
   background:
@@ -659,6 +659,327 @@ textarea {
   filter: none;
   opacity: 0.3;
   pointer-events: none;
+}
+
+.hero-memory-stage {
+  position: relative;
+  min-height: 22rem;
+  margin: 0.4rem 0 0.75rem;
+  border-radius: calc(var(--radius-panel) - 4px);
+  background:
+    radial-gradient(circle at 18% 20%, rgba(0, 0, 0, 0.04), transparent 20%),
+    radial-gradient(circle at 84% 22%, rgba(0, 0, 0, 0.045), transparent 18%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(245, 237, 227, 0.92));
+  box-shadow: inset 0 0 0 1px rgba(21, 18, 15, 0.08);
+  overflow: hidden;
+}
+
+.hero-memory-stage::before {
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.02) 0 1px, transparent 1px 2rem),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.015) 0 1px, transparent 1px 2rem);
+  content: "";
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.hero-memory-cloud {
+  position: absolute;
+  inset: 0;
+}
+
+.hero-memory-photo {
+  position: absolute;
+  top: var(--photo-top);
+  left: var(--photo-left);
+  width: clamp(7rem, 16vw, 9.3rem);
+  opacity: 0;
+  transform: translate3d(0, 0, 0) rotate(var(--photo-rotation)) scale(0.9);
+  animation: hero-photo-drift 26s ease-in-out infinite;
+  animation-delay: var(--photo-delay);
+  filter: drop-shadow(0 1rem 1.2rem rgba(49, 37, 25, 0.1));
+}
+
+.hero-memory-photo-frame,
+.hero-memory-burn-frame {
+  position: relative;
+  padding: 0.5rem 0.5rem 1.2rem;
+  border: 1.5px solid rgba(21, 18, 15, 0.15);
+  border-radius: 0.95rem;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(244, 236, 226, 0.96)),
+    rgba(255, 251, 246, 0.94);
+  box-shadow:
+    0 0.9rem 1.4rem rgba(49, 37, 25, 0.12),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+}
+
+.hero-memory-photo-frame::before,
+.hero-memory-burn-frame::before {
+  position: absolute;
+  top: 0.35rem;
+  left: 50%;
+  width: 2.2rem;
+  height: 0.42rem;
+  border-radius: 999px;
+  background: rgba(21, 18, 15, 0.08);
+  content: "";
+  transform: translateX(-50%) rotate(-2deg);
+}
+
+.hero-memory-photo-frame::after,
+.hero-memory-burn-frame::after {
+  position: absolute;
+  right: 0.7rem;
+  bottom: 0.45rem;
+  width: 2rem;
+  height: 0.52rem;
+  border-bottom: 2px wavy rgba(21, 18, 15, 0.45);
+  content: "";
+  opacity: 0.45;
+  transform: rotate(-7deg);
+}
+
+.hero-memory-photo img,
+.hero-memory-burn-frame img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  border-radius: 0.6rem;
+  filter: grayscale(1) contrast(1.02) brightness(0.98);
+}
+
+.hero-memory-burner {
+  position: absolute;
+  right: 8%;
+  bottom: 1.4rem;
+  display: grid;
+  justify-items: center;
+  gap: 0.75rem;
+  z-index: 2;
+}
+
+.hero-memory-burn-card {
+  width: clamp(8.2rem, 19vw, 10.4rem);
+  transform: rotate(8deg);
+  animation: hero-burn-card 12s ease-in-out infinite;
+  filter: drop-shadow(0 1rem 1.6rem rgba(49, 37, 25, 0.16));
+}
+
+.hero-memory-burn-frame {
+  overflow: hidden;
+}
+
+.hero-memory-burn-frame img {
+  animation: hero-burn-image 12s linear infinite;
+}
+
+.hero-memory-burn-glow {
+  position: absolute;
+  right: -10%;
+  bottom: 3%;
+  width: 56%;
+  height: 34%;
+  background:
+    radial-gradient(circle at 18% 50%, rgba(255, 176, 84, 0.9), rgba(255, 176, 84, 0.4) 34%, transparent 62%),
+    radial-gradient(circle at 0% 50%, rgba(255, 102, 40, 0.58), transparent 44%);
+  mix-blend-mode: multiply;
+  opacity: 0;
+  filter: blur(0.45rem);
+  animation: hero-burn-glow 12s linear infinite;
+}
+
+.hero-memory-burn-ash {
+  position: absolute;
+  right: 12%;
+  bottom: 24%;
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 999px;
+  background: rgba(51, 43, 34, 0.42);
+  opacity: 0;
+  filter: blur(0.05rem);
+}
+
+.hero-memory-burn-ash-one {
+  animation: hero-ash-rise 12s ease-out infinite;
+  animation-delay: 5.1s;
+}
+
+.hero-memory-burn-ash-two {
+  animation: hero-ash-rise 12s ease-out infinite;
+  animation-delay: 5.5s;
+}
+
+.hero-memory-burn-ash-three {
+  animation: hero-ash-rise 12s ease-out infinite;
+  animation-delay: 5.9s;
+}
+
+.hero-memory-lighter {
+  position: relative;
+  width: 3.6rem;
+  height: 4.5rem;
+}
+
+.hero-memory-lighter-body {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 3.2rem;
+  border: 1.5px solid rgba(21, 18, 15, 0.18);
+  border-radius: 1rem 1rem 0.95rem 0.95rem;
+  background:
+    linear-gradient(180deg, rgba(49, 37, 25, 0.12), rgba(255, 255, 255, 0.45)),
+    rgba(246, 238, 227, 0.92);
+  box-shadow:
+    0 0.75rem 1.1rem rgba(49, 37, 25, 0.12),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+}
+
+.hero-memory-lighter-body::before {
+  position: absolute;
+  top: -0.65rem;
+  left: 0.38rem;
+  width: 2rem;
+  height: 0.9rem;
+  border: 1.5px solid rgba(21, 18, 15, 0.16);
+  border-radius: 0.6rem 0.6rem 0.35rem 0.35rem;
+  background: rgba(246, 238, 227, 0.94);
+  content: "";
+  transform: rotate(-7deg);
+}
+
+.hero-memory-lighter-flame {
+  position: absolute;
+  top: -0.55rem;
+  left: 1.1rem;
+  width: 1.15rem;
+  height: 1.55rem;
+  border-radius: 60% 60% 70% 70%;
+  background:
+    radial-gradient(circle at 50% 76%, rgba(255, 235, 186, 0.95) 0 28%, rgba(255, 181, 82, 0.85) 29% 58%, rgba(255, 118, 47, 0.7) 59% 78%, transparent 79%);
+  transform-origin: bottom center;
+  animation: hero-flame 1.8s ease-in-out infinite;
+  filter: blur(0.02rem);
+}
+
+@keyframes hero-photo-drift {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 1.2rem, 0) rotate(var(--photo-rotation)) scale(0.88);
+  }
+
+  12%,
+  52% {
+    opacity: 0.6;
+    transform: translate3d(0.5rem, -0.4rem, 0) rotate(calc(var(--photo-rotation) + 2deg)) scale(1);
+  }
+
+  70% {
+    opacity: 0.22;
+    transform: translate3d(-0.6rem, -1rem, 0) rotate(calc(var(--photo-rotation) - 1deg)) scale(0.97);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate3d(0.4rem, -1.8rem, 0) rotate(calc(var(--photo-rotation) + 4deg)) scale(0.9);
+  }
+}
+
+@keyframes hero-burn-card {
+  0%,
+  18% {
+    transform: translate3d(0.8rem, 0.3rem, 0) rotate(8deg) scale(0.92);
+    opacity: 0;
+  }
+
+  26%,
+  44% {
+    transform: translate3d(0, 0, 0) rotate(6deg) scale(1);
+    opacity: 0.96;
+  }
+
+  58% {
+    transform: translate3d(-0.25rem, -0.1rem, 0) rotate(4deg) scale(0.99);
+    opacity: 0.92;
+  }
+
+  72% {
+    transform: translate3d(0.2rem, -0.45rem, 0) rotate(2deg) scale(0.96);
+    opacity: 0.42;
+  }
+
+  100% {
+    transform: translate3d(1rem, -0.9rem, 0) rotate(0deg) scale(0.88);
+    opacity: 0;
+  }
+}
+
+@keyframes hero-burn-image {
+  0%,
+  45% {
+    filter: grayscale(1) contrast(1.02) brightness(0.98);
+  }
+
+  62% {
+    filter: grayscale(1) contrast(1.06) brightness(0.92) sepia(0.18);
+  }
+
+  78%,
+  100% {
+    filter: grayscale(1) contrast(0.8) brightness(1.08);
+    opacity: 0.16;
+  }
+}
+
+@keyframes hero-burn-glow {
+  0%,
+  44% {
+    opacity: 0;
+  }
+
+  54%,
+  66% {
+    opacity: 0.92;
+  }
+
+  82% {
+    opacity: 0.2;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes hero-ash-rise {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) scale(0.7);
+  }
+
+  16% {
+    opacity: 0.7;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate3d(-2rem, -4rem, 0) scale(0.2);
+  }
+}
+
+@keyframes hero-flame {
+  0%,
+  100% {
+    transform: scale(0.94) rotate(-3deg);
+  }
+
+  50% {
+    transform: scale(1.05) rotate(4deg);
+  }
 }
 
 .hero-frame-label-row {
@@ -1950,6 +2271,23 @@ textarea {
 }
 
 @media (max-width: 900px) {
+  .hero-memory-stage {
+    min-height: 17rem;
+  }
+
+  .hero-memory-photo {
+    width: 6.2rem;
+  }
+
+  .hero-memory-burner {
+    right: 6%;
+    bottom: 1rem;
+  }
+
+  .hero-frame-panel-primary {
+    min-height: 33rem;
+  }
+
   .hero-frame-footer,
   .intro-grid,
   .framework-band-grid,
@@ -1989,6 +2327,22 @@ textarea {
 }
 
 @media (max-width: 720px) {
+  .hero-memory-stage {
+    min-height: 15rem;
+  }
+
+  .hero-memory-photo {
+    width: 5.4rem;
+  }
+
+  .hero-memory-burn-card {
+    width: 7rem;
+  }
+
+  .hero-frame-panel-primary {
+    min-height: 29rem;
+  }
+
   .topbar {
     flex-direction: column;
     align-items: flex-start;

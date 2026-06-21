@@ -800,6 +800,82 @@ function formatPageLocation(page: AppPage, sectionId?: string): string {
   return `#${page}${sectionId ? `/${sectionId}` : ""}`;
 }
 
+interface HeroPortraitCard {
+  src: string;
+  alt: string;
+  rotation: string;
+  top: string;
+  left: string;
+  delay: string;
+}
+
+const heroPortraitCards: HeroPortraitCard[] = [
+  {
+    src: "/images/portraits/portrait-01.png",
+    alt: "Question-mark portrait card one",
+    rotation: "-7deg",
+    top: "8%",
+    left: "4%",
+    delay: "0s"
+  },
+  {
+    src: "/images/portraits/portrait-02.png",
+    alt: "Question-mark portrait card two",
+    rotation: "6deg",
+    top: "10%",
+    left: "62%",
+    delay: "-6s"
+  },
+  {
+    src: "/images/portraits/portrait-03.png",
+    alt: "Question-mark portrait card three",
+    rotation: "-4deg",
+    top: "38%",
+    left: "18%",
+    delay: "-11s"
+  },
+  {
+    src: "/images/portraits/portrait-04.png",
+    alt: "Question-mark portrait card four",
+    rotation: "7deg",
+    top: "41%",
+    left: "57%",
+    delay: "-15s"
+  },
+  {
+    src: "/images/portraits/portrait-05.png",
+    alt: "Question-mark portrait card five",
+    rotation: "-9deg",
+    top: "62%",
+    left: "6%",
+    delay: "-19s"
+  },
+  {
+    src: "/images/portraits/portrait-06.png",
+    alt: "Question-mark portrait card six",
+    rotation: "5deg",
+    top: "64%",
+    left: "50%",
+    delay: "-24s"
+  },
+  {
+    src: "/images/portraits/portrait-07.png",
+    alt: "Question-mark portrait card seven",
+    rotation: "-6deg",
+    top: "16%",
+    left: "34%",
+    delay: "-9s"
+  },
+  {
+    src: "/images/portraits/portrait-08.png",
+    alt: "Question-mark portrait card eight",
+    rotation: "8deg",
+    top: "60%",
+    left: "74%",
+    delay: "-21s"
+  }
+];
+
 export function App(): ReactElement {
   const [locale, setLocale] = useState<Locale>(() => {
     if (typeof window === "undefined") {
@@ -1560,6 +1636,43 @@ export function App(): ReactElement {
               <div className="hero-frame-label-row">
                 <span className="hero-frame-label">{copy.heroCards.definitionLabel}</span>
                 <span className="hero-frame-chip">Waveary CE</span>
+              </div>
+              <div className="hero-memory-stage" aria-hidden="true">
+                <div className="hero-memory-cloud">
+                  {heroPortraitCards.map((card) => (
+                    <figure
+                      className="hero-memory-photo"
+                      key={card.src}
+                      style={
+                        {
+                          "--photo-rotation": card.rotation,
+                          "--photo-top": card.top,
+                          "--photo-left": card.left,
+                          "--photo-delay": card.delay
+                        } as React.CSSProperties
+                      }
+                    >
+                      <div className="hero-memory-photo-frame">
+                        <img src={card.src} alt={card.alt} />
+                      </div>
+                    </figure>
+                  ))}
+                </div>
+                <div className="hero-memory-burner">
+                  <div className="hero-memory-burn-card">
+                    <div className="hero-memory-burn-frame">
+                      <img src="/images/portraits/portrait-02.png" alt="" />
+                      <span className="hero-memory-burn-glow" />
+                      <span className="hero-memory-burn-ash hero-memory-burn-ash-one" />
+                      <span className="hero-memory-burn-ash hero-memory-burn-ash-two" />
+                      <span className="hero-memory-burn-ash hero-memory-burn-ash-three" />
+                    </div>
+                  </div>
+                  <div className="hero-memory-lighter">
+                    <span className="hero-memory-lighter-body" />
+                    <span className="hero-memory-lighter-flame" />
+                  </div>
+                </div>
               </div>
               <strong>{copy.heroCards.definitionTitle}</strong>
               <p>{copy.heroCards.definitionBody}</p>

@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `f01e9f1` - `Polish split waveary web page hierarchy`
+- `35e199c` - `Sync web polish continuity records`
 
 ## Modules
 
@@ -85,6 +85,9 @@ Brand line:
   - the live conversation experience now has its own dedicated chat page with a stripped-down journal-style canvas and composer
   - the visible persisted-session archive panel has been removed from the runtime rail so the console reads less like a raw internal debug dump
   - the split home / console / chat shell now has a stronger page-by-page hierarchy: the homepage reads more like a formal project front page, the console reads more like a system desk, and the chat page is more tightly focused on the active conversation surface
+  - homepage hero now includes a portrait-memory visual layer with drifting hand-drawn question-mark portraits and a burn-to-ash memory focal animation
+  - homepage portrait assets now live under `waveary-web/public/images/portraits` so the public brand surface can be refined without touching provider, session, or chat logic
+  - current portrait set now covers a broader youthful companion range instead of one repeated anonymous-boy style, though a stricter 1:1 gender-balanced and more deliberately framed next asset pass is still recommended
 
 ## Provider Flow
 
@@ -161,6 +164,8 @@ Brand line:
 - add route-level or live verification for more provider-specific chat payload divergences after the current DeepSeek compatibility baseline
 - add focused route-level and browser-facing coverage for any remaining persistence edge cases beyond the current file/sqlite symmetry path
 - continue polishing the split web shell by tightening session-management density below the console fold and improving message rhythm plus mixed-language balance in the dedicated chat page
+- continue the homepage portrait system with a more deliberate `4 male / 4 female` hand-drawn polaroid-style set so the visual range feels broader and less clustered around one youth archetype
+- consider replacing current raw portrait PNGs with lighter optimized delivery assets once the final portrait set is approved
 - validate the bilingual home / console / chat shell in a broader browser pass and tune any remaining spacing, wrapping, or readability issues caused by mixed Chinese and English line lengths
 - consider a follow-up web pass focused specifically on richer chat-page signal affordances that do not drag diagnostics clutter back into the conversation view
 - keep session import semantic hardening paused here unless a real malformed package reveals another high-value cross-structure gap

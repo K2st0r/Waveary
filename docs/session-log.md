@@ -4,6 +4,47 @@
 
 Objective:
 
+Add the first Waveary homepage portrait-memory visual system so the public front page feels less static and more like a digital companionship project with drifting, emotionally projectable identities.
+
+Summary:
+
+- generated a first local portrait asset set under `waveary-web/public/images/portraits` using the user's image workflow, keeping the core rule that every face stays a question mark with no visible facial features
+- widened the character spread beyond one repeated anonymous-boy look by adding both male and female youthful silhouettes with different hairstyles, outfits, and companion temperaments
+- extended the homepage hero in `waveary-web/src/App.tsx` and `waveary-web/src/styles.css` with a floating portrait cloud plus a central burn-to-ash memory vignette without touching provider setup, session management, persistence, or live chat behavior
+- verified the result with scoped web checks and a full production build after wiring the portrait layer into the existing Waveary homepage shell
+
+Files changed:
+
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `waveary-web/public/images/portraits/portrait-01.png`
+- `waveary-web/public/images/portraits/portrait-02.png`
+- `waveary-web/public/images/portraits/portrait-03.png`
+- `waveary-web/public/images/portraits/portrait-04.png`
+- `waveary-web/public/images/portraits/portrait-05.png`
+- `waveary-web/public/images/portraits/portrait-06.png`
+- `waveary-web/public/images/portraits/portrait-07.png`
+- `waveary-web/public/images/portraits/portrait-08.png`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/web`
+- `npm run web:build`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-21
+
+Objective:
+
 Refine the split `waveary-web` surfaces so the homepage feels like a formal open source project front page, the console reads like a management desk, and the chat page feels more like a focused conversation room, without breaking any existing provider, session, import/export, persistence, or live chat behavior.
 
 Summary:
