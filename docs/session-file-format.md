@@ -260,6 +260,7 @@ It currently checks for:
 - timeline arrays whose valid `eventTime` values move backward in time
 - duplicate `id` values inside `snapshot.memoryArchive`
 - duplicate `id` values inside `snapshot.timelineEvents`
+- `snapshot.latestInsights.timeline` entries that do not correspond to an event in `snapshot.timelineEvents`
 
 ## Compatibility Notes
 

@@ -1033,6 +1033,7 @@ function validateExportedSessionSemantics(
   let previousTimelineEventTime: number | null = null;
   const seenMemoryIds = new Set<string>();
   const seenTimelineEventIds = new Set<string>();
+  const snapshotTimelineEventKeys = new Set<string>();
 
   exported.snapshot.timelineEvents.forEach((event, index) => {
     if (typeof event.eventTime === "string" && isIsoTimestamp(event.eventTime)) {
@@ -1053,6 +1054,17 @@ function validateExportedSessionSemantics(
       } else {
         seenTimelineEventIds.add(event.id);
       }
+    }
+
+    if (
+      typeof event.title === "string" &&
+      typeof event.type === "string" &&
+      typeof event.eventTime === "string" &&
+      isIsoTimestamp(event.eventTime)
+    ) {
+      snapshotTimelineEventKeys.add(
+        buildTimelineSemanticKey(event.title, event.type, event.eventTime)
+      );
     }
   });
 
@@ -1109,6 +1121,21 @@ function validateExportedSessionSemantics(
 
         if (
           isRecord(event) &&
+          typeof event.title === "string" &&
+          typeof event.type === "string" &&
+          typeof event.eventTime === "string" &&
+          isIsoTimestamp(event.eventTime) &&
+          !snapshotTimelineEventKeys.has(
+            buildTimelineSemanticKey(event.title, event.type, event.eventTime)
+          )
+        ) {
+          details.push(
+            `Latest insight timeline entry ${index + 1} must match an event in \`snapshot.timelineEvents\`.`
+          );
+        }
+
+        if (
+          isRecord(event) &&
           typeof event.eventTime === "string" &&
           isIsoTimestamp(event.eventTime)
         ) {
@@ -1128,6 +1155,10 @@ function validateExportedSessionSemantics(
       });
     }
   }
+}
+
+function buildTimelineSemanticKey(title: string, type: string, eventTime: string): string {
+  return `${title}\u0000${type}\u0000${eventTime}`;
 }
 
 function validateRelationshipSnapshot(

@@ -4,6 +4,41 @@
 
 Objective:
 
+Extend Waveary browser session import semantic validation so `snapshot.latestInsights.timeline` cannot describe timeline events that are missing from the imported snapshot timeline.
+
+Summary:
+
+- added a cross-structure semantic check that requires each `latestInsights.timeline` entry to correspond to an event in `snapshot.timelineEvents`
+- kept the match rule narrow and deterministic by comparing title, type, and eventTime instead of introducing fuzzy merge behavior
+- expanded the route-level semantic regression package so a timeline summary can now fail independently when it drifts away from the imported snapshot timeline
+- documented the new timeline-summary consistency rule in the session package format reference for external generators
+
+Files changed:
+
+- `waveary-web/server/chat-session-store.ts`
+- `waveary-web/server/provider-api.test.ts`
+- `docs/session-file-format.md`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/web`
+- `npm run build:server --workspace @waveary/web`
+- `node --test waveary-web/dist-server/server/provider-api.test.js`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-21
+
+Objective:
+
 Extend Waveary browser session import semantic validation so duplicate message identities inside one imported snapshot are rejected before restore.
 
 Summary:

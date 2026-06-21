@@ -664,19 +664,24 @@ test("chat session import route rejects semantically inconsistent session packag
           storedMemories: [],
           timeline: [
             {
-              title: "Later insight event",
+              title: "Later timeline event first",
               type: "reflection",
-              eventTime: "2026-06-20T00:00:09.500Z"
+              eventTime: "2026-06-20T00:00:09.700Z"
             },
             {
-              title: "Late insight event",
+              title: "Late timeline event",
               type: "reflection",
-              eventTime: "2026-06-20T00:00:13.000Z"
+              eventTime: "2026-06-20T00:00:16.000Z"
             },
             {
-              title: "Out of order insight event",
+              title: "Out of order timeline event",
               type: "reflection",
-              eventTime: "2026-06-20T00:00:09.200Z"
+              eventTime: "2026-06-20T00:00:09.300Z"
+            },
+            {
+              title: "Insight-only event",
+              type: "reflection",
+              eventTime: "2026-06-20T00:00:09.250Z"
             }
           ]
         },
@@ -759,7 +764,9 @@ test("chat session import route rejects semantically inconsistent session packag
     "`snapshot.relationship.lastUpdatedAt` cannot be later than `snapshot.updatedAt`.",
     "`snapshot.latestInsights.relationship.lastUpdatedAt` cannot be later than `snapshot.updatedAt`.",
     "Latest insight timeline entry 2 `eventTime` cannot be later than `snapshot.updatedAt`.",
-    "Latest insight timeline entry 3 `eventTime` cannot be earlier than the previous latest insight timeline entry."
+    "Latest insight timeline entry 3 `eventTime` cannot be earlier than the previous latest insight timeline entry.",
+    "Latest insight timeline entry 4 must match an event in `snapshot.timelineEvents`.",
+    "Latest insight timeline entry 4 `eventTime` cannot be earlier than the previous latest insight timeline entry."
   ]);
 });
 
