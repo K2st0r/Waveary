@@ -1884,6 +1884,43 @@ textarea {
   gap: 1rem;
 }
 
+.permission-grid {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.permission-card {
+  display: grid;
+  gap: 0.65rem;
+  padding: 0.95rem 1rem;
+  border: 1.5px solid rgba(21, 18, 15, 0.12);
+  border-radius: var(--radius-card);
+  background: rgba(255, 251, 246, 0.72);
+}
+
+.permission-level-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.permission-choice {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 2.4rem;
+  padding: 0.45rem 0.7rem;
+  border: 1.5px solid rgba(21, 18, 15, 0.14);
+  border-radius: 999px;
+  background: rgba(255, 252, 247, 0.95);
+}
+
+.permission-choice input {
+  width: auto;
+  min-height: 0;
+  margin: 0;
+}
+
 .form-field {
   display: grid;
   gap: 0.55rem;

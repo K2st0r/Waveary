@@ -4,6 +4,40 @@
 
 Objective:
 
+Introduce an explicit permission center in `waveary-web` so users can choose Waveary's local consent boundaries instead of inheriting hidden or scattered capability toggles.
+
+Summary:
+
+- added a first frontend permission profile covering browser notifications, proactive notifications, time awareness, desktop presence, and local actions, persisted locally in the browser
+- surfaced the permission model as a dedicated console card so consent decisions live in one place rather than being buried only inside the proactive-care panel
+- linked the existing browser notification flow to the new permission center so proactive notification behavior now follows an explicit user-selected policy
+- kept future capabilities such as desktop presence and local actions unimplemented but represented as permission slots, preserving the boundary that high-trust powers must be explicitly granted before they ever exist
+
+Files changed:
+
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/web`
+- `npm run test --workspace @waveary/web`
+- `npm run web:build`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-21
+
+Objective:
+
 Add the first permissioned `WPCE` delivery path in `waveary-web` so a proactive-care evaluation can produce a real browser-local notification without crossing into desktop automation.
 
 Summary:
