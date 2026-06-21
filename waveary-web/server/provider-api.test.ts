@@ -455,6 +455,124 @@ test("chat proactive settings route can record a delivered reachout that suppres
   );
 });
 
+test("chat turn clears unanswered proactive reachouts after the user replies", async () => {
+  const imported = importChatSession({
+    schemaVersion: "waveary-session@1",
+    exportedAt: "2026-06-21T12:00:00.000Z",
+    sessionId: "session-proactive-reply-source",
+    title: "Reply Reset Session",
+    snapshot: {
+      sessionId: "session-proactive-reply-source",
+      messages: [
+        {
+          id: "user-1",
+          role: "user",
+          content: "I was having a rough day.",
+          sessionId: "session-proactive-reply-source",
+          timestamp: "2026-06-19T20:00:00.000Z",
+          metadata: {}
+        }
+      ],
+      latestInsights: null,
+      proactiveCarePolicy: {
+        enabled: true,
+        quietHoursStart: "23:00",
+        quietHoursEnd: "08:00",
+        maxDailyReachouts: 3,
+        allowMealCare: true,
+        allowSleepCare: true,
+        allowAbsenceCheckins: true
+      },
+      proactiveCareState: {
+        dailyReachoutsSent: 1,
+        unansweredReachoutCount: 1,
+        lastReachOutAt: "2026-06-21T10:30:00.000Z"
+      },
+      memoryArchive: [],
+      relationship: {
+        userId: "user-web-1",
+        stage: "warming",
+        affinityScore: 0.48,
+        trustScore: 0.46,
+        stabilityScore: 0.58,
+        lastUpdatedAt: "2026-06-19T20:01:00.000Z"
+      },
+      timelineEvents: [],
+      updatedAt: "2026-06-21T11:00:00.000Z"
+    }
+  });
+
+  const middleware = createProviderApiMiddleware();
+  const blockedEvaluation = await invokeJsonRoute(middleware, "POST", "/api/chat/proactive/evaluate", {
+    sessionId: imported.session.sessionId,
+    now: "2026-06-21T11:00:00.000Z"
+  });
+
+  assert.equal(blockedEvaluation.statusCode, 200);
+  assert.equal(blockedEvaluation.body.decision.shouldReachOut, false);
+  assert.equal(
+    blockedEvaluation.body.decision.reasons.includes("awaiting_user_response"),
+    true
+  );
+
+  saveProviderConfig({
+    provider: "provider-a",
+    baseURL: "https://provider-a.example/v1",
+    apiKey: "key-a",
+    model: "model-a"
+  });
+
+  globalThis.fetch = (async () =>
+    new Response(
+      JSON.stringify({
+        choices: [
+          {
+            message: {
+              content: "I am glad you replied."
+            }
+          }
+        ]
+      }),
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json"
+        }
+      }
+    )) as typeof fetch;
+
+  const turnResponse = await invokeJsonRoute(middleware, "POST", "/api/chat/turn", {
+    sessionId: imported.session.sessionId,
+    message: "I am here now."
+  });
+
+  assert.equal(turnResponse.statusCode, 200);
+
+  const sessionResponse = await invokeJsonRoute(middleware, "POST", "/api/chat/session", {
+    sessionId: imported.session.sessionId
+  });
+
+  assert.equal(sessionResponse.statusCode, 200);
+  assert.equal(sessionResponse.body.session.proactiveCareState.dailyReachoutsSent, 1);
+  assert.equal(sessionResponse.body.session.proactiveCareState.unansweredReachoutCount, 0);
+  assert.equal(
+    sessionResponse.body.session.proactiveCareState.lastReachOutAt,
+    "2026-06-21T10:30:00.000Z"
+  );
+
+  const reopenedEvaluation = await invokeJsonRoute(middleware, "POST", "/api/chat/proactive/evaluate", {
+    sessionId: imported.session.sessionId,
+    now: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString()
+  });
+
+  assert.equal(reopenedEvaluation.statusCode, 200);
+  assert.equal(
+    reopenedEvaluation.body.decision.reasons.includes("awaiting_user_response"),
+    false
+  );
+  assert.equal(reopenedEvaluation.body.decision.shouldReachOut, true);
+});
+
 test("chat session export route returns a structured export package for the active session", async () => {
   const middleware = createProviderApiMiddleware();
 
