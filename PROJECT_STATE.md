@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `48b52e6` - `Split waveary web into focused pages`
+- `b5210b6` - `Record multi-page web split progress`
 
 ## Modules
 

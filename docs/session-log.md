@@ -36,7 +36,7 @@ Commit:
 
 Push:
 
-- pending
+- succeeded
 
 Objective:
 Objective:
