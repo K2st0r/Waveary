@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `3676f57` - `Refine homepage rotating burn vignette`
+- `fdf5281` - `Rebuild homepage lighter flame motion`
 
 ## Modules
 
