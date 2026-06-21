@@ -186,6 +186,15 @@ type Locale = "zh" | "en";
 type LoadState = "idle" | "loading" | "success" | "error";
 type AppPage = "home" | "console" | "chat" | "roadmap";
 type BrowserNotificationPermissionState = NotificationPermission | "unsupported";
+type PermissionLevel = "deny" | "ask" | "allow";
+
+interface WavearyPermissionProfile {
+  browserNotifications: PermissionLevel;
+  proactiveNotifications: PermissionLevel;
+  timeAwareness: PermissionLevel;
+  desktopPresence: PermissionLevel;
+  localActions: PermissionLevel;
+}
 
 interface PageLocation {
   page: AppPage;
@@ -465,6 +474,20 @@ const zhCopy = {
     notificationDelivered: "已发送浏览器通知。",
     notificationNeedsPermission: "通知开关已打开，但浏览器通知权限还没有授权。",
     notificationNoReachout: "这次评估没有建议主动触达，因此没有发送通知。",
+    permissions: "权限中心",
+    permissionsTag: "Consent",
+    permissionsDescription: "用户应当自主决定 Waveary 能看见什么、能提醒什么、未来能做什么。所有更高权限都应该显式授权、可随时撤回。",
+    permissionsHint: "这里先管理本地前端权限模型。尚未落地的能力会先保留为策略位，而不是偷偷开启。",
+    permissionBrowserNotifications: "浏览器通知",
+    permissionProactiveNotifications: "主动关怀通知",
+    permissionTimeAwareness: "时间感知",
+    permissionDesktopPresence: "桌面状态感知",
+    permissionLocalActions: "本地动作执行",
+    permissionAllow: "允许",
+    permissionAsk: "按需询问",
+    permissionDeny: "拒绝",
+    permissionNotImplemented: "尚未实现，仅记录你的授权偏好。",
+    permissionSaved: "已保存本地权限偏好。",
     yes: "是",
     no: "否",
     minutes: "分钟",
@@ -812,6 +835,20 @@ const enCopy = {
     notificationDelivered: "Delivered a browser notification.",
     notificationNeedsPermission: "Notifications are enabled, but browser permission has not been granted yet.",
     notificationNoReachout: "This evaluation did not recommend a proactive reachout, so no notification was sent.",
+    permissions: "Permission Center",
+    permissionsTag: "Consent",
+    permissionsDescription: "The user should explicitly decide what Waveary may see, remind, or eventually do. Higher-trust capabilities must be granted clearly and revocable at any time.",
+    permissionsHint: "This currently manages the local frontend permission model. Capabilities not implemented yet stay as policy slots instead of being silently enabled.",
+    permissionBrowserNotifications: "Browser notifications",
+    permissionProactiveNotifications: "Proactive care notifications",
+    permissionTimeAwareness: "Time awareness",
+    permissionDesktopPresence: "Desktop presence awareness",
+    permissionLocalActions: "Local action execution",
+    permissionAllow: "Allow",
+    permissionAsk: "Ask",
+    permissionDeny: "Deny",
+    permissionNotImplemented: "Not implemented yet. This only records your preference for now.",
+    permissionSaved: "Saved local permission preferences.",
     yes: "Yes",
     no: "No",
     minutes: "minutes",
@@ -1039,6 +1076,13 @@ export function App(): ReactElement {
 
     return window.localStorage.getItem("waveary-proactive-browser-notify") === "true";
   });
+  const [permissionProfile, setPermissionProfile] = useState<WavearyPermissionProfile>(() => {
+    if (typeof window === "undefined") {
+      return createDefaultPermissionProfile();
+    }
+
+    return loadPermissionProfile();
+  });
   const [notificationPermissionState, setNotificationPermissionState] = useState<LoadState>("idle");
   const [chatSessions, setChatSessions] = useState<ChatSessionListItem[]>([]);
   const [activeSessionId, setActiveSessionId] = useState("");
@@ -1079,6 +1123,17 @@ export function App(): ReactElement {
       proactiveNotificationEnabled ? "true" : "false"
     );
   }, [proactiveNotificationEnabled]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    window.localStorage.setItem(
+      "waveary-permission-profile",
+      JSON.stringify(permissionProfile)
+    );
+  }, [permissionProfile]);
 
   useEffect(() => {
     void loadInitialState();
@@ -1705,6 +1760,26 @@ export function App(): ReactElement {
       setNotificationPermissionState("error");
       setStatusMessage(getErrorMessage(error));
     }
+  }
+
+  function handlePermissionLevelChange(
+    key: keyof WavearyPermissionProfile,
+    value: PermissionLevel
+  ): void {
+    setPermissionProfile((current) => ({
+      ...current,
+      [key]: value
+    }));
+
+    if (key === "proactiveNotifications") {
+      setProactiveNotificationEnabled(value === "allow");
+    }
+
+    if (key === "browserNotifications" && value === "deny") {
+      setProactiveNotificationEnabled(false);
+    }
+
+    setStatusMessage(copy.runtime.permissionSaved);
   }
 
   async function handleSendMessage(): Promise<void> {
@@ -2498,6 +2573,74 @@ export function App(): ReactElement {
                 </div>
 
                 <div className="session-control-card">
+                  <div className="mini-heading">{copy.runtime.permissions}</div>
+                  <p className="provider-note">{copy.runtime.permissionsDescription}</p>
+                  <p className="provider-note">{copy.runtime.permissionsHint}</p>
+
+                  <div className="permission-grid">
+                    {(
+                      [
+                        ["browserNotifications", copy.runtime.permissionBrowserNotifications],
+                        ["proactiveNotifications", copy.runtime.permissionProactiveNotifications],
+                        ["timeAwareness", copy.runtime.permissionTimeAwareness],
+                        ["desktopPresence", copy.runtime.permissionDesktopPresence],
+                        ["localActions", copy.runtime.permissionLocalActions]
+                      ] as const
+                    ).map(([key, label]) => (
+                      <div className="permission-card" key={key}>
+                        <strong>{label}</strong>
+                        <div className="permission-level-group">
+                          {(
+                            [
+                              ["deny", copy.runtime.permissionDeny],
+                              ["ask", copy.runtime.permissionAsk],
+                              ["allow", copy.runtime.permissionAllow]
+                            ] as const
+                          ).map(([value, valueLabel]) => (
+                            <label className="permission-choice" key={value}>
+                              <input
+                                type="radio"
+                                name={`permission-${key}`}
+                                value={value}
+                                checked={permissionProfile[key] === value}
+                                onChange={() => handlePermissionLevelChange(key, value)}
+                              />
+                              <span>{valueLabel}</span>
+                            </label>
+                          ))}
+                        </div>
+                        {key === "browserNotifications" ? (
+                          <span className="provider-note">
+                            {copy.runtime.notificationPermission}
+                            {copy.formatting.sep}
+                            {formatBrowserNotificationPermission(browserNotificationPermission, locale)}
+                          </span>
+                        ) : (
+                          <span className="provider-note">{copy.runtime.permissionNotImplemented}</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+
+                  {permissionProfile.browserNotifications !== "deny" &&
+                  browserNotificationPermission !== "granted" &&
+                  browserNotificationPermission !== "unsupported" ? (
+                    <div className="console-actions">
+                      <button
+                        className="button button-secondary"
+                        onClick={() => void handleRequestNotificationPermission()}
+                        disabled={notificationPermissionState === "loading"}
+                        type="button"
+                      >
+                        {notificationPermissionState === "loading"
+                          ? copy.runtime.requestingNotificationPermission
+                          : copy.runtime.requestNotificationPermission}
+                      </button>
+                    </div>
+                  ) : null}
+                </div>
+
+                <div className="session-control-card">
                   <div className="mini-heading">{copy.runtime.createSession}</div>
                   <label className="form-field">
                     <span>{copy.runtime.newSessionTitle}</span>
@@ -2897,8 +3040,18 @@ export function App(): ReactElement {
                         <input
                           type="checkbox"
                           checked={proactiveNotificationEnabled}
-                          onChange={(event) => setProactiveNotificationEnabled(event.target.checked)}
-                          disabled={browserNotificationPermission === "unsupported"}
+                          onChange={(event) => {
+                            const enabled = event.target.checked;
+                            setProactiveNotificationEnabled(enabled);
+                            setPermissionProfile((current) => ({
+                              ...current,
+                              proactiveNotifications: enabled ? "allow" : "deny"
+                            }));
+                          }}
+                          disabled={
+                            browserNotificationPermission === "unsupported" ||
+                            permissionProfile.browserNotifications === "deny"
+                          }
                         />
                         <span>
                           {copy.runtime.notificationAutoDelivery}
@@ -3333,6 +3486,50 @@ function getBrowserNotificationPermission(): BrowserNotificationPermissionState 
   }
 
   return window.Notification.permission;
+}
+
+function createDefaultPermissionProfile(): WavearyPermissionProfile {
+  return {
+    browserNotifications: "ask",
+    proactiveNotifications: "ask",
+    timeAwareness: "allow",
+    desktopPresence: "ask",
+    localActions: "deny"
+  };
+}
+
+function loadPermissionProfile(): WavearyPermissionProfile {
+  if (typeof window === "undefined") {
+    return createDefaultPermissionProfile();
+  }
+
+  try {
+    const raw = window.localStorage.getItem("waveary-permission-profile");
+
+    if (!raw) {
+      return createDefaultPermissionProfile();
+    }
+
+    const parsed = JSON.parse(raw) as Partial<WavearyPermissionProfile>;
+    const defaults = createDefaultPermissionProfile();
+
+    return {
+      browserNotifications: normalizePermissionLevel(parsed.browserNotifications, defaults.browserNotifications),
+      proactiveNotifications: normalizePermissionLevel(parsed.proactiveNotifications, defaults.proactiveNotifications),
+      timeAwareness: normalizePermissionLevel(parsed.timeAwareness, defaults.timeAwareness),
+      desktopPresence: normalizePermissionLevel(parsed.desktopPresence, defaults.desktopPresence),
+      localActions: normalizePermissionLevel(parsed.localActions, defaults.localActions)
+    };
+  } catch {
+    return createDefaultPermissionProfile();
+  }
+}
+
+function normalizePermissionLevel(
+  value: PermissionLevel | undefined,
+  fallback: PermissionLevel
+): PermissionLevel {
+  return value === "allow" || value === "ask" || value === "deny" ? value : fallback;
 }
 
 function formatBrowserNotificationPermission(
