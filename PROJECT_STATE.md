@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `03dbebe` - `Finalize proactive delivery continuity record`
+- `8d5d7b3` - `Clear proactive wait state on user reply`
 
 ## Modules
 
