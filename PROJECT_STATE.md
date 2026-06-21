@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `d102c80` - `Add provider verification CLI path`
+- `18997cd` - `Improve dialogue continuity heuristics`
 
 ## Modules
 

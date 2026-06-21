@@ -33,11 +33,11 @@ Verification:
 
 Commit:
 
-- pending
+- `18997cd` - `Improve dialogue continuity heuristics`
 
 Push:
 
-- pending
+- succeeded: `git push origin main` pushed the dialogue-quality heuristics pass over the SSH remote
 
 ## 2026-06-21
 
