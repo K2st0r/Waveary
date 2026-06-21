@@ -28,11 +28,11 @@ Verification:
 
 Commit:
 
-- pending
+- `3676f57` - `Refine homepage rotating burn vignette`
 
 Push:
 
-- pending
+- failed: `git push origin main` timed out after 244 seconds; branch remained ahead of `origin/main` by 2 commits after the attempt
 
 ## 2026-06-21
 

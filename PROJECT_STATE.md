@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `586845c` - `Add homepage portrait memory visual layer`
+- `3676f57` - `Refine homepage rotating burn vignette`
 
 ## Modules
 
