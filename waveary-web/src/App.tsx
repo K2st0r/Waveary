@@ -799,6 +799,13 @@ export function App(): ReactElement {
     persistenceStatus?.backendDetails.find((detail) => detail.backend !== persistenceStatus.backend) ?? null;
   const hasSessionArchive =
     sessionMemoryArchive.length > 0 || sessionTimelineEvents.length > 0 || Boolean(sessionRelationship);
+  const configuredRuntimeLabel = savedConfig ? `${savedConfig.provider} / ${savedConfig.model}` : "Not configured yet";
+  const sessionSummaryLabel =
+    chatSessions.length === 1 ? "1 local session available" : `${chatSessions.length} local sessions available`;
+  const archiveSummaryLabel = hasSessionArchive
+    ? `${sessionMemoryArchive.length} memories, ${sessionTimelineEvents.length} timeline events`
+    : "No persisted archive yet";
+  const runtimeStateLabel = chatReady ? "Ready for live turns" : "Waiting for provider setup";
 
   return (
     <div className="page-shell">
@@ -810,17 +817,21 @@ export function App(): ReactElement {
           <span className="brand-subtitle">回响之境</span>
         </div>
         <nav className="topnav">
+          <a href="#vision">Vision</a>
           <a href="#engines">Engines</a>
-          <a href="#setup">Setup</a>
-          <a href="#chat">Chat</a>
+          <a href="#console">Console</a>
           <a href="#roadmap">Roadmap</a>
         </nav>
       </header>
 
-      <main>
-        <section className="hero section-grid">
+      <main className="page-main">
+        <section className="hero section-grid" id="vision">
           <div className="hero-copy">
             <div className="eyebrow">Digital Life Companion Framework</div>
+            <div className="hero-identity">
+              <span>Open Source Framework</span>
+              <span>Waveary CE</span>
+            </div>
             <h1>
               念念不忘，
               <br />
@@ -831,14 +842,15 @@ export function App(): ReactElement {
               relationship growth, life timeline awareness, and the capacity to stay with a user over time.
             </p>
             <p className="hero-support">
-              It is not an AI girlfriend wrapper. It is a continuity layer for digital companionship.
+              Waveary does not try to create a smarter chatbot. It builds the continuity layer that lets any model
+              remember, relate, and grow across a user&apos;s life.
             </p>
             <div className="hero-actions">
-              <a className="button button-primary" href="#chat">
-                Open Live Chat
+              <a className="button button-primary" href="#console">
+                Open Companion Console
               </a>
-              <a className="button button-secondary" href="#setup">
-                Provider Setup
+              <a className="button button-secondary" href="#roadmap">
+                View Build Roadmap
               </a>
             </div>
             <ul className="principle-list">
@@ -890,10 +902,46 @@ export function App(): ReactElement {
           </div>
         </section>
 
+        <section className="section-grid section-block manifesto-block">
+          <div className="manifesto-layout">
+            <div className="manifesto-copy">
+              <div className="section-heading compact-heading">
+                <span className="eyebrow">Framework Positioning</span>
+                <h2>Not a roleplay shell. A continuity system for digital life companionship.</h2>
+                <p>
+                  Waveary sits between the interface and the model provider. It gives any compatible model a persistent
+                  memory layer, a relationship state, a life timeline, and the groundwork for emotional and voice
+                  presence.
+                </p>
+              </div>
+            </div>
+
+            <div className="manifesto-grid">
+              <article className="manifesto-card">
+                <span className="manifesto-label">Memory First</span>
+                <p>Turn scattered dialogue into durable context that can be recalled, persisted, and reused.</p>
+              </article>
+              <article className="manifesto-card">
+                <span className="manifesto-label">Relationship As State</span>
+                <p>Model trust, affinity, and stability as evolving system state instead of prompt theater.</p>
+              </article>
+              <article className="manifesto-card">
+                <span className="manifesto-label">Timeline As Product</span>
+                <p>Life events become organized history, not a stack of forgotten chat logs.</p>
+              </article>
+              <article className="manifesto-card">
+                <span className="manifesto-label">Provider Agnostic</span>
+                <p>Choose a vendor, inspect the models behind your key, and keep the continuity layer stable.</p>
+              </article>
+            </div>
+          </div>
+        </section>
+
         <section className="section-grid section-block" id="engines">
           <div className="section-heading">
             <span className="eyebrow">Core Engines</span>
             <h2>A framework stack built for continuity, not short-term novelty.</h2>
+            <p>Each engine owns a stable continuity concern so the product shell stays expressive without stealing runtime responsibilities.</p>
           </div>
           <div className="engine-grid">
             {engineCards.map((engine) => (
@@ -906,13 +954,49 @@ export function App(): ReactElement {
           </div>
         </section>
 
-        <section className="section-grid section-block feature-band" id="setup">
-          <div className="section-heading">
+        <section className="section-grid section-block console-section" id="console">
+          <div className="console-shell">
+            <div className="console-intro">
+              <div className="section-heading console-heading">
+                <span className="eyebrow">Companion Console</span>
+                <h2>The official product shell for provider setup, session continuity, and live runtime testing.</h2>
+                <p>
+                  The brand layer explains what Waveary is. This console shows how the current web surface already
+                  wires that vision into a usable browser flow.
+                </p>
+              </div>
+
+              <div className="console-summary-grid">
+                <article className="console-summary-card">
+                  <span className="console-summary-label">Runtime Path</span>
+                  <strong>{configuredRuntimeLabel}</strong>
+                  <p>Provider selection and model discovery stay in the local API layer, not in the client runtime.</p>
+                </article>
+                <article className="console-summary-card">
+                  <span className="console-summary-label">Session Layer</span>
+                  <strong>{sessionSummaryLabel}</strong>
+                  <p>Main and optional sessions preserve continuity while keeping reset, rename, export, and import local.</p>
+                </article>
+                <article className="console-summary-card">
+                  <span className="console-summary-label">Runtime State</span>
+                  <strong>{runtimeStateLabel}</strong>
+                  <p>Live turns already return reply text plus memory, relationship, emotion, and timeline signals.</p>
+                </article>
+                <article className="console-summary-card">
+                  <span className="console-summary-label">Persisted Archive</span>
+                  <strong>{archiveSummaryLabel}</strong>
+                  <p>Conversation history can survive process restarts and move across file or SQLite persistence.</p>
+                </article>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="section-grid section-block console-stage feature-band" id="setup">
+          <div className="section-heading console-stage-heading">
             <span className="eyebrow">Provider Setup</span>
-            <h2>Choose the vendor, discover the models behind your key, and save one usable runtime path.</h2>
-            <p>
-              This browser-native configuration flow keeps provider logic server-side while the web layer owns the interface.
-            </p>
+            <h2>Choose the vendor, inspect the models behind your key, and pin one usable runtime path.</h2>
+            <p>This browser-native configuration flow keeps provider logic server-side while the web layer owns the setup experience.</p>
           </div>
 
           <div className="setup-layout">
@@ -1053,14 +1137,11 @@ export function App(): ReactElement {
           </div>
         </section>
 
-        <section className="section-grid section-block" id="chat">
-          <div className="section-heading">
-            <span className="eyebrow">Browser Chat</span>
-            <h2>Use the saved provider configuration to run the first in-browser Waveary runtime flow.</h2>
-            <p>
-              This reference shell already returns a real reply plus memory recall, relationship change, and timeline output
-              from the underlying runtime.
-            </p>
+        <section className="section-grid section-block console-stage" id="chat">
+          <div className="section-heading console-stage-heading">
+            <span className="eyebrow">Live Runtime</span>
+            <h2>Run the current Waveary browser flow with sessions, archive visibility, and continuity signals.</h2>
+            <p>This reference shell already returns a real reply plus memory recall, relationship change, and timeline output from the underlying runtime.</p>
           </div>
 
           <div className="panel session-panel">
