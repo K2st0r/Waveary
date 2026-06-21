@@ -106,6 +106,7 @@ type PersistedChatSessions = Record<string, PersistedChatSession>;
 
 export const DEFAULT_CHAT_SESSION_ID = "waveary-main";
 export const CHAT_SESSION_SCHEMA_VERSION = "waveary-session@1";
+const IMPORTED_MESSAGE_ROLES = new Set(["user", "assistant"]);
 
 interface ChatSessionRepository extends SessionStateRepository<PersistedChatSession> {
   close?(): void;
@@ -700,6 +701,8 @@ function validateExportedChatSession(exported: ExportedChatSession): void {
 
   if (!exported.exportedAt?.trim()) {
     details.push("Missing `exportedAt`.");
+  } else if (!isIsoTimestamp(exported.exportedAt)) {
+    details.push("`exportedAt` must be a valid ISO timestamp.");
   }
 
   if (!exported.title?.trim()) {
@@ -718,6 +721,8 @@ function validateExportedChatSession(exported: ExportedChatSession): void {
     details.push("Missing `snapshot.updatedAt`.");
   } else if (typeof exported.snapshot.updatedAt !== "string") {
     details.push("`snapshot.updatedAt` must be a string.");
+  } else if (!isIsoTimestamp(exported.snapshot.updatedAt)) {
+    details.push("`snapshot.updatedAt` must be a valid ISO timestamp.");
   }
 
   if (exported.snapshot?.latestInsights === undefined) {
@@ -753,6 +758,10 @@ function validateExportedChatSession(exported: ExportedChatSession): void {
 
       if (typeof message.role !== "string") {
         details.push(`Message ${index + 1} is missing a string \`role\`.`);
+      } else if (!IMPORTED_MESSAGE_ROLES.has(message.role)) {
+        details.push(
+          `Message ${index + 1} has unsupported \`role\` "${String(message.role)}". Supported roles: \`user\`, \`assistant\`.`
+        );
       }
 
       if (typeof message.content !== "string") {
@@ -780,10 +789,14 @@ function validateExportedChatSession(exported: ExportedChatSession): void {
 
       if (!isFiniteNumber(memory.importance)) {
         details.push(`Memory item ${index + 1} is missing a numeric \`importance\`.`);
+      } else if (!isUnitInterval(memory.importance)) {
+        details.push(`Memory item ${index + 1} \`importance\` must be between 0 and 1.`);
       }
 
       if (typeof memory.createdAt !== "string") {
         details.push(`Memory item ${index + 1} is missing a string \`createdAt\`.`);
+      } else if (!isIsoTimestamp(memory.createdAt)) {
+        details.push(`Memory item ${index + 1} \`createdAt\` must be a valid ISO timestamp.`);
       }
     });
   }
@@ -811,10 +824,14 @@ function validateExportedChatSession(exported: ExportedChatSession): void {
 
       if (typeof event.eventTime !== "string") {
         details.push(`Timeline event ${index + 1} is missing a string \`eventTime\`.`);
+      } else if (!isIsoTimestamp(event.eventTime)) {
+        details.push(`Timeline event ${index + 1} \`eventTime\` must be a valid ISO timestamp.`);
       }
 
       if (!isFiniteNumber(event.importance)) {
         details.push(`Timeline event ${index + 1} is missing a numeric \`importance\`.`);
+      } else if (!isUnitInterval(event.importance)) {
+        details.push(`Timeline event ${index + 1} \`importance\` must be between 0 and 1.`);
       }
     });
   }
@@ -888,6 +905,8 @@ function validateLatestInsights(
 
       if (typeof event.eventTime !== "string") {
         details.push(`Latest insight timeline entry ${index + 1} is missing a string \`eventTime\`.`);
+      } else if (!isIsoTimestamp(event.eventTime)) {
+        details.push(`Latest insight timeline entry ${index + 1} \`eventTime\` must be a valid ISO timestamp.`);
       }
     });
   }
@@ -902,6 +921,8 @@ function validateLatestInsights(
 
       if (!isFiniteNumber(latestInsights.emotion.intensity)) {
         details.push("`snapshot.latestInsights.emotion.intensity` must be a number.");
+      } else if (!isUnitInterval(latestInsights.emotion.intensity)) {
+        details.push("`snapshot.latestInsights.emotion.intensity` must be between 0 and 1.");
       }
     }
   }
@@ -918,18 +939,26 @@ function validateRelationshipSnapshot(
 
   if (!isFiniteNumber(relationship.affinityScore)) {
     details.push(`\`${fieldPath}.affinityScore\` must be a number.`);
+  } else if (!isUnitInterval(relationship.affinityScore)) {
+    details.push(`\`${fieldPath}.affinityScore\` must be between 0 and 1.`);
   }
 
   if (!isFiniteNumber(relationship.trustScore)) {
     details.push(`\`${fieldPath}.trustScore\` must be a number.`);
+  } else if (!isUnitInterval(relationship.trustScore)) {
+    details.push(`\`${fieldPath}.trustScore\` must be between 0 and 1.`);
   }
 
   if (!isFiniteNumber(relationship.stabilityScore)) {
     details.push(`\`${fieldPath}.stabilityScore\` must be a number.`);
+  } else if (!isUnitInterval(relationship.stabilityScore)) {
+    details.push(`\`${fieldPath}.stabilityScore\` must be between 0 and 1.`);
   }
 
   if (typeof relationship.lastUpdatedAt !== "string") {
     details.push(`\`${fieldPath}.lastUpdatedAt\` must be a string.`);
+  } else if (!isIsoTimestamp(relationship.lastUpdatedAt)) {
+    details.push(`\`${fieldPath}.lastUpdatedAt\` must be a valid ISO timestamp.`);
   }
 }
 
@@ -939,6 +968,26 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function isFiniteNumber(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value);
+}
+
+function isUnitInterval(value: number): boolean {
+  return value >= 0 && value <= 1;
+}
+
+function isIsoTimestamp(value: string): boolean {
+  const trimmed = value.trim();
+
+  if (!trimmed) {
+    return false;
+  }
+
+  const parsed = Date.parse(trimmed);
+
+  if (Number.isNaN(parsed)) {
+    return false;
+  }
+
+  return new Date(parsed).toISOString() === trimmed;
 }
 
 class FileBackedSessionRepository
