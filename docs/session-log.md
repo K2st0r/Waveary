@@ -4,6 +4,39 @@
 
 Objective:
 
+Rebuild the homepage lighter flame so it feels materially closer to a real flame while preserving the current burn vignette structure and homepage behavior.
+
+Summary:
+
+- replaced the old single-layer teardrop flame with a multi-layer flame stack in `waveary-web/src/App.tsx`, including halo, outer flame, inner flame, and core layers
+- rewrote the flame motion in `waveary-web/src/styles.css` so the lighter now has pivot, pulse, and irregular shape changes instead of one flat scale animation
+- kept the effect within the existing product tone by making the flame richer and more believable without turning the homepage into a flashy decorative animation demo
+- verified the change with scoped web checks and a full production build after the flame rebuild
+
+Files changed:
+
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/web`
+- `npm run web:build`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-21
+
+Objective:
+
 Refine the homepage memory-burn vignette so it cycles through multiple portraits, uses a hand-drawn lighter asset, and feels more intentional without affecting provider, session, persistence, or chat behavior.
 
 Summary:
