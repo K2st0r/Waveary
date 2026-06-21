@@ -1022,6 +1022,8 @@ function validateExportedSessionSemantics(
   });
 
   let previousTimelineEventTime: number | null = null;
+  const seenMemoryIds = new Set<string>();
+  const seenTimelineEventIds = new Set<string>();
 
   exported.snapshot.timelineEvents.forEach((event, index) => {
     if (typeof event.eventTime === "string" && isIsoTimestamp(event.eventTime)) {
@@ -1034,6 +1036,24 @@ function validateExportedSessionSemantics(
       }
 
       previousTimelineEventTime = eventTime;
+    }
+
+    if (typeof event.id === "string" && event.id.trim()) {
+      if (seenTimelineEventIds.has(event.id)) {
+        details.push(`Timeline event ${index + 1} \`id\` duplicates an earlier timeline event ID.`);
+      } else {
+        seenTimelineEventIds.add(event.id);
+      }
+    }
+  });
+
+  exported.snapshot.memoryArchive.forEach((memory, index) => {
+    if (typeof memory.id === "string" && memory.id.trim()) {
+      if (seenMemoryIds.has(memory.id)) {
+        details.push(`Memory item ${index + 1} \`id\` duplicates an earlier memory item ID.`);
+      } else {
+        seenMemoryIds.add(memory.id);
+      }
     }
   });
 

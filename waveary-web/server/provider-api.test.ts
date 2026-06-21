@@ -680,6 +680,13 @@ test("chat session import route rejects semantically inconsistent session packag
             content: "Late memory",
             importance: 0.7,
             createdAt: "2026-06-20T00:00:14.000Z"
+          },
+          {
+            id: "memory-1",
+            type: "reflection",
+            content: "Duplicate memory identity.",
+            importance: 0.6,
+            createdAt: "2026-06-20T00:00:09.100Z"
           }
         ],
         relationship: {
@@ -713,6 +720,14 @@ test("chat session import route rejects semantically inconsistent session packag
             type: "reflection",
             eventTime: "2026-06-20T00:00:09.300Z",
             importance: 0.6
+          },
+          {
+            id: "timeline-1",
+            title: "Duplicate timeline identity",
+            description: "Reuses an earlier event id.",
+            type: "reflection",
+            eventTime: "2026-06-20T00:00:09.400Z",
+            importance: 0.6
           }
         ],
         updatedAt: "2026-06-20T00:00:10.000Z"
@@ -731,6 +746,8 @@ test("chat session import route rejects semantically inconsistent session packag
     "`snapshot.updatedAt` cannot be later than `exportedAt`.",
     "Message 3 `createdAt` cannot be earlier than the previous message timestamp.",
     "Timeline event 3 `eventTime` cannot be earlier than the previous timeline event.",
+    "Timeline event 4 `id` duplicates an earlier timeline event ID.",
+    "Memory item 2 `id` duplicates an earlier memory item ID.",
     "`snapshot.relationship.lastUpdatedAt` cannot be later than `snapshot.updatedAt`.",
     "`snapshot.latestInsights.relationship.lastUpdatedAt` cannot be later than `snapshot.updatedAt`.",
     "Latest insight timeline entry 2 `eventTime` cannot be later than `snapshot.updatedAt`.",
