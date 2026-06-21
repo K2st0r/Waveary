@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `1ca74b4` - `Refine waveary web landing and console hierarchy`
+- `e2227d2` - `Record continuity push retry result`
 
 ## Modules
 
@@ -41,6 +41,7 @@ Brand line:
   - official homepage is implemented
   - product positioning, engine stack, provider compatibility, roadmap, and repository structure are presented in the first page
   - homepage information architecture now separates brand vision, framework positioning, and the companion console so the product no longer reads like one long debug dashboard
+  - homepage visual system now separates a high-confidence brand layer from a cinematic runtime shell so the site reads more like a formal AI framework homepage than a dark admin prototype
   - browser-native provider setup flow is implemented through local `/api/provider/*` routes
   - provider model discovery routes now return normalized model descriptors even when upstream vendors use broader OpenAI-compatible payload variants
   - first in-browser runtime chat shell is implemented through local `/api/chat/turn`
@@ -136,6 +137,8 @@ Brand line:
 - add route-level or live verification for more provider-specific chat payload divergences after the current DeepSeek compatibility baseline
 - add focused route-level and browser-facing coverage for any remaining persistence edge cases beyond the current file/sqlite symmetry path
 - continue polishing the web shell by tightening the session and runtime panel density now that the high-level brand-versus-console hierarchy is in place
+- continue polishing the web shell by tightening the session and runtime panel density now that the new premium visual direction is in place
+- consider a second frontend pass focused on chat-message rhythm, archive scanability, and runtime rail compression inside the live console
 - keep session import semantic hardening paused here unless a real malformed package reveals another high-value cross-structure gap
 - consider adding finer-grained session controls such as export/import or per-session persistence diagnostics after the current reset capability
 - consider surfacing richer archive filtering or grouped recall views now that persisted session intelligence is visible in the browser

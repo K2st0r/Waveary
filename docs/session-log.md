@@ -4,6 +4,43 @@
 
 Objective:
 
+Redesign the `waveary-web` frontend so it feels like a higher-end open source AI product homepage and control surface without changing any existing provider, session, chat, import/export, or persistence behavior.
+
+Summary:
+
+- reworked the landing page into a clearer product-home structure with a stronger hero, live proof strip, framework framing, and a more intentional engine section
+- rebuilt the visual system around a quieter brand layer plus a more cinematic console shell instead of repeating one dark glass card treatment everywhere
+- restructured the runtime area into a clearer main conversation canvas with a secondary inspection rail for signals and archive state while preserving all existing event handlers and API flows
+- verified the redesign through scoped TypeScript checks, server build, production web build, live local HTTP check, and a Playwright screenshot plus DOM snapshot against the running page
+
+Files changed:
+
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/web`
+- `npm run build:server --workspace @waveary/web`
+- `npm run web:build`
+- `curl.exe -I http://127.0.0.1:4173/`
+- `npx --yes --package @playwright/cli playwright-cli -s=waveary-redesign open http://127.0.0.1:4173/ --headed`
+- `npx --yes --package @playwright/cli playwright-cli -s=waveary-redesign resize 1440 1200`
+- `npx --yes --package @playwright/cli playwright-cli -s=waveary-redesign screenshot`
+- `npx --yes --package @playwright/cli playwright-cli -s=waveary-redesign snapshot`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+Objective:
+
 Refactor the `waveary-web` homepage so it reads as a formal open source framework site first and a companion console second, without changing existing provider, session, or chat behavior.
 
 Summary:
