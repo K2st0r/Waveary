@@ -253,6 +253,8 @@ It currently checks for:
 - timeline entries with invalid ISO timestamps
 - relationship and latest insight score fields outside `0..1`
 - relationship and latest insight timestamp fields that are not valid ISO timestamps
+- mismatched `sessionId` values between top-level package, snapshot payload, and message entries
+- timestamps that are structurally valid but semantically later than `snapshot.updatedAt` or `exportedAt`
 
 ## Compatibility Notes
 
