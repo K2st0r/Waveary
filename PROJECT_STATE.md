@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `pending` - visual hierarchy polish for the split `waveary-web` home, console, and chat pages is verified locally and awaiting commit
+- `f01e9f1` - `Polish split waveary web page hierarchy`
 
 ## Modules
 
