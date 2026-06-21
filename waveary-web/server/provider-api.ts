@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 import { OpenAICompatibleChatProvider, PROVIDER_PRESETS } from "@waveary/core";
 
 import {
+  evaluateChatProactiveCare,
   loadChatSessionSnapshot,
   resetChatRuntimeSessions,
   sendChatTurn
@@ -45,6 +46,24 @@ interface ChatTurnRequest {
 
 interface ChatSessionRequest {
   sessionId?: string;
+}
+
+interface EvaluateProactiveCareRequest extends ChatSessionRequest {
+  now?: string;
+  policy?: {
+    enabled?: boolean;
+    quietHoursStart?: string;
+    quietHoursEnd?: string;
+    maxDailyReachouts?: number;
+    allowMealCare?: boolean;
+    allowSleepCare?: boolean;
+    allowAbsenceCheckins?: boolean;
+  };
+  state?: {
+    dailyReachoutsSent?: number;
+    unansweredReachoutCount?: number;
+    lastReachOutAt?: string;
+  };
 }
 
 interface CreateChatSessionRequest {
@@ -113,6 +132,21 @@ export function createProviderApiMiddleware() {
         );
 
         sendJson(response, 200, { session: session ?? null });
+        return;
+      }
+
+      if (request.method === "POST" && request.url === "/api/chat/proactive/evaluate") {
+        const payload = (await readJsonBody(request)) as EvaluateProactiveCareRequest;
+        const result = await evaluateChatProactiveCare(
+          payload.sessionId?.trim() || DEFAULT_CHAT_SESSION_ID,
+          {
+            ...(payload.now ? { now: payload.now } : {}),
+            ...(payload.policy ? { policy: payload.policy } : {}),
+            ...(payload.state ? { state: payload.state } : {})
+          }
+        );
+
+        sendJson(response, 200, result);
         return;
       }
 
