@@ -1720,6 +1720,7 @@ export function App(): ReactElement {
       if (proactiveNotificationEnabled && response.decision.shouldReachOut) {
         if (browserNotificationPermission === "granted") {
           deliverProactiveBrowserNotification(response.decision, locale);
+          await recordDeliveredProactiveReachout(response.decision);
           setStatusMessage(copy.runtime.notificationDelivered);
         } else if (browserNotificationPermission === "default") {
           setStatusMessage(copy.runtime.notificationNeedsPermission);
@@ -1737,6 +1738,40 @@ export function App(): ReactElement {
       setProactiveEvaluateState("error");
       setStatusMessage(getErrorMessage(error));
     }
+  }
+
+  async function recordDeliveredProactiveReachout(
+    decision: ProactiveCareDecision
+  ): Promise<void> {
+    if (!activeSessionId || !proactiveCareState) {
+      return;
+    }
+
+    const response = await fetchJson<{
+      session: ChatSessionSnapshot;
+      sessions: ChatSessionListItem[];
+      defaultSessionId: string;
+      persistence: ChatPersistenceStatus;
+    }>("/api/chat/proactive/settings", {
+      method: "POST",
+      body: JSON.stringify({
+        sessionId: activeSessionId,
+        state: {
+          dailyReachoutsSent: proactiveCareState.dailyReachoutsSent + 1,
+          unansweredReachoutCount: Math.max(
+            1,
+            proactiveCareState.unansweredReachoutCount + 1
+          ),
+          lastReachOutAt: decision.evaluatedAt
+        }
+      })
+    });
+
+    setChatSessions(response.sessions);
+    setDefaultSessionId(response.defaultSessionId);
+    setPersistenceStatus(response.persistence);
+    setSelectedPersistenceBackend(response.persistence.backend);
+    applySessionSnapshot(response.session);
   }
 
   async function handleRequestNotificationPermission(): Promise<void> {
