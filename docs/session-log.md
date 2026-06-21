@@ -4,6 +4,52 @@
 
 Objective:
 
+Give normal chat turns a permissioned local time awareness path so the companion can answer device-local time/date questions without pretending it has no real-time context.
+
+Summary:
+
+- extended the frontend chat turn payload so `waveary-web` now sends local ISO time, timezone, and locale only when the existing `timeAwareness` permission is set to `allow`
+- threaded that bounded time context through the local `/api/chat/turn` route, the web runtime, and the core provider request contract instead of persisting it into session state
+- updated the OpenAI-compatible instruction builder so real providers are explicitly told to use the supplied local time context for questions about time, date, and relative day references
+- added a small scripted-provider fallback for time/date questions plus regression coverage proving the prompt and route path now carry the local time data correctly
+
+Files changed:
+
+- `waveary-core/src/adapters/openai-compatible-provider.test.ts`
+- `waveary-core/src/adapters/openai-compatible-provider.ts`
+- `waveary-core/src/adapters/scripted-chat-provider.ts`
+- `waveary-core/src/providers/interfaces.ts`
+- `waveary-core/src/runtime/types.ts`
+- `waveary-core/src/runtime/waveary-runtime.ts`
+- `waveary-web/server/chat-runtime.ts`
+- `waveary-web/server/provider-api.test.ts`
+- `waveary-web/server/provider-api.ts`
+- `waveary-web/src/App.tsx`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/core`
+- `npm run test --workspace @waveary/core`
+- `npm run check --workspace @waveary/web` failed once due to a Windows `waveary-core/dist` cleanup `EPERM` file-lock on `2026-06-21`; the failure occurred during `@waveary/core` prebuild cleanup rather than from a TypeScript error in the time-awareness change
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npx tsc --noEmit -p waveary-web/tsconfig.server.json`
+- `npm run test --workspace @waveary/web`
+- `npm run web:build`
+
+Commit:
+
+- `3fc1fa1` - `Add permissioned local time awareness to chat`
+
+Push:
+
+- succeeded: `git push origin main` pushed `3fc1fa1` to the SSH remote `git@github.com:K2st0r/-Waveary-.git`
+
+## 2026-06-21
+
+Objective:
+
 Make the `WPCE` console result easier to scan by visually separating proactive recommendations from blocked evaluations instead of rendering both as the same neutral card.
 
 Summary:

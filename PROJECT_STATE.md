@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `67d98d5` - `Strengthen proactive decision visual hierarchy`
+- `3fc1fa1` - `Add permissioned local time awareness to chat`
 
 ## Modules
 
@@ -32,6 +32,7 @@ Brand line:
   - provider compatibility now also tolerates model discovery without a preselected chat model, nested `/models` containers, alternate model metadata field names, and broader structured text payload shapes across chat-completions and responses-style providers
   - provider verification CLI scaffolding now exists so saved or environment-supplied provider credentials can be checked end-to-end for model discovery and one real chat turn without changing the web runtime path
   - runtime dialogue scaffolding now biases more strongly toward companion-style continuity by using relationship-stage-aware reply guidance, less mechanical memory phrasing, and more behavior-driven relationship growth signals
+  - permissioned local time context can now be injected into normal chat turns so the companion can answer time/date-style questions from the user's device-local clock without claiming it lacks real-time awareness
   - first formal product and architecture draft for companion emotional continuity and proactive care now exists in `docs/emotion-proactive-care.md`, defining `Waveary Emotion Engine (WEE)` and `Waveary Proactive Care Engine (WPCE)` as the next major runtime-facing design targets
   - first companion-side emotion runtime layer is now implemented through a persisted `EmotionStore`, a `SimpleCompanionEmotionEngine`, and runtime wiring that updates and returns companion emotion state on each turn
   - first `WPCE` decision-only runtime layer is now implemented through proactive care domain types, a `SimpleProactiveCareEngine`, and a dedicated `evaluateProactiveCare()` runtime path that combines policy, relationship stage, interaction gap, and companion emotion without generating outbound messages yet
@@ -94,6 +95,7 @@ Brand line:
   - the management console now also exposes persisted `WPCE` policy/state controls and read-only evaluation output for the active session
   - the current web surface now provides the first permissioned proactive-care delivery path through browser-local notifications triggered from manual `WPCE` evaluation results
   - the console now also includes a first explicit permission center so users can set local consent preferences for notifications, proactive delivery, time awareness, desktop presence, and future local actions
+  - normal browser chat turns now send explicit local time context only when `timeAwareness` permission is allowed, reusing the existing permission center instead of adding a separate hidden time toggle
   - proactive browser-notification delivery now also records per-session reachout counters and last-delivery time so subsequent `WPCE` evaluations can suppress repeated outreach until the user replies
   - successful new user turns now automatically clear persisted `WPCE` unanswered-reachout state so proactive care can reopen naturally after the user responds without erasing daily send counts or the last reachout timestamp
   - proactive-care evaluation output and browser notification copy now translate raw `WPCE` intent, urgency, and reason codes into user-facing Chinese and English labels instead of exposing internal engine enums directly
@@ -184,6 +186,8 @@ Brand line:
 - Playwright browser verification for refreshed `#home`, `#console`, and `#chat` first screens on `http://127.0.0.1:4173/`
 - `npm run check --workspace @waveary/core`
 - `npm run test --workspace @waveary/core`
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npx tsc --noEmit -p waveary-web/tsconfig.server.json`
 - `npm run test --workspace @waveary/web`
 - `npm run web:build`
 
@@ -200,6 +204,7 @@ Brand line:
 - consider distinguishing affirmative proactive recommendations from blocked evaluations more visually in the console card now that their text is user-facing
 - consider exposing a smaller single-line status echo near the evaluate button so the latest `WPCE` conclusion remains visible even when the full decision card scrolls out of view
 - keep future desktop awareness or action work behind a separate permissioned presence layer instead of mixing it directly into chat reply generation
+- extend the new permissioned local-time path into richer presence-aware context only after the user can review and grant each source separately, instead of letting time awareness silently expand into broader desktop awareness
 - expand provider-specific chat request normalization where "OpenAI-compatible" vendors diverge beyond the current shared `/chat/completions` and `/responses` paths
 - add route-level or live verification for more provider-specific chat payload divergences after the current DeepSeek and broader structured-payload compatibility baseline
 - re-run `npm run verify:provider` and `npm run models:provider` with refreshed real credentials, starting with DeepSeek because the currently saved local key now returns `401 invalid api key`
