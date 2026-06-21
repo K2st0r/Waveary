@@ -1,5 +1,10 @@
 import type { EmotionState } from "../domain/emotion.js";
 import type { MemoryCandidate, MemoryItem } from "../domain/memory.js";
+import type {
+  ProactiveCareDecision,
+  ProactiveCarePolicy,
+  ProactiveCareState
+} from "../domain/proactive-care.js";
 import type { RelationshipDelta, RelationshipProfile } from "../domain/relationship.js";
 import type { Message, PersonaProfile, Session, UserProfile } from "../domain/session.js";
 import type { TimelineEvent } from "../domain/timeline.js";
@@ -53,6 +58,21 @@ export interface EmotionEngineInput {
 
 export interface EmotionEngine {
   transition(input: EmotionEngineInput): Promise<EmotionState | undefined>;
+}
+
+export interface ProactiveCareEngineInput {
+  userId: string;
+  now: string;
+  history: Message[];
+  relationship: RelationshipProfile;
+  timeline: TimelineEvent[];
+  policy: ProactiveCarePolicy;
+  careState: ProactiveCareState;
+  emotion?: EmotionState;
+}
+
+export interface ProactiveCareEngine {
+  evaluate(input: ProactiveCareEngineInput): Promise<ProactiveCareDecision>;
 }
 
 export interface MemoryStore {

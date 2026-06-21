@@ -1,4 +1,8 @@
 import type { Message } from "../domain/session.js";
+import {
+  resolveProactiveCarePolicy,
+  resolveProactiveCareState
+} from "../domain/proactive-care.js";
 import type {
   ChatProvider,
   EmotionAnalyzer,
@@ -6,18 +10,25 @@ import type {
   EmotionStore,
   MemoryExtractor,
   MemoryStore,
+  ProactiveCareEngine,
   RelationshipEngine,
   RelationshipStore,
   TimelineEngine,
   TimelineStore
 } from "../providers/interfaces.js";
-import type { RuntimeContext, RuntimeTurnResult } from "./types.js";
+import type {
+  RuntimeContext,
+  RuntimeProactiveCareOptions,
+  RuntimeProactiveCareResult,
+  RuntimeTurnResult
+} from "./types.js";
 
 export interface WavearyRuntimeDependencies {
   chatProvider: ChatProvider;
   emotionAnalyzer: EmotionAnalyzer;
   emotionStore: EmotionStore;
   emotionEngine: EmotionEngine;
+  proactiveCareEngine: ProactiveCareEngine;
   memoryStore: MemoryStore;
   memoryExtractor: MemoryExtractor;
   relationshipStore: RelationshipStore;
@@ -28,6 +39,27 @@ export interface WavearyRuntimeDependencies {
 
 export class WavearyRuntime {
   constructor(private readonly deps: WavearyRuntimeDependencies) {}
+
+  async evaluateProactiveCare(
+    context: RuntimeContext,
+    options: RuntimeProactiveCareOptions = {}
+  ): Promise<RuntimeProactiveCareResult> {
+    const now = options.now ?? new Date().toISOString();
+    const relationship = await this.deps.relationshipStore.getProfile(context.user.id);
+    const timeline = await this.deps.timelineStore.getRelevantEvents(context.user.id);
+    const emotion = await this.deps.emotionStore.getState(context.user.id);
+
+    return this.deps.proactiveCareEngine.evaluate({
+      userId: context.user.id,
+      now,
+      history: context.history,
+      relationship,
+      timeline,
+      policy: resolveProactiveCarePolicy(options.policy),
+      careState: resolveProactiveCareState(options.state),
+      ...(emotion ? { emotion } : {})
+    });
+  }
 
   async handleTurn(context: RuntimeContext, input: Message): Promise<RuntimeTurnResult> {
     const detectedUserEmotion = await this.deps.emotionAnalyzer.analyze(input);
