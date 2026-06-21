@@ -4,6 +4,40 @@
 
 Objective:
 
+Refine the homepage memory-burn vignette so it cycles through multiple portraits, uses a hand-drawn lighter asset, and feels more intentional without affecting provider, session, persistence, or chat behavior.
+
+Summary:
+
+- generated a hand-drawn lighter asset for the homepage burn vignette and saved it under `waveary-web/public/images/hero/lighter.png`
+- replaced the fixed burn-photo implementation with a timed portrait rotation so different question-mark portraits are pulled into the burn focal point over time
+- tuned the burn-card, glow, scorch, ash, and lighter positioning layers together in `waveary-web/src/styles.css` so the effect reads more like a repeated memory ritual than one looping static card
+- verified the refinement with scoped web checks and a full production build after wiring the new asset and rotation state into the existing homepage shell
+
+Files changed:
+
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `waveary-web/public/images/hero/lighter.png`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/web`
+- `npm run web:build`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-21
+
+Objective:
+
 Add the first Waveary homepage portrait-memory visual system so the public front page feels less static and more like a digital companionship project with drifting, emotionally projectable identities.
 
 Summary:
@@ -35,11 +69,11 @@ Verification:
 
 Commit:
 
-- pending
+- `586845c` - `Add homepage portrait memory visual layer`
 
 Push:
 
-- pending
+- pending at time of record; local branch was ahead of origin by one commit before the current burn-vignette refinement pass
 
 ## 2026-06-21
 
