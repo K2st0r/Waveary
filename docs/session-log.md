@@ -4,6 +4,40 @@
 
 Objective:
 
+Extract the proactive message composer out of `App.tsx` into a dedicated web utility module so the draft interface has a cleaner boundary before any future API exposure.
+
+Summary:
+
+- created `waveary-web/src/proactive-message-drafts.ts` to own the proactive draft contract, daypart resolution, draft builder, and tone formatter
+- removed the inlined proactive composer implementation from `App.tsx` and switched the current console and browser-notification surfaces over to imports from the new utility module
+- kept behavior unchanged while reducing coupling inside `App.tsx`, so the next architectural decision can focus on whether to expose this draft through the local API rather than first untangling UI-local code
+- updated continuity state so future work now targets whether the draft stays web-only or becomes a route-visible contract
+
+Files changed:
+
+- `waveary-web/src/proactive-message-drafts.ts`
+- `waveary-web/src/App.tsx`
+- `ACTIVE_TASKS.md`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run test --workspace @waveary/web`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-21
+
+Objective:
+
 Upgrade the shared proactive message composer from presentation-only copy into a structured suggested-message draft interface that future delivery channels can reuse.
 
 Summary:
