@@ -4,6 +4,40 @@
 
 Objective:
 
+Surface persisted `WPCE` session policy/state controls and read-only evaluation output in the `waveary-web` console so proactive-care settings can be inspected and exercised from the product UI.
+
+Summary:
+
+- extended the `waveary-web` frontend session snapshot contract so proactive-care policy and state now load with the rest of the persisted session data
+- added a dedicated proactive-care console card in `waveary-web/src/App.tsx` with editable per-session policy/state controls plus save and evaluate actions wired to the existing local API routes
+- rendered the current `WPCE` evaluation result in the console, including reachout decision, intent, urgency, reasons, suggested delay, and evaluated timestamp
+- kept the change scoped to console diagnostics and reused the current page split, persistence flow, and session-loading path without changing homepage or chat-page structure
+
+Files changed:
+
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/web`
+- `npm run test --workspace @waveary/web`
+- `npm run web:build`
+
+Commit:
+
+- `cbf0e14` - `Add web proactive care console controls`
+
+Push:
+
+- pending
+
+## 2026-06-21
+
+Objective:
+
 Persist per-session `WPCE` policy and care-state settings so proactive-care evaluation can reuse saved limits and user preferences across restarts, export, and import.
 
 Summary:

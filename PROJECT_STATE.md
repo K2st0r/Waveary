@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `0cbfe68` - `Persist proactive care session settings`
+- `cbf0e14` - `Add web proactive care console controls`
 
 ## Modules
 
@@ -91,6 +91,7 @@ Brand line:
   - the public web surface is now split into shorter hash-routed views for home, console, chat, and roadmap instead of one very long landing page
   - framework and positioning explanation is now fully absorbed into the homepage instead of living on a separate framework page
   - the management console now focuses on provider setup, session controls, persistence switching, import/export, and runtime diagnostics
+  - the management console now also exposes persisted `WPCE` policy/state controls and read-only evaluation output for the active session
   - the live conversation experience now has its own dedicated chat page with a stripped-down journal-style canvas and composer
   - the visible persisted-session archive panel has been removed from the runtime rail so the console reads less like a raw internal debug dump
   - the split home / console / chat shell now has a stronger page-by-page hierarchy: the homepage reads more like a formal project front page, the console reads more like a system desk, and the chat page is more tightly focused on the active conversation surface
@@ -186,8 +187,8 @@ Brand line:
 
 ## Next Steps
 
-- surface the persisted proactive-care policy and evaluation result in the console/runtime diagnostics UI now that the session-layer contract and settings route are stable
 - define the first delivery path for proactive care in the web surface, likely browser or local notifications before any broader desktop action layer
+- consider surfacing localized user-facing labels for `WPCE` reason codes and intents instead of only raw engine strings in the console
 - keep future desktop awareness or action work behind a separate permissioned presence layer instead of mixing it directly into chat reply generation
 - expand provider-specific chat request normalization where "OpenAI-compatible" vendors diverge beyond the current shared `/chat/completions` and `/responses` paths
 - add route-level or live verification for more provider-specific chat payload divergences after the current DeepSeek and broader structured-payload compatibility baseline
