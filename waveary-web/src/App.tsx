@@ -1834,7 +1834,7 @@ export function App(): ReactElement {
       setProactiveEvaluateState("success");
       if (proactiveNotificationEnabled && response.decision.shouldReachOut) {
         if (browserNotificationPermission === "granted") {
-          deliverProactiveBrowserNotification(response.decision, locale);
+          deliverProactiveBrowserNotification(response.decision, locale, permissionProfile);
           await recordDeliveredProactiveReachout(response.decision);
           setStatusMessage(copy.runtime.notificationDelivered);
         } else if (browserNotificationPermission === "default") {
@@ -3754,17 +3754,92 @@ function formatBrowserNotificationPermission(
   return locale === "zh" ? "未决定" : "default";
 }
 
+function resolveNotificationDayPart(
+  permissionProfile: WavearyPermissionProfile
+): "late_night" | "morning" | "afternoon" | "evening" | undefined {
+  if (permissionProfile.timeAwareness !== "allow") {
+    return undefined;
+  }
+
+  const hour = new Date().getHours();
+
+  if (hour < 5) {
+    return "late_night";
+  }
+
+  if (hour < 12) {
+    return "morning";
+  }
+
+  if (hour < 18) {
+    return "afternoon";
+  }
+
+  return "evening";
+}
+
+function buildProactiveNotificationLead(
+  decision: ProactiveCareDecision,
+  locale: Locale,
+  dayPart: "late_night" | "morning" | "afternoon" | "evening" | undefined
+): string {
+  if (locale === "zh") {
+    if (dayPart === "late_night") {
+      return decision.intent === "sleep_care"
+        ? "已经很晚了，我想轻轻提醒你照顾好自己。"
+        : "夜已经深了，我只是想安静地来关心你一下。";
+    }
+
+    if (dayPart === "morning") {
+      return decision.intent === "meal_care"
+        ? "新的一天开始了，也别忘了先照顾好自己。"
+        : "早上好，我想在今天刚开始的时候问问你状态怎么样。";
+    }
+
+    if (dayPart === "evening") {
+      return decision.intent === "comfort"
+        ? "到了晚上，如果你今天有点累，我想陪你缓一缓。"
+        : "傍晚了，我想来看看你今天过得怎么样。";
+    }
+
+    return "我想起你了，所以来轻轻问候一下。";
+  }
+
+  if (dayPart === "late_night") {
+    return decision.intent === "sleep_care"
+      ? "It is getting late, and I wanted to gently remind you to take care of yourself."
+      : "It is late where you are, and I just wanted to check in quietly.";
+  }
+
+  if (dayPart === "morning") {
+    return decision.intent === "meal_care"
+      ? "A new day is starting, so I wanted to gently nudge you to take care of yourself first."
+      : "Good morning. I wanted to check how you are doing at the start of the day.";
+  }
+
+  if (dayPart === "evening") {
+    return decision.intent === "comfort"
+      ? "It is evening now, and if today felt heavy, I wanted to stay a little closer."
+      : "It is evening, and I wanted to see how your day has been.";
+  }
+
+  return "You came to mind, so I wanted to check in gently.";
+}
+
 function deliverProactiveBrowserNotification(
   decision: ProactiveCareDecision,
-  locale: Locale
+  locale: Locale,
+  permissionProfile: WavearyPermissionProfile
 ): void {
   if (typeof window === "undefined" || !("Notification" in window)) {
     return;
   }
 
+  const dayPart = resolveNotificationDayPart(permissionProfile);
   const title =
     locale === "zh" ? "Waveary 主动关怀提醒" : "Waveary Proactive Care";
   const bodyParts = [
+    buildProactiveNotificationLead(decision, locale, dayPart),
     decision.intent
       ? locale === "zh"
         ? `意图：${formatProactiveIntent(decision.intent, locale)}`
