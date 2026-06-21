@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `da3f103` - `Expose proactive message drafts through web API`
+- `719e955` - `Record proactive draft API progress`
 
 ## Modules
 
@@ -103,6 +103,7 @@ Brand line:
   - that shared proactive message composer now returns structured draft fields including `tone`, `deliveryKind`, and `suggestedMessage`, so the current UI is no longer limited to raw prose-only summary composition
   - the proactive message composer now also lives in a dedicated `waveary-web` utility module instead of remaining embedded inside `App.tsx`, reducing UI-surface coupling before any future API exposure
   - `/api/chat/proactive/evaluate` now also returns a server-generated proactive message draft, so the `WPCE` console card and browser notification path can consume one route-visible draft contract instead of recomputing message copy independently in the browser
+  - the web console now also exposes an explicit browser-local proactive check loop that periodically re-evaluates `WPCE` only while the current tab is open and visible, with a user-controlled interval and no hidden background automation
   - proactive browser-notification delivery now also records per-session reachout counters and last-delivery time so subsequent `WPCE` evaluations can suppress repeated outreach until the user replies
   - successful new user turns now automatically clear persisted `WPCE` unanswered-reachout state so proactive care can reopen naturally after the user responds without erasing daily send counts or the last reachout timestamp
   - proactive-care evaluation output and browser notification copy now translate raw `WPCE` intent, urgency, and reason codes into user-facing Chinese and English labels instead of exposing internal engine enums directly
@@ -224,6 +225,7 @@ Brand line:
 - consider extracting the new console-summary and notification-copy helpers into one shared proactive presentation module if a second non-browser delivery surface is added
 - use the new route-visible proactive draft contract as the source for any next delivery surface, instead of recomputing outbound copy per-surface in the browser
 - consider whether the draft contract should stay a `waveary-web` server concern for now or move into a more shared runtime-facing layer before scheduled delivery work begins
+- consider whether the new browser-local proactive loop should surface a small in-chat or console-side “watching” indicator so the user can tell when bounded local care checks are active
 - expand provider-specific chat request normalization where "OpenAI-compatible" vendors diverge beyond the current shared `/chat/completions` and `/responses` paths
 - add route-level or live verification for more provider-specific chat payload divergences after the current DeepSeek and broader structured-payload compatibility baseline
 - re-run `npm run verify:provider` and `npm run models:provider` with refreshed real credentials, starting with DeepSeek because the currently saved local key now returns `401 invalid api key`

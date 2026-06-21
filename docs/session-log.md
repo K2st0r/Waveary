@@ -4,6 +4,41 @@
 
 Objective:
 
+Extend the new proactive draft contract into the first explicit repeated delivery loop without introducing hidden background behavior.
+
+Summary:
+
+- added a browser-local proactive check loop in `waveary-web/src/App.tsx` with an explicit enable switch, user-controlled interval, and last-run status display in the console
+- kept the loop bounded to the current visible browser tab so repeated `WPCE` evaluation stays legible and does not imply desktop-level background automation
+- reused the existing `/api/chat/proactive/evaluate` route and returned draft contract for repeated checks instead of adding another browser-only proactive message path
+- preserved the existing notification permission model and delivery bookkeeping, so automatic browser notifications still respect explicit user settings and persisted unanswered-reachout suppression
+- updated continuity and decision records so future sessions know the first proactive scheduler is browser-local, visible, and intentionally trust-bounded
+
+Files changed:
+
+- `waveary-web/src/App.tsx`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run test --workspace @waveary/web`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-21
+
+Objective:
+
 Promote the proactive message draft into a route-visible server contract so `WPCE` evaluation, console presentation, and browser notification delivery all consume the same draft output.
 
 Summary:

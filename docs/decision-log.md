@@ -374,3 +374,25 @@ Impact:
 - `waveary-web` console and browser notification delivery can read the same draft payload
 - bounded local-time context can shape proactive daypart tone on the server only when the caller explicitly sends permissioned time context
 - future scheduled or reminder-style delivery work should start from this route-visible draft contract rather than adding new browser-local generators
+
+## 2026-06-21 - First Proactive Loop Stays Browser-Local And Visible
+
+Status:
+
+- accepted
+
+Decision:
+
+Implement the first repeated proactive-care evaluation loop as an explicit browser-local check that runs only while the current tab is open and visible, with a user-controlled interval and no hidden background execution.
+
+Reason:
+
+- the product wants to move beyond one-off manual `WPCE` evaluation, but current trust boundaries do not justify silent background automation
+- a visible, tab-bound loop is enough to validate repeated proactive evaluation behavior without implying desktop-agent authority
+- this keeps proactive scheduling aligned with the existing permission-center model and the new route-visible draft contract
+
+Impact:
+
+- `waveary-web` now owns the first repeated proactive evaluation loop as a UI-local behavior
+- the loop consumes `/api/chat/proactive/evaluate` and its shared draft output instead of generating parallel browser-only copy
+- future scheduler or automation work should preserve the same explicit consent and visibility expectations unless a higher-trust design is approved deliberately

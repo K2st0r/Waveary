@@ -14,8 +14,8 @@ Update it when:
 
 1. Turn proactive-care presentation into a reusable message-draft interface.
    Status: in progress
-   Current state: the proactive message composer has been extracted into its own web utility module, promoted into `/api/chat/proactive/evaluate`, and now reaches the console plus browser-notification path through one server-generated draft contract with `tone`, `deliveryKind`, and `suggestedMessage`.
-   Next cut: use that route-visible draft contract in the next delivery surface or scheduler-facing path instead of adding another browser-local copy generator.
+   Current state: the proactive message composer has been extracted into its own web utility module, promoted into `/api/chat/proactive/evaluate`, and now reaches the console, browser-notification path, and a bounded browser-local proactive check loop through one server-generated draft contract with `tone`, `deliveryKind`, and `suggestedMessage`.
+   Next cut: keep the next delivery layer aligned with this explicit local-loop model, or decide whether any broader scheduler should remain web-local or move closer to runtime boundaries.
 
 2. Keep permissioned local-time awareness bounded and trustworthy.
    Status: in progress
@@ -37,3 +37,6 @@ Update it when:
 
 3. Continue future presence-aware work only behind explicit permission boundaries.
    Reason: the product direction allows richer presence later, but current trust boundaries must stay narrow and legible.
+
+4. Keep proactive scheduling explicit and legible.
+   Reason: the new local loop is intentionally visible, tab-bound, and user-controlled; future scheduling work should not regress into hidden background behavior.
