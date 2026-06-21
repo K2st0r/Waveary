@@ -9,6 +9,11 @@ export class ScriptedChatProvider implements ChatProvider {
       return "I am here with you.";
     }
 
+    const timeAwareReply = buildTimeAwareReply(latestUserMessage.content, request);
+    if (timeAwareReply) {
+      return timeAwareReply;
+    }
+
     const prefix = buildRelationshipPrefix(request.relationship.stage, request.emotion?.primaryEmotion);
     const continuity = memoryHint
       ? `I still remember ${wrapMemory(memoryHint)}, so I can follow what this means to you.`
@@ -16,6 +21,45 @@ export class ScriptedChatProvider implements ChatProvider {
 
     return `${prefix} ${continuity} ${buildFollowup(latestUserMessage.content, request.emotion?.primaryEmotion)}`.trim();
   }
+}
+
+function buildTimeAwareReply(
+  content: string,
+  request: ChatProviderRequest
+): string | undefined {
+  if (!request.localTime) {
+    return undefined;
+  }
+
+  const normalized = content.toLowerCase();
+  const asksForTime =
+    normalized.includes("几点") ||
+    normalized.includes("时间") ||
+    normalized.includes("what time") ||
+    normalized.includes("current time") ||
+    normalized.includes("date") ||
+    normalized.includes("几号") ||
+    normalized.includes("星期") ||
+    normalized.includes("today") ||
+    normalized.includes("tonight") ||
+    normalized.includes("tomorrow");
+
+  if (!asksForTime) {
+    return undefined;
+  }
+
+  const localDate = new Date(request.localTime.iso);
+  const formatted = new Intl.DateTimeFormat(request.localTime.locale ?? "en-US", {
+    dateStyle: "full",
+    timeStyle: "short",
+    ...(request.localTime.timeZone ? { timeZone: request.localTime.timeZone } : {})
+  }).format(localDate);
+
+  if ((request.localTime.locale ?? "").toLowerCase().startsWith("zh")) {
+    return `我这边看到你当前的本地时间是 ${formatted}。如果你愿意，我也可以顺着这个时间点继续陪你聊现在的状态。`;
+  }
+
+  return `I can see your local time as ${formatted}. If you want, I can stay with this moment and keep going from here with you.`;
 }
 
 function buildRelationshipPrefix(stage: string, emotion?: string): string {

@@ -43,6 +43,11 @@ interface ProviderConfigRequest extends ProviderModelsRequest {
 interface ChatTurnRequest {
   sessionId?: string;
   message?: string;
+  timeContext?: {
+    localTimeIso?: string;
+    timeZone?: string;
+    locale?: string;
+  };
 }
 
 interface ChatSessionRequest {
@@ -136,7 +141,25 @@ export function createProviderApiMiddleware() {
         const payload = (await readJsonBody(request)) as ChatTurnRequest;
         const result = await sendChatTurn(
           requireNonEmpty(payload.sessionId, "Session ID is required."),
-          requireNonEmpty(payload.message, "Message is required.")
+          requireNonEmpty(payload.message, "Message is required."),
+          {
+            ...(payload.timeContext?.localTimeIso
+              ? {
+                  localTime: {
+                    iso: requireNonEmpty(
+                      payload.timeContext.localTimeIso,
+                      "Local time ISO is required when time context is provided."
+                    ),
+                    ...(payload.timeContext.timeZone?.trim()
+                      ? { timeZone: payload.timeContext.timeZone.trim() }
+                      : {}),
+                    ...(payload.timeContext.locale?.trim()
+                      ? { locale: payload.timeContext.locale.trim() }
+                      : {})
+                  }
+                }
+              : {})
+          }
         );
 
         sendJson(response, 200, result);

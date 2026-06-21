@@ -8,6 +8,7 @@ import type {
 import type { RelationshipProfile } from "../domain/relationship.js";
 import type { Message, PersonaProfile, Session, UserProfile } from "../domain/session.js";
 import type { TimelineEvent } from "../domain/timeline.js";
+import type { LocalTimeContext } from "../providers/interfaces.js";
 
 export interface RuntimeContext {
   session: Session;
@@ -32,3 +33,7 @@ export interface RuntimeProactiveCareOptions {
 }
 
 export type RuntimeProactiveCareResult = ProactiveCareDecision;
+
+export interface RuntimeTurnOptions {
+  localTime?: LocalTimeContext;
+}

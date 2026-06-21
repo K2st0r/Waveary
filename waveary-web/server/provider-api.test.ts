@@ -233,6 +233,59 @@ test("chat session route returns the requested persisted snapshot", async () => 
   );
 });
 
+test("chat turn route forwards permissioned local time context to the provider request", async () => {
+  const middleware = createProviderApiMiddleware();
+
+  saveProviderConfig({
+    provider: "provider-a",
+    baseURL: "https://provider-a.example/v1",
+    apiKey: "key-a",
+    model: "model-a"
+  });
+
+  let recordedInstruction = "";
+  globalThis.fetch = (async (_input, init) => {
+    const body = init?.body ? (JSON.parse(String(init.body)) as {
+      messages?: Array<{ role?: string; content?: string }>;
+    }) : {};
+    recordedInstruction =
+      body.messages?.find((message) => message.role === "system")?.content ?? "";
+
+    return new Response(
+      JSON.stringify({
+        choices: [
+          {
+            message: {
+              content: "time-aware reply"
+            }
+          }
+        ]
+      }),
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json"
+        }
+      }
+    );
+  }) as typeof fetch;
+
+  const response = await invokeJsonRoute(middleware, "POST", "/api/chat/turn", {
+    sessionId: DEFAULT_CHAT_SESSION_ID,
+    message: "现在几点了？",
+    timeContext: {
+      localTimeIso: "2026-06-21T21:30:00.000Z",
+      timeZone: "Asia/Shanghai",
+      locale: "zh-CN"
+    }
+  });
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.reply, "time-aware reply");
+  assert.match(recordedInstruction, /Local current time for the user: 2026-06-21T21:30:00.000Z\./);
+  assert.match(recordedInstruction, /Local time zone: Asia\/Shanghai\./);
+});
+
 test("chat proactive settings route persists proactive policy and state for later evaluation", async () => {
   const middleware = createProviderApiMiddleware();
 

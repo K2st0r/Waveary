@@ -42,6 +42,12 @@ interface ChatTurnResponse {
   }>;
 }
 
+interface ChatTurnTimeContext {
+  localTimeIso: string;
+  timeZone?: string;
+  locale?: string;
+}
+
 interface SessionMemoryArchiveItem {
   id: string;
   type: string;
@@ -1932,6 +1938,8 @@ export function App(): ReactElement {
       return;
     }
 
+    const timeContext = buildChatTurnTimeContext(permissionProfile);
+
     const userMessage: ChatMessage = {
       id: `user-${Date.now()}`,
       role: "user",
@@ -1947,7 +1955,8 @@ export function App(): ReactElement {
         method: "POST",
         body: JSON.stringify({
           sessionId: activeSessionId || defaultSessionId,
-          message: trimmed
+          message: trimmed,
+          ...(timeContext ? { timeContext } : {})
         })
       });
 
@@ -3623,6 +3632,27 @@ function formatContextWindow(value: number): string {
   }
 
   return `${value} ctx`;
+}
+
+function buildChatTurnTimeContext(
+  permissionProfile: WavearyPermissionProfile
+): ChatTurnTimeContext | undefined {
+  if (permissionProfile.timeAwareness !== "allow") {
+    return undefined;
+  }
+
+  const localTimeIso = new Date().toISOString();
+  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const locale =
+    typeof navigator !== "undefined" && typeof navigator.language === "string"
+      ? navigator.language
+      : undefined;
+
+  return {
+    localTimeIso,
+    ...(timeZone ? { timeZone } : {}),
+    ...(locale ? { locale } : {})
+  };
 }
 
 function formatMemoryType(type: string, locale: Locale): string {

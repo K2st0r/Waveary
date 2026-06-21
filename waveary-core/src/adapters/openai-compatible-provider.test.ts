@@ -42,6 +42,43 @@ test("OpenAICompatibleChatProvider prefers chat completions for broad provider c
   assert.equal(body.messages[1]?.role, "user");
 });
 
+test("OpenAICompatibleChatProvider injects local time context into the instruction prompt", async () => {
+  const recorded: Array<{ url: string; init: RequestInit | undefined }> = [];
+  const provider = new OpenAICompatibleChatProvider({
+    provider: "test-provider",
+    apiKey: "test-key",
+    baseURL: "https://example.com/v1",
+    model: "test-model",
+    fetchFn: async (url, init) => {
+      recorded.push({ url: String(url), init });
+      return new Response(
+        JSON.stringify({
+          choices: [{ message: { content: "mock reply" } }]
+        }),
+        { status: 200 }
+      );
+    }
+  });
+
+  await provider.generateReply(
+    createRequest({
+      localTime: {
+        iso: "2026-06-21T13:45:00.000Z",
+        timeZone: "Asia/Shanghai",
+        locale: "zh-CN"
+      }
+    })
+  );
+
+  const body = JSON.parse(String(recorded[0]?.init?.body)) as {
+    messages: Array<{ role: string; content: string }>;
+  };
+
+  assert.match(body.messages[0]?.content ?? "", /Local current time for the user: 2026-06-21T13:45:00.000Z\./);
+  assert.match(body.messages[0]?.content ?? "", /Local time zone: Asia\/Shanghai\./);
+  assert.match(body.messages[0]?.content ?? "", /use this local time context directly/i);
+});
+
 test("OpenAICompatibleChatProvider falls back to responses when chat completions is unavailable", async () => {
   const recorded: Array<{ url: string; init: RequestInit | undefined }> = [];
   const provider = new OpenAICompatibleChatProvider({
@@ -351,8 +388,8 @@ test("resolveProviderPreset returns configured domestic provider presets", () =>
   });
 });
 
-function createRequest(): ChatProviderRequest {
-  return {
+function createRequest(overrides: Partial<ChatProviderRequest> = {}): ChatProviderRequest {
+  const base: ChatProviderRequest = {
     session: {
       id: "session-1",
       userId: "user-1",
@@ -424,5 +461,10 @@ function createRequest(): ChatProviderRequest {
       windowStart: new Date().toISOString(),
       windowEnd: new Date().toISOString()
     }
+  };
+
+  return {
+    ...base,
+    ...overrides
   };
 }

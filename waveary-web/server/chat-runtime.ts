@@ -1,6 +1,7 @@
 import {
   type ChatProvider,
   InMemoryEmotionStore,
+  type LocalTimeContext,
   OpenAICompatibleChatProvider,
   type ProactiveCarePolicy,
   type ProactiveCareState,
@@ -36,7 +37,13 @@ export interface ChatProactiveCareEvaluationOptions {
 
 const sessions = new Map<string, ChatSessionState>();
 
-export async function sendChatTurn(sessionId: string, content: string): Promise<ChatReplyPayload> {
+export async function sendChatTurn(
+  sessionId: string,
+  content: string,
+  options: {
+    localTime?: LocalTimeContext;
+  } = {}
+): Promise<ChatReplyPayload> {
   const trimmed = content.trim();
 
   if (!trimmed) {
@@ -54,7 +61,9 @@ export async function sendChatTurn(sessionId: string, content: string): Promise<
     metadata: {}
   };
 
-  const result = await state.runtime.handleTurn(context, input);
+  const result = await state.runtime.handleTurn(context, input, {
+    ...(options.localTime ? { localTime: options.localTime } : {})
+  });
   context.history = [...context.history, input, result.reply];
 
   const payload = toReplyPayload(result);
