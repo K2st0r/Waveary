@@ -4,6 +4,39 @@
 
 Objective:
 
+Add the first permissioned `WPCE` delivery path in `waveary-web` so a proactive-care evaluation can produce a real browser-local notification without crossing into desktop automation.
+
+Summary:
+
+- extended the proactive-care console card with browser notification permission state, a local auto-notify toggle, and an explicit permission request action
+- wired manual `WPCE` evaluation so a granted browser notification can be delivered locally when the decision recommends outreach, while leaving background scheduling and desktop control out of scope
+- kept the delivery path browser-local and user-controlled through `Notification` permission plus local toggle state instead of introducing any hidden autonomous process
+- verified the change without touching the server contract, preserving the current read-only evaluation route and the split home / console / chat shell
+
+Files changed:
+
+- `waveary-web/src/App.tsx`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/web`
+- `npm run test --workspace @waveary/web`
+- `npm run web:build`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-21
+
+Objective:
+
 Surface persisted `WPCE` session policy/state controls and read-only evaluation output in the `waveary-web` console so proactive-care settings can be inspected and exercised from the product UI.
 
 Summary:

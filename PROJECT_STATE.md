@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `cbf0e14` - `Add web proactive care console controls`
+- `6f94fb1` - `Finalize proactive care console push record`
 
 ## Modules
 
@@ -92,6 +92,7 @@ Brand line:
   - framework and positioning explanation is now fully absorbed into the homepage instead of living on a separate framework page
   - the management console now focuses on provider setup, session controls, persistence switching, import/export, and runtime diagnostics
   - the management console now also exposes persisted `WPCE` policy/state controls and read-only evaluation output for the active session
+  - the current web surface now provides the first permissioned proactive-care delivery path through browser-local notifications triggered from manual `WPCE` evaluation results
   - the live conversation experience now has its own dedicated chat page with a stripped-down journal-style canvas and composer
   - the visible persisted-session archive panel has been removed from the runtime rail so the console reads less like a raw internal debug dump
   - the split home / console / chat shell now has a stronger page-by-page hierarchy: the homepage reads more like a formal project front page, the console reads more like a system desk, and the chat page is more tightly focused on the active conversation surface
@@ -188,6 +189,7 @@ Brand line:
 ## Next Steps
 
 - define the first delivery path for proactive care in the web surface, likely browser or local notifications before any broader desktop action layer
+- extend the browser notification path from manual console evaluation into a bounded scheduled or reminder-style delivery loop without introducing hidden background behavior
 - consider surfacing localized user-facing labels for `WPCE` reason codes and intents instead of only raw engine strings in the console
 - keep future desktop awareness or action work behind a separate permissioned presence layer instead of mixing it directly into chat reply generation
 - expand provider-specific chat request normalization where "OpenAI-compatible" vendors diverge beyond the current shared `/chat/completions` and `/responses` paths

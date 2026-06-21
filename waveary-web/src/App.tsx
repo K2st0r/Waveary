@@ -185,6 +185,7 @@ interface ChatMessage {
 type Locale = "zh" | "en";
 type LoadState = "idle" | "loading" | "success" | "error";
 type AppPage = "home" | "console" | "chat" | "roadmap";
+type BrowserNotificationPermissionState = NotificationPermission | "unsupported";
 
 interface PageLocation {
   page: AppPage;
@@ -455,6 +456,15 @@ const zhCopy = {
     proactiveSuggestedDelay: "建议延迟",
     proactiveEvaluatedAt: "评估时间",
     proactiveNoDecision: "还没有执行主动关怀评估。",
+    browserNotifications: "浏览器通知",
+    notificationPermission: "通知权限",
+    notificationAutoDelivery: "建议触达时自动发通知",
+    notificationHint: "仅在当前浏览器本地生效。评估结果为建议触达且你已授权时，Waveary 才会投递通知。",
+    requestNotificationPermission: "请求通知权限",
+    requestingNotificationPermission: "请求中...",
+    notificationDelivered: "已发送浏览器通知。",
+    notificationNeedsPermission: "通知开关已打开，但浏览器通知权限还没有授权。",
+    notificationNoReachout: "这次评估没有建议主动触达，因此没有发送通知。",
     yes: "是",
     no: "否",
     minutes: "分钟",
@@ -793,6 +803,15 @@ const enCopy = {
     proactiveSuggestedDelay: "Suggested delay",
     proactiveEvaluatedAt: "Evaluated at",
     proactiveNoDecision: "No proactive-care evaluation has been run yet.",
+    browserNotifications: "Browser Notifications",
+    notificationPermission: "Permission",
+    notificationAutoDelivery: "Auto-notify when reachout is recommended",
+    notificationHint: "This stays local to the current browser. Waveary only delivers a notification when the evaluation recommends a reachout and permission has been granted.",
+    requestNotificationPermission: "Request Notification Permission",
+    requestingNotificationPermission: "Requesting...",
+    notificationDelivered: "Delivered a browser notification.",
+    notificationNeedsPermission: "Notifications are enabled, but browser permission has not been granted yet.",
+    notificationNoReachout: "This evaluation did not recommend a proactive reachout, so no notification was sent.",
     yes: "Yes",
     no: "No",
     minutes: "minutes",
@@ -1011,6 +1030,16 @@ export function App(): ReactElement {
   const [proactiveDecision, setProactiveDecision] = useState<ProactiveCareDecision | null>(null);
   const [proactiveSaveState, setProactiveSaveState] = useState<LoadState>("idle");
   const [proactiveEvaluateState, setProactiveEvaluateState] = useState<LoadState>("idle");
+  const [browserNotificationPermission, setBrowserNotificationPermission] =
+    useState<BrowserNotificationPermissionState>(() => getBrowserNotificationPermission());
+  const [proactiveNotificationEnabled, setProactiveNotificationEnabled] = useState<boolean>(() => {
+    if (typeof window === "undefined") {
+      return false;
+    }
+
+    return window.localStorage.getItem("waveary-proactive-browser-notify") === "true";
+  });
+  const [notificationPermissionState, setNotificationPermissionState] = useState<LoadState>("idle");
   const [chatSessions, setChatSessions] = useState<ChatSessionListItem[]>([]);
   const [activeSessionId, setActiveSessionId] = useState("");
   const [defaultSessionId, setDefaultSessionId] = useState("");
@@ -1039,6 +1068,17 @@ export function App(): ReactElement {
   useEffect(() => {
     window.localStorage.setItem("waveary-locale", locale);
   }, [locale]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    window.localStorage.setItem(
+      "waveary-proactive-browser-notify",
+      proactiveNotificationEnabled ? "true" : "false"
+    );
+  }, [proactiveNotificationEnabled]);
 
   useEffect(() => {
     void loadInitialState();
@@ -1622,9 +1662,47 @@ export function App(): ReactElement {
 
       setProactiveDecision(response.decision);
       setProactiveEvaluateState("success");
-      setStatusMessage(copy.runtime.proactiveEvaluationReady);
+      if (proactiveNotificationEnabled && response.decision.shouldReachOut) {
+        if (browserNotificationPermission === "granted") {
+          deliverProactiveBrowserNotification(response.decision, locale);
+          setStatusMessage(copy.runtime.notificationDelivered);
+        } else if (browserNotificationPermission === "default") {
+          setStatusMessage(copy.runtime.notificationNeedsPermission);
+        } else {
+          setStatusMessage(copy.runtime.proactiveEvaluationReady);
+        }
+      } else {
+        setStatusMessage(
+          response.decision.shouldReachOut
+            ? copy.runtime.proactiveEvaluationReady
+            : copy.runtime.notificationNoReachout
+        );
+      }
     } catch (error) {
       setProactiveEvaluateState("error");
+      setStatusMessage(getErrorMessage(error));
+    }
+  }
+
+  async function handleRequestNotificationPermission(): Promise<void> {
+    if (typeof window === "undefined" || !("Notification" in window)) {
+      setBrowserNotificationPermission("unsupported");
+      return;
+    }
+
+    setNotificationPermissionState("loading");
+
+    try {
+      const permission = await window.Notification.requestPermission();
+      setBrowserNotificationPermission(permission);
+      setNotificationPermissionState("success");
+      setStatusMessage(
+        permission === "granted"
+          ? copy.runtime.notificationDelivered
+          : copy.runtime.notificationNeedsPermission
+      );
+    } catch (error) {
+      setNotificationPermissionState("error");
       setStatusMessage(getErrorMessage(error));
     }
   }
@@ -2807,6 +2885,42 @@ export function App(): ReactElement {
                       </span>
                     </div>
 
+                    <div className="session-reference-card proactive-state-card">
+                      <strong>{copy.runtime.browserNotifications}</strong>
+                      <span>
+                        {copy.runtime.notificationPermission}
+                        {copy.formatting.sep}
+                        {formatBrowserNotificationPermission(browserNotificationPermission, locale)}
+                      </span>
+                      <span>{copy.runtime.notificationHint}</span>
+                      <label className="proactive-toggle">
+                        <input
+                          type="checkbox"
+                          checked={proactiveNotificationEnabled}
+                          onChange={(event) => setProactiveNotificationEnabled(event.target.checked)}
+                          disabled={browserNotificationPermission === "unsupported"}
+                        />
+                        <span>
+                          {copy.runtime.notificationAutoDelivery}
+                          {copy.formatting.sep}
+                          {proactiveNotificationEnabled ? copy.runtime.yes : copy.runtime.no}
+                        </span>
+                      </label>
+                      {browserNotificationPermission !== "granted" &&
+                      browserNotificationPermission !== "unsupported" ? (
+                        <button
+                          className="button button-secondary"
+                          onClick={() => void handleRequestNotificationPermission()}
+                          disabled={notificationPermissionState === "loading"}
+                          type="button"
+                        >
+                          {notificationPermissionState === "loading"
+                            ? copy.runtime.requestingNotificationPermission
+                            : copy.runtime.requestNotificationPermission}
+                        </button>
+                      ) : null}
+                    </div>
+
                     <div className="console-actions">
                       <button
                         className="button button-secondary"
@@ -3211,6 +3325,59 @@ function patchOptionalTimeField<T extends { quietHoursStart?: string; quietHours
     ...current,
     [field]: value
   };
+}
+
+function getBrowserNotificationPermission(): BrowserNotificationPermissionState {
+  if (typeof window === "undefined" || !("Notification" in window)) {
+    return "unsupported";
+  }
+
+  return window.Notification.permission;
+}
+
+function formatBrowserNotificationPermission(
+  permission: BrowserNotificationPermissionState,
+  locale: Locale
+): string {
+  if (permission === "unsupported") {
+    return locale === "zh" ? "当前浏览器不支持" : "unsupported";
+  }
+
+  if (permission === "granted") {
+    return locale === "zh" ? "已授权" : "granted";
+  }
+
+  if (permission === "denied") {
+    return locale === "zh" ? "已拒绝" : "denied";
+  }
+
+  return locale === "zh" ? "未决定" : "default";
+}
+
+function deliverProactiveBrowserNotification(
+  decision: ProactiveCareDecision,
+  locale: Locale
+): void {
+  if (typeof window === "undefined" || !("Notification" in window)) {
+    return;
+  }
+
+  const title =
+    locale === "zh" ? "Waveary 主动关怀提醒" : "Waveary Proactive Care";
+  const bodyParts = [
+    decision.intent ? `intent: ${decision.intent}` : null,
+    decision.urgency ? `urgency: ${decision.urgency}` : null,
+    decision.reasons[0] ?? null
+  ].filter((part): part is string => Boolean(part));
+
+  new window.Notification(title, {
+    body:
+      bodyParts.length > 0
+        ? bodyParts.join(" · ")
+        : locale === "zh"
+          ? "当前会话被评估为适合主动关怀。"
+          : "The active session was evaluated as ready for proactive care."
+  });
 }
 
 function downloadSessionExport(exported: ExportedChatSession): void {
