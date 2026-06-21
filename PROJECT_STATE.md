@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `4e4a832` - `Nudge homepage flame anchor`
+- `731ac1a` - `Refine homepage flame anchor again`
 
 ## Modules
 
