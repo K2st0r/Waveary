@@ -4,6 +4,45 @@
 
 Objective:
 
+Improve the core conversation feel so Waveary replies sound less like a generic assistant, recall memories more naturally, and let relationship growth react to what the user actually shares.
+
+Summary:
+
+- rewrote the scripted runtime reply behavior so continuity is expressed as warmer companion-style follow-up instead of flat assistant acknowledgment plus raw echoing
+- updated the OpenAI-compatible prompt assembly to guide real model providers toward stage-aware companionship, restrained memory mention, and emotion-first response behavior
+- replaced the old length-based relationship delta logic with signal-based scoring that reacts to openness, vulnerability, trust, and warmth in what the user says
+- changed memory extraction so longer user turns are condensed into shorter recall-friendly fragments instead of storing the entire sentence as the memory verbatim
+
+Files changed:
+
+- `waveary-core/src/adapters/openai-compatible-provider.ts`
+- `waveary-core/src/adapters/scripted-chat-provider.ts`
+- `waveary-core/src/adapters/simple-relationship-engine.ts`
+- `waveary-core/src/adapters/in-memory-relationship-store.ts`
+- `waveary-core/src/runtime/waveary-runtime.test.ts`
+- `waveary-memory/src/simple-memory-extractor.ts`
+- `waveary-memory/src/simple-memory-extractor.test.ts`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run test --workspace @waveary/core`
+- `npm run test --workspace @waveary/memory`
+- `npm run check`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-21
+
+Objective:
+
 Add a repeatable real-provider verification path and use it to check the currently saved DeepSeek configuration end-to-end without relying on the browser flow.
 
 Summary:

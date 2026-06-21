@@ -31,13 +31,15 @@ Brand line:
   - provider request compatibility now includes provider-specific base URL normalization and responses-role fallback handling for DeepSeek-style OpenAI-compatible differences
   - provider compatibility now also tolerates model discovery without a preselected chat model, nested `/models` containers, alternate model metadata field names, and broader structured text payload shapes across chat-completions and responses-style providers
   - provider verification CLI scaffolding now exists so saved or environment-supplied provider credentials can be checked end-to-end for model discovery and one real chat turn without changing the web runtime path
-  - persisted session state contract and repository-backed runtime state adapter are implemented
+  - runtime dialogue scaffolding now biases more strongly toward companion-style continuity by using relationship-stage-aware reply guidance, less mechanical memory phrasing, and more behavior-driven relationship growth signals
+- persisted session state contract and repository-backed runtime state adapter are implemented
   - SQLite persisted session state repository is implemented
 - `waveary-memory`
   - independent package exists
   - simple memory extractor exists
   - in-memory memory store exists
   - Node-based extractor and store tests are implemented
+  - memory extraction now condenses longer user turns into shorter recall-friendly memory fragments instead of storing the entire sentence verbatim by default
 - `waveary-web`
   - standalone React and Vite workspace exists
   - local product context is now documented in `waveary-web/PRODUCT.md` so future frontend redesign or polish passes can resume with stable product intent
@@ -177,6 +179,7 @@ Brand line:
 - expand provider-specific chat request normalization where "OpenAI-compatible" vendors diverge beyond the current shared `/chat/completions` and `/responses` paths
 - add route-level or live verification for more provider-specific chat payload divergences after the current DeepSeek and broader structured-payload compatibility baseline
 - re-run `npm run verify:provider` and `npm run models:provider` with refreshed real credentials, starting with DeepSeek because the currently saved local key now returns `401 invalid api key`
+- continue the dialogue-quality pass by making recalled memory selection more context-sensitive and by surfacing relationship-stage differences more clearly in real provider conversations, not just scripted runtime tests
 - add focused route-level and browser-facing coverage for any remaining persistence edge cases beyond the current file/sqlite symmetry path
 - continue polishing the split web shell by tightening session-management density below the console fold and improving message rhythm plus mixed-language balance in the dedicated chat page
 - continue the homepage portrait system with a more deliberate `4 male / 4 female` hand-drawn polaroid-style set so the visual range feels broader and less clustered around one youth archetype

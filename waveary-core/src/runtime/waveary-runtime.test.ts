@@ -72,7 +72,7 @@ test("WavearyRuntime stores memories and recalls them on later turns", async () 
   assert.equal(firstResult.storedMemories.length, 1);
   assert.equal(firstResult.timeline.length, 1);
   assert.equal(firstResult.relationship.userId, context.user.id);
-  assert.ok(firstResult.reply.content.includes("I am listening carefully."));
+  assert.ok(firstResult.reply.content.includes("I am here, and I am listening carefully."));
 
   const secondContext: RuntimeContext = {
     ...context,
@@ -91,11 +91,12 @@ test("WavearyRuntime stores memories and recalls them on later turns", async () 
 
   assert.equal(secondResult.recalledMemories.length, 1);
   assert.ok(
-    secondResult.reply.content.includes("I remember you mentioned"),
+    secondResult.reply.content.includes("I still remember"),
     "second reply should mention recalled memory"
   );
   assert.equal(secondResult.timeline.length, 2);
   assert.ok(secondResult.relationship.affinityScore > firstResult.relationship.affinityScore);
+  assert.ok(secondResult.relationship.trustScore > firstResult.relationship.trustScore);
 });
 
 class TestMemoryStore implements MemoryStore {
