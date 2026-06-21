@@ -514,6 +514,102 @@ test("chat session import route rejects malformed relationship and latest insigh
   ]);
 });
 
+test("chat session import route rejects invalid timestamps, roles, and score ranges", async () => {
+  const middleware = createProviderApiMiddleware();
+
+  const response = await invokeJsonRoute(middleware, "POST", "/api/chat/session/import", {
+    exported: {
+      schemaVersion: "waveary-session@1",
+      exportedAt: "not-a-time",
+      sessionId: "bad-values",
+      title: "Bad Values",
+      snapshot: {
+        sessionId: "bad-values",
+        messages: [
+          {
+            id: "system-1",
+            role: "system",
+            content: "unsupported role",
+            sessionId: "bad-values"
+          }
+        ],
+        latestInsights: {
+          reply: "still here",
+          relationship: {
+            stage: "growing",
+            affinityScore: 1.5,
+            trustScore: -0.1,
+            stabilityScore: 2,
+            lastUpdatedAt: "yesterday"
+          },
+          recalledMemories: [],
+          storedMemories: [],
+          timeline: [
+            {
+              title: "Bad timeline time",
+              type: "reflection",
+              eventTime: "soon"
+            }
+          ],
+          emotion: {
+            primaryEmotion: "calm",
+            intensity: 1.2
+          }
+        },
+        memoryArchive: [
+          {
+            id: "memory-1",
+            type: "reflection",
+            content: "bad importance",
+            importance: 1.4,
+            createdAt: "later"
+          }
+        ],
+        relationship: {
+          stage: "growing",
+          affinityScore: 1.1,
+          trustScore: -0.4,
+          stabilityScore: 5,
+          lastUpdatedAt: "tomorrow"
+        },
+        timelineEvents: [
+          {
+            id: "timeline-1",
+            title: "Bad score",
+            description: "Bad score and time",
+            type: "reflection",
+            eventTime: "eventually",
+            importance: -1
+          }
+        ],
+        updatedAt: "invalid-updated-at"
+      }
+    }
+  });
+
+  assert.equal(response.statusCode, 400);
+  assert.equal(response.body.error, "Exported session package failed validation.");
+  assert.deepEqual(response.body.details, [
+    "`exportedAt` must be a valid ISO timestamp.",
+    "`snapshot.updatedAt` must be a valid ISO timestamp.",
+    "`snapshot.latestInsights.relationship.affinityScore` must be between 0 and 1.",
+    "`snapshot.latestInsights.relationship.trustScore` must be between 0 and 1.",
+    "`snapshot.latestInsights.relationship.stabilityScore` must be between 0 and 1.",
+    "`snapshot.latestInsights.relationship.lastUpdatedAt` must be a valid ISO timestamp.",
+    "Latest insight timeline entry 1 `eventTime` must be a valid ISO timestamp.",
+    "`snapshot.latestInsights.emotion.intensity` must be between 0 and 1.",
+    "`snapshot.relationship.affinityScore` must be between 0 and 1.",
+    "`snapshot.relationship.trustScore` must be between 0 and 1.",
+    "`snapshot.relationship.stabilityScore` must be between 0 and 1.",
+    "`snapshot.relationship.lastUpdatedAt` must be a valid ISO timestamp.",
+    "Message 1 has unsupported `role` \"system\". Supported roles: `user`, `assistant`.",
+    "Memory item 1 `importance` must be between 0 and 1.",
+    "Memory item 1 `createdAt` must be a valid ISO timestamp.",
+    "Timeline event 1 `eventTime` must be a valid ISO timestamp.",
+    "Timeline event 1 `importance` must be between 0 and 1."
+  ]);
+});
+
 test("chat session format route returns import safety guidance and sample package", async () => {
   const middleware = createProviderApiMiddleware();
   const response = await invokeJsonRoute(middleware, "GET", "/api/chat/session/format");

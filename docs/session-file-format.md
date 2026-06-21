@@ -233,15 +233,26 @@ It currently checks for:
 
 - unsupported top-level `schemaVersion` when a version is present
 - missing top-level `sessionId`
+- missing or invalid top-level `exportedAt`
 - missing top-level `title`
 - missing `snapshot`
+- missing or invalid `snapshot.updatedAt`
+- missing `snapshot.latestInsights`
+- missing `snapshot.relationship`
 - non-array `snapshot.messages`
 - non-array `snapshot.memoryArchive`
 - non-array `snapshot.timelineEvents`
 - message entries without string `role`
+- message entries using unsupported roles outside `user` and `assistant`
 - message entries without string `content`
-- memory entries without string `content`
-- timeline entries without string `title`
+- memory entries without required type, content, importance, and createdAt fields
+- memory entries with `importance` outside `0..1`
+- memory entries with invalid ISO timestamps
+- timeline entries without required title, description, type, eventTime, and importance fields
+- timeline entries with `importance` outside `0..1`
+- timeline entries with invalid ISO timestamps
+- relationship and latest insight score fields outside `0..1`
+- relationship and latest insight timestamp fields that are not valid ISO timestamps
 
 ## Compatibility Notes
 
