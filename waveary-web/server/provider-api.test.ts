@@ -660,8 +660,14 @@ test("chat session import route rejects semantically inconsistent session packag
             stabilityScore: 0.5,
             lastUpdatedAt: "2026-06-20T00:00:12.000Z"
           },
-          recalledMemories: [],
-          storedMemories: [],
+          recalledMemories: [
+            "Duplicate memory identity.",
+            "Insight-only recalled memory."
+          ],
+          storedMemories: [
+            "Late memory",
+            "Insight-only stored memory."
+          ],
           timeline: [
             {
               title: "Later timeline event first",
@@ -763,6 +769,8 @@ test("chat session import route rejects semantically inconsistent session packag
     "Memory item 2 `id` duplicates an earlier memory item ID.",
     "`snapshot.relationship.lastUpdatedAt` cannot be later than `snapshot.updatedAt`.",
     "`snapshot.latestInsights.relationship.lastUpdatedAt` cannot be later than `snapshot.updatedAt`.",
+    "Recalled memory 2 in `snapshot.latestInsights.recalledMemories` must match a memory item in `snapshot.memoryArchive`.",
+    "Stored memory 2 in `snapshot.latestInsights.storedMemories` must match a memory item in `snapshot.memoryArchive`.",
     "Latest insight timeline entry 2 `eventTime` cannot be later than `snapshot.updatedAt`.",
     "Latest insight timeline entry 3 `eventTime` cannot be earlier than the previous latest insight timeline entry.",
     "Latest insight timeline entry 4 must match an event in `snapshot.timelineEvents`.",

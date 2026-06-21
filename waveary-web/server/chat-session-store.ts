@@ -1033,6 +1033,7 @@ function validateExportedSessionSemantics(
   let previousTimelineEventTime: number | null = null;
   const seenMemoryIds = new Set<string>();
   const seenTimelineEventIds = new Set<string>();
+  const snapshotMemoryContents = new Set<string>();
   const snapshotTimelineEventKeys = new Set<string>();
 
   exported.snapshot.timelineEvents.forEach((event, index) => {
@@ -1076,6 +1077,10 @@ function validateExportedSessionSemantics(
         seenMemoryIds.add(memory.id);
       }
     }
+
+    if (typeof memory.content === "string") {
+      snapshotMemoryContents.add(memory.content);
+    }
   });
 
   if (exported.snapshot.relationship && isRecord(exported.snapshot.relationship)) {
@@ -1102,6 +1107,32 @@ function validateExportedSessionSemantics(
       details.push(
         "`snapshot.latestInsights.relationship.lastUpdatedAt` cannot be later than `snapshot.updatedAt`."
       );
+    }
+
+    if (Array.isArray(exported.snapshot.latestInsights.recalledMemories)) {
+      exported.snapshot.latestInsights.recalledMemories.forEach((memory, index) => {
+        if (
+          typeof memory === "string" &&
+          !snapshotMemoryContents.has(memory)
+        ) {
+          details.push(
+            `Recalled memory ${index + 1} in \`snapshot.latestInsights.recalledMemories\` must match a memory item in \`snapshot.memoryArchive\`.`
+          );
+        }
+      });
+    }
+
+    if (Array.isArray(exported.snapshot.latestInsights.storedMemories)) {
+      exported.snapshot.latestInsights.storedMemories.forEach((memory, index) => {
+        if (
+          typeof memory === "string" &&
+          !snapshotMemoryContents.has(memory)
+        ) {
+          details.push(
+            `Stored memory ${index + 1} in \`snapshot.latestInsights.storedMemories\` must match a memory item in \`snapshot.memoryArchive\`.`
+          );
+        }
+      });
     }
 
     if (Array.isArray(exported.snapshot.latestInsights.timeline)) {
