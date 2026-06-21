@@ -20,6 +20,9 @@ What is remembered returns as an echo.
 
 Waveary is an open source digital companionship framework that gives any large model long-term memory, relationship growth, life timeline awareness, and emotionally aware companionship.
 
+It is not trying to build a better answer engine first.
+It is trying to build a companion that can remember, feel, grow, and stay present across the user's life.
+
 ## What We Are Building
 
 Waveary 要解决的核心问题，不是“模型能不能回答”，而是“陪伴能不能延续”。
@@ -160,6 +163,9 @@ Waveary 当前优先做的是框架层，而不是把所有终端产品形态都
 - Emotion analysis
 - Proactive care
 
+V0.2 should be the first version where Waveary begins to feel emotionally continuous instead of only context-aware.
+That means the companion should not only detect user emotion, but also maintain its own companion-side emotional state and use it to shape tone, pacing, warmth, and follow-up care behavior.
+
 ### V0.3 / 90 Days
 
 - Real-time voice
@@ -167,6 +173,13 @@ Waveary 当前优先做的是框架层，而不是把所有终端产品形态都
 - Full duplex conversation
 
 ## Long-Term Vision
+
+In the longer arc, that continuity should also include:
+
+- emotional continuity on the companion side
+- proactive care grounded in memory, relationship, and life rhythm
+- future presence-aware behavior built with explicit permission boundaries
+- voice expression that carries emotion instead of only reading text aloud
 
 Waveary 的长期目标不是创造一个会说话的角色。
 

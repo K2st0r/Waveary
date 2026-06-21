@@ -32,6 +32,7 @@ Brand line:
   - provider compatibility now also tolerates model discovery without a preselected chat model, nested `/models` containers, alternate model metadata field names, and broader structured text payload shapes across chat-completions and responses-style providers
   - provider verification CLI scaffolding now exists so saved or environment-supplied provider credentials can be checked end-to-end for model discovery and one real chat turn without changing the web runtime path
   - runtime dialogue scaffolding now biases more strongly toward companion-style continuity by using relationship-stage-aware reply guidance, less mechanical memory phrasing, and more behavior-driven relationship growth signals
+  - first formal product and architecture draft for companion emotional continuity and proactive care now exists in `docs/emotion-proactive-care.md`, defining `Waveary Emotion Engine (WEE)` and `Waveary Proactive Care Engine (WPCE)` as the next major runtime-facing design targets
 - persisted session state contract and repository-backed runtime state adapter are implemented
   - SQLite persisted session state repository is implemented
 - `waveary-memory`
@@ -176,6 +177,10 @@ Brand line:
 
 ## Next Steps
 
+- implement the first `WEE` state object and transition logic so companion emotion becomes explicit runtime state instead of only inferred reply tone
+- implement the first `WPCE` policy and decision path for bounded meal, sleep, and absence check-ins with user controls
+- define the first delivery path for proactive care in the web surface, likely browser or local notifications before any broader desktop action layer
+- keep future desktop awareness or action work behind a separate permissioned presence layer instead of mixing it directly into chat reply generation
 - expand provider-specific chat request normalization where "OpenAI-compatible" vendors diverge beyond the current shared `/chat/completions` and `/responses` paths
 - add route-level or live verification for more provider-specific chat payload divergences after the current DeepSeek and broader structured-payload compatibility baseline
 - re-run `npm run verify:provider` and `npm run models:provider` with refreshed real credentials, starting with DeepSeek because the currently saved local key now returns `401 invalid api key`

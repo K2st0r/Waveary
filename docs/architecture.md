@@ -124,6 +124,17 @@ Underlying LLM / Voice Models
 - `EmotionSignal`
 - `MoodWindow`
 
+This layer should not be limited to user emotion classification.
+Waveary Emotion Engine (`WEE`) should primarily own companion emotional continuity:
+
+- companion-side current emotion
+- medium-term mood drift
+- emotion transition causes
+- emotional carry-over between turns
+- emotional influence on reply style and proactive care decisions
+
+The first formal design draft for this layer now lives in `docs/emotion-proactive-care.md`.
+
 ### 6. Voice Layer
 
 负责语音交互抽象。
@@ -186,6 +197,12 @@ Timeline Trigger / Relationship Trigger / Scheduled Trigger
   -> Delivery
   -> State Update
 ```
+
+In Waveary, proactive care should be treated as a decision layer, not a notification script.
+It should evaluate memory, relationship, timeline, emotion, quiet-hour policy, and recent user absence before deciding whether outreach is appropriate.
+This responsibility is defined as `Waveary Proactive Care Engine (WPCE)` in `docs/emotion-proactive-care.md`.
+
+Desktop awareness, local action hooks, and automation should remain a separate future layer with explicit permission, audit, and revocation boundaries rather than being folded directly into `WEE` or `WPCE`.
 
 ## Module Boundaries
 
@@ -275,6 +292,11 @@ V0.1 不必完成：
 Waveary 的关键原则是：
 
 **Memory is a system, not a prompt trick.**
+
+The same rule applies to emotion and care:
+
+**Emotion is state, not decoration.**
+**Care is relationship-aware behavior, not engagement spam.**
 
 也就是说，记忆、关系、时间轴和情绪都应该被设计成有状态、可演进、可持久化的系统层，而不是临时拼进上下文的文本片段。
 

@@ -2,112 +2,116 @@
 
 ## Goal
 
-Waveary 的近期目标不是做一个功能堆叠型 companion app。
-
-近期目标是先做出一个清晰、可扩展、可开源协作的数字陪伴框架内核。
+Waveary's near-term goal is not to ship a feature-stacked companion app.
+The goal is to build a clear, extensible, open source core for digital companionship.
 
 ## Phase 1: V0.1 / 30 Days
 
-目标：
+Goal:
 
-构建第一个可用的 Waveary 核心闭环。
+Build the first usable Waveary core loop.
 
-范围：
+Scope:
 
-- 文本聊天
-- 长期记忆写入
-- 长期记忆检索
-- 基础关系成长
-- 时间轴事件记录
-- 基础回忆注入
+- text chat
+- long-term memory write path
+- long-term memory retrieval
+- basic relationship growth
+- timeline event recording
+- basic memory reinjection
 
-交付物：
+Deliverables:
 
-- `waveary-core` 初版运行时结构
-- `waveary-memory` 的最小记忆 schema
-- `Session -> Memory -> Relationship -> Timeline` 基础数据流
-- 一个可跑通的 reference chat flow
+- initial `waveary-core` runtime structure
+- minimum `waveary-memory` schema and primitives
+- base `Session -> Memory -> Relationship -> Timeline` data flow
+- one runnable reference chat flow
 
-完成标准：
+Completion criteria:
 
-- 用户可以开始对话
-- 系统可以提取和保存关键记忆
-- 系统可以在后续对话中召回相关记忆
-- 系统可以记录关键人生事件
-- 系统可以维护基础关系状态
+- the user can start a conversation
+- the system can extract and store key memories
+- the system can recall relevant memories in later turns
+- the system can record important life events
+- the system can maintain a basic relationship state
 
 ## Phase 2: V0.2 / 60 Days
 
-目标：
+Goal:
 
-把陪伴从文本连续性推进到基础主动性与多模态能力。
+Move Waveary from text continuity toward bounded proactivity and early multimodal companionship.
 
-范围：
+Scope:
 
-- 语音输入输出
-- 情绪分析
-- 主动关心
-- 事件触发式关怀
+- voice input and output
+- emotion analysis
+- proactive care
+- event-triggered care behavior
 
-交付物：
+Deliverables:
 
-- `waveary-voice` 初版接口
-- 情绪状态识别和短期状态窗口
-- Timeline trigger / Relationship trigger
-- 基础 proactive care flow
+- initial `waveary-voice` interface
+- emotion signal recognition and a short-term emotion window
+- timeline and relationship trigger evaluation
+- basic proactive care flow
+- companion-side emotional state foundation as defined in `docs/emotion-proactive-care.md`
+- relationship-aware reply style variation driven by emotional continuity
+- basic meal, sleep, and absence care with user-controlled proactive policy
 
-完成标准：
+Completion criteria:
 
-- 用户可以用语音与系统交互
-- 系统能够识别基础情绪信号
-- 系统能基于事件或关系状态进行有限主动关心
+- the user can interact with the system by voice
+- the system can recognize basic emotional signals
+- the system can perform limited proactive care based on events or relationship state
+- the companion begins to show continuous emotional state rather than only detecting the user's emotion
+- proactive care remains configurable, bounded, and trustworthy for the user
 
 ## Phase 3: V0.3 / 90 Days
 
-目标：
+Goal:
 
-把体验从“可持续聊天”推进到“实时陪伴”。
+Move the experience from sustainable chat toward real-time companionship.
 
-范围：
+Scope:
 
-- 实时语音
-- 打断
-- 全双工
-- 流式会话编排
+- real-time voice
+- interruption handling
+- full duplex conversation
+- streaming session orchestration
 
-交付物：
+Deliverables:
 
-- 实时 voice session runtime
+- real-time voice session runtime
 - interruption handling
 - duplex conversation state flow
 - latency-aware orchestration
 
-完成标准：
+Completion criteria:
 
-- 用户可以进行接近自然的实时语音对话
-- 系统支持中途打断与重规划
-- 语音状态、记忆状态和关系状态仍然保持一致
+- the user can have near-natural real-time voice conversation
+- the system supports interruption and re-coordination
+- voice, memory, and relationship state remain coherent together
 
 ## Out of Scope for Early Versions
 
-以下内容不应成为早期版本主目标：
+The following should not become the main focus of early versions:
 
-- 大规模角色市场
-- 重娱乐化恋爱设定消费
-- 与长期陪伴无关的通用 agent 能力堆叠
-- 过度复杂的多角色宇宙系统
-- 过早企业化功能扩张
+- large-scale character marketplace work
+- heavily entertainment-first romance packaging
+- general agent capability piles unrelated to long-term companionship
+- overly complex multi-character universe systems
+- premature enterprise expansion
 
 ## Strategic Direction
 
-Waveary 的发展顺序应当是：
+Waveary should develop in this order:
 
-1. 先把记忆做成系统
-2. 再把关系做成状态机
-3. 再把时间轴做成可回忆的结构
-4. 再把情绪和主动性接进去
-5. 最后把语音做到实时化和全双工
+1. build memory as a real system
+2. build relationship as a real state machine
+3. build timeline as a recallable life structure
+4. add emotion and bounded proactivity on top of those foundations
+5. push voice toward real-time and full duplex only after continuity is stable
 
-这条顺序的核心原则是：
+Core principle:
 
-**先做连续性，再做沉浸感。**
+**Build continuity first, then immersion.**

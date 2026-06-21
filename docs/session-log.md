@@ -4,6 +4,42 @@
 
 Objective:
 
+Turn the user's target for emotional companionship, proactive care, and future presence-aware behavior into a formal Waveary product and architecture draft instead of leaving it as chat-only intent.
+
+Summary:
+
+- added `docs/emotion-proactive-care.md` as the first formal design draft for `Waveary Emotion Engine (WEE)` and `Waveary Proactive Care Engine (WPCE)`
+- aligned `docs/vision.md`, `docs/architecture.md`, and `docs/roadmap.md` so Waveary is clearly framed as a continuity-first companion system that should eventually remember, feel, and care proactively rather than act like a generic assistant
+- recorded the architectural decision that emotion and care are stateful core systems, while future desktop awareness or local action must stay in a separate permissioned layer
+- updated continuity state so future Codex sessions can continue from the correct product direction without drifting back toward generic chatbot framing
+
+Files changed:
+
+- `docs/emotion-proactive-care.md`
+- `docs/vision.md`
+- `docs/architecture.md`
+- `docs/roadmap.md`
+- `docs/decision-log.md`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `git status --short --branch`
+- `git diff --check`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-21
+
+Objective:
+
 Improve the core conversation feel so Waveary replies sound less like a generic assistant, recall memories more naturally, and let relationship growth react to what the user actually shares.
 
 Summary:

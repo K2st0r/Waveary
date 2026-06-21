@@ -305,3 +305,27 @@ Impact:
 - every completed feature step must end with verification plus updated `PROJECT_STATE.md` and `docs/session-log.md`
 - `PROJECT_STATE.md` must include the next recommended step, not just current status
 - if a functional push succeeds after continuity files still show `pending`, a second small continuity-sync commit should be made immediately
+
+## 2026-06-21 - Emotion And Care Are Stateful Core Systems
+
+Status:
+
+- accepted
+
+Decision:
+
+Treat companion emotion and proactive care as first-class stateful systems in Waveary, not as prompt-only style tricks or scripted engagement behavior.
+
+Reason:
+
+- the product goal is long-term companionship, not only better single-turn chat tone
+- memory without emotional continuity still feels like a tool
+- proactive care only becomes trustworthy when it is grounded in relationship, timeline, memory, and user-controlled policy
+- future desktop awareness and local action capabilities need a separate permissioned layer instead of being mixed casually into chat replies
+
+Impact:
+
+- `Waveary Emotion Engine (WEE)` should own companion-side emotional continuity, not just user emotion detection
+- `Waveary Proactive Care Engine (WPCE)` should evaluate whether outreach is appropriate before any message is generated
+- V0.2 should begin with emotional state, relationship-aware tone variation, and bounded proactive care rather than jumping straight to unrestricted automation
+- future presence or action abilities should be designed as a separate permissioned layer with audit and revocation controls
