@@ -6,6 +6,7 @@ import {
   resolveNotificationDayPart,
   type Locale,
   type ProactiveCareDecision as ProactiveMessageDecision,
+  type ProactiveMessageDraft,
   type WavearyPermissionProfile
 } from "./proactive-message-drafts";
 
@@ -98,6 +99,12 @@ interface ProactiveCareState {
 }
 
 interface ProactiveCareDecision extends ProactiveMessageDecision {}
+
+interface ProactiveCareEvaluationResult {
+  decision: ProactiveCareDecision;
+  draft: ProactiveMessageDraft;
+  session: ChatSessionSnapshot | null;
+}
 
 type ProactiveCareIntent = NonNullable<ProactiveCareDecision["intent"]>;
 type ProactiveCareUrgency = NonNullable<ProactiveCareDecision["urgency"]>;
@@ -1167,6 +1174,7 @@ export function App(): ReactElement {
   const [proactiveCarePolicy, setProactiveCarePolicy] = useState<ProactiveCarePolicy | null>(null);
   const [proactiveCareState, setProactiveCareState] = useState<ProactiveCareState | null>(null);
   const [proactiveDecision, setProactiveDecision] = useState<ProactiveCareDecision | null>(null);
+  const [proactiveDraft, setProactiveDraft] = useState<ProactiveMessageDraft | null>(null);
   const [proactiveSaveState, setProactiveSaveState] = useState<LoadState>("idle");
   const [proactiveEvaluateState, setProactiveEvaluateState] = useState<LoadState>("idle");
   const [browserNotificationPermission, setBrowserNotificationPermission] =
@@ -1396,6 +1404,7 @@ export function App(): ReactElement {
 
       applySessionSnapshot(response.session);
       setProactiveDecision(null);
+      setProactiveDraft(null);
     } catch (error) {
       setStatusMessage(getErrorMessage(error));
     }
@@ -1520,6 +1529,7 @@ export function App(): ReactElement {
       setSessionRenameTitle(response.sessions.find((session) => session.sessionId === response.session.sessionId)?.title ?? "");
       applySessionSnapshot(response.session);
       setProactiveDecision(null);
+      setProactiveDraft(null);
       setNewSessionTitle("");
       setStatusMessage(copy.statuses.sessionCreated);
     } catch (error) {
@@ -1613,6 +1623,7 @@ export function App(): ReactElement {
       setSelectedPersistenceBackend(response.persistence.backend);
       applySessionSnapshot(response.session);
       setProactiveDecision(null);
+      setProactiveDraft(null);
       setSessionRenameTitle(response.sessions.find((session) => session.sessionId === activeSessionId)?.title ?? "");
       setStatusMessage(activeSessionId === defaultSessionId ? copy.statuses.mainSessionReset : copy.statuses.sessionReset);
     } catch (error) {
@@ -1739,6 +1750,7 @@ export function App(): ReactElement {
       setSessionRenameTitle(response.imported.importedTitle);
       applySessionSnapshot(response.imported.session);
       setProactiveDecision(null);
+      setProactiveDraft(null);
       setSessionImportState("success");
       setSessionImportErrors([]);
       setStatusMessage(locale === "zh" ? `已导入为新会话：${response.imported.importedTitle}。` : `Imported session as ${response.imported.importedTitle}.`);
@@ -1803,13 +1815,12 @@ export function App(): ReactElement {
     setProactiveEvaluateState("loading");
 
     try {
-      const response = await fetchJson<{
-        decision: ProactiveCareDecision;
-        session: ChatSessionSnapshot | null;
-      }>("/api/chat/proactive/evaluate", {
+      const timeContext = buildChatTurnTimeContext(permissionProfile);
+      const response = await fetchJson<ProactiveCareEvaluationResult>("/api/chat/proactive/evaluate", {
         method: "POST",
         body: JSON.stringify({
-          sessionId: activeSessionId
+          sessionId: activeSessionId,
+          ...(timeContext ? { timeContext } : {})
         })
       });
 
@@ -1818,10 +1829,16 @@ export function App(): ReactElement {
       }
 
       setProactiveDecision(response.decision);
+      setProactiveDraft(response.draft);
       setProactiveEvaluateState("success");
       if (proactiveNotificationEnabled && response.decision.shouldReachOut) {
         if (browserNotificationPermission === "granted") {
-          deliverProactiveBrowserNotification(response.decision, locale, permissionProfile);
+          deliverProactiveBrowserNotification(
+            response.decision,
+            locale,
+            permissionProfile,
+            response.draft
+          );
           await recordDeliveredProactiveReachout(response.decision);
           setStatusMessage(copy.runtime.notificationDelivered);
         } else if (browserNotificationPermission === "default") {
@@ -1978,6 +1995,7 @@ export function App(): ReactElement {
         applySessionSnapshot(sessionSnapshotResponse.session);
       }
       setProactiveDecision(null);
+      setProactiveDraft(null);
       setChatState("success");
     } catch (error) {
       setChatMessages((current) => [
@@ -3239,11 +3257,13 @@ export function App(): ReactElement {
 
                     {proactiveDecision ? (
                       (() => {
-                        const decisionSummary = buildProactiveMessageDraft(
-                          proactiveDecision,
-                          locale,
-                          getCurrentDecisionDayPart(permissionProfile)
-                        );
+                        const decisionSummary =
+                          proactiveDraft ??
+                          buildProactiveMessageDraft(
+                            proactiveDecision,
+                            locale,
+                            getCurrentDecisionDayPart(permissionProfile)
+                          );
 
                         return (
                           <div
@@ -3752,14 +3772,16 @@ function formatBrowserNotificationPermission(
 function deliverProactiveBrowserNotification(
   decision: ProactiveCareDecision,
   locale: Locale,
-  permissionProfile: WavearyPermissionProfile
+  permissionProfile: WavearyPermissionProfile,
+  providedDraft?: ProactiveMessageDraft
 ): void {
   if (typeof window === "undefined" || !("Notification" in window)) {
     return;
   }
 
-  const dayPart = resolveNotificationDayPart(permissionProfile);
-  const draft = buildProactiveMessageDraft(decision, locale, dayPart);
+  const draft =
+    providedDraft ??
+    buildProactiveMessageDraft(decision, locale, resolveNotificationDayPart(permissionProfile));
   const title =
     locale === "zh" ? "Waveary 主动关怀提醒" : "Waveary Proactive Care";
   const bodyParts = [

@@ -335,6 +335,12 @@ test("chat proactive settings route persists proactive policy and state for late
   assert.equal(evaluateResponse.body.session.proactiveCarePolicy.enabled, true);
   assert.equal(evaluateResponse.body.session.proactiveCareState.dailyReachoutsSent, 1);
   assert.equal(evaluateResponse.body.decision.shouldReachOut, false);
+  assert.equal(evaluateResponse.body.draft.deliveryKind, "wait");
+  assert.equal(evaluateResponse.body.draft.tone, "hold");
+  assert.match(
+    evaluateResponse.body.draft.suggestedMessage,
+    /Waiting is the better move right now|当前更适合等待/
+  );
   assert.equal(
     evaluateResponse.body.decision.reasons.includes("awaiting_user_response"),
     true
@@ -408,6 +414,11 @@ test("chat proactive evaluation route returns a read-only decision without requi
   const response = await invokeJsonRoute(middleware, "POST", "/api/chat/proactive/evaluate", {
     sessionId: imported.session.sessionId,
     now: "2026-06-21T10:30:00.000Z",
+    timeContext: {
+      localTimeIso: "2026-06-21T10:30:00.000Z",
+      timeZone: "Asia/Shanghai",
+      locale: "zh-CN"
+    },
     policy: {
       enabled: true
     }
@@ -418,6 +429,9 @@ test("chat proactive evaluation route returns a read-only decision without requi
   assert.equal(response.body.decision.shouldReachOut, true);
   assert.equal(response.body.decision.intent, "absence_reachout");
   assert.equal(response.body.decision.urgency, "medium");
+  assert.equal(response.body.draft.tone, "warm");
+  assert.equal(response.body.draft.deliveryKind, "check_in");
+  assert.match(response.body.draft.suggestedMessage, /今晚|今天|晚/i);
   assert.equal(response.body.decision.reasons.includes("long_absence_gap"), true);
   assert.equal(response.body.session.proactiveCarePolicy.enabled, true);
   assert.equal(response.body.session.proactiveCareState.dailyReachoutsSent, 0);
