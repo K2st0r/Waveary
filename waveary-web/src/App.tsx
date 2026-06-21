@@ -18,6 +18,7 @@ interface ModelDescriptor {
   id: string;
   provider: string;
   label?: string;
+  contextWindow?: number;
 }
 
 interface ChatTurnResponse {
@@ -2066,7 +2067,7 @@ export function App(): ReactElement {
                     >
                       {models.map((model) => (
                         <option key={model.id} value={model.id}>
-                          {model.label ?? model.id}
+                          {formatModelOptionLabel(model)}
                         </option>
                       ))}
                     </select>
@@ -2716,6 +2717,25 @@ function formatPersistenceBackendLabel(backend: ChatPersistenceBackend | null, l
 function formatPersistenceSyncState(state: ChatPersistenceSyncState, locale: Locale): string {
   const copy = getCopy(locale);
   return copy.formatting.sync[state];
+}
+
+function formatModelOptionLabel(model: ModelDescriptor): string {
+  const baseLabel = model.label ?? model.id;
+
+  if (!model.contextWindow) {
+    return baseLabel;
+  }
+
+  return `${baseLabel} (${formatContextWindow(model.contextWindow)})`;
+}
+
+function formatContextWindow(value: number): string {
+  if (value >= 1000) {
+    const shortened = value % 1000 === 0 ? value / 1000 : Number((value / 1000).toFixed(1));
+    return `${shortened}k ctx`;
+  }
+
+  return `${value} ctx`;
 }
 
 function formatMemoryType(type: string, locale: Locale): string {

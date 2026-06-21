@@ -16,27 +16,21 @@ export interface OpenAICompatibleProviderOptions {
 interface OpenAICompatibleModelResponse {
   data?: unknown;
   models?: unknown;
+  result?: unknown;
 }
 
 interface OpenAICompatibleResponsePayload {
   output_text?: string;
   output?: Array<{
-    content?: Array<{
-      type?: string;
-      text?: string;
-    }>;
+    content?: unknown;
   }>;
 }
 
 interface OpenAICompatibleChatCompletionsPayload {
   choices?: Array<{
+    text?: string;
     message?: {
-      content?:
-        | string
-        | Array<{
-            type?: string;
-            text?: string;
-          }>;
+      content?: unknown;
     };
   }>;
 }
@@ -45,7 +39,7 @@ export class OpenAICompatibleChatProvider implements ChatProvider, ModelDiscover
   private readonly provider: string;
   private readonly apiKey: string;
   private readonly baseURL: string;
-  private readonly model: string;
+  private readonly model: string | undefined;
   private readonly fetchFn: typeof fetch;
   private readonly compatibilityProfile: ProviderCompatibilityProfile;
 
@@ -62,10 +56,6 @@ export class OpenAICompatibleChatProvider implements ChatProvider, ModelDiscover
       throw new Error("A baseURL is required for OpenAI-compatible providers.");
     }
 
-    if (!model) {
-      throw new Error("A model is required for OpenAI-compatible providers.");
-    }
-
     this.provider = options.provider;
     this.apiKey = apiKey;
     this.compatibilityProfile = resolveProviderCompatibilityProfile(options.provider);
@@ -78,10 +68,11 @@ export class OpenAICompatibleChatProvider implements ChatProvider, ModelDiscover
   }
 
   async generateReply(request: ChatProviderRequest): Promise<string> {
+    const model = this.requireModel();
     const chatCompletionsResponse = await this.fetchFn(`${this.baseURL}/chat/completions`, {
       method: "POST",
       headers: this.buildHeaders(),
-      body: JSON.stringify(buildChatCompletionsBody(request, this.model))
+      body: JSON.stringify(buildChatCompletionsBody(request, model))
     });
 
     if (chatCompletionsResponse.ok) {
@@ -104,7 +95,7 @@ export class OpenAICompatibleChatProvider implements ChatProvider, ModelDiscover
       method: "POST",
       headers: this.buildHeaders(),
       body: JSON.stringify(
-        buildResponsesBody(request, this.model, this.compatibilityProfile)
+        buildResponsesBody(request, model, this.compatibilityProfile)
       )
     });
 
@@ -147,6 +138,14 @@ export class OpenAICompatibleChatProvider implements ChatProvider, ModelDiscover
     const body = await response.text();
     const suffix = body ? ` Body: ${body}` : "";
     return new Error(`${prefix} with status ${response.status}.${suffix}`);
+  }
+
+  private requireModel(): string {
+    if (!this.model) {
+      throw new Error("A model is required to generate replies for OpenAI-compatible providers.");
+    }
+
+    return this.model;
   }
 }
 
@@ -289,29 +288,39 @@ function extractResponseText(payload: OpenAICompatibleResponsePayload): string |
   }
 
   return payload.output
-    ?.flatMap((item) => item.content ?? [])
-    .find((item) => item.type === "output_text" || item.type === "text")
-    ?.text;
+    ?.flatMap((item) => normalizeContentItems(item.content))
+    .map(extractContentItemText)
+    .find((text) => Boolean(text));
 }
 
 function extractChatCompletionsText(
   payload: OpenAICompatibleChatCompletionsPayload
 ): string | undefined {
-  const content = payload.choices?.[0]?.message?.content;
+  const firstChoice = payload.choices?.[0];
+  const content = firstChoice?.message?.content;
 
   if (typeof content === "string") {
     return content;
   }
 
-  return content?.find((item) => item.type === "output_text" || item.type === "text")?.text;
+  const structured = normalizeContentItems(content)
+    .map(extractContentItemText)
+    .find((text) => Boolean(text));
+
+  if (structured) {
+    return structured;
+  }
+
+  return typeof firstChoice?.text === "string" && firstChoice.text.trim()
+    ? firstChoice.text.trim()
+    : undefined;
 }
 
 function normalizeModelDescriptors(
   payload: OpenAICompatibleModelResponse,
   provider: string
 ): ModelDescriptor[] {
-  const rawModels = payload.data ?? payload.models ?? [];
-  const items = Array.isArray(rawModels) ? rawModels : [];
+  const items = extractRawModelItems(payload);
   const seen = new Set<string>();
   const models: ModelDescriptor[] = [];
 
@@ -345,7 +354,13 @@ function normalizeSingleModelDescriptor(
   }
 
   const record = value as Record<string, unknown>;
-  const id = firstNonEmptyString(record.id, record.name, record.model);
+  const id = firstNonEmptyString(
+    record.id,
+    record.name,
+    record.model,
+    record.model_id,
+    record.modelId
+  );
 
   if (!id) {
     return undefined;
@@ -356,7 +371,12 @@ function normalizeSingleModelDescriptor(
     provider
   };
 
-  const label = firstNonEmptyString(record.label, record.display_name, record.name);
+  const label = firstNonEmptyString(
+    record.label,
+    record.display_name,
+    record.displayName,
+    record.name
+  );
   const contextWindow = firstFiniteNumber(
     record.contextWindow,
     record.context_window,
@@ -364,6 +384,12 @@ function normalizeSingleModelDescriptor(
     record.context_length,
     record.maxContextLength,
     record.max_context_length,
+    record.maxModelLen,
+    record.max_model_len,
+    record.inputTokenLimit,
+    record.input_token_limit,
+    record.maxInputTokens,
+    record.max_input_tokens,
     record.max_tokens,
     record.max_output_tokens
   );
@@ -402,6 +428,68 @@ function firstFiniteNumber(...values: unknown[]): number | undefined {
         return parsed;
       }
     }
+  }
+
+  return undefined;
+}
+
+function extractRawModelItems(payload: OpenAICompatibleModelResponse): unknown[] {
+  const candidates = [
+    payload,
+    payload.data,
+    payload.models,
+    payload.result,
+    readRecordValue(payload.data, "models"),
+    readRecordValue(payload.data, "data"),
+    readRecordValue(payload.result, "models"),
+    readRecordValue(payload.result, "data")
+  ];
+
+  for (const candidate of candidates) {
+    if (Array.isArray(candidate)) {
+      return candidate;
+    }
+  }
+
+  return [];
+}
+
+function readRecordValue(value: unknown, key: string): unknown {
+  if (!value || typeof value !== "object") {
+    return undefined;
+  }
+
+  return (value as Record<string, unknown>)[key];
+}
+
+function normalizeContentItems(value: unknown): Array<Record<string, unknown>> {
+  if (Array.isArray(value)) {
+    return value.filter(
+      (item): item is Record<string, unknown> => Boolean(item) && typeof item === "object"
+    );
+  }
+
+  if (value && typeof value === "object") {
+    return [value as Record<string, unknown>];
+  }
+
+  return [];
+}
+
+function extractContentItemText(item: Record<string, unknown>): string | undefined {
+  const directText = firstNonEmptyString(item.text, item.content);
+
+  if (directText) {
+    return directText;
+  }
+
+  const nestedText = item.text;
+
+  if (nestedText && typeof nestedText === "object") {
+    return firstNonEmptyString(
+      (nestedText as Record<string, unknown>).value,
+      (nestedText as Record<string, unknown>).text
+    );
   }
 
   return undefined;
