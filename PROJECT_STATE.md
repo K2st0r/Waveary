@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `8d5d7b3` - `Clear proactive wait state on user reply`
+- `9829a9f` - `Localize proactive care decision labels`
 
 ## Modules
 
