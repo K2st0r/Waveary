@@ -4,6 +4,41 @@
 
 Objective:
 
+Extend Waveary browser session import semantic validation so duplicate message identities inside one imported snapshot are rejected before restore.
+
+Summary:
+
+- added duplicate ID checks for `snapshot.messages` so one import package cannot restore multiple chat messages under the same identity
+- kept the new rule aligned with the existing message-ordering and timestamp semantics instead of expanding into merge or overwrite behavior
+- expanded the semantic route-level regression package so duplicate message IDs are rejected alongside the existing session, timeline, and memory consistency failures
+- documented the duplicate message identity rule in the session package format reference for external generators
+
+Files changed:
+
+- `waveary-web/server/chat-session-store.ts`
+- `waveary-web/server/provider-api.test.ts`
+- `docs/session-file-format.md`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/web`
+- `npm run build:server --workspace @waveary/web`
+- `node --test waveary-web/dist-server/server/provider-api.test.js`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-21
+
+Objective:
+
 Strengthen the Waveary continuity workflow so every completed work block must end with verified state records, a push attempt, and an explicit next step for the following session.
 
 Summary:

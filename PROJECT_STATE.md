@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `ddb8936` - `Strengthen continuity closeout workflow`
+- `pending commit` - `Validate session import duplicate message identities`
 
 ## Modules
 
@@ -63,6 +63,7 @@ Brand line:
   - browser session import validation now checks richer snapshot structures, including relationship payloads, latest insight payloads, memory metadata, and timeline metadata before restore
   - browser session import validation now also rejects cross-field semantic inconsistencies such as mismatched session IDs and timestamps that exceed `snapshot.updatedAt` or `exportedAt`
   - browser session import validation now also rejects out-of-order message timestamps and backward-moving timeline sequences inside snapshot and latest-insight arrays
+  - browser session import validation now also rejects duplicate message IDs inside a single imported snapshot
   - browser session import validation now also rejects duplicate memory and timeline IDs inside a single imported snapshot
   - non-default sessions can now be renamed and deleted through the web session layer
   - Windows-safe local dev and preview entrypoints are implemented for the current workspace path setup
@@ -124,7 +125,7 @@ Brand line:
 
 ## Next Steps
 
-- continue enforcing the stronger verified-closeout workflow: functional change, verification, continuity update, push, and immediate continuity sync when placeholders remain
+- add cross-structure semantic checks between `snapshot.timelineEvents` and `snapshot.latestInsights.timeline` so imported timeline summaries cannot conflict with the main snapshot timeline
 - expand provider-specific chat request normalization where "OpenAI-compatible" vendors diverge beyond the current shared `/chat/completions` and `/responses` paths
 - add route-level or live verification for more provider-specific chat payload divergences after the current DeepSeek compatibility baseline
 - add focused route-level and browser-facing coverage for any remaining persistence edge cases beyond the current file/sqlite symmetry path

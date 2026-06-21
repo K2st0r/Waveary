@@ -1002,6 +1002,7 @@ function validateExportedSessionSemantics(
   }
 
   let previousMessageCreatedAt: number | null = null;
+  const seenMessageIds = new Set<string>();
 
   exported.snapshot.messages.forEach((message, index) => {
     if (
@@ -1018,6 +1019,14 @@ function validateExportedSessionSemantics(
       }
 
       previousMessageCreatedAt = createdAt;
+    }
+
+    if ("id" in message && typeof message.id === "string" && message.id.trim()) {
+      if (seenMessageIds.has(message.id)) {
+        details.push(`Message ${index + 1} \`id\` duplicates an earlier message ID.`);
+      } else {
+        seenMessageIds.add(message.id);
+      }
     }
   });
 
