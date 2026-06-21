@@ -3263,24 +3263,20 @@ export function App(): ReactElement {
                           </span>
                         </div>
                         <div className="proactive-decision-summary">
-                          <strong>
-                            {proactiveDecision.shouldReachOut
-                              ? locale === "zh"
-                                ? "当前会话适合进行一次主动关怀。"
-                                : "The active session is ready for a proactive reachout."
-                              : locale === "zh"
-                                ? "当前会话暂时不适合主动触达。"
-                                : "The active session is currently blocked from proactive outreach."}
-                          </strong>
-                          <p>
-                            {proactiveDecision.shouldReachOut
-                              ? locale === "zh"
-                                ? "这次评估给出了正向建议，你可以参考意图、紧急程度和建议延迟来决定是否立即触达。"
-                                : "This evaluation returned a positive recommendation. Use the intent, urgency, and suggested delay to decide whether to reach out now."
-                              : locale === "zh"
-                                ? "这次评估被当前策略或状态拦住了，下面的原因会解释为什么还不能主动触达。"
-                                : "This evaluation was blocked by the current policy or session state. The reasons below explain why outreach should wait."}
-                          </p>
+                          {(() => {
+                            const decisionSummary = buildProactiveDecisionSummary(
+                              proactiveDecision,
+                              locale,
+                              getCurrentDecisionDayPart(permissionProfile)
+                            );
+
+                            return (
+                              <>
+                                <strong>{decisionSummary.title}</strong>
+                                <p>{decisionSummary.body}</p>
+                              </>
+                            );
+                          })()}
                         </div>
                         <div className="proactive-decision-grid">
                           <div>
@@ -3655,6 +3651,12 @@ function buildChatTurnTimeContext(
   };
 }
 
+function getCurrentDecisionDayPart(
+  permissionProfile: WavearyPermissionProfile
+): "late_night" | "morning" | "afternoon" | "evening" | undefined {
+  return resolveNotificationDayPart(permissionProfile);
+}
+
 function formatMemoryType(type: string, locale: Locale): string {
   const copy = getCopy(locale);
   const table = copy.formatting.memoryType;
@@ -3824,6 +3826,83 @@ function buildProactiveNotificationLead(
   }
 
   return "You came to mind, so I wanted to check in gently.";
+}
+
+function buildProactiveDecisionSummary(
+  decision: ProactiveCareDecision,
+  locale: Locale,
+  dayPart: "late_night" | "morning" | "afternoon" | "evening" | undefined
+): {
+  title: string;
+  body: string;
+} {
+  if (decision.shouldReachOut) {
+    if (locale === "zh") {
+      if (dayPart === "late_night") {
+        return {
+          title: "当前会话适合进行一次更克制、更轻一点的夜间关心。",
+          body: "这次评估给出了正向建议。夜已经深了，更适合低打扰、轻提醒式的关怀，你可以参考意图、紧急程度和建议延迟来决定是否触达。"
+        };
+      }
+
+      if (dayPart === "morning") {
+        return {
+          title: "当前会话适合进行一次清醒而温和的主动关怀。",
+          body: "这次评估给出了正向建议。早晨更适合简洁、稳妥的问候，你可以参考意图、紧急程度和建议延迟来决定是否现在触达。"
+        };
+      }
+
+      if (dayPart === "evening") {
+        return {
+          title: "当前会话适合进行一次更柔和的傍晚关怀。",
+          body: "这次评估给出了正向建议。到了晚上，语气可以更缓一些，你可以参考意图、紧急程度和建议延迟来决定是否触达。"
+        };
+      }
+
+      return {
+        title: "当前会话适合进行一次主动关怀。",
+        body: "这次评估给出了正向建议，你可以参考意图、紧急程度和建议延迟来决定是否立即触达。"
+      };
+    }
+
+    if (dayPart === "late_night") {
+      return {
+        title: "The active session is ready for a quieter late-night reachout.",
+        body: "This evaluation returned a positive recommendation. Because it is late, a lower-pressure and gentler tone is likely the better fit. Use the intent, urgency, and suggested delay to decide whether to reach out now."
+      };
+    }
+
+    if (dayPart === "morning") {
+      return {
+        title: "The active session is ready for a calm morning reachout.",
+        body: "This evaluation returned a positive recommendation. A morning follow-up should stay clear and steady. Use the intent, urgency, and suggested delay to decide whether to reach out now."
+      };
+    }
+
+    if (dayPart === "evening") {
+      return {
+        title: "The active session is ready for a softer evening reachout.",
+        body: "This evaluation returned a positive recommendation. Because it is evening, a warmer and more settled tone may fit better. Use the intent, urgency, and suggested delay to decide whether to reach out now."
+      };
+    }
+
+    return {
+      title: "The active session is ready for a proactive reachout.",
+      body: "This evaluation returned a positive recommendation. Use the intent, urgency, and suggested delay to decide whether to reach out now."
+    };
+  }
+
+  if (locale === "zh") {
+    return {
+      title: "当前会话暂时不适合主动触达。",
+      body: "这次评估被当前策略或会话状态拦住了，下面的原因会解释为什么现在还应该继续等待。"
+    };
+  }
+
+  return {
+    title: "The active session is currently blocked from proactive outreach.",
+    body: "This evaluation was blocked by the current policy or session state. The reasons below explain why outreach should wait."
+  };
 }
 
 function deliverProactiveBrowserNotification(
