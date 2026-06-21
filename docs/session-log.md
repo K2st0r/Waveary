@@ -32,11 +32,11 @@ Verification:
 
 Commit:
 
-- pending
+- `5d3b676` - `Harden provider compatibility payload handling`
 
 Push:
 
-- pending
+- succeeded: `git push origin main` pushed the provider compatibility hardening pass over the SSH remote
 
 ## 2026-06-21
 

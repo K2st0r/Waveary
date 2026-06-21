@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `556580a` - `Record SSH push migration`
+- `5d3b676` - `Harden provider compatibility payload handling`
 
 ## Modules
 
