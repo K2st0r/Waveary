@@ -1,4 +1,5 @@
 import type { MemoryItem } from "../domain/memory.js";
+import type { EmotionState } from "../domain/emotion.js";
 import type { RelationshipProfile } from "../domain/relationship.js";
 import type { TimelineEvent } from "../domain/timeline.js";
 import type { RuntimeContext } from "../runtime/types.js";
@@ -6,6 +7,7 @@ import type { RuntimeContext } from "../runtime/types.js";
 export interface PersistedSessionState {
   context: RuntimeContext;
   memories: MemoryItem[];
+  emotion?: EmotionState;
   relationship?: RelationshipProfile;
   timeline: TimelineEvent[];
   updatedAt: string;

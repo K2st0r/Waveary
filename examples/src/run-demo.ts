@@ -1,7 +1,9 @@
 import {
+  InMemoryEmotionStore,
   InMemoryRelationshipStore,
   InMemoryTimelineStore,
   ScriptedChatProvider,
+  SimpleCompanionEmotionEngine,
   SimpleEmotionAnalyzer,
   SimpleRelationshipEngine,
   SimpleTimelineEngine,
@@ -45,6 +47,8 @@ async function runDemo(): Promise<void> {
   const runtime = new WavearyRuntime({
     chatProvider: new ScriptedChatProvider(),
     emotionAnalyzer: new SimpleEmotionAnalyzer(),
+    emotionStore: new InMemoryEmotionStore(),
+    emotionEngine: new SimpleCompanionEmotionEngine(),
     memoryStore: new InMemoryMemoryStore(),
     memoryExtractor: new SimpleMemoryExtractor(),
     relationshipStore: new InMemoryRelationshipStore(),
@@ -83,6 +87,7 @@ async function runDemo(): Promise<void> {
       {
         firstReply: firstResult.reply.content,
         secondReply: secondResult.reply.content,
+        emotion: secondResult.emotion,
         recalledMemories: secondResult.recalledMemories.map((memory) => memory.content),
         relationship: secondResult.relationship,
         timeline: secondResult.timeline.map((event) => ({

@@ -281,8 +281,11 @@ function buildDeveloperInstruction(request: ChatProviderRequest): string {
     `Relevant memories:\n${memoryBlock}`,
     `Timeline context:\n${timelineBlock}`,
     request.emotion
-      ? `Current detected emotion: ${request.emotion.primaryEmotion} (${request.emotion.intensity}).`
-      : "Current detected emotion: unknown.",
+      ? `Current companion emotion: ${request.emotion.primaryEmotion} (${request.emotion.intensity}).`
+      : "Current companion emotion: calm baseline.",
+    request.detectedUserEmotion
+      ? `Detected user emotion: ${request.detectedUserEmotion.primaryEmotion} (${request.detectedUserEmotion.intensity}).`
+      : "Detected user emotion: unknown.",
     "Reply like someone who is continuing a shared life, not like a support bot or productivity assistant.",
     "Do not mention every memory mechanically. Only bring up a memory when it genuinely helps the moment feel more understood.",
     "Prefer one natural acknowledgment of continuity over a summary list of facts.",

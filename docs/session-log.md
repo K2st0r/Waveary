@@ -4,6 +4,58 @@
 
 Objective:
 
+Implement the first companion-side emotion runtime layer so Waveary no longer treats emotion as only one-turn user classification, but as persisted companion state that can shape replies and survive across turns.
+
+Summary:
+
+- extended the core emotion model and provider/runtime interfaces so Waveary can carry both detected user emotion and companion-side emotion state separately
+- added `InMemoryEmotionStore` plus `SimpleCompanionEmotionEngine` and wired them into `WavearyRuntime` so each turn can load prior emotion, transition it, persist it, and return it
+- updated scripted and OpenAI-compatible reply scaffolding so companion emotion influences reply framing while staying within the current framework boundaries
+- extended repository-backed persistence, SQLite coverage, demos, and web runtime wiring so the first `WEE` layer survives both in-memory and persisted session paths
+- aligned route-level web assertions with the already-established recall-friendly memory extraction and current relationship delta behavior
+
+Files changed:
+
+- `waveary-core/src/domain/emotion.ts`
+- `waveary-core/src/providers/interfaces.ts`
+- `waveary-core/src/runtime/waveary-runtime.ts`
+- `waveary-core/src/runtime/waveary-runtime.test.ts`
+- `waveary-core/src/adapters/in-memory-emotion-store.ts`
+- `waveary-core/src/adapters/simple-companion-emotion-engine.ts`
+- `waveary-core/src/adapters/scripted-chat-provider.ts`
+- `waveary-core/src/adapters/openai-compatible-provider.ts`
+- `waveary-core/src/storage/session-state.ts`
+- `waveary-core/src/storage/repository-backed-session-state.ts`
+- `waveary-core/src/storage/repository-backed-session-state.test.ts`
+- `waveary-core/src/storage/sqlite-session-state-repository.test.ts`
+- `waveary-core/src/index.ts`
+- `waveary-web/server/chat-runtime.ts`
+- `waveary-web/server/chat-session-store.ts`
+- `waveary-web/server/provider-api.test.ts`
+- `examples/src/run-demo.ts`
+- `examples/src/run-openai-demo.ts`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/core`
+- `npm run test --workspace @waveary/core`
+- `npm run check --workspace @waveary/web`
+- `npm run test --workspace @waveary/web`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-21
+
+Objective:
+
 Turn the user's target for emotional companionship, proactive care, and future presence-aware behavior into a formal Waveary product and architecture draft instead of leaving it as chat-only intent.
 
 Summary:

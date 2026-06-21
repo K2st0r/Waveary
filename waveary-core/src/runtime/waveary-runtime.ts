@@ -2,6 +2,8 @@ import type { Message } from "../domain/session.js";
 import type {
   ChatProvider,
   EmotionAnalyzer,
+  EmotionEngine,
+  EmotionStore,
   MemoryExtractor,
   MemoryStore,
   RelationshipEngine,
@@ -14,6 +16,8 @@ import type { RuntimeContext, RuntimeTurnResult } from "./types.js";
 export interface WavearyRuntimeDependencies {
   chatProvider: ChatProvider;
   emotionAnalyzer: EmotionAnalyzer;
+  emotionStore: EmotionStore;
+  emotionEngine: EmotionEngine;
   memoryStore: MemoryStore;
   memoryExtractor: MemoryExtractor;
   relationshipStore: RelationshipStore;
@@ -26,13 +30,24 @@ export class WavearyRuntime {
   constructor(private readonly deps: WavearyRuntimeDependencies) {}
 
   async handleTurn(context: RuntimeContext, input: Message): Promise<RuntimeTurnResult> {
-    const emotion = await this.deps.emotionAnalyzer.analyze(input);
+    const detectedUserEmotion = await this.deps.emotionAnalyzer.analyze(input);
     const recalledMemories = await this.deps.memoryStore.recallRelevantMemories(
       context.user.id,
       input.content
     );
     const relationship = await this.deps.relationshipStore.getProfile(context.user.id);
     const timeline = await this.deps.timelineStore.getRelevantEvents(context.user.id);
+    const currentEmotion = await this.deps.emotionStore.getState(context.user.id);
+    const emotion = await this.deps.emotionEngine.transition({
+      userId: context.user.id,
+      message: input,
+      history: context.history,
+      relationship,
+      relevantMemories: recalledMemories,
+      timeline,
+      ...(currentEmotion ? { currentEmotion } : {}),
+      ...(detectedUserEmotion ? { detectedUserEmotion } : {})
+    });
 
     const request = {
       session: context.session,
@@ -41,7 +56,8 @@ export class WavearyRuntime {
       messages: [...context.history, input],
       relevantMemories: recalledMemories,
       relationship,
-      timeline
+      timeline,
+      ...(detectedUserEmotion ? { detectedUserEmotion } : {})
     };
     const content = await this.deps.chatProvider.generateReply(
       emotion ? { ...request, emotion } : request
@@ -80,6 +96,9 @@ export class WavearyRuntime {
       context.user.id,
       derivedEvents
     );
+    const savedEmotion = emotion
+      ? await this.deps.emotionStore.saveState(context.user.id, emotion)
+      : undefined;
 
     const result = {
       reply,
@@ -88,6 +107,6 @@ export class WavearyRuntime {
       timeline: updatedTimeline,
       storedMemories
     };
-    return emotion ? { ...result, emotion } : result;
+    return savedEmotion ? { ...result, emotion: savedEmotion } : result;
   }
 }

@@ -60,6 +60,20 @@ test("SqliteSessionStateRepository saves, loads, and deletes persisted session s
         createdAt: new Date().toISOString()
       }
     ],
+    emotion: {
+      userId: "user-1",
+      subject: "companion",
+      primaryEmotion: "warm",
+      intensity: 0.6,
+      confidence: 0.7,
+      modifiers: ["gentle"],
+      causes: ["sqlite_test"],
+      windowStart: new Date().toISOString(),
+      windowEnd: new Date().toISOString(),
+      lastUpdatedAt: new Date().toISOString(),
+      decayHint: "medium",
+      detectedUserEmotion: "joy"
+    },
     relationship: {
       userId: "user-1",
       stage: "warming",
@@ -90,6 +104,7 @@ test("SqliteSessionStateRepository saves, loads, and deletes persisted session s
   assert.ok(loaded);
   assert.equal(loaded?.context.session.id, "session-sqlite-1");
   assert.equal(loaded?.memories[0]?.content, "Persist this in SQLite.");
+  assert.equal(loaded?.emotion?.primaryEmotion, "warm");
   assert.equal(loaded?.relationship?.stage, "warming");
   assert.equal(loaded?.timeline[0]?.title, "SQLite test event");
 

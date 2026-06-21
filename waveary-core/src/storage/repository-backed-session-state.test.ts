@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import type {
+  EmotionState,
   Message,
   PersistedSessionState,
   PersistedSessionStateRecord,
@@ -44,6 +45,21 @@ test("RepositoryBackedSessionState persists context, memories, relationship, and
     stabilityDelta: 0.03,
     reason: "meaningful design continuity"
   });
+  const emotion: EmotionState = {
+    userId: context.user.id,
+    subject: "companion",
+    primaryEmotion: "warm",
+    intensity: 0.62,
+    confidence: 0.7,
+    modifiers: ["gentle"],
+    causes: ["test_emotion_persist"],
+    windowStart: new Date().toISOString(),
+    windowEnd: new Date().toISOString(),
+    lastUpdatedAt: new Date().toISOString(),
+    decayHint: "medium",
+    detectedUserEmotion: "joy"
+  };
+  await sessionState.getEmotionStore().saveState(context.user.id, emotion);
   const timeline = await sessionState.getTimelineStore().appendEvents(context.user.id, [
     {
       id: "timeline-1",
@@ -65,6 +81,7 @@ test("RepositoryBackedSessionState persists context, memories, relationship, and
   assert.ok(saved, "state should be saved in repository");
   assert.equal(saved?.context.history.length, 1);
   assert.equal(saved?.memories.length, 1);
+  assert.equal(saved?.emotion?.primaryEmotion, "warm");
   assert.equal(saved?.relationship?.stage, "warming");
   assert.equal(saved?.timeline.length, 1);
   assert.equal(storedMemories.length, 1);
