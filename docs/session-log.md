@@ -4,6 +4,38 @@
 
 Objective:
 
+Harden Waveary browser session import validation so malformed relationship, insight, memory, and timeline payloads fail before a bad package is restored locally.
+
+Summary:
+
+- expanded `waveary-web` session package validation beyond the top-level version gate into richer snapshot structure checks
+- added explicit validation for `exportedAt`, `snapshot.updatedAt`, `snapshot.latestInsights`, `snapshot.relationship`, memory metadata fields, and timeline metadata fields
+- added route-level regression coverage for malformed relationship and latest-insight payloads while preserving valid imports and legacy unversioned package compatibility
+- kept the change inside the `waveary-web` import boundary so the browser restore path gets safer without changing `waveary-core` contracts
+
+Files changed:
+
+- `waveary-web/server/chat-session-store.ts`
+- `waveary-web/server/provider-api.test.ts`
+
+Verification:
+
+- `npm run check --workspace @waveary/web`
+- `npm run build:server --workspace @waveary/web`
+- `node --test waveary-web/dist-server/server/provider-api.test.js`
+
+Commit:
+
+- `34a7afd` - `Harden session import snapshot validation`
+
+Push:
+
+- pending
+
+## 2026-06-21
+
+Objective:
+
 Add explicit schema versioning to the Waveary browser session package without breaking older exports that were created before version metadata existed.
 
 Summary:

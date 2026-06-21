@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `c27f755` - `Add session package schema versioning`
+- `34a7afd` - `Harden session import snapshot validation`
 
 ## Modules
 
@@ -60,6 +60,7 @@ Brand line:
   - current browser session package shape is now documented for external tooling, with a sample export file under `docs/examples/`
   - browser import/export controls now surface session package rules, required top-level fields, required snapshot arrays, and a loadable sample package through a local `/api/chat/session/format` route
   - browser session export packages now emit explicit `schemaVersion` metadata, while import stays backward-compatible with legacy unversioned packages and rejects unsupported future versions clearly
+  - browser session import validation now checks richer snapshot structures, including relationship payloads, latest insight payloads, memory metadata, and timeline metadata before restore
   - non-default sessions can now be renamed and deleted through the web session layer
   - Windows-safe local dev and preview entrypoints are implemented for the current workspace path setup
   - package boundary is documented for future provider setup and runtime UI work
@@ -128,7 +129,7 @@ Brand line:
 - consider adding import or downloadable file export flows now that structured session export is available
 - consider validating downloadable file-based import/export or partial merge tools now that session migration is possible in-browser
 - consider adding stronger schema validation and user-facing import diagnostics for malformed session files
-- consider extending the versioned session package contract with richer snapshot field validation beyond the current top-level version gate
+- consider extending the versioned session package contract with even stricter timestamp/value-range validation beyond the current structural field checks
 - consider planning the next schema migration rule before any non-backward-compatible session package change lands
 - consider hardening workspace build scripts further against transient Windows dist-lock races
 - keep updating `PROJECT_STATE.md` and `docs/session-log.md` after each verified work block
