@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `fdf5281` - `Rebuild homepage lighter flame motion`
+- `4e4a832` - `Nudge homepage flame anchor`
 
 ## Modules
 
