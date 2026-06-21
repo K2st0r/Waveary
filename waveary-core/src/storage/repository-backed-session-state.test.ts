@@ -105,6 +105,59 @@ test("RepositoryBackedSessionState persists context, memories, relationship, and
   assert.equal(proactiveCareState.dailyReachoutsSent, 1);
 });
 
+test("RepositoryBackedSessionState recalls only context-relevant memories and updates recall timestamp", async () => {
+  const repository = new TestSessionStateRepository();
+  const sessionState = new RepositoryBackedSessionState({
+    sessionId: "session-memory-recall",
+    repository,
+    createInitialState
+  });
+  const context = sessionState.getContext();
+  const createdAt = "2026-06-15T12:00:00.000Z";
+
+  repository.save("session-memory-recall", {
+    ...createInitialState("session-memory-recall"),
+    memories: [
+      {
+        id: "memory-1",
+        userId: context.user.id,
+        type: "fact",
+        content: "The user wants Waveary to preserve long-term memory continuity.",
+        importance: 0.95,
+        confidence: 0.9,
+        sourceMessageIds: ["m1"],
+        createdAt
+      },
+      {
+        id: "memory-2",
+        userId: context.user.id,
+        type: "fact",
+        content: "The user once mentioned liking cloudy afternoons and quiet music.",
+        importance: 0.92,
+        confidence: 0.88,
+        sourceMessageIds: ["m2"],
+        createdAt
+      }
+    ],
+    updatedAt: createdAt
+  });
+
+  const recalled = await sessionState
+    .getMemoryStore()
+    .recallRelevantMemories(context.user.id, "Please remember the long-term memory continuity direction.");
+
+  assert.equal(recalled.length, 1);
+  assert.equal(recalled[0]?.id, "memory-1");
+  assert.ok(recalled[0]?.lastRecalledAt);
+
+  const saved = repository.load("session-memory-recall");
+  const recalledMemory = saved?.memories.find((memory) => memory.id === "memory-1");
+  const untouchedMemory = saved?.memories.find((memory) => memory.id === "memory-2");
+
+  assert.ok(recalledMemory?.lastRecalledAt);
+  assert.equal(untouchedMemory?.lastRecalledAt, undefined);
+});
+
 function createInitialState(sessionId: string): PersistedSessionState {
   return {
     context: {

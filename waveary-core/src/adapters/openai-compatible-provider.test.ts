@@ -80,6 +80,63 @@ test("OpenAICompatibleChatProvider injects local time context into the instructi
   assert.match(body.messages[0]?.content ?? "", /use this local time context directly/i);
 });
 
+test("OpenAICompatibleChatProvider strengthens companionship guidance in the instruction prompt", async () => {
+  const recorded: Array<{ url: string; init: RequestInit | undefined }> = [];
+  const provider = new OpenAICompatibleChatProvider({
+    provider: "test-provider",
+    apiKey: "test-key",
+    baseURL: "https://example.com/v1",
+    model: "test-model",
+    fetchFn: async (url, init) => {
+      recorded.push({ url: String(url), init });
+      return new Response(
+        JSON.stringify({
+          choices: [{ message: { content: "mock reply" } }]
+        }),
+        { status: 200 }
+      );
+    }
+  });
+
+  await provider.generateReply(
+    createRequest({
+      relationship: {
+        userId: "user-1",
+        stage: "growing",
+        affinityScore: 0.68,
+        trustScore: 0.62,
+        stabilityScore: 0.71,
+        lastUpdatedAt: new Date().toISOString()
+      },
+      emotion: {
+        userId: "user-1",
+        primaryEmotion: "protective",
+        intensity: 0.81,
+        confidence: 0.77,
+        windowStart: new Date().toISOString(),
+        windowEnd: new Date().toISOString()
+      },
+      detectedUserEmotion: {
+        userId: "user-1",
+        primaryEmotion: "sadness",
+        intensity: 0.74,
+        confidence: 0.75,
+        windowStart: new Date().toISOString(),
+        windowEnd: new Date().toISOString()
+      }
+    })
+  );
+
+  const body = JSON.parse(String(recorded[0]?.init?.body)) as {
+    messages: Array<{ role: string; content: string }>;
+  };
+  const instruction = body.messages[0]?.content ?? "";
+
+  assert.match(instruction, /Respond to the user's felt state first\./);
+  assert.match(instruction, /Let relationship stage change distance and wording\./);
+  assert.match(instruction, /Do not over-explain your memory process/i);
+});
+
 test("OpenAICompatibleChatProvider falls back to responses when chat completions is unavailable", async () => {
   const recorded: Array<{ url: string; init: RequestInit | undefined }> = [];
   const provider = new OpenAICompatibleChatProvider({
