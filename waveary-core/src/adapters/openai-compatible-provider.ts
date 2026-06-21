@@ -4,6 +4,10 @@ import type {
   ModelDescriptor,
   ModelDiscoveryProvider
 } from "../providers/interfaces.js";
+import {
+  describeLocalDayPartTone,
+  resolveLocalTimeGuidance
+} from "./local-time-guidance.js";
 
 export interface OpenAICompatibleProviderOptions {
   provider: string;
@@ -270,6 +274,7 @@ function buildDeveloperInstruction(request: ChatProviderRequest): string {
       : "None";
 
   const relationshipGuidance = describeRelationshipGuidance(request.relationship.stage);
+  const localTimeGuidance = resolveLocalTimeGuidance(request.localTime);
   const localTimeBlock = request.localTime
     ? [
         `Local current time for the user: ${request.localTime.iso}.`,
@@ -277,6 +282,10 @@ function buildDeveloperInstruction(request: ChatProviderRequest): string {
           ? `Local time zone: ${request.localTime.timeZone}.`
           : null,
         request.localTime.locale ? `Local locale hint: ${request.localTime.locale}.` : null,
+        localTimeGuidance
+          ? `Local daypart: ${localTimeGuidance.dayPart} (hour ${localTimeGuidance.hour}).`
+          : null,
+        describeLocalDayPartTone(localTimeGuidance) ?? null,
         "If the user asks what time it is, what day it is, or refers to today/tonight/tomorrow, use this local time context directly instead of claiming you lack real-time awareness."
       ]
         .filter((line): line is string => Boolean(line))

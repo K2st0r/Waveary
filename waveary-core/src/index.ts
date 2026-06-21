@@ -1,4 +1,5 @@
 export * from "./adapters/in-memory-emotion-store.js";
+export * from "./adapters/local-time-guidance.js";
 export * from "./adapters/in-memory-relationship-store.js";
 export * from "./adapters/in-memory-timeline-store.js";
 export * from "./adapters/openai-compatible-provider.js";
