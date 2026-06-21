@@ -29,11 +29,11 @@ Verification:
 
 Commit:
 
-- pending
+- `d102c80` - `Add provider verification CLI path`
 
 Push:
 
-- pending
+- succeeded: `git push origin main` pushed the provider verification CLI scaffolding and DeepSeek validation record over the SSH remote
 
 ## 2026-06-21
 

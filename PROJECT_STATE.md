@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `5d3b676` - `Harden provider compatibility payload handling`
+- `d102c80` - `Add provider verification CLI path`
 
 ## Modules
 
