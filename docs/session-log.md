@@ -4,6 +4,41 @@
 
 Objective:
 
+Automatically clear persisted `WPCE` unanswered-reachout state after a successful real user reply so proactive care does not remain blocked after the user has already responded.
+
+Summary:
+
+- added a focused server-side reset path that clears `unansweredReachoutCount` only after a real `/api/chat/turn` completes successfully and is persisted
+- preserved `dailyReachoutsSent` and `lastReachOutAt` so the daily-limit and delivery-history semantics stay intact while only the reply-wait gate is lifted
+- added route-level regression coverage proving that a session blocked by `awaiting_user_response` becomes eligible again after the user sends a new message
+- kept the change entirely inside the runtime and persisted-session layer without adding new frontend toggles, scheduler behavior, or background automation
+
+Files changed:
+
+- `waveary-web/server/chat-runtime.ts`
+- `waveary-web/server/chat-session-store.ts`
+- `waveary-web/server/provider-api.test.ts`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/web`
+- `npm run test --workspace @waveary/web`
+- `npm run web:build`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-21
+
+Objective:
+
 Close the first proactive-notification loop by recording delivery state back into the persisted session so `WPCE` does not recommend repeated outreach immediately after one notification is sent.
 
 Summary:

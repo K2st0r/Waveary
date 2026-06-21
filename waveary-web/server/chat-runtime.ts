@@ -58,6 +58,7 @@ export async function sendChatTurn(sessionId: string, content: string): Promise<
   context.history = [...context.history, input, result.reply];
 
   const payload = toReplyPayload(result);
+  state.persistentState.clearUnansweredProactiveReachouts();
   state.persistentState.saveTurn(context, payload);
 
   return payload;

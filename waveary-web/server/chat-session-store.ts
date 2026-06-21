@@ -202,6 +202,18 @@ export class PersistentChatSessionState {
     }));
   }
 
+  clearUnansweredProactiveReachouts(): ProactiveCareState {
+    const currentState = this.runtimeState.getProactiveCareState();
+
+    if (currentState.unansweredReachoutCount <= 0) {
+      return currentState;
+    }
+
+    return this.runtimeState.saveProactiveCareState({
+      unansweredReachoutCount: 0
+    });
+  }
+
   getSnapshot(): ChatSessionSnapshot | undefined {
     const persisted = loadPersistedChatSession(this.sessionId);
     if (!persisted) {
