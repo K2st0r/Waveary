@@ -270,6 +270,18 @@ function buildDeveloperInstruction(request: ChatProviderRequest): string {
       : "None";
 
   const relationshipGuidance = describeRelationshipGuidance(request.relationship.stage);
+  const localTimeBlock = request.localTime
+    ? [
+        `Local current time for the user: ${request.localTime.iso}.`,
+        request.localTime.timeZone
+          ? `Local time zone: ${request.localTime.timeZone}.`
+          : null,
+        request.localTime.locale ? `Local locale hint: ${request.localTime.locale}.` : null,
+        "If the user asks what time it is, what day it is, or refers to today/tonight/tomorrow, use this local time context directly instead of claiming you lack real-time awareness."
+      ]
+        .filter((line): line is string => Boolean(line))
+        .join("\n")
+    : "No explicit local time context was provided for this turn.";
 
   return [
     `You are ${request.persona.name}, a long-term digital life companion.`,
@@ -278,6 +290,7 @@ function buildDeveloperInstruction(request: ChatProviderRequest): string {
     `User: ${request.user.displayName}.`,
     `Relationship stage: ${request.relationship.stage}.`,
     `Relationship guidance: ${relationshipGuidance}`,
+    localTimeBlock,
     `Relevant memories:\n${memoryBlock}`,
     `Timeline context:\n${timelineBlock}`,
     request.emotion

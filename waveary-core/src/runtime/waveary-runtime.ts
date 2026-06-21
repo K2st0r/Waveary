@@ -20,6 +20,7 @@ import type {
   RuntimeContext,
   RuntimeProactiveCareOptions,
   RuntimeProactiveCareResult,
+  RuntimeTurnOptions,
   RuntimeTurnResult
 } from "./types.js";
 
@@ -61,7 +62,11 @@ export class WavearyRuntime {
     });
   }
 
-  async handleTurn(context: RuntimeContext, input: Message): Promise<RuntimeTurnResult> {
+  async handleTurn(
+    context: RuntimeContext,
+    input: Message,
+    options: RuntimeTurnOptions = {}
+  ): Promise<RuntimeTurnResult> {
     const detectedUserEmotion = await this.deps.emotionAnalyzer.analyze(input);
     const recalledMemories = await this.deps.memoryStore.recallRelevantMemories(
       context.user.id,
@@ -89,6 +94,7 @@ export class WavearyRuntime {
       relevantMemories: recalledMemories,
       relationship,
       timeline,
+      ...(options.localTime ? { localTime: options.localTime } : {}),
       ...(detectedUserEmotion ? { detectedUserEmotion } : {})
     };
     const content = await this.deps.chatProvider.generateReply(

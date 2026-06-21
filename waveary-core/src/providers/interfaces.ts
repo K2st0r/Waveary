@@ -9,6 +9,12 @@ import type { RelationshipDelta, RelationshipProfile } from "../domain/relations
 import type { Message, PersonaProfile, Session, UserProfile } from "../domain/session.js";
 import type { TimelineEvent } from "../domain/timeline.js";
 
+export interface LocalTimeContext {
+  iso: string;
+  timeZone?: string;
+  locale?: string;
+}
+
 export interface ChatProviderRequest {
   session: Session;
   user: UserProfile;
@@ -19,6 +25,7 @@ export interface ChatProviderRequest {
   emotion?: EmotionState;
   detectedUserEmotion?: EmotionState;
   timeline: TimelineEvent[];
+  localTime?: LocalTimeContext;
 }
 
 export interface ChatProvider {
