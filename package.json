@@ -16,6 +16,7 @@
     "demo": "npm run demo:build && node examples/dist/run-demo.js",
     "demo:provider": "npm run demo:build && node examples/dist/run-openai-demo.js",
     "models:provider": "npm run demo:build && node examples/dist/list-provider-models.js",
+    "verify:provider": "npm run demo:build && node examples/dist/verify-provider.js",
     "setup:provider": "npm run demo:build && node examples/dist/setup-provider.js",
     "demo:build": "npm run build --workspace @waveary/core && npm run build --workspace @waveary/memory && tsc -p examples/tsconfig.json",
     "web:build": "npm run build --workspace @waveary/core && npm run build --workspace @waveary/memory && npm run build --workspace @waveary/web",
