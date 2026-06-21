@@ -4,6 +4,38 @@
 
 Objective:
 
+Align the `WPCE` console decision summary with the new daypart-aware browser notification tone so the local product surface explains proactive recommendations in the same voice it delivers them.
+
+Summary:
+
+- added a shared console-summary formatter in `waveary-web/src/App.tsx` that derives top-level `WPCE` decision title/body copy from `decision + locale + daypart`
+- updated the proactive decision card so affirmative recommendations now read differently in morning, evening, and late-night contexts when `timeAwareness` is allowed, while blocked evaluations keep a stable explanatory tone
+- kept the change inside the web presentation layer only; `WPCE` policy, evaluation logic, persistence state, and notification delivery bookkeeping remain unchanged
+- tightened the relationship between console copy and notification copy so the user no longer sees one tone in the control surface and a different tone in the actual browser notification
+
+Files changed:
+
+- `waveary-web/src/App.tsx`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run test --workspace @waveary/web`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-21
+
+Objective:
+
 Make browser-side proactive care notifications sound more companion-like across morning, evening, and late-night moments without changing `WPCE` decision policy or adding any new permission source.
 
 Summary:
