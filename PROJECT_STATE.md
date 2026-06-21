@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `b93ef31` - `Validate session import duplicate identities`
+- `pending commit` - `Strengthen continuity closeout workflow`
 
 ## Modules
 
@@ -124,6 +124,7 @@ Brand line:
 
 ## Next Steps
 
+- continue enforcing the stronger verified-closeout workflow: functional change, verification, continuity update, push, and immediate continuity sync when placeholders remain
 - expand provider-specific chat request normalization where "OpenAI-compatible" vendors diverge beyond the current shared `/chat/completions` and `/responses` paths
 - add route-level or live verification for more provider-specific chat payload divergences after the current DeepSeek compatibility baseline
 - add focused route-level and browser-facing coverage for any remaining persistence edge cases beyond the current file/sqlite symmetry path

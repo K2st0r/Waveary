@@ -283,3 +283,25 @@ Impact:
 - `waveary-core` now includes a SQLite session state repository on top of the shared persistence contract
 - future web or CLI integration can switch from JSON files to SQLite without changing runtime state semantics
 - follow-up persistence work can focus on wiring and migration rather than redefining the storage boundary
+
+## 2026-06-21 - Mandatory Verified Closeout Workflow
+
+Status:
+
+- accepted
+
+Decision:
+
+Treat each non-trivial Waveary work block as unfinished until verification, continuity-file updates, commit, push attempt, and next-step recording are all complete.
+
+Reason:
+
+- local code changes alone are not enough to resume safely after context loss
+- the real push result and real commit hash must be written back into repository records
+- explicitly recording the next step reduces duplicate work and wrong refactors in later sessions
+
+Impact:
+
+- every completed feature step must end with verification plus updated `PROJECT_STATE.md` and `docs/session-log.md`
+- `PROJECT_STATE.md` must include the next recommended step, not just current status
+- if a functional push succeeds after continuity files still show `pending`, a second small continuity-sync commit should be made immediately

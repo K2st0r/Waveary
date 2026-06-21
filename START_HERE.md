@@ -11,6 +11,16 @@ First do this:
 5. Read `docs/workflow-rules.md`
 6. Check `git status --short -b`
 
+Before ending any non-trivial work block, do this:
+
+1. Run real verification commands
+2. Update `PROJECT_STATE.md`
+3. Update `docs/session-log.md`
+4. Write the next recommended step
+5. Commit
+6. Push
+7. If continuity files still show `pending`, fix them immediately and commit/push that sync too
+
 Core rule:
 
 Do not rely on prior chat memory when continuing Waveary.

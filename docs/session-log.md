@@ -4,6 +4,40 @@
 
 Objective:
 
+Strengthen the Waveary continuity workflow so every completed work block must end with verified state records, a push attempt, and an explicit next step for the following session.
+
+Summary:
+
+- tightened `docs/workflow-rules.md` so functional verification, continuity updates, push attempt, and next-step recording are part of the mandatory closeout path
+- updated `START_HERE.md` so a new session sees the stronger end-of-block routine immediately
+- updated the `waveary-continuity-guard` skill so it now explicitly requires recording the next step and clearing `pending` placeholders after push results are known
+- recorded the workflow change in `docs/decision-log.md` so future sessions treat this as an accepted process decision rather than an optional habit
+
+Files changed:
+
+- `docs/workflow-rules.md`
+- `START_HERE.md`
+- `docs/decision-log.md`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+- `C:\\Users\\13571\\.codex\\skills\\waveary-continuity-guard\\SKILL.md`
+
+Verification:
+
+- `git status --short -b`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-21
+
+Objective:
+
 Extend Waveary browser session import semantic validation so duplicate memory and timeline identities inside one imported snapshot are rejected before restore.
 
 Summary:

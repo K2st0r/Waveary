@@ -20,8 +20,24 @@ For every non-trivial work block:
 8. Update `PROJECT_STATE.md`
 9. Update `docs/session-log.md`
 10. Update `docs/decision-log.md` if a meaningful decision was made
-11. Commit
-12. Push if GitHub is reachable
+11. Record the next recommended step in `PROJECT_STATE.md`
+12. Commit the functional change
+13. Push the functional commit if GitHub is reachable
+14. If state files still contain `pending` placeholders after the push result is known, update them immediately
+15. Commit and push that continuity sync as a separate follow-up record when needed
+
+## Completion Rule
+
+A work block is not considered complete until all of the following are true:
+
+- the relevant verification commands were actually run
+- `PROJECT_STATE.md` reflects the newest verified functional commit
+- `docs/session-log.md` records the real commit hash and real push result
+- the next recommended step is written down for the next session
+
+Do not stop at "code changed locally" or "tests passed once".
+
+The repository continuity files must end in a state where a new Codex session can continue safely without relying on chat history.
 
 ## Commit Rule
 
@@ -30,6 +46,9 @@ Each completed part must produce:
 - a verified change
 - a local commit
 - a push attempt
+- a recorded next step
+
+If the first functional commit is pushed before continuity placeholders are resolved, make a second small continuity-only commit immediately after that sync.
 
 ## Refactor Rule
 
