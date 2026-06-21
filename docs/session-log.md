@@ -4,6 +4,44 @@
 
 Objective:
 
+Harden the OpenAI-compatible provider layer so model discovery and reply extraction stay usable across more domestic-provider payload variations without changing Waveary's framework boundaries.
+
+Summary:
+
+- relaxed the core provider adapter so `/models` discovery no longer requires a preselected chat model and can normalize nested model containers plus alternate metadata fields such as `model_id`, `displayName`, and additional context-window keys
+- expanded reply extraction so structured text payloads from both `/chat/completions` and `/responses` style providers are accepted more broadly instead of assuming one narrow content shape
+- kept the browser provider flow aligned by surfacing normalized context-window hints directly in the model selector
+- updated route-level and adapter-level tests to lock the broader compatibility behavior while preserving existing persistence and import/export coverage
+
+Files changed:
+
+- `waveary-core/src/adapters/openai-compatible-provider.ts`
+- `waveary-core/src/adapters/openai-compatible-provider.test.ts`
+- `waveary-web/src/App.tsx`
+- `waveary-web/server/provider-api.test.ts`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run test --workspace @waveary/core`
+- `npm run check --workspace @waveary/web`
+- `npm run web:build`
+- `npm run build:server --workspace @waveary/web`
+- `node --test waveary-web/dist-server/server/provider-api.test.js`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-21
+
+Objective:
+
 Restore GitHub push reliability for the Waveary repository by moving the local `origin` remote from HTTPS to SSH and syncing the accumulated local commits to GitHub successfully.
 
 Summary:

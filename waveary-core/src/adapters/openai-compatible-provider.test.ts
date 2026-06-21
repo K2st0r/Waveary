@@ -78,6 +78,29 @@ test("OpenAICompatibleChatProvider falls back to responses when chat completions
   assert.equal(fallbackBody.input[1]?.role, "user");
 });
 
+test("OpenAICompatibleChatProvider allows model listing without configuring a chat model", async () => {
+  const provider = new OpenAICompatibleChatProvider({
+    provider: "openai",
+    apiKey: "test-key",
+    baseURL: "https://example.com/v1",
+    fetchFn: async () =>
+      new Response(
+        JSON.stringify({
+          data: [{ id: "gpt-4.1-mini" }]
+        }),
+        { status: 200 }
+      )
+  });
+
+  const models = await provider.listModels();
+
+  assert.deepEqual(models, [{ id: "gpt-4.1-mini", provider: "openai" }]);
+  await assert.rejects(
+    provider.generateReply(createRequest()),
+    /A model is required to generate replies/
+  );
+});
+
 test("OpenAICompatibleChatProvider normalizes DeepSeek base URLs and uses system role for responses fallback", async () => {
   const recorded: Array<{ url: string; init: RequestInit | undefined }> = [];
   const provider = new OpenAICompatibleChatProvider({
@@ -188,6 +211,108 @@ test("OpenAICompatibleChatProvider normalizes broader model payload shapes", asy
       contextWindow: 65536
     }
   ]);
+});
+
+test("OpenAICompatibleChatProvider normalizes nested model containers and alternate metadata fields", async () => {
+  const provider = new OpenAICompatibleChatProvider({
+    provider: "volcengine-ark",
+    apiKey: "test-key",
+    baseURL: "https://example.com/api/v3",
+    model: "placeholder-model",
+    fetchFn: async () =>
+      new Response(
+        JSON.stringify({
+          result: {
+            data: [
+              {
+                model_id: "doubao-seed-1-6",
+                displayName: "Doubao Seed 1.6",
+                max_model_len: "262144"
+              }
+            ]
+          }
+        }),
+        { status: 200 }
+      )
+  });
+
+  const models = await provider.listModels();
+
+  assert.deepEqual(models, [
+    {
+      id: "doubao-seed-1-6",
+      provider: "volcengine-ark",
+      label: "Doubao Seed 1.6",
+      contextWindow: 262144
+    }
+  ]);
+});
+
+test("OpenAICompatibleChatProvider extracts reply text from structured chat completion content blocks", async () => {
+  const provider = new OpenAICompatibleChatProvider({
+    provider: "test-provider",
+    apiKey: "test-key",
+    baseURL: "https://example.com/v1",
+    model: "test-model",
+    fetchFn: async () =>
+      new Response(
+        JSON.stringify({
+          choices: [
+            {
+              message: {
+                content: [
+                  {
+                    type: "text",
+                    text: {
+                      value: "structured reply"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }),
+        { status: 200 }
+      )
+  });
+
+  const reply = await provider.generateReply(createRequest());
+
+  assert.equal(reply, "structured reply");
+});
+
+test("OpenAICompatibleChatProvider extracts reply text from responses content blocks with plain content fields", async () => {
+  const provider = new OpenAICompatibleChatProvider({
+    provider: "test-provider",
+    apiKey: "test-key",
+    baseURL: "https://example.com/v1",
+    model: "test-model",
+    fetchFn: async (url) => {
+      if (String(url).endsWith("/chat/completions")) {
+        return new Response("not found", { status: 404 });
+      }
+
+      return new Response(
+        JSON.stringify({
+          output: [
+            {
+              content: [
+                {
+                  type: "text",
+                  content: "fallback structured reply"
+                }
+              ]
+            }
+          ]
+        }),
+        { status: 200 }
+      );
+    }
+  });
+
+  const reply = await provider.generateReply(createRequest());
+
+  assert.equal(reply, "fallback structured reply");
 });
 
 test("OpenAICompatibleChatProvider surfaces upstream model listing errors", async () => {
