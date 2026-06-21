@@ -4,6 +4,41 @@
 
 Objective:
 
+Extend Waveary browser session import semantic validation so `snapshot.latestInsights.relationship` cannot drift away from `snapshot.relationship`.
+
+Summary:
+
+- added a cross-structure semantic check that requires latest-insight relationship stage, score fields, and `lastUpdatedAt` to match the snapshot relationship payload
+- kept the rule narrow by comparing only the shared exported fields and explicitly ignoring `userId`, which may differ across restore contexts
+- expanded the existing semantic inconsistency regression package so relationship summary drift now fails alongside the current memory and timeline summary checks
+- documented the relationship-summary consistency rule in the session package format reference for external generators
+
+Files changed:
+
+- `waveary-web/server/chat-session-store.ts`
+- `waveary-web/server/provider-api.test.ts`
+- `docs/session-file-format.md`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/web`
+- `npm run build:server --workspace @waveary/web`
+- `node --test waveary-web/dist-server/server/provider-api.test.js`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-21
+
+Objective:
+
 Extend Waveary browser session import semantic validation so `snapshot.latestInsights.recalledMemories` and `snapshot.latestInsights.storedMemories` cannot drift away from the imported memory archive.
 
 Summary:

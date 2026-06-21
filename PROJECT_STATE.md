@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `7f1f147` - `Validate session import memory summary consistency`
+- `pending commit` - `Validate session import relationship summary consistency`
 
 ## Modules
 
@@ -67,6 +67,7 @@ Brand line:
   - browser session import validation now also rejects duplicate memory and timeline IDs inside a single imported snapshot
   - browser session import validation now also rejects `latestInsights.timeline` entries that do not correspond to the imported snapshot timeline
   - browser session import validation now also rejects `latestInsights.recalledMemories` and `latestInsights.storedMemories` entries that do not correspond to the imported memory archive
+  - browser session import validation now also rejects `latestInsights.relationship` payloads that drift away from `snapshot.relationship`
   - non-default sessions can now be renamed and deleted through the web session layer
   - Windows-safe local dev and preview entrypoints are implemented for the current workspace path setup
   - package boundary is documented for future provider setup and runtime UI work
@@ -127,7 +128,7 @@ Brand line:
 
 ## Next Steps
 
-- validate whether `snapshot.latestInsights.relationship` should also stay semantically aligned with `snapshot.relationship`, and add a narrow cross-structure rule if the current export contract supports one cleanly
+- consider whether imported memory or timeline summaries should also reject duplicate content-level entries when the archive or event IDs remain technically unique
 - expand provider-specific chat request normalization where "OpenAI-compatible" vendors diverge beyond the current shared `/chat/completions` and `/responses` paths
 - add route-level or live verification for more provider-specific chat payload divergences after the current DeepSeek compatibility baseline
 - add focused route-level and browser-facing coverage for any remaining persistence edge cases beyond the current file/sqlite symmetry path
