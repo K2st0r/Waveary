@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `0753371` - `Record proactive utility extraction progress`
+- `da3f103` - `Expose proactive message drafts through web API`
 
 ## Modules
 
