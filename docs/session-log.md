@@ -4,6 +4,43 @@
 
 Objective:
 
+Restructure the `waveary-web` homepage into a stronger single-page open source project front page with anchor navigation and a pure introduction-first first screen, without changing provider, session, chat, import/export, or persistence behavior.
+
+Summary:
+
+- moved the homepage toward a more formal project-home rhythm by making the first screen purely explanatory and pushing the interactive console deeper into the page
+- replaced the earlier repeated feature-card feel with a clearer introduction essay, project-definition panel, repository-structure section, and leaner positioning rail
+- aligned the navbar with the new single-page section order so homepage navigation now jumps across introduction, engines, structure, console, and roadmap sections directly
+- verified the refactor through scoped TypeScript checks, server build, production web build, live local HTTP access, and a headed Playwright snapshot plus screenshot against `http://127.0.0.1:4173/`
+
+Files changed:
+
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/web`
+- `npm run build:server --workspace @waveary/web`
+- `npm run web:build`
+- `Invoke-WebRequest http://127.0.0.1:4173/`
+- `npx --yes --package @playwright/cli playwright-cli -s=waveary-homepage-polish open http://127.0.0.1:4173/ --headed`
+- `npx --yes --package @playwright/cli playwright-cli -s=waveary-homepage-polish resize 1440 1200`
+- `npx --yes --package @playwright/cli playwright-cli -s=waveary-homepage-polish snapshot`
+- `npx --yes --package @playwright/cli playwright-cli -s=waveary-homepage-polish screenshot`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+Objective:
+
 Redesign the `waveary-web` frontend so it feels like a higher-end open source AI product homepage and control surface without changing any existing provider, session, chat, import/export, or persistence behavior.
 
 Summary:

@@ -42,6 +42,7 @@ Brand line:
   - product positioning, engine stack, provider compatibility, roadmap, and repository structure are presented in the first page
   - homepage information architecture now separates brand vision, framework positioning, and the companion console so the product no longer reads like one long debug dashboard
   - homepage visual system now separates a high-confidence brand layer from a cinematic runtime shell so the site reads more like a formal AI framework homepage than a dark admin prototype
+  - homepage top section now behaves as a single-page framework introduction with anchor navigation, a pure introduction-first first screen, and the interactive console deferred until later sections
   - browser-native provider setup flow is implemented through local `/api/provider/*` routes
   - provider model discovery routes now return normalized model descriptors even when upstream vendors use broader OpenAI-compatible payload variants
   - first in-browser runtime chat shell is implemented through local `/api/chat/turn`
@@ -92,6 +93,7 @@ Brand line:
   - owns the official web interface layer
   - ships a formal project homepage and a working provider setup console
   - now presents the brand layer and the product-shell layer as separate sections, with a console summary band ahead of setup and runtime details
+  - now uses a single-page anchor-navigation homepage where the first screen stays framework-introduction-first instead of leading with runtime controls
   - can list provider presets, fetch models through the selected provider key, and save local config
   - can run a first browser chat flow and render memory, relationship, emotion, and timeline signals
   - restores local chat history and latest runtime signals after dev server restart
@@ -126,6 +128,10 @@ Brand line:
 - `Invoke-WebRequest http://127.0.0.1:4173/api/chat/turn`
 - desktop and mobile browser layout verification for `http://127.0.0.1:4173/` via Playwright screenshot pass after the landing-page hierarchy refactor
 - `python C:\Users\13571\.codex\skills\.system\skill-creator\scripts\quick_validate.py C:\Users\13571\.codex\skills\waveary-continuity-guard`
+- `npx --yes --package @playwright/cli playwright-cli -s=waveary-homepage-polish open http://127.0.0.1:4173/ --headed`
+- `npx --yes --package @playwright/cli playwright-cli -s=waveary-homepage-polish resize 1440 1200`
+- `npx --yes --package @playwright/cli playwright-cli -s=waveary-homepage-polish snapshot`
+- `npx --yes --package @playwright/cli playwright-cli -s=waveary-homepage-polish screenshot`
 
 ## Decision Sources
 
@@ -138,6 +144,7 @@ Brand line:
 - add focused route-level and browser-facing coverage for any remaining persistence edge cases beyond the current file/sqlite symmetry path
 - continue polishing the web shell by tightening the session and runtime panel density now that the high-level brand-versus-console hierarchy is in place
 - continue polishing the web shell by tightening the session and runtime panel density now that the new premium visual direction is in place
+- consider a follow-up web pass focused specifically on message density, runtime panel compression, and archive readability now that the homepage narrative order is in a stronger place
 - consider a second frontend pass focused on chat-message rhythm, archive scanability, and runtime rail compression inside the live console
 - keep session import semantic hardening paused here unless a real malformed package reveals another high-value cross-structure gap
 - consider adding finer-grained session controls such as export/import or per-session persistence diagnostics after the current reset capability
