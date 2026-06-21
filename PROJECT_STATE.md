@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `b5fcd27` - `Improve companion dialogue continuity`
+- `8c3a7be` - `Structure provider continuity thread guidance`
 
 ## Modules
 
