@@ -1099,6 +1099,17 @@ function validateExportedSessionSemantics(
     const relationship = exported.snapshot.latestInsights.relationship;
 
     if (
+      exported.snapshot.relationship &&
+      isRecord(exported.snapshot.relationship) &&
+      isRecord(relationship) &&
+      !relationshipsSemanticallyMatch(exported.snapshot.relationship, relationship)
+    ) {
+      details.push(
+        "`snapshot.latestInsights.relationship` must match `snapshot.relationship` for stage, scores, and `lastUpdatedAt`."
+      );
+    }
+
+    if (
       isRecord(relationship) &&
       typeof relationship.lastUpdatedAt === "string" &&
       isIsoTimestamp(relationship.lastUpdatedAt) &&
@@ -1190,6 +1201,19 @@ function validateExportedSessionSemantics(
 
 function buildTimelineSemanticKey(title: string, type: string, eventTime: string): string {
   return `${title}\u0000${type}\u0000${eventTime}`;
+}
+
+function relationshipsSemanticallyMatch(
+  snapshotRelationship: Record<string, unknown>,
+  latestInsightsRelationship: Record<string, unknown>
+): boolean {
+  return (
+    snapshotRelationship.stage === latestInsightsRelationship.stage &&
+    snapshotRelationship.affinityScore === latestInsightsRelationship.affinityScore &&
+    snapshotRelationship.trustScore === latestInsightsRelationship.trustScore &&
+    snapshotRelationship.stabilityScore === latestInsightsRelationship.stabilityScore &&
+    snapshotRelationship.lastUpdatedAt === latestInsightsRelationship.lastUpdatedAt
+  );
 }
 
 function validateRelationshipSnapshot(

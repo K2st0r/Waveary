@@ -257,6 +257,7 @@ It currently checks for:
 - timestamps that are structurally valid but semantically later than `snapshot.updatedAt` or `exportedAt`
 - message arrays whose valid `createdAt` values move backward in time
 - duplicate `id` values inside `snapshot.messages`
+- `snapshot.latestInsights.relationship` values that do not match `snapshot.relationship` for stage, scores, and `lastUpdatedAt`
 - timeline arrays whose valid `eventTime` values move backward in time
 - duplicate `id` values inside `snapshot.memoryArchive`
 - `snapshot.latestInsights.recalledMemories` entries that do not correspond to a memory item in `snapshot.memoryArchive`
