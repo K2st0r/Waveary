@@ -49,6 +49,19 @@
         }
       ]
     },
+    "proactiveCarePolicy": {
+      "enabled": false,
+      "quietHoursStart": "23:00",
+      "quietHoursEnd": "08:00",
+      "maxDailyReachouts": 2,
+      "allowMealCare": true,
+      "allowSleepCare": true,
+      "allowAbsenceCheckins": true
+    },
+    "proactiveCareState": {
+      "dailyReachoutsSent": 0,
+      "unansweredReachoutCount": 0
+    },
     "memoryArchive": [
       {
         "id": "memory-1",
