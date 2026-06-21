@@ -256,6 +256,7 @@ It currently checks for:
 - mismatched `sessionId` values between top-level package, snapshot payload, and message entries
 - timestamps that are structurally valid but semantically later than `snapshot.updatedAt` or `exportedAt`
 - message arrays whose valid `createdAt` values move backward in time
+- duplicate `id` values inside `snapshot.messages`
 - timeline arrays whose valid `eventTime` values move backward in time
 - duplicate `id` values inside `snapshot.memoryArchive`
 - duplicate `id` values inside `snapshot.timelineEvents`

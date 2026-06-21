@@ -642,6 +642,13 @@ test("chat session import route rejects semantically inconsistent session packag
             content: "This timestamp goes backwards.",
             sessionId: "inner-session",
             createdAt: "2026-06-20T00:00:08.000Z"
+          },
+          {
+            id: "user-1",
+            role: "user",
+            content: "Duplicate message identity.",
+            sessionId: "inner-session",
+            createdAt: "2026-06-20T00:00:09.600Z"
           }
         ],
         latestInsights: {
@@ -745,6 +752,7 @@ test("chat session import route rejects semantically inconsistent session packag
     "Timeline event 2 `eventTime` cannot be later than `snapshot.updatedAt`.",
     "`snapshot.updatedAt` cannot be later than `exportedAt`.",
     "Message 3 `createdAt` cannot be earlier than the previous message timestamp.",
+    "Message 4 `id` duplicates an earlier message ID.",
     "Timeline event 3 `eventTime` cannot be earlier than the previous timeline event.",
     "Timeline event 4 `id` duplicates an earlier timeline event ID.",
     "Memory item 2 `id` duplicates an earlier memory item ID.",
