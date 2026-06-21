@@ -48,8 +48,12 @@ function clamp(value: number): number {
 function deriveStage(currentStage: string, delta: RelationshipDelta): string {
   const score = delta.affinityDelta + delta.trustDelta;
 
-  if (score > 0.15) {
-    return currentStage === "new" ? "warming" : "growing";
+  if (currentStage === "new" && score >= 0.1) {
+    return "warming";
+  }
+
+  if (currentStage === "warming" && score >= 0.14) {
+    return "growing";
   }
 
   return currentStage;

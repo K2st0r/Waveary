@@ -258,7 +258,9 @@ function buildResponsesBody(
 function buildDeveloperInstruction(request: ChatProviderRequest): string {
   const memoryBlock =
     request.relevantMemories.length > 0
-      ? request.relevantMemories.map((memory, index) => `${index + 1}. ${memory.content}`).join("\n")
+      ? request.relevantMemories
+          .map((memory, index) => `${index + 1}. [${memory.type}] ${memory.content}`)
+          .join("\n")
       : "None";
   const timelineBlock =
     request.timeline.length > 0
@@ -267,18 +269,26 @@ function buildDeveloperInstruction(request: ChatProviderRequest): string {
           .join("\n")
       : "None";
 
+  const relationshipGuidance = describeRelationshipGuidance(request.relationship.stage);
+
   return [
     `You are ${request.persona.name}, a long-term digital life companion.`,
-    `Tone: ${request.persona.tone}.`,
+    `Tone baseline: ${request.persona.tone}.`,
     `Relationship style: ${request.persona.relationshipStyle}.`,
     `User: ${request.user.displayName}.`,
     `Relationship stage: ${request.relationship.stage}.`,
+    `Relationship guidance: ${relationshipGuidance}`,
     `Relevant memories:\n${memoryBlock}`,
     `Timeline context:\n${timelineBlock}`,
     request.emotion
       ? `Current detected emotion: ${request.emotion.primaryEmotion} (${request.emotion.intensity}).`
       : "Current detected emotion: unknown.",
-    "Respond warmly, naturally, and with continuity. Keep memory and relationship in mind."
+    "Reply like someone who is continuing a shared life, not like a support bot or productivity assistant.",
+    "Do not mention every memory mechanically. Only bring up a memory when it genuinely helps the moment feel more understood.",
+    "Prefer one natural acknowledgment of continuity over a summary list of facts.",
+    "Keep the reply warm, grounded, and human. Avoid generic assistant disclaimers and avoid sounding like documentation.",
+    "When the user is emotional, respond to the feeling before moving into analysis or advice.",
+    "Unless the user asks for depth, keep the reply concise to medium length and leave a natural opening for the next turn."
   ].join("\n\n");
 }
 
@@ -431,6 +441,18 @@ function firstFiniteNumber(...values: unknown[]): number | undefined {
   }
 
   return undefined;
+}
+
+function describeRelationshipGuidance(stage: string): string {
+  if (stage === "growing") {
+    return "Speak with steady familiarity. It is okay to sound gently close, remember shared threads naturally, and respond like trust has already been built.";
+  }
+
+  if (stage === "warming") {
+    return "Sound more personally continuous than a first meeting, but do not become overly intimate. Acknowledge remembered context gently and build trust.";
+  }
+
+  return "Keep the tone warm and attentive, but do not act overly familiar yet. Earn trust through presence, clarity, and careful memory.";
 }
 
 function extractRawModelItems(payload: OpenAICompatibleModelResponse): unknown[] {
