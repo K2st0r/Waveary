@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `df8a498` - `Finalize permission center record`
+- `bb0c15e` - `Record delivered proactive notification state`
 
 ## Modules
 
