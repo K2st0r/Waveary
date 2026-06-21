@@ -4,6 +4,39 @@
 
 Objective:
 
+Translate raw `WPCE` decision metadata into user-facing bilingual labels so proactive-care output reads like product behavior instead of internal engine diagnostics.
+
+Summary:
+
+- added localized frontend mappings for proactive-care intent, urgency, and reason codes inside `waveary-web`
+- updated the proactive decision card so the console now shows readable Chinese and English labels instead of raw enum-style strings
+- reused the same mapping for browser notification copy so the local delivery path and console evaluation surface stay semantically aligned
+- kept the change strictly inside the `waveary-web` presentation layer without modifying `WPCE` engine logic, persistence semantics, or server contracts
+
+Files changed:
+
+- `waveary-web/src/App.tsx`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/web`
+- `npm run test --workspace @waveary/web`
+- `npm run web:build`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-21
+
+Objective:
+
 Automatically clear persisted `WPCE` unanswered-reachout state after a successful real user reply so proactive care does not remain blocked after the user has already responded.
 
 Summary:

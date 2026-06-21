@@ -101,6 +101,9 @@ interface ProactiveCareDecision {
   suggestedDelayMinutes?: number;
 }
 
+type ProactiveCareIntent = NonNullable<ProactiveCareDecision["intent"]>;
+type ProactiveCareUrgency = NonNullable<ProactiveCareDecision["urgency"]>;
+
 interface ChatSessionSnapshot {
   sessionId: string;
   messages: ChatMessage[];
@@ -923,6 +926,112 @@ const enCopy = {
 
 function getCopy(locale: Locale): typeof zhCopy | typeof enCopy {
   return locale === "zh" ? zhCopy : enCopy;
+}
+
+const proactiveIntentLabels: Record<Locale, Record<ProactiveCareIntent, string>> = {
+  zh: {
+    check_in: "日常问候",
+    meal_care: "用餐关怀",
+    sleep_care: "作息关怀",
+    stress_followup: "压力跟进",
+    absence_reachout: "失联关心",
+    milestone_recall: "重要时刻回想",
+    gentle_reminder: "轻提醒",
+    celebration: "庆祝陪伴",
+    comfort: "安抚陪伴"
+  },
+  en: {
+    check_in: "Daily check-in",
+    meal_care: "Meal care",
+    sleep_care: "Sleep care",
+    stress_followup: "Stress follow-up",
+    absence_reachout: "Absence check-in",
+    milestone_recall: "Milestone recall",
+    gentle_reminder: "Gentle reminder",
+    celebration: "Celebration",
+    comfort: "Comfort"
+  }
+};
+
+const proactiveUrgencyLabels: Record<Locale, Record<ProactiveCareUrgency, string>> = {
+  zh: {
+    low: "低",
+    medium: "中",
+    high: "高"
+  },
+  en: {
+    low: "Low",
+    medium: "Medium",
+    high: "High"
+  }
+};
+
+const proactiveReasonLabels: Record<Locale, Record<string, string>> = {
+  zh: {
+    policy_disabled: "当前会话未启用主动关怀",
+    daily_reachout_limit_reached: "已达到今日主动触达上限",
+    awaiting_user_response: "正在等待用户回应上一次主动关怀",
+    quiet_hours_active: "当前处于静默时段",
+    relationship_not_ready: "当前关系阶段还不适合主动触达",
+    companion_concern_detected: "陪伴侧检测到明显担忧",
+    recent_user_sadness: "最近消息里出现了低落或压力信号",
+    care_gap_elapsed: "距离上次互动已经过了一段关怀间隔",
+    long_absence_gap: "用户已经较长时间没有出现",
+    relationship_continuity_check: "需要做一次关系连续性确认",
+    late_hour_window: "当前处于较晚时段",
+    rest_rhythm_check: "适合做一次作息关怀",
+    meal_window: "当前处于用餐时段",
+    light_daily_care: "适合一次轻量日常关怀",
+    no_trigger_met: "目前没有触发主动关怀条件"
+  },
+  en: {
+    policy_disabled: "Proactive care is disabled for this session",
+    daily_reachout_limit_reached: "The daily proactive reachout limit has been reached",
+    awaiting_user_response: "Waveary is waiting for a reply to the last proactive reachout",
+    quiet_hours_active: "The current time falls inside quiet hours",
+    relationship_not_ready: "The current relationship stage is not ready for proactive outreach",
+    companion_concern_detected: "The companion side detected elevated concern",
+    recent_user_sadness: "Recent user messages included sadness or stress signals",
+    care_gap_elapsed: "Enough time has passed since the last interaction gap for a care follow-up",
+    long_absence_gap: "The user has been absent for a longer gap",
+    relationship_continuity_check: "A relationship continuity check is appropriate",
+    late_hour_window: "The current time falls in a late-hour window",
+    rest_rhythm_check: "A rest-rhythm check is appropriate",
+    meal_window: "The current time falls in a meal window",
+    light_daily_care: "A light daily care reachout is appropriate",
+    no_trigger_met: "No proactive-care trigger is currently met"
+  }
+};
+
+function formatProactiveIntent(intent: ProactiveCareDecision["intent"], locale: Locale): string {
+  if (!intent) {
+    return "-";
+  }
+
+  return proactiveIntentLabels[locale][intent] ?? humanizeRuntimeCode(intent);
+}
+
+function formatProactiveUrgency(
+  urgency: ProactiveCareDecision["urgency"],
+  locale: Locale
+): string {
+  if (!urgency) {
+    return "-";
+  }
+
+  return proactiveUrgencyLabels[locale][urgency] ?? humanizeRuntimeCode(urgency);
+}
+
+function formatProactiveReason(reason: string, locale: Locale): string {
+  return proactiveReasonLabels[locale][reason] ?? humanizeRuntimeCode(reason);
+}
+
+function humanizeRuntimeCode(value: string): string {
+  return value
+    .split("_")
+    .filter(Boolean)
+    .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
+    .join(" ");
 }
 
 function parsePageLocation(hash: string): PageLocation {
@@ -3142,11 +3251,11 @@ export function App(): ReactElement {
                           </div>
                           <div>
                             <span>{copy.runtime.proactiveIntent}</span>
-                            <strong>{proactiveDecision.intent ?? "-"}</strong>
+                            <strong>{formatProactiveIntent(proactiveDecision.intent, locale)}</strong>
                           </div>
                           <div>
                             <span>{copy.runtime.proactiveUrgency}</span>
-                            <strong>{proactiveDecision.urgency ?? "-"}</strong>
+                            <strong>{formatProactiveUrgency(proactiveDecision.urgency, locale)}</strong>
                           </div>
                           <div>
                             <span>{copy.runtime.proactiveSuggestedDelay}</span>
@@ -3162,7 +3271,7 @@ export function App(): ReactElement {
                           {proactiveDecision.reasons.length > 0 ? (
                             <ul className="insight-list">
                               {proactiveDecision.reasons.map((reason) => (
-                                <li key={reason}>{reason}</li>
+                                <li key={reason}>{formatProactiveReason(reason, locale)}</li>
                               ))}
                             </ul>
                           ) : (
@@ -3597,9 +3706,17 @@ function deliverProactiveBrowserNotification(
   const title =
     locale === "zh" ? "Waveary 主动关怀提醒" : "Waveary Proactive Care";
   const bodyParts = [
-    decision.intent ? `intent: ${decision.intent}` : null,
-    decision.urgency ? `urgency: ${decision.urgency}` : null,
-    decision.reasons[0] ?? null
+    decision.intent
+      ? locale === "zh"
+        ? `意图：${formatProactiveIntent(decision.intent, locale)}`
+        : `Intent: ${formatProactiveIntent(decision.intent, locale)}`
+      : null,
+    decision.urgency
+      ? locale === "zh"
+        ? `级别：${formatProactiveUrgency(decision.urgency, locale)}`
+        : `Urgency: ${formatProactiveUrgency(decision.urgency, locale)}`
+      : null,
+    decision.reasons[0] ? formatProactiveReason(decision.reasons[0], locale) : null
   ].filter((part): part is string => Boolean(part));
 
   new window.Notification(title, {

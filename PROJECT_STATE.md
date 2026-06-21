@@ -96,6 +96,7 @@ Brand line:
   - the console now also includes a first explicit permission center so users can set local consent preferences for notifications, proactive delivery, time awareness, desktop presence, and future local actions
   - proactive browser-notification delivery now also records per-session reachout counters and last-delivery time so subsequent `WPCE` evaluations can suppress repeated outreach until the user replies
   - successful new user turns now automatically clear persisted `WPCE` unanswered-reachout state so proactive care can reopen naturally after the user responds without erasing daily send counts or the last reachout timestamp
+  - proactive-care evaluation output and browser notification copy now translate raw `WPCE` intent, urgency, and reason codes into user-facing Chinese and English labels instead of exposing internal engine enums directly
   - the live conversation experience now has its own dedicated chat page with a stripped-down journal-style canvas and composer
   - the visible persisted-session archive panel has been removed from the runtime rail so the console reads less like a raw internal debug dump
   - the split home / console / chat shell now has a stronger page-by-page hierarchy: the homepage reads more like a formal project front page, the console reads more like a system desk, and the chat page is more tightly focused on the active conversation surface
@@ -194,8 +195,8 @@ Brand line:
 - define the first delivery path for proactive care in the web surface, likely browser or local notifications before any broader desktop action layer
 - extend the browser notification path from manual console evaluation into a bounded scheduled or reminder-style delivery loop without introducing hidden background behavior
 - route future high-trust capabilities such as desktop presence and local actions through the new permission center instead of scattering separate ad hoc toggles through the UI
-- consider surfacing localized user-facing labels for `WPCE` reason codes and intents instead of only raw engine strings in the console
 - consider showing a user-facing indicator in the console or chat flow when a proactive care wait-state has been cleared by a real reply, so the permissioned care loop is more legible
+- consider distinguishing affirmative proactive recommendations from blocked evaluations more visually in the console card now that their text is user-facing
 - keep future desktop awareness or action work behind a separate permissioned presence layer instead of mixing it directly into chat reply generation
 - expand provider-specific chat request normalization where "OpenAI-compatible" vendors diverge beyond the current shared `/chat/completions` and `/responses` paths
 - add route-level or live verification for more provider-specific chat payload divergences after the current DeepSeek and broader structured-payload compatibility baseline
