@@ -815,23 +815,28 @@ export function App(): ReactElement {
         <div className="brand-lockup">
           <span className="brand-mark">Waveary</span>
           <span className="brand-subtitle">回响之境</span>
+          <span className="brand-caption">Digital Life Companion Framework</span>
         </div>
-        <nav className="topnav">
-          <a href="#vision">Vision</a>
-          <a href="#engines">Engines</a>
-          <a href="#console">Console</a>
-          <a href="#roadmap">Roadmap</a>
-        </nav>
+        <div className="topbar-utility">
+          <span className="topbar-note">念念不忘，终有回响。</span>
+          <nav className="topnav">
+            <a href="#vision">Vision</a>
+            <a href="#engines">Engines</a>
+            <a href="#setup">Setup</a>
+            <a href="#console">Console</a>
+            <a href="#roadmap">Roadmap</a>
+          </nav>
+        </div>
       </header>
 
       <main className="page-main">
         <section className="hero section-grid" id="vision">
           <div className="hero-copy">
-            <div className="eyebrow">Digital Life Companion Framework</div>
-            <div className="hero-identity">
-              <span>Open Source Framework</span>
-              <span>Waveary CE</span>
+            <div className="hero-badge-row">
+              <div className="eyebrow">Project Waveary</div>
+              <span className="hero-chip">Waveary CE</span>
             </div>
+            <p className="hero-kicker">Digital Life Companion Framework</p>
             <h1>
               念念不忘，
               <br />
@@ -849,69 +854,134 @@ export function App(): ReactElement {
               <a className="button button-primary" href="#console">
                 Open Companion Console
               </a>
-              <a className="button button-secondary" href="#roadmap">
-                View Build Roadmap
+              <a className="button button-secondary" href="#setup">
+                Configure A Runtime
               </a>
             </div>
-            <ul className="principle-list">
+            <div className="principle-grid">
               {principles.map((principle) => (
-                <li key={principle}>{principle}</li>
+                <article className="principle-card" key={principle}>
+                  <span className="mini-heading">Core Principle</span>
+                  <strong>{principle}</strong>
+                </article>
               ))}
-            </ul>
+            </div>
           </div>
 
-          <div className="hero-panel">
-            <div className="panel panel-hero">
-              <div className="panel-header">
-                <span>Continuity Console</span>
-                <span className="status-dot">CE</span>
+          <div className="hero-stage">
+            <div className="hero-stage-frame">
+              <div className="hero-stage-bar">
+                <span>Continuity Surface</span>
+                <span className="status-dot">Open Source Preview</span>
               </div>
-              <div className="signal-grid">
-                <div className="signal-card">
-                  <strong>Memory</strong>
-                  <span>Past details become reusable context.</span>
+              <div className="hero-stage-overview">
+                <div className="hero-stage-copy">
+                  <div className="mini-heading">What Ships Today</div>
+                  <strong>The first formal Waveary web shell is already live.</strong>
+                  <p>
+                    Provider setup, persistent sessions, runtime signals, import and export,
+                    and local archive inspection are available in one browser surface.
+                  </p>
                 </div>
-                <div className="signal-card">
-                  <strong>Relationship</strong>
-                  <span>Trust and familiarity deepen over time.</span>
-                </div>
-                <div className="signal-card">
-                  <strong>Timeline</strong>
-                  <span>Moments become life events, not just logs.</span>
-                </div>
-                <div className="signal-card">
-                  <strong>Emotion</strong>
-                  <span>State guides tone, care, and continuity.</span>
+                <div className="hero-stage-metrics">
+                  <article className="hero-stage-metric">
+                    <span>Runtime Path</span>
+                    <strong>{configuredRuntimeLabel}</strong>
+                  </article>
+                  <article className="hero-stage-metric">
+                    <span>Session Layer</span>
+                    <strong>{sessionSummaryLabel}</strong>
+                  </article>
+                  <article className="hero-stage-metric">
+                    <span>Runtime State</span>
+                    <strong>{runtimeStateLabel}</strong>
+                  </article>
+                  <article className="hero-stage-metric">
+                    <span>Archive</span>
+                    <strong>{archiveSummaryLabel}</strong>
+                  </article>
                 </div>
               </div>
-              <div className="timeline-preview">
-                <div className="timeline-row">
-                  <span>06/20</span>
-                  <p>Provider compatibility and browser setup are live.</p>
+              <div className="hero-stage-grid">
+                <div className="signal-grid">
+                  <div className="signal-card">
+                    <strong>Memory</strong>
+                    <span>Past details become reusable continuity instead of disposable context.</span>
+                  </div>
+                  <div className="signal-card">
+                    <strong>Relationship</strong>
+                    <span>Trust, affinity, and stability are treated as product state.</span>
+                  </div>
+                  <div className="signal-card">
+                    <strong>Timeline</strong>
+                    <span>Meaningful events survive the session and organize into personal history.</span>
+                  </div>
+                  <div className="signal-card">
+                    <strong>Emotion</strong>
+                    <span>Signals influence tone, care, and future proactive companionship layers.</span>
+                  </div>
                 </div>
-                <div className="timeline-row">
-                  <span>07/02</span>
-                  <p>The first in-browser Waveary chat flow now rides on saved provider configuration.</p>
-                </div>
-                <div className="timeline-row">
-                  <span>08/10</span>
-                  <p>Next step: persist session state beyond this in-memory reference shell.</p>
+                <div className="timeline-preview">
+                  <div className="timeline-row">
+                    <span>01</span>
+                    <p>Choose a provider, enter the key, and inspect the real models behind it.</p>
+                  </div>
+                  <div className="timeline-row">
+                    <span>02</span>
+                    <p>Open a session that can remember, evolve, reset, export, and restore.</p>
+                  </div>
+                  <div className="timeline-row">
+                    <span>03</span>
+                    <p>Observe memory, relationship, timeline, and archive surfaces from one runtime shell.</p>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </section>
 
+        <section className="section-grid proof-strip" aria-label="Waveary product proof">
+          <article className="proof-card proof-card-primary">
+            <span className="proof-label">Product Thesis</span>
+            <strong>Waveary is infrastructure for continuity, not a themed chatbot wrapper.</strong>
+            <p>
+              It adds memory, relationship growth, life timeline awareness, and persistent
+              companion state to any compatible model path.
+            </p>
+          </article>
+          <article className="proof-card">
+            <span className="proof-label">Live Runtime</span>
+            <strong>{runtimeStateLabel}</strong>
+            <p>Replies already return memory, relationship, emotion, and timeline signals.</p>
+          </article>
+          <article className="proof-card">
+            <span className="proof-label">Session Continuity</span>
+            <strong>{sessionSummaryLabel}</strong>
+            <p>Main and optional sessions keep continuity local, inspectable, and controllable.</p>
+          </article>
+          <article className="proof-card">
+            <span className="proof-label">Persistence</span>
+            <strong>{archiveSummaryLabel}</strong>
+            <p>Conversation and archive state can move across file and SQLite backends.</p>
+          </article>
+        </section>
+
         <section className="section-grid section-block manifesto-block">
           <div className="manifesto-layout">
             <div className="manifesto-copy">
               <div className="section-heading compact-heading">
-                <span className="eyebrow">Framework Positioning</span>
+                <span className="section-caption">Framework Positioning</span>
                 <h2>Not a roleplay shell. A continuity system for digital life companionship.</h2>
                 <p>
                   Waveary sits between the interface and the model provider. It gives any compatible model a persistent
                   memory layer, a relationship state, a life timeline, and the groundwork for emotional and voice
                   presence.
+                </p>
+              </div>
+              <div className="manifesto-quote">
+                <p>
+                  It does not try to create a smarter AI. It tries to create a partner that
+                  can remember, understand, grow, and stay with a user over time.
                 </p>
               </div>
             </div>
@@ -939,18 +1009,41 @@ export function App(): ReactElement {
 
         <section className="section-grid section-block" id="engines">
           <div className="section-heading">
-            <span className="eyebrow">Core Engines</span>
+            <span className="section-caption">Core Engines</span>
             <h2>A framework stack built for continuity, not short-term novelty.</h2>
-            <p>Each engine owns a stable continuity concern so the product shell stays expressive without stealing runtime responsibilities.</p>
+            <p>
+              Each engine owns a stable continuity concern so the product shell stays expressive
+              without stealing runtime responsibilities.
+            </p>
           </div>
-          <div className="engine-grid">
-            {engineCards.map((engine) => (
-              <article className="panel engine-card" key={engine.acronym}>
-                <span className="engine-acronym">{engine.acronym}</span>
-                <h3>{engine.name}</h3>
-                <p>{engine.summary}</p>
-              </article>
-            ))}
+          <div className="engine-layout">
+            <article className="panel engine-foundation">
+              <div className="panel-header">
+                <span>Architecture Lens</span>
+                <span className="panel-tag">waveary/</span>
+              </div>
+              <p>
+                The product is organized like a continuity operating layer: model access,
+                memory, relationship state, archive persistence, and future voice all stay
+                separable.
+              </p>
+              <div className="engine-foundation-list">
+                <span>waveary-core</span>
+                <span>waveary-web</span>
+                <span>waveary-memory</span>
+                <span>waveary-voice</span>
+                <span>waveary-mobile</span>
+              </div>
+            </article>
+            <div className="engine-grid">
+              {engineCards.map((engine) => (
+                <article className="panel engine-card" key={engine.acronym}>
+                  <span className="engine-acronym">{engine.acronym}</span>
+                  <h3>{engine.name}</h3>
+                  <p>{engine.summary}</p>
+                </article>
+              ))}
+            </div>
           </div>
         </section>
 
@@ -958,7 +1051,7 @@ export function App(): ReactElement {
           <div className="console-shell">
             <div className="console-intro">
               <div className="section-heading console-heading">
-                <span className="eyebrow">Companion Console</span>
+                <span className="section-caption">Companion Console</span>
                 <h2>The official product shell for provider setup, session continuity, and live runtime testing.</h2>
                 <p>
                   The brand layer explains what Waveary is. This console shows how the current web surface already
@@ -988,15 +1081,36 @@ export function App(): ReactElement {
                   <p>Conversation history can survive process restarts and move across file or SQLite persistence.</p>
                 </article>
               </div>
+
+              <div className="console-flow-strip">
+                <article className="console-flow-card">
+                  <span>01</span>
+                  <strong>Configure a provider path</strong>
+                  <p>Pick a vendor, validate credentials, fetch models, and save one stable runtime path.</p>
+                </article>
+                <article className="console-flow-card">
+                  <span>02</span>
+                  <strong>Open a continuity-bearing session</strong>
+                  <p>Session identity, persistence backend, import, export, reset, and archive all remain inspectable.</p>
+                </article>
+                <article className="console-flow-card">
+                  <span>03</span>
+                  <strong>Observe the runtime like a product</strong>
+                  <p>Conversation, signals, and persisted archive are separated into a main canvas and inspection rail.</p>
+                </article>
+              </div>
             </div>
           </div>
         </section>
 
         <section className="section-grid section-block console-stage feature-band" id="setup">
           <div className="section-heading console-stage-heading">
-            <span className="eyebrow">Provider Setup</span>
+            <span className="section-caption">Provider Setup</span>
             <h2>Choose the vendor, inspect the models behind your key, and pin one usable runtime path.</h2>
-            <p>This browser-native configuration flow keeps provider logic server-side while the web layer owns the setup experience.</p>
+            <p>
+              This browser-native configuration flow keeps provider logic server-side while the
+              web layer owns the setup experience.
+            </p>
           </div>
 
           <div className="setup-layout">
@@ -1033,6 +1147,17 @@ export function App(): ReactElement {
                     No saved provider configuration yet. Complete the flow on the right to create one.
                   </p>
                 )}
+              </div>
+
+              <div className="saved-config-block">
+                <div className="mini-heading">Preset Coverage</div>
+                <div className="provider-list">
+                  {presets.map((preset) => (
+                    <span className="provider-chip" key={preset.id}>
+                      {preset.label}
+                    </span>
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -1139,9 +1264,12 @@ export function App(): ReactElement {
 
         <section className="section-grid section-block console-stage" id="chat">
           <div className="section-heading console-stage-heading">
-            <span className="eyebrow">Live Runtime</span>
+            <span className="section-caption">Live Runtime</span>
             <h2>Run the current Waveary browser flow with sessions, archive visibility, and continuity signals.</h2>
-            <p>This reference shell already returns a real reply plus memory recall, relationship change, and timeline output from the underlying runtime.</p>
+            <p>
+              This reference shell already returns a real reply plus memory recall, relationship
+              change, and timeline output from the underlying runtime.
+            </p>
           </div>
 
           <div className="panel session-panel">
@@ -1469,249 +1597,253 @@ export function App(): ReactElement {
             </div>
           </div>
 
-          <div className="chat-layout">
-            <div className="panel chat-panel">
-              <div className="panel-header">
-                <span>Conversation</span>
-                <span className="panel-tag">{chatReady ? "Runtime Ready" : "Setup Required"}</span>
-              </div>
-
-              {chatRestoredAt ? (
-                <div className="status-banner status-banner-info">
-                  Restored local session history from {new Date(chatRestoredAt).toLocaleString()}.
+          <div className="runtime-grid">
+            <div className="runtime-main-column">
+              <div className="panel chat-panel">
+                <div className="panel-header">
+                  <span>Conversation Canvas</span>
+                  <span className="panel-tag">{chatReady ? "Runtime Ready" : "Setup Required"}</span>
                 </div>
-              ) : null}
 
-              <div className="chat-log">
-                {chatMessages.length === 0 ? (
-                  <div className="empty-chat-state">
-                    Save a provider configuration, then send the first message to start a live Waveary session.
+                {chatRestoredAt ? (
+                  <div className="status-banner status-banner-info">
+                    Restored local session history from {new Date(chatRestoredAt).toLocaleString()}.
                   </div>
-                ) : (
-                  chatMessages.map((message) => (
-                    <article
-                      className={`chat-bubble ${message.role === "assistant" ? "chat-bubble-assistant" : "chat-bubble-user"}`}
-                      key={message.id}
+                ) : null}
+
+                <div className="chat-log">
+                  {chatMessages.length === 0 ? (
+                    <div className="empty-chat-state">
+                      Save a provider configuration, then send the first message to start a live Waveary session.
+                    </div>
+                  ) : (
+                    chatMessages.map((message) => (
+                      <article
+                        className={`chat-bubble ${message.role === "assistant" ? "chat-bubble-assistant" : "chat-bubble-user"}`}
+                        key={message.id}
+                      >
+                        <span className="chat-role">{message.role === "assistant" ? "Waveary" : "You"}</span>
+                        <p>{message.content}</p>
+                      </article>
+                    ))
+                  )}
+                </div>
+
+                <div className="chat-composer">
+                  <textarea
+                    value={chatInput}
+                    onChange={(event) => setChatInput(event.target.value)}
+                    placeholder="Tell Waveary something worth remembering..."
+                    disabled={!chatReady || chatState === "loading"}
+                  />
+                  <div className="console-actions">
+                    <button
+                      className="button button-primary"
+                      onClick={() => void handleSendMessage()}
+                      disabled={!chatReady || !chatInput.trim() || chatState === "loading"}
                     >
-                      <span className="chat-role">{message.role === "assistant" ? "Waveary" : "You"}</span>
-                      <p>{message.content}</p>
-                    </article>
-                  ))
-                )}
-              </div>
-
-              <div className="chat-composer">
-                <textarea
-                  value={chatInput}
-                  onChange={(event) => setChatInput(event.target.value)}
-                  placeholder="Tell Waveary something worth remembering..."
-                  disabled={!chatReady || chatState === "loading"}
-                />
-                <div className="console-actions">
-                  <button
-                    className="button button-primary"
-                    onClick={() => void handleSendMessage()}
-                    disabled={!chatReady || !chatInput.trim() || chatState === "loading"}
-                  >
-                    {chatState === "loading" ? "Sending..." : "Send Message"}
-                  </button>
-                </div>
-              </div>
-
-              {sessionExportJson ? (
-                <div className="session-export-panel">
-                  <div className="panel-header">
-                    <span>Session Export</span>
-                    <span className="panel-tag">Structured JSON</span>
+                      {chatState === "loading" ? "Sending..." : "Send Message"}
+                    </button>
                   </div>
-                  <p className="provider-note">
-                    This export package includes conversation, persisted memories, relationship state, timeline events, and latest insights for the active session.
-                  </p>
-                  {sessionPackageReference ? (
-                    <div className="session-export-callout">
-                      <strong>Import safety</strong>
-                      <span>
-                        {sessionPackageReference.importRule} Current schema:
-                        {" "}
-                        {sessionPackageReference.currentSchemaVersion}
-                      </span>
-                    </div>
-                  ) : null}
-                  <pre className="session-export-block">
-                    <code>{sessionExportJson}</code>
-                  </pre>
                 </div>
-              ) : null}
-            </div>
 
-            <div className="panel insight-panel">
-              <div className="panel-header">
-                <span>Runtime Signals</span>
-                <span className="panel-tag">Memory + Relationship</span>
-              </div>
-
-              {chatInsights ? (
-                <div className="insight-stack">
-                  <div className="signal-metrics">
-                    <div className="signal-metric-card">
-                      <span>Relationship Stage</span>
-                      <strong>{chatInsights.relationship.stage}</strong>
+                {sessionExportJson ? (
+                  <div className="session-export-panel">
+                    <div className="panel-header">
+                      <span>Session Export</span>
+                      <span className="panel-tag">Structured JSON</span>
                     </div>
-                    <div className="signal-metric-card">
-                      <span>Affinity</span>
-                      <strong>{chatInsights.relationship.affinityScore.toFixed(2)}</strong>
-                    </div>
-                    <div className="signal-metric-card">
-                      <span>Trust</span>
-                      <strong>{chatInsights.relationship.trustScore.toFixed(2)}</strong>
-                    </div>
-                    <div className="signal-metric-card">
-                      <span>Stability</span>
-                      <strong>{chatInsights.relationship.stabilityScore.toFixed(2)}</strong>
-                    </div>
-                  </div>
-
-                  <div className="insight-card">
-                    <div className="mini-heading">Detected Emotion</div>
-                    <p>
-                      {chatInsights.emotion
-                        ? `${chatInsights.emotion.primaryEmotion} (${chatInsights.emotion.intensity.toFixed(2)})`
-                        : "No strong emotion signal detected for the latest turn."}
+                    <p className="provider-note">
+                      This export package includes conversation, persisted memories, relationship state, timeline events, and latest insights for the active session.
                     </p>
+                    {sessionPackageReference ? (
+                      <div className="session-export-callout">
+                        <strong>Import safety</strong>
+                        <span>
+                          {sessionPackageReference.importRule} Current schema:
+                          {" "}
+                          {sessionPackageReference.currentSchemaVersion}
+                        </span>
+                      </div>
+                    ) : null}
+                    <pre className="session-export-block">
+                      <code>{sessionExportJson}</code>
+                    </pre>
                   </div>
-
-                  <div className="insight-card">
-                    <div className="mini-heading">Recalled Memories</div>
-                    {chatInsights.recalledMemories.length > 0 ? (
-                      <ul className="insight-list">
-                        {chatInsights.recalledMemories.map((memory) => (
-                          <li key={memory}>{memory}</li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p>No recalled memories yet.</p>
-                    )}
-                  </div>
-
-                  <div className="insight-card">
-                    <div className="mini-heading">Stored Memories</div>
-                    {chatInsights.storedMemories.length > 0 ? (
-                      <ul className="insight-list">
-                        {chatInsights.storedMemories.map((memory) => (
-                          <li key={memory}>{memory}</li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p>No memory candidates were stored in the latest turn.</p>
-                    )}
-                  </div>
-
-                  <div className="insight-card">
-                    <div className="mini-heading">Timeline</div>
-                    {chatInsights.timeline.length > 0 ? (
-                      <ul className="insight-list">
-                        {chatInsights.timeline.map((event) => (
-                          <li key={`${event.eventTime}-${event.title}`}>
-                            <strong>{event.title}</strong>
-                            <span>{`${event.type} · ${event.eventTime}`}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p>No timeline events yet.</p>
-                    )}
-                  </div>
-                </div>
-              ) : (
-                <div className="empty-chat-state">
-                  Send a message to see memory recall, relationship changes, and timeline events from the runtime.
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="panel archive-panel">
-            <div className="panel-header">
-              <span>Persisted Session Archive</span>
-              <span className="panel-tag">Memory + Timeline + Relationship</span>
+                ) : null}
+              </div>
             </div>
 
-            {hasSessionArchive ? (
-              <div className="archive-grid">
-                <div className="archive-card">
-                  <div className="mini-heading">Relationship Snapshot</div>
-                  {sessionRelationship ? (
-                    <div className="signal-metrics archive-metrics">
+            <div className="runtime-side-column">
+              <div className="panel insight-panel">
+                <div className="panel-header">
+                  <span>Runtime Signals</span>
+                  <span className="panel-tag">Memory + Relationship</span>
+                </div>
+
+                {chatInsights ? (
+                  <div className="insight-stack">
+                    <div className="signal-metrics">
                       <div className="signal-metric-card">
-                        <span>Stage</span>
-                        <strong>{sessionRelationship.stage}</strong>
+                        <span>Relationship Stage</span>
+                        <strong>{chatInsights.relationship.stage}</strong>
                       </div>
                       <div className="signal-metric-card">
                         <span>Affinity</span>
-                        <strong>{sessionRelationship.affinityScore.toFixed(2)}</strong>
+                        <strong>{chatInsights.relationship.affinityScore.toFixed(2)}</strong>
                       </div>
                       <div className="signal-metric-card">
                         <span>Trust</span>
-                        <strong>{sessionRelationship.trustScore.toFixed(2)}</strong>
+                        <strong>{chatInsights.relationship.trustScore.toFixed(2)}</strong>
                       </div>
                       <div className="signal-metric-card">
                         <span>Stability</span>
-                        <strong>{sessionRelationship.stabilityScore.toFixed(2)}</strong>
+                        <strong>{chatInsights.relationship.stabilityScore.toFixed(2)}</strong>
                       </div>
                     </div>
-                  ) : (
-                    <p>No persisted relationship snapshot yet.</p>
-                  )}
+
+                    <div className="insight-card">
+                      <div className="mini-heading">Detected Emotion</div>
+                      <p>
+                        {chatInsights.emotion
+                          ? `${chatInsights.emotion.primaryEmotion} (${chatInsights.emotion.intensity.toFixed(2)})`
+                          : "No strong emotion signal detected for the latest turn."}
+                      </p>
+                    </div>
+
+                    <div className="insight-card">
+                      <div className="mini-heading">Recalled Memories</div>
+                      {chatInsights.recalledMemories.length > 0 ? (
+                        <ul className="insight-list">
+                          {chatInsights.recalledMemories.map((memory) => (
+                            <li key={memory}>{memory}</li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p>No recalled memories yet.</p>
+                      )}
+                    </div>
+
+                    <div className="insight-card">
+                      <div className="mini-heading">Stored Memories</div>
+                      {chatInsights.storedMemories.length > 0 ? (
+                        <ul className="insight-list">
+                          {chatInsights.storedMemories.map((memory) => (
+                            <li key={memory}>{memory}</li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p>No memory candidates were stored in the latest turn.</p>
+                      )}
+                    </div>
+
+                    <div className="insight-card">
+                      <div className="mini-heading">Timeline</div>
+                      {chatInsights.timeline.length > 0 ? (
+                        <ul className="insight-list">
+                          {chatInsights.timeline.map((event) => (
+                            <li key={`${event.eventTime}-${event.title}`}>
+                              <strong>{event.title}</strong>
+                              <span>{`${event.type} · ${event.eventTime}`}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p>No timeline events yet.</p>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="empty-chat-state">
+                    Send a message to see memory recall, relationship changes, and timeline events from the runtime.
+                  </div>
+                )}
+              </div>
+
+              <div className="panel archive-panel">
+                <div className="panel-header">
+                  <span>Persisted Session Archive</span>
+                  <span className="panel-tag">Memory + Timeline + Relationship</span>
                 </div>
 
-                <div className="archive-card">
-                  <div className="mini-heading">Session Memory Archive</div>
-                  {sessionMemoryArchive.length > 0 ? (
-                    <ul className="insight-list archive-list">
-                      {sessionMemoryArchive.map((memory) => (
-                        <li key={memory.id}>
-                          <strong>{formatMemoryType(memory.type)}</strong>
-                          <span>{memory.content}</span>
-                          <span>{`importance ${memory.importance.toFixed(2)} 路 ${formatSessionTimestamp(
-                            memory.createdAt
-                          )}`}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p>No persisted memories yet.</p>
-                  )}
-                </div>
+                {hasSessionArchive ? (
+                  <div className="archive-grid">
+                    <div className="archive-card">
+                      <div className="mini-heading">Relationship Snapshot</div>
+                      {sessionRelationship ? (
+                        <div className="signal-metrics archive-metrics">
+                          <div className="signal-metric-card">
+                            <span>Stage</span>
+                            <strong>{sessionRelationship.stage}</strong>
+                          </div>
+                          <div className="signal-metric-card">
+                            <span>Affinity</span>
+                            <strong>{sessionRelationship.affinityScore.toFixed(2)}</strong>
+                          </div>
+                          <div className="signal-metric-card">
+                            <span>Trust</span>
+                            <strong>{sessionRelationship.trustScore.toFixed(2)}</strong>
+                          </div>
+                          <div className="signal-metric-card">
+                            <span>Stability</span>
+                            <strong>{sessionRelationship.stabilityScore.toFixed(2)}</strong>
+                          </div>
+                        </div>
+                      ) : (
+                        <p>No persisted relationship snapshot yet.</p>
+                      )}
+                    </div>
 
-                <div className="archive-card archive-card-wide">
-                  <div className="mini-heading">Session Timeline</div>
-                  {sessionTimelineEvents.length > 0 ? (
-                    <ul className="insight-list archive-list">
-                      {sessionTimelineEvents.map((event) => (
-                        <li key={event.id}>
-                          <strong>{event.title}</strong>
-                          <span>{event.description}</span>
-                          <span>{`${event.type} 路 ${formatSessionTimestamp(event.eventTime)} 路 importance ${event.importance.toFixed(2)}`}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p>No persisted timeline events yet.</p>
-                  )}
-                </div>
+                    <div className="archive-card">
+                      <div className="mini-heading">Session Memory Archive</div>
+                      {sessionMemoryArchive.length > 0 ? (
+                        <ul className="insight-list archive-list">
+                          {sessionMemoryArchive.map((memory) => (
+                            <li key={memory.id}>
+                              <strong>{formatMemoryType(memory.type)}</strong>
+                              <span>{memory.content}</span>
+                              <span>{`importance ${memory.importance.toFixed(2)} · ${formatSessionTimestamp(
+                                memory.createdAt
+                              )}`}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p>No persisted memories yet.</p>
+                      )}
+                    </div>
+
+                    <div className="archive-card archive-card-wide">
+                      <div className="mini-heading">Session Timeline</div>
+                      {sessionTimelineEvents.length > 0 ? (
+                        <ul className="insight-list archive-list">
+                          {sessionTimelineEvents.map((event) => (
+                            <li key={event.id}>
+                              <strong>{event.title}</strong>
+                              <span>{event.description}</span>
+                              <span>{`${event.type} · ${formatSessionTimestamp(event.eventTime)} · importance ${event.importance.toFixed(2)}`}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p>No persisted timeline events yet.</p>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="empty-chat-state">
+                    Send a message worth remembering. This area will show the session&apos;s persisted memory archive,
+                    relationship snapshot, and timeline after reloads.
+                  </div>
+                )}
               </div>
-            ) : (
-              <div className="empty-chat-state">
-                Send a message worth remembering. This area will show the session&apos;s persisted memory archive,
-                relationship snapshot, and timeline after reloads.
-              </div>
-            )}
+            </div>
           </div>
         </section>
 
         <section className="section-grid section-block" id="roadmap">
           <div className="section-heading">
-            <span className="eyebrow">Execution Roadmap</span>
+            <span className="section-caption">Execution Roadmap</span>
             <h2>Build the companion layer first. Expand the experience second.</h2>
           </div>
           <div className="roadmap-grid">
