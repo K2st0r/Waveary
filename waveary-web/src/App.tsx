@@ -1570,13 +1570,13 @@ export function App(): ReactElement {
               </div>
             </article>
 
-            <div className="hero-aside-grid">
-              <article className="hero-frame-panel hero-aside-panel">
+            <div className="hero-frame-footer">
+              <article className="hero-frame-panel hero-note-card">
                 <span className="hero-frame-label">{copy.heroCards.positioningLabel}</span>
                 <strong>{copy.heroCards.positioningTitle}</strong>
                 <p>{copy.heroCards.positioningBody}</p>
               </article>
-              <article className="hero-frame-panel hero-aside-panel">
+              <article className="hero-frame-panel hero-note-card">
                 <span className="hero-frame-label">{copy.heroCards.audienceLabel}</span>
                 <strong>{copy.heroCards.audienceTitle}</strong>
                 <p>{copy.heroCards.audienceBody}</p>
@@ -1733,13 +1733,33 @@ export function App(): ReactElement {
         <section className="section-grid section-block console-section" id="console">
           <div className="console-shell">
             <div className="console-intro">
-              <div className="section-heading console-heading">
-                <span className="section-caption">{copy.console.caption}</span>
-                <h2>{copy.console.title}</h2>
-                <p>{copy.console.description}</p>
+              <div className="console-masthead">
+                <div className="section-heading console-heading">
+                  <span className="section-caption">{copy.console.caption}</span>
+                  <h2>{copy.console.title}</h2>
+                  <p>{copy.console.description}</p>
+                </div>
+
+                <div className="console-quick-panel">
+                  <span className="mini-heading">{locale === "zh" ? "当前状态" : "Current status"}</span>
+                  <strong>{chatReady ? copy.runtime.runtimeReady : copy.runtime.setupRequired}</strong>
+                  <p>
+                    {locale === "zh"
+                      ? "把框架解释留在首页，把配置、会话与运行状态留在这里。当前页面应该像系统桌面，而不是第二个营销首屏。"
+                      : "Keep the framework story on the homepage and keep setup, sessions, and runtime state here. This page should read like a system desk, not a second landing hero."}
+                  </p>
+                  <div className="console-actions">
+                    <button className="button button-primary" onClick={() => navigateTo("chat")} type="button">
+                      {locale === "zh" ? "进入对话页" : "Open chat"}
+                    </button>
+                    <button className="button button-secondary" onClick={() => navigateTo("roadmap")} type="button">
+                      {locale === "zh" ? "查看路线图" : "View roadmap"}
+                    </button>
+                  </div>
+                </div>
               </div>
 
-              <div className="console-summary-grid">
+              <div className="console-status-board">
                 {copy.console.summary.map(([label, description], index) => (
                   <article className="console-summary-card" key={label}>
                     <span className="console-summary-label">{label}</span>

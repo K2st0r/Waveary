@@ -4,6 +4,49 @@
 
 Objective:
 
+Refine the split `waveary-web` surfaces so the homepage feels like a formal open source project front page, the console reads like a management desk, and the chat page feels more like a focused conversation room, without breaking any existing provider, session, import/export, persistence, or live chat behavior.
+
+Summary:
+
+- added `waveary-web/PRODUCT.md` so future frontend skill runs have stable local product context instead of inferring Waveary Web from scratch
+- reshaped the homepage hero so the primary brand statement and the project-definition composition feel more intentional and less like repeated documentation cards
+- compressed the console first screen into a clearer masthead plus current-status panel so actionable setup and runtime context sit higher in the viewport
+- tightened the chat page header into an inline session strip and gave the journal conversation canvas more of the screen so the page feels closer to a single-purpose dialogue room
+- verified the visual pass with scoped TypeScript checks, a production web build, a live local HTTP check, and fresh Playwright first-screen browser captures for `#home`, `#console`, and `#chat`
+
+Files changed:
+
+- `waveary-web/PRODUCT.md`
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/web`
+- `npm run web:build`
+- `curl.exe -I http://127.0.0.1:4173/`
+- `npx --yes --package @playwright/cli playwright-cli -s=waveary-home-check open http://127.0.0.1:4173/#home --headed`
+- `npx --yes --package @playwright/cli playwright-cli -s=waveary-home-check resize 1440 1200`
+- `npx --yes --package @playwright/cli playwright-cli -s=waveary-home-check screenshot`
+- `npx --yes --package @playwright/cli playwright-cli -s=waveary-console-check open http://127.0.0.1:4173/#console --headed`
+- `npx --yes --package @playwright/cli playwright-cli -s=waveary-console-check resize 1440 1200`
+- `npx --yes --package @playwright/cli playwright-cli -s=waveary-console-check screenshot`
+- `npx --yes --package @playwright/cli playwright-cli -s=waveary-chat-check open http://127.0.0.1:4173/#chat --headed`
+- `npx --yes --package @playwright/cli playwright-cli -s=waveary-chat-check resize 1440 1200`
+- `npx --yes --package @playwright/cli playwright-cli -s=waveary-chat-check screenshot`
+
+Commit:
+
+- `pending`
+
+Push:
+
+- pending
+
+Objective:
+
 Reorganize the `waveary-web` multi-page shell so all explanatory framework content lives on the homepage, the console page focuses on management, and the conversation experience moves into a separate minimal chat page.
 
 Summary:

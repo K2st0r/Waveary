@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `19b5bc8` - `Split waveary web console and chat surfaces`
+- `pending` - visual hierarchy polish for the split `waveary-web` home, console, and chat pages is verified locally and awaiting commit
 
 ## Modules
 
@@ -38,6 +38,7 @@ Brand line:
   - Node-based extractor and store tests are implemented
 - `waveary-web`
   - standalone React and Vite workspace exists
+  - local product context is now documented in `waveary-web/PRODUCT.md` so future frontend redesign or polish passes can resume with stable product intent
   - official homepage is implemented
   - product positioning, engine stack, provider compatibility, roadmap, and repository structure are presented in the first page
   - homepage information architecture now separates brand vision, framework positioning, and the companion console so the product no longer reads like one long debug dashboard
@@ -83,6 +84,7 @@ Brand line:
   - the management console now focuses on provider setup, session controls, persistence switching, import/export, and runtime diagnostics
   - the live conversation experience now has its own dedicated chat page with a stripped-down journal-style canvas and composer
   - the visible persisted-session archive panel has been removed from the runtime rail so the console reads less like a raw internal debug dump
+  - the split home / console / chat shell now has a stronger page-by-page hierarchy: the homepage reads more like a formal project front page, the console reads more like a system desk, and the chat page is more tightly focused on the active conversation surface
 
 ## Provider Flow
 
@@ -147,6 +149,7 @@ Brand line:
 - `curl.exe -I http://127.0.0.1:4173/`
 - Playwright browser verification for `#home`, `#framework`, and `#console` on `http://127.0.0.1:4173/`
 - Playwright browser verification for `#console` and `#chat` on `http://127.0.0.1:4173/`
+- Playwright browser verification for refreshed `#home`, `#console`, and `#chat` first screens on `http://127.0.0.1:4173/`
 
 ## Decision Sources
 
@@ -157,8 +160,8 @@ Brand line:
 - expand provider-specific chat request normalization where "OpenAI-compatible" vendors diverge beyond the current shared `/chat/completions` and `/responses` paths
 - add route-level or live verification for more provider-specific chat payload divergences after the current DeepSeek compatibility baseline
 - add focused route-level and browser-facing coverage for any remaining persistence edge cases beyond the current file/sqlite symmetry path
-- continue polishing the split web shell by tightening session-management density in the console and improving message rhythm in the dedicated chat page
-- validate the bilingual home / console / chat shell in a broader browser pass and tune any remaining spacing or readability issues caused by mixed Chinese and English line lengths
+- continue polishing the split web shell by tightening session-management density below the console fold and improving message rhythm plus mixed-language balance in the dedicated chat page
+- validate the bilingual home / console / chat shell in a broader browser pass and tune any remaining spacing, wrapping, or readability issues caused by mixed Chinese and English line lengths
 - consider a follow-up web pass focused specifically on richer chat-page signal affordances that do not drag diagnostics clutter back into the conversation view
 - keep session import semantic hardening paused here unless a real malformed package reveals another high-value cross-structure gap
 - consider adding finer-grained session controls such as export/import or per-session persistence diagnostics after the current reset capability
