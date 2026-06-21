@@ -4,6 +4,37 @@
 
 Objective:
 
+Nudge the homepage lighter flame one more step left and upward so the visible ignition point sits even closer to the lighter tip while keeping the rebuilt flame stack and burn timing unchanged.
+
+Summary:
+
+- adjusted only the `.hero-memory-lighter-flame` anchor coordinates again in `waveary-web/src/styles.css`
+- moved the flame a small additional amount left/up across desktop, tablet, and mobile breakpoints rather than changing flame size, shape, or animation layers
+- preserved all homepage motion structure so this remains a pure positional polish pass
+- verified the homepage still builds successfully after the micro-adjustment
+
+Files changed:
+
+- `waveary-web/src/styles.css`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run web:build`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-21
+
+Objective:
+
 Nudge the homepage lighter flame slightly further left and upward so the burn focal point sits more convincingly on the lighter nozzle without changing the flame animation structure or any runtime behavior.
 
 Summary:

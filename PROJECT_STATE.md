@@ -93,6 +93,7 @@ Brand line:
   - burn timing, glow, scorch, and ash motion are now tuned together so the portrait burn cycle reads more like one repeated memory ritual than one static decorative loop
   - homepage lighter flame now uses a multi-layer animated flame stack with halo, outer flame, inner flame, and core so the burn focal point feels more like a real lighter flame than a flat icon
   - homepage lighter flame anchor is now nudged slightly further left and upward across desktop and mobile breakpoints so the burn contact point aligns more tightly with the lighter nozzle
+  - homepage lighter flame anchor has received one additional micro-adjustment farther left/up so the visible ignition point sits closer to the lighter tip without shifting the burn animation itself
 
 ## Provider Flow
 
