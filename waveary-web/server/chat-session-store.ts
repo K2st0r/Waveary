@@ -679,6 +679,14 @@ function cloneContext(context: RuntimeContext): RuntimeContext {
 
 function validateExportedChatSession(exported: ExportedChatSession): void {
   const details: string[] = [];
+  const snapshotSessionId =
+    exported.snapshot && typeof exported.snapshot === "object" && typeof exported.snapshot.sessionId === "string"
+      ? exported.snapshot.sessionId
+      : null;
+  const snapshotUpdatedAt =
+    exported.snapshot && typeof exported.snapshot === "object" && typeof exported.snapshot.updatedAt === "string"
+      ? exported.snapshot.updatedAt
+      : null;
 
   if (!exported || typeof exported !== "object") {
     throw new ChatSessionImportValidationError("A valid exported session package is required.", [
@@ -715,6 +723,14 @@ function validateExportedChatSession(exported: ExportedChatSession): void {
 
   if (exported.snapshot?.sessionId && typeof exported.snapshot.sessionId !== "string") {
     details.push("`snapshot.sessionId` must be a string.");
+  } else if (
+    typeof exported.sessionId === "string" &&
+    exported.sessionId.trim() &&
+    typeof exported.snapshot?.sessionId === "string" &&
+    exported.snapshot.sessionId.trim() &&
+    exported.sessionId !== exported.snapshot.sessionId
+  ) {
+    details.push("`sessionId` must match `snapshot.sessionId`.");
   }
 
   if (!exported.snapshot?.updatedAt) {
@@ -767,6 +783,30 @@ function validateExportedChatSession(exported: ExportedChatSession): void {
       if (typeof message.content !== "string") {
         details.push(`Message ${index + 1} is missing a string \`content\`.`);
       }
+
+      if (
+        snapshotSessionId &&
+        "sessionId" in message &&
+        typeof message.sessionId === "string" &&
+        message.sessionId !== snapshotSessionId
+      ) {
+        details.push(
+          `Message ${index + 1} \`sessionId\` must match \`snapshot.sessionId\`.`
+        );
+      }
+
+      if (
+        "createdAt" in message &&
+        typeof message.createdAt === "string" &&
+        snapshotUpdatedAt &&
+        isIsoTimestamp(message.createdAt) &&
+        isIsoTimestamp(snapshotUpdatedAt) &&
+        Date.parse(message.createdAt) > Date.parse(snapshotUpdatedAt)
+      ) {
+        details.push(
+          `Message ${index + 1} \`createdAt\` cannot be later than \`snapshot.updatedAt\`.`
+        );
+      }
     });
   }
 
@@ -797,6 +837,14 @@ function validateExportedChatSession(exported: ExportedChatSession): void {
         details.push(`Memory item ${index + 1} is missing a string \`createdAt\`.`);
       } else if (!isIsoTimestamp(memory.createdAt)) {
         details.push(`Memory item ${index + 1} \`createdAt\` must be a valid ISO timestamp.`);
+      } else if (
+        snapshotUpdatedAt &&
+        isIsoTimestamp(snapshotUpdatedAt) &&
+        Date.parse(memory.createdAt) > Date.parse(snapshotUpdatedAt)
+      ) {
+        details.push(
+          `Memory item ${index + 1} \`createdAt\` cannot be later than \`snapshot.updatedAt\`.`
+        );
       }
     });
   }
@@ -826,6 +874,14 @@ function validateExportedChatSession(exported: ExportedChatSession): void {
         details.push(`Timeline event ${index + 1} is missing a string \`eventTime\`.`);
       } else if (!isIsoTimestamp(event.eventTime)) {
         details.push(`Timeline event ${index + 1} \`eventTime\` must be a valid ISO timestamp.`);
+      } else if (
+        snapshotUpdatedAt &&
+        isIsoTimestamp(snapshotUpdatedAt) &&
+        Date.parse(event.eventTime) > Date.parse(snapshotUpdatedAt)
+      ) {
+        details.push(
+          `Timeline event ${index + 1} \`eventTime\` cannot be later than \`snapshot.updatedAt\`.`
+        );
       }
 
       if (!isFiniteNumber(event.importance)) {
@@ -835,6 +891,8 @@ function validateExportedChatSession(exported: ExportedChatSession): void {
       }
     });
   }
+
+  validateExportedSessionSemantics(exported, details);
 
   if (details.length > 0) {
     throw new ChatSessionImportValidationError(
@@ -924,6 +982,64 @@ function validateLatestInsights(
       } else if (!isUnitInterval(latestInsights.emotion.intensity)) {
         details.push("`snapshot.latestInsights.emotion.intensity` must be between 0 and 1.");
       }
+    }
+  }
+}
+
+function validateExportedSessionSemantics(
+  exported: ExportedChatSession,
+  details: string[]
+): void {
+  if (!isIsoTimestamp(exported.exportedAt) || !isIsoTimestamp(exported.snapshot.updatedAt)) {
+    return;
+  }
+
+  const snapshotUpdatedAt = Date.parse(exported.snapshot.updatedAt);
+  const exportedAt = Date.parse(exported.exportedAt);
+
+  if (snapshotUpdatedAt > exportedAt) {
+    details.push("`snapshot.updatedAt` cannot be later than `exportedAt`.");
+  }
+
+  if (exported.snapshot.relationship && isRecord(exported.snapshot.relationship)) {
+    const relationshipLastUpdatedAt = exported.snapshot.relationship.lastUpdatedAt;
+
+    if (
+      typeof relationshipLastUpdatedAt === "string" &&
+      isIsoTimestamp(relationshipLastUpdatedAt) &&
+      Date.parse(relationshipLastUpdatedAt) > snapshotUpdatedAt
+    ) {
+      details.push("`snapshot.relationship.lastUpdatedAt` cannot be later than `snapshot.updatedAt`.");
+    }
+  }
+
+  if (exported.snapshot.latestInsights && isRecord(exported.snapshot.latestInsights)) {
+    const relationship = exported.snapshot.latestInsights.relationship;
+
+    if (
+      isRecord(relationship) &&
+      typeof relationship.lastUpdatedAt === "string" &&
+      isIsoTimestamp(relationship.lastUpdatedAt) &&
+      Date.parse(relationship.lastUpdatedAt) > snapshotUpdatedAt
+    ) {
+      details.push(
+        "`snapshot.latestInsights.relationship.lastUpdatedAt` cannot be later than `snapshot.updatedAt`."
+      );
+    }
+
+    if (Array.isArray(exported.snapshot.latestInsights.timeline)) {
+      exported.snapshot.latestInsights.timeline.forEach((event, index) => {
+        if (
+          isRecord(event) &&
+          typeof event.eventTime === "string" &&
+          isIsoTimestamp(event.eventTime) &&
+          Date.parse(event.eventTime) > snapshotUpdatedAt
+        ) {
+          details.push(
+            `Latest insight timeline entry ${index + 1} \`eventTime\` cannot be later than \`snapshot.updatedAt\`.`
+          );
+        }
+      });
     }
   }
 }

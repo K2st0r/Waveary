@@ -610,6 +610,91 @@ test("chat session import route rejects invalid timestamps, roles, and score ran
   ]);
 });
 
+test("chat session import route rejects semantically inconsistent session packages", async () => {
+  const middleware = createProviderApiMiddleware();
+
+  const response = await invokeJsonRoute(middleware, "POST", "/api/chat/session/import", {
+    exported: {
+      schemaVersion: "waveary-session@1",
+      exportedAt: "2026-06-20T00:00:05.000Z",
+      sessionId: "outer-session",
+      title: "Inconsistent Session",
+      snapshot: {
+        sessionId: "inner-session",
+        messages: [
+          {
+            id: "user-1",
+            role: "user",
+            content: "Mismatched session id on message.",
+            sessionId: "wrong-message-session",
+            createdAt: "2026-06-20T00:00:11.000Z"
+          }
+        ],
+        latestInsights: {
+          reply: "reply",
+          relationship: {
+            stage: "growing",
+            affinityScore: 0.5,
+            trustScore: 0.5,
+            stabilityScore: 0.5,
+            lastUpdatedAt: "2026-06-20T00:00:12.000Z"
+          },
+          recalledMemories: [],
+          storedMemories: [],
+          timeline: [
+            {
+              title: "Late insight event",
+              type: "reflection",
+              eventTime: "2026-06-20T00:00:13.000Z"
+            }
+          ]
+        },
+        memoryArchive: [
+          {
+            id: "memory-1",
+            type: "reflection",
+            content: "Late memory",
+            importance: 0.7,
+            createdAt: "2026-06-20T00:00:14.000Z"
+          }
+        ],
+        relationship: {
+          stage: "growing",
+          affinityScore: 0.55,
+          trustScore: 0.52,
+          stabilityScore: 0.61,
+          lastUpdatedAt: "2026-06-20T00:00:15.000Z"
+        },
+        timelineEvents: [
+          {
+            id: "timeline-1",
+            title: "Late timeline event",
+            description: "Occurs after snapshot update.",
+            type: "reflection",
+            eventTime: "2026-06-20T00:00:16.000Z",
+            importance: 0.6
+          }
+        ],
+        updatedAt: "2026-06-20T00:00:10.000Z"
+      }
+    }
+  });
+
+  assert.equal(response.statusCode, 400);
+  assert.equal(response.body.error, "Exported session package failed validation.");
+  assert.deepEqual(response.body.details, [
+    "`sessionId` must match `snapshot.sessionId`.",
+    "Message 1 `sessionId` must match `snapshot.sessionId`.",
+    "Message 1 `createdAt` cannot be later than `snapshot.updatedAt`.",
+    "Memory item 1 `createdAt` cannot be later than `snapshot.updatedAt`.",
+    "Timeline event 1 `eventTime` cannot be later than `snapshot.updatedAt`.",
+    "`snapshot.updatedAt` cannot be later than `exportedAt`.",
+    "`snapshot.relationship.lastUpdatedAt` cannot be later than `snapshot.updatedAt`.",
+    "`snapshot.latestInsights.relationship.lastUpdatedAt` cannot be later than `snapshot.updatedAt`.",
+    "Latest insight timeline entry 1 `eventTime` cannot be later than `snapshot.updatedAt`."
+  ]);
+});
+
 test("chat session format route returns import safety guidance and sample package", async () => {
   const middleware = createProviderApiMiddleware();
   const response = await invokeJsonRoute(middleware, "GET", "/api/chat/session/format");
