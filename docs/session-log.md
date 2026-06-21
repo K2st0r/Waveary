@@ -29,11 +29,11 @@ Verification:
 
 Commit:
 
-- pending
+- `b93ef31` - `Validate session import duplicate identities`
 
 Push:
 
-- pending
+- succeeded
 
 ## 2026-06-21
 
