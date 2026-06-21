@@ -4,6 +4,41 @@
 
 Objective:
 
+Extend Waveary browser session import semantic validation so duplicate memory and timeline identities inside one imported snapshot are rejected before restore.
+
+Summary:
+
+- added duplicate ID checks for `snapshot.memoryArchive` so one import package cannot restore multiple memory rows under the same identity
+- added duplicate ID checks for `snapshot.timelineEvents` so one import package cannot restore conflicting timeline event identities
+- kept the change inside the existing `waveary-web` import contract and expanded the semantic regression route coverage rather than changing `waveary-core`
+- documented the duplicate identity rule in the session package format reference for external generators
+
+Files changed:
+
+- `waveary-web/server/chat-session-store.ts`
+- `waveary-web/server/provider-api.test.ts`
+- `docs/session-file-format.md`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/web`
+- `npm run build:server --workspace @waveary/web`
+- `node --test waveary-web/dist-server/server/provider-api.test.js`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-21
+
+Objective:
+
 Extend Waveary browser session import semantic validation so message and timeline arrays with backward-moving timestamps are rejected before restore.
 
 Summary:

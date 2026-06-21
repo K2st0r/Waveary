@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `756a8e6` - `Validate session import ordering semantics`
+- `pending commit` - `Validate session import duplicate identities`
 
 ## Modules
 
@@ -63,6 +63,7 @@ Brand line:
   - browser session import validation now checks richer snapshot structures, including relationship payloads, latest insight payloads, memory metadata, and timeline metadata before restore
   - browser session import validation now also rejects cross-field semantic inconsistencies such as mismatched session IDs and timestamps that exceed `snapshot.updatedAt` or `exportedAt`
   - browser session import validation now also rejects out-of-order message timestamps and backward-moving timeline sequences inside snapshot and latest-insight arrays
+  - browser session import validation now also rejects duplicate memory and timeline IDs inside a single imported snapshot
   - non-default sessions can now be renamed and deleted through the web session layer
   - Windows-safe local dev and preview entrypoints are implemented for the current workspace path setup
   - package boundary is documented for future provider setup and runtime UI work
@@ -131,7 +132,7 @@ Brand line:
 - consider adding import or downloadable file export flows now that structured session export is available
 - consider validating downloadable file-based import/export or partial merge tools now that session migration is possible in-browser
 - consider adding stronger schema validation and user-facing import diagnostics for malformed session files
-- consider extending the versioned session package contract with deeper semantic checks beyond ordering, such as archive de-duplication or duplicate identity rules
+- consider extending the versioned session package contract with deeper semantic checks beyond ordering and duplicate IDs, such as archive de-duplication across related structures
 - consider planning the next schema migration rule before any non-backward-compatible session package change lands
 - consider hardening workspace build scripts further against transient Windows dist-lock races
 - keep updating `PROJECT_STATE.md` and `docs/session-log.md` after each verified work block
