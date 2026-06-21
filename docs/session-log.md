@@ -4,6 +4,38 @@
 
 Objective:
 
+Refactor the daypart-aware proactive copy into one reusable web-side message composer so console summaries and browser notifications stop carrying separate tone logic.
+
+Summary:
+
+- replaced the split `buildProactiveNotificationLead()` plus `buildProactiveDecisionSummary()` path with one shared `buildProactiveMessageDraft()` composer inside `waveary-web/src/App.tsx`
+- updated both the browser notification path and the `WPCE` console card summary to consume the same draft structure, keeping lead, title, and body copy aligned across surfaces
+- kept the refactor strictly inside the web presentation layer; no `WPCE` engine behavior, persistence shape, permission rules, or delivery bookkeeping changed
+- left the composer inside `App.tsx` for now because only the current console and browser notification surfaces use it, but recorded the follow-up to extract it once another delivery surface needs the same output
+
+Files changed:
+
+- `waveary-web/src/App.tsx`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run test --workspace @waveary/web`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-21
+
+Objective:
+
 Align the `WPCE` console decision summary with the new daypart-aware browser notification tone so the local product surface explains proactive recommendations in the same voice it delivers them.
 
 Summary:
