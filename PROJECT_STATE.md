@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `b94644e` - `Sync flame anchor retry records`
+- `556580a` - `Record SSH push migration`
 
 ## Modules
 

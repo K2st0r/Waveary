@@ -26,11 +26,11 @@ Verification:
 
 Commit:
 
-- pending
+- `556580a` - `Record SSH push migration`
 
 Push:
 
-- pending
+- succeeded: `git push origin main` completed over SSH after switching `origin` to `git@github.com:K2st0r/-Waveary-.git`
 
 ## 2026-06-21
 
