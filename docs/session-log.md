@@ -4,6 +4,43 @@
 
 Objective:
 
+Split the `waveary-web` landing surface into shorter multi-page views and remove the visible persisted-session archive panel, without breaking provider setup, session management, runtime chat, or bilingual behavior.
+
+Summary:
+
+- replaced the earlier long single-page flow with shorter hash-based views for home, framework, console, and roadmap while keeping the existing React state and local API flows intact
+- kept the public homepage focused on brand and positioning, moved framework detail into its own view, and isolated provider setup plus runtime tools into a dedicated console page
+- removed the visible persisted-session archive panel from the runtime rail so the live console feels less abrupt and less like an internal debug surface
+- verified the refactor through scoped type checks, a production web build, a live local HTTP response, and a headed Playwright browser pass across `#home`, `#framework`, and `#console`
+
+Files changed:
+
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/web`
+- `npm run web:build`
+- `curl.exe -I http://127.0.0.1:4173/`
+- `npx --yes --package @playwright/cli playwright-cli -s=waveary-multipage-check open http://127.0.0.1:4173/ --headed`
+- `npx --yes --package @playwright/cli playwright-cli -s=waveary-multipage-check resize 1440 1200`
+- `npx --yes --package @playwright/cli playwright-cli -s=waveary-multipage-check snapshot`
+- `npx --yes --package @playwright/cli playwright-cli -s=waveary-multipage-check screenshot`
+
+Commit:
+
+- `48b52e6` - `Split waveary web into focused pages`
+
+Push:
+
+- pending
+
+Objective:
+Objective:
+
 Add a direct Chinese and English language toggle to the `waveary-web` homepage and runtime console without breaking the existing provider setup, session management, chat, import/export, or persistence behavior.
 
 Summary:
