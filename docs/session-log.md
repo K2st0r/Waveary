@@ -4,6 +4,42 @@
 
 Objective:
 
+Expose the current `WPCE` decision output through a read-only local web route so proactive-care policy evaluation can be exercised from the product surface before delivery is implemented.
+
+Summary:
+
+- added a read-only `/api/chat/proactive/evaluate` route in `waveary-web/server/provider-api.ts`
+- extended `waveary-web/server/chat-runtime.ts` with `evaluateChatProactiveCare()` so persisted sessions can be evaluated through `WavearyRuntime.evaluateProactiveCare()` without requiring a configured model provider
+- kept the route inspection-only by reusing persisted session context and returning the current session snapshot plus decision result, without generating any outbound message or mutating proactive policy state
+- added route-level coverage proving proactive evaluation works without provider config and still returns a real `WPCE` decision for a persisted session
+
+Files changed:
+
+- `waveary-web/server/chat-runtime.ts`
+- `waveary-web/server/provider-api.ts`
+- `waveary-web/server/provider-api.test.ts`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/core`
+- `npm run check --workspace @waveary/web`
+- `npm run test --workspace @waveary/web`
+- `npm run web:build`
+
+Commit:
+
+- `pending` - `Add proactive care inspection route`
+
+Push:
+
+- pending
+
+## 2026-06-21
+
+Objective:
+
 Implement the first `WPCE` decision-only runtime layer so proactive care becomes a bounded, relationship-aware system capability instead of an unstructured future idea.
 
 Summary:

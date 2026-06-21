@@ -15,7 +15,11 @@ const {
   createDefaultChatPersistenceConfig,
   saveChatPersistenceConfig
 } = await import("./chat-persistence-config.js");
-const { createChatSession, DEFAULT_CHAT_SESSION_ID } = await import("./chat-session-store.js");
+const {
+  createChatSession,
+  DEFAULT_CHAT_SESSION_ID,
+  importChatSession
+} = await import("./chat-session-store.js");
 const { saveProviderConfig } = await import("./provider-config.js");
 const { resetChatRuntimeSessions } = await import("./chat-runtime.js");
 
@@ -223,6 +227,64 @@ test("chat session route returns the requested persisted snapshot", async () => 
     response.body.session.timelineEvents[0]?.description,
     "Please remember this route-level session test."
   );
+});
+
+test("chat proactive evaluation route returns a read-only decision without requiring provider config", async () => {
+  const imported = importChatSession({
+    schemaVersion: "waveary-session@1",
+    exportedAt: "2026-06-21T12:00:00.000Z",
+    sessionId: "session-proactive-source",
+    title: "Proactive Evaluation Session",
+    snapshot: {
+      sessionId: "session-proactive-source",
+      messages: [
+        {
+          id: "user-1",
+          role: "user",
+          content: "I have been under a lot of stress lately.",
+          sessionId: "session-proactive-source",
+          timestamp: "2026-06-19T20:00:00.000Z",
+          metadata: {}
+        },
+        {
+          id: "assistant-1",
+          role: "assistant",
+          content: "I am here with you.",
+          sessionId: "session-proactive-source",
+          timestamp: "2026-06-19T20:01:00.000Z",
+          metadata: {}
+        }
+      ],
+      latestInsights: null,
+      memoryArchive: [],
+      relationship: {
+        userId: "user-web-1",
+        stage: "warming",
+        affinityScore: 0.48,
+        trustScore: 0.46,
+        stabilityScore: 0.58,
+        lastUpdatedAt: "2026-06-19T20:01:00.000Z"
+      },
+      timelineEvents: [],
+      updatedAt: "2026-06-21T11:00:00.000Z"
+    }
+  });
+
+  const middleware = createProviderApiMiddleware();
+  const response = await invokeJsonRoute(middleware, "POST", "/api/chat/proactive/evaluate", {
+    sessionId: imported.session.sessionId,
+    now: "2026-06-21T10:30:00.000Z",
+    policy: {
+      enabled: true
+    }
+  });
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.session.sessionId, imported.session.sessionId);
+  assert.equal(response.body.decision.shouldReachOut, true);
+  assert.equal(response.body.decision.intent, "absence_reachout");
+  assert.equal(response.body.decision.urgency, "medium");
+  assert.equal(response.body.decision.reasons.includes("long_absence_gap"), true);
 });
 
 test("chat session export route returns a structured export package for the active session", async () => {

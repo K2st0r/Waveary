@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `f774b3d` - `Implement proactive care decision engine foundation`
+- `pending` - `Add proactive care inspection route`
 
 ## Modules
 
@@ -125,6 +125,7 @@ Brand line:
   - now keeps all explanatory framework material on the homepage while reserving the console page for system management and the chat page for the active dialogue only
   - can list provider presets, fetch models through the selected provider key, and save local config
   - can run a first browser chat flow and render memory, relationship, emotion, and timeline signals
+  - now exposes a read-only `/api/chat/proactive/evaluate` route so the current `WPCE` decision path can be inspected from the local web runtime without generating outbound messages
   - restores local chat history and latest runtime signals after dev server restart
   - can switch local chat persistence between `.waveary/chat-sessions.json` and `.waveary/chat-sessions.db`
   - supports a default main companion session plus user-created additional sessions with rename and delete management
@@ -179,8 +180,8 @@ Brand line:
 
 ## Next Steps
 
-- expose the current `WPCE` decision result through a read-only web/runtime inspection path so the first proactive policy can be exercised from the local product surface before delivery is added
 - define and persist the first user-configurable proactive care policy plus care-state counters in the session layer so decision results can reflect real user settings and rate limits across restarts
+- consider surfacing the new read-only proactive evaluation result in the console/runtime diagnostics UI once the final inspection contract is stable
 - define the first delivery path for proactive care in the web surface, likely browser or local notifications before any broader desktop action layer
 - keep future desktop awareness or action work behind a separate permissioned presence layer instead of mixing it directly into chat reply generation
 - expand provider-specific chat request normalization where "OpenAI-compatible" vendors diverge beyond the current shared `/chat/completions` and `/responses` paths

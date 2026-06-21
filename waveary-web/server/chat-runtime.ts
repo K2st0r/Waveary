@@ -1,6 +1,9 @@
 import {
+  type ChatProvider,
   InMemoryEmotionStore,
   OpenAICompatibleChatProvider,
+  type ProactiveCarePolicy,
+  type ProactiveCareState,
   SimpleEmotionAnalyzer,
   SimpleCompanionEmotionEngine,
   SimpleProactiveCareEngine,
@@ -23,6 +26,12 @@ import { loadSavedProviderConfig } from "./provider-config.js";
 interface ChatSessionState {
   persistentState: PersistentChatSessionState;
   runtime: WavearyRuntime;
+}
+
+export interface ChatProactiveCareEvaluationOptions {
+  now?: string;
+  policy?: Partial<ProactiveCarePolicy>;
+  state?: Partial<ProactiveCareState>;
 }
 
 const sessions = new Map<string, ChatSessionState>();
@@ -77,6 +86,41 @@ export function resetChatRuntimeSessions(): void {
   sessions.clear();
 }
 
+export async function evaluateChatProactiveCare(
+  sessionId: string,
+  options: ChatProactiveCareEvaluationOptions = {}
+): Promise<{
+  decision: Awaited<ReturnType<WavearyRuntime["evaluateProactiveCare"]>>;
+  session: ChatSessionSnapshot | null;
+}> {
+  const cacheKey = getRuntimeCacheKey(sessionId);
+  const cached = sessions.get(cacheKey);
+
+  if (cached) {
+    const context = cached.persistentState.getContext();
+    const decision = await cached.runtime.evaluateProactiveCare(context, options);
+
+    return {
+      decision,
+      session: cached.persistentState.getSnapshot() ?? null
+    };
+  }
+
+  const transientState = createSessionState(sessionId, { requireProvider: false });
+
+  try {
+    const context = transientState.persistentState.getContext();
+    const decision = await transientState.runtime.evaluateProactiveCare(context, options);
+
+    return {
+      decision,
+      session: transientState.persistentState.getSnapshot() ?? null
+    };
+  } finally {
+    transientState.persistentState.close();
+  }
+}
+
 function createOrReuseSession(sessionId: string): ChatSessionState {
   const cacheKey = getRuntimeCacheKey(sessionId);
   const existing = sessions.get(cacheKey);
@@ -84,19 +128,26 @@ function createOrReuseSession(sessionId: string): ChatSessionState {
     return existing;
   }
 
+  const state = createSessionState(sessionId, { requireProvider: true });
+  sessions.set(cacheKey, state);
+  return state;
+}
+
+function createSessionState(
+  sessionId: string,
+  options: {
+    requireProvider: boolean;
+  }
+): ChatSessionState {
   const savedConfig = loadSavedProviderConfig();
-  if (!savedConfig) {
+
+  if (options.requireProvider && !savedConfig) {
     throw new Error("Provider configuration is missing. Save a provider before opening chat.");
   }
 
   const persistentState = new PersistentChatSessionState(sessionId);
   const runtime = new WavearyRuntime({
-    chatProvider: new OpenAICompatibleChatProvider({
-      provider: savedConfig.provider,
-      apiKey: savedConfig.apiKey,
-      baseURL: savedConfig.baseURL,
-      model: savedConfig.model
-    }),
+    chatProvider: createChatProvider(savedConfig),
     emotionAnalyzer: new SimpleEmotionAnalyzer(),
     emotionStore: persistentState.getEmotionStore
       ? persistentState.getEmotionStore()
@@ -111,9 +162,7 @@ function createOrReuseSession(sessionId: string): ChatSessionState {
     timelineEngine: new SimpleTimelineEngine()
   });
 
-  const state = { persistentState, runtime };
-  sessions.set(cacheKey, state);
-  return state;
+  return { persistentState, runtime };
 }
 
 function getRuntimeCacheKey(sessionId: string): string {
@@ -132,5 +181,24 @@ function toReplyPayload(result: RuntimeTurnResult): ChatReplyPayload {
       eventTime: event.eventTime
     })),
     ...(result.emotion ? { emotion: result.emotion } : {})
+  };
+}
+
+function createChatProvider(
+  savedConfig: ReturnType<typeof loadSavedProviderConfig>
+): ChatProvider {
+  if (savedConfig) {
+    return new OpenAICompatibleChatProvider({
+      provider: savedConfig.provider,
+      apiKey: savedConfig.apiKey,
+      baseURL: savedConfig.baseURL,
+      model: savedConfig.model
+    });
+  }
+
+  return {
+    async generateReply(): Promise<string> {
+      throw new Error("Provider configuration is missing. Save a provider before opening chat.");
+    }
   };
 }
