@@ -4,6 +4,37 @@
 
 Objective:
 
+Add a direct Chinese and English language toggle to the `waveary-web` homepage and runtime console without breaking the existing provider setup, session management, chat, import/export, or persistence behavior.
+
+Summary:
+
+- rebuilt `waveary-web/src/App.tsx` around a single bilingual copy layer so the homepage narrative, provider setup controls, session management UI, runtime panels, and roadmap all switch together
+- added a topbar `中 / EN` language toggle that keeps the current visual paper-and-doodle direction and persists the selected locale locally
+- kept language switching presentation-only so changing locale does not re-run initial page loading or wipe any in-progress provider form input
+- verified the change through scoped TypeScript checks and a full production web build
+
+Files changed:
+
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/web`
+- `npm run web:build`
+
+Commit:
+
+- `pending`
+
+Push:
+
+- `pending`
+
+Objective:
+
 Restructure the `waveary-web` homepage into a stronger single-page open source project front page with anchor navigation and a pure introduction-first first screen, without changing provider, session, chat, import/export, or persistence behavior.
 
 Summary:

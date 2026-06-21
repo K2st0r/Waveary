@@ -1,31 +1,31 @@
-@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&family=Ma+Shan+Zheng&family=Noto+Sans+SC:wght@400;500;700;800&display=swap");
 
 :root {
-  color-scheme: dark;
-  --bg: #060b12;
-  --bg-strong: #09111b;
-  --bg-elevated: #0d1723;
-  --bg-console: #05090f;
-  --surface: rgba(14, 24, 36, 0.72);
-  --surface-strong: rgba(12, 22, 33, 0.9);
-  --surface-console: rgba(8, 14, 22, 0.94);
-  --surface-console-soft: rgba(12, 19, 29, 0.9);
-  --surface-brand: rgba(255, 255, 255, 0.04);
-  --surface-border: rgba(162, 193, 214, 0.16);
-  --surface-border-strong: rgba(229, 239, 245, 0.12);
-  --text: #edf3f7;
-  --text-strong: #ffffff;
-  --muted: #91a4b2;
-  --muted-strong: #b7c6d1;
-  --accent: #d5ff5f;
-  --accent-soft: rgba(213, 255, 95, 0.12);
-  --accent-secondary: #6bd6ff;
-  --accent-secondary-soft: rgba(107, 214, 255, 0.12);
-  --danger: #ff8f8f;
-  --danger-soft: rgba(255, 143, 143, 0.14);
-  --shadow-soft: 0 22px 60px rgba(0, 0, 0, 0.24);
-  --shadow-panel: 0 28px 90px rgba(0, 0, 0, 0.34);
-  --shadow-console: 0 40px 120px rgba(0, 0, 0, 0.42);
+  color-scheme: light;
+  --bg: #f6f0e4;
+  --bg-strong: #efe5d4;
+  --bg-elevated: #f8f4eb;
+  --bg-console: #f1e7d7;
+  --surface: rgba(252, 248, 240, 0.9);
+  --surface-strong: rgba(255, 252, 247, 0.96);
+  --surface-console: rgba(248, 241, 231, 0.95);
+  --surface-console-soft: rgba(244, 236, 224, 0.94);
+  --surface-brand: rgba(255, 252, 247, 0.8);
+  --surface-border: rgba(33, 29, 24, 0.18);
+  --surface-border-strong: rgba(33, 29, 24, 0.28);
+  --text: #1e1913;
+  --text-strong: #0f0c09;
+  --muted: #63564a;
+  --muted-strong: #40362d;
+  --accent: #15120f;
+  --accent-soft: rgba(21, 18, 15, 0.08);
+  --accent-secondary: #47403a;
+  --accent-secondary-soft: rgba(71, 64, 58, 0.08);
+  --danger: #8d3a31;
+  --danger-soft: rgba(141, 58, 49, 0.1);
+  --shadow-soft: 0 18px 34px rgba(58, 44, 31, 0.08);
+  --shadow-panel: 0 22px 42px rgba(58, 44, 31, 0.1);
+  --shadow-console: 0 30px 54px rgba(58, 44, 31, 0.12);
   --radius-shell: 32px;
   --radius-panel: 24px;
   --radius-card: 18px;
@@ -45,10 +45,11 @@ body {
   margin: 0;
   min-width: 320px;
   background:
-    radial-gradient(circle at 12% 8%, rgba(107, 214, 255, 0.12), transparent 24%),
-    radial-gradient(circle at 88% 10%, rgba(213, 255, 95, 0.11), transparent 18%),
-    radial-gradient(circle at 50% 45%, rgba(18, 34, 50, 0.48), transparent 40%),
-    linear-gradient(180deg, #09111b 0%, #060b12 24%, #05090f 100%);
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.012) 0 1px, transparent 1px 32px),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.008) 0 1px, transparent 1px 28px),
+    radial-gradient(circle at 16% 14%, rgba(0, 0, 0, 0.025), transparent 18%),
+    radial-gradient(circle at 78% 10%, rgba(0, 0, 0, 0.018), transparent 16%),
+    linear-gradient(180deg, #f8f3e8 0%, #f4ecde 28%, #efe4d1 100%);
   color: var(--text);
   font-family: "Manrope", "Noto Sans SC", "Microsoft YaHei", sans-serif;
   text-rendering: optimizeLegibility;
@@ -73,17 +74,19 @@ textarea {
 .page-shell {
   position: relative;
   overflow: hidden;
+  isolation: isolate;
 }
 
 .page-shell::before {
   position: absolute;
   inset: 0;
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.028) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.028) 1px, transparent 1px);
-  background-size: 104px 104px;
+  background:
+    radial-gradient(circle at 15% 18%, rgba(0, 0, 0, 0.038) 0 0.1rem, transparent 0.16rem),
+    radial-gradient(circle at 72% 12%, rgba(0, 0, 0, 0.03) 0 0.08rem, transparent 0.14rem),
+    radial-gradient(circle at 62% 62%, rgba(0, 0, 0, 0.025) 0 0.07rem, transparent 0.12rem);
+  background-size: 18rem 18rem, 15rem 15rem, 21rem 21rem;
   content: "";
-  opacity: 0.22;
+  opacity: 0.58;
   pointer-events: none;
 }
 
@@ -91,7 +94,9 @@ textarea {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(180deg, rgba(6, 11, 18, 0) 0%, rgba(6, 11, 18, 0.18) 18%, rgba(5, 9, 15, 0.68) 58%, rgba(5, 9, 15, 1) 100%);
+    radial-gradient(circle at 85% 22%, rgba(0, 0, 0, 0.028) 0 0.09rem, transparent 0.14rem),
+    radial-gradient(circle at 12% 72%, rgba(0, 0, 0, 0.024) 0 0.08rem, transparent 0.13rem),
+    linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(70, 54, 37, 0.035) 68%, rgba(70, 54, 37, 0.08) 100%);
   content: "";
   pointer-events: none;
 }
@@ -101,21 +106,29 @@ textarea {
   width: 34rem;
   height: 34rem;
   border-radius: 999px;
-  filter: blur(90px);
-  opacity: 0.9;
+  filter: blur(1px);
+  mix-blend-mode: normal;
+  opacity: 0.18;
   pointer-events: none;
+  background-repeat: no-repeat;
 }
 
 .ambient-left {
-  top: 4rem;
-  left: -10rem;
-  background: rgba(107, 214, 255, 0.12);
+  top: 5rem;
+  left: -3rem;
+  background:
+    radial-gradient(circle at 30% 30%, rgba(0, 0, 0, 0.2) 0 0.08rem, transparent 0.12rem),
+    radial-gradient(circle at 48% 42%, rgba(0, 0, 0, 0.16) 0 0.06rem, transparent 0.11rem),
+    radial-gradient(circle at 58% 20%, rgba(0, 0, 0, 0.16) 0 0.08rem, transparent 0.12rem);
 }
 
 .ambient-right {
-  top: 16rem;
-  right: -12rem;
-  background: rgba(213, 255, 95, 0.14);
+  top: 12rem;
+  right: -2rem;
+  background:
+    radial-gradient(circle at 35% 40%, rgba(0, 0, 0, 0.16) 0 0.07rem, transparent 0.12rem),
+    radial-gradient(circle at 50% 22%, rgba(0, 0, 0, 0.18) 0 0.08rem, transparent 0.13rem),
+    radial-gradient(circle at 64% 44%, rgba(0, 0, 0, 0.14) 0 0.06rem, transparent 0.11rem);
 }
 
 .topbar,
@@ -137,6 +150,7 @@ textarea {
 .brand-lockup {
   display: grid;
   gap: 0.14rem;
+  position: relative;
 }
 
 .brand-mark {
@@ -145,6 +159,15 @@ textarea {
   font-weight: 800;
   letter-spacing: 0.18em;
   text-transform: uppercase;
+}
+
+.brand-lockup::after {
+  width: 3.6rem;
+  height: 0.7rem;
+  margin-top: 0.18rem;
+  border-bottom: 2px wavy rgba(21, 18, 15, 0.72);
+  content: "";
+  transform: rotate(-2deg);
 }
 
 .brand-subtitle {
@@ -166,11 +189,23 @@ textarea {
   gap: 0.8rem;
 }
 
+.topbar-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
 .topbar-note {
   color: var(--muted-strong);
   font-size: 0.84rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  font-family: "Caveat", "Ma Shan Zheng", cursive;
+  font-size: 1.05rem;
+  letter-spacing: 0.04em;
+  transform: rotate(-2deg);
 }
 
 .topnav {
@@ -179,6 +214,46 @@ textarea {
   gap: 1.15rem;
   color: var(--muted);
   font-size: 0.95rem;
+}
+
+.language-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.24rem;
+  border: 1.5px solid rgba(21, 18, 15, 0.18);
+  border-radius: 999px;
+  background: rgba(255, 250, 242, 0.9);
+  box-shadow: 2px 3px 0 rgba(21, 18, 15, 0.08);
+  transform: rotate(-1deg);
+}
+
+.language-toggle-button {
+  min-width: 2.8rem;
+  min-height: 2rem;
+  padding: 0.28rem 0.7rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-family: "IBM Plex Mono", "Cascadia Code", Consolas, monospace;
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background 160ms ease,
+    color 160ms ease,
+    transform 160ms ease;
+}
+
+.language-toggle-button:hover {
+  color: var(--text-strong);
+  transform: rotate(-2deg);
+}
+
+.language-toggle-button-active {
+  background: #17130f;
+  color: #fffaf3;
 }
 
 .topnav a {
@@ -192,7 +267,7 @@ textarea {
   left: 0;
   right: 0;
   bottom: -0.32rem;
-  height: 1px;
+  height: 2px;
   background: var(--accent);
   content: "";
   opacity: 0;
@@ -229,6 +304,7 @@ textarea {
 .hero-copy {
   display: grid;
   gap: 1.25rem;
+  position: relative;
 }
 
 .hero-badge-row {
@@ -287,10 +363,11 @@ textarea {
   align-items: center;
   min-height: 2rem;
   padding: 0.38rem 0.7rem;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1.5px solid rgba(21, 18, 15, 0.14);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.045);
+  background: rgba(255, 250, 242, 0.84);
   color: var(--muted-strong);
+  transform: rotate(2deg);
 }
 
 .hero-kicker {
@@ -305,6 +382,32 @@ textarea {
   line-height: 0.94;
   letter-spacing: -0.07em;
   text-wrap: balance;
+  position: relative;
+  display: inline-block;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.04);
+}
+
+.hero-copy h1::after {
+  position: absolute;
+  right: 0.2rem;
+  bottom: -1.15rem;
+  width: 8rem;
+  height: 1.2rem;
+  border-bottom: 3px solid rgba(21, 18, 15, 0.84);
+  border-radius: 999px;
+  content: "";
+  transform: rotate(-5deg);
+}
+
+.hero-copy::after {
+  position: absolute;
+  right: 3rem;
+  bottom: -1.8rem;
+  color: rgba(21, 18, 15, 0.72);
+  font-family: "Caveat", "Ma Shan Zheng", cursive;
+  font-size: 1.15rem;
+  content: "remember the person, not just the prompt";
+  transform: rotate(-3deg);
 }
 
 .hero-lead,
@@ -353,19 +456,21 @@ textarea {
 }
 
 .button:hover {
-  transform: translateY(-1px);
+  transform: translateY(-1px) rotate(-1deg);
 }
 
 .button-primary {
-  border-color: transparent;
-  background: linear-gradient(135deg, #d5ff5f 0%, #93ffb8 100%);
-  box-shadow: 0 14px 30px rgba(213, 255, 95, 0.18);
-  color: #09111b;
+  border-color: rgba(21, 18, 15, 0.9);
+  background: #17130f;
+  box-shadow: 3px 4px 0 rgba(21, 18, 15, 0.18);
+  color: #fffaf3;
+  transform: rotate(-1deg);
 }
 
 .button-secondary {
-  background: rgba(255, 255, 255, 0.035);
+  background: rgba(255, 252, 247, 0.86);
   color: var(--text);
+  transform: rotate(1deg);
 }
 
 .button-danger {
@@ -428,12 +533,21 @@ textarea {
   align-items: center;
   min-height: 2.5rem;
   padding: 0.7rem 0.95rem;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1.5px solid rgba(21, 18, 15, 0.16);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.028);
+  background: rgba(255, 250, 242, 0.82);
   color: var(--muted-strong);
   font-size: 0.95rem;
   font-weight: 600;
+  transform: rotate(-1deg);
+}
+
+.hero-principle-pill:nth-child(2) {
+  transform: rotate(1.4deg);
+}
+
+.hero-principle-pill:nth-child(3) {
+  transform: rotate(-2deg);
 }
 
 .hero-frame {
@@ -455,12 +569,31 @@ textarea {
   display: grid;
   gap: 0.6rem;
   padding: 1.2rem;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1.5px solid rgba(21, 18, 15, 0.14);
   border-radius: var(--radius-panel);
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.012)),
-    rgba(255, 255, 255, 0.018);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.7), rgba(255, 250, 242, 0.92)),
+    rgba(255, 251, 246, 0.92);
   box-shadow: var(--shadow-soft);
+  position: relative;
+}
+
+.hero-frame-panel::before,
+.intro-card::before,
+.framework-band-card::before,
+.repo-module-card::before,
+.console-summary-card::before,
+.console-flow-card::before,
+.session-card::before {
+  position: absolute;
+  top: 0.7rem;
+  right: 0.8rem;
+  width: 1.8rem;
+  height: 0.75rem;
+  border-radius: 999px;
+  background: rgba(21, 18, 15, 0.06);
+  content: "";
+  transform: rotate(18deg);
 }
 
 .hero-frame-panel-primary {
@@ -468,11 +601,11 @@ textarea {
   overflow: hidden;
   min-height: 23rem;
   padding: 1.7rem;
-  border-color: rgba(255, 255, 255, 0.09);
+  border-color: rgba(21, 18, 15, 0.18);
   background:
-    radial-gradient(circle at top right, rgba(107, 214, 255, 0.14), transparent 30%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.012)),
-    rgba(255, 255, 255, 0.02);
+    radial-gradient(circle at 84% 16%, rgba(0, 0, 0, 0.03), transparent 20%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(250, 244, 235, 0.96)),
+    rgba(255, 251, 245, 0.95);
 }
 
 .hero-frame-panel-primary::after {
@@ -481,9 +614,12 @@ textarea {
   width: 13rem;
   height: 13rem;
   border-radius: 999px;
-  background: radial-gradient(circle, rgba(213, 255, 95, 0.14), transparent 70%);
+  background:
+    radial-gradient(circle at 48% 48%, rgba(0, 0, 0, 0.09) 0 0.1rem, transparent 0.13rem),
+    radial-gradient(circle at 56% 56%, rgba(0, 0, 0, 0.09) 0 0.08rem, transparent 0.11rem);
   content: "";
-  filter: blur(28px);
+  filter: none;
+  opacity: 0.3;
   pointer-events: none;
 }
 
@@ -509,7 +645,7 @@ textarea {
   min-height: 1.9rem;
   padding: 0.28rem 0.62rem;
   border-radius: 999px;
-  background: var(--accent-soft);
+  background: rgba(21, 18, 15, 0.08);
   color: var(--accent);
   font-size: 0.72rem;
   font-weight: 800;
@@ -558,20 +694,28 @@ textarea {
   position: absolute;
   top: 0.72rem;
   left: 0;
-  width: 0.38rem;
-  height: 0.38rem;
+  width: 0.52rem;
+  height: 2px;
   border-radius: 999px;
   background: var(--accent);
   content: "";
-  box-shadow: 0 0 16px rgba(213, 255, 95, 0.28);
+  box-shadow: none;
 }
 
 .hero-aside-panel {
   min-height: 0;
   padding: 1.35rem 1.3rem;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.026), rgba(255, 255, 255, 0.008)),
-    rgba(255, 255, 255, 0.012);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.76), rgba(251, 245, 236, 0.95)),
+    rgba(255, 250, 244, 0.92);
+}
+
+.hero-aside-panel:first-child {
+  transform: rotate(-0.8deg);
+}
+
+.hero-aside-panel:last-child {
+  transform: rotate(1deg);
 }
 
 .signal-grid {
@@ -610,7 +754,7 @@ textarea {
   margin: 0.65rem 0 0.75rem;
   color: var(--text-strong);
   font-size: clamp(2.1rem, 4vw, 3.5rem);
-  line-height: 1;
+  line-height: 1.02;
   letter-spacing: -0.05em;
   text-wrap: balance;
 }
@@ -641,7 +785,7 @@ textarea {
   display: grid;
   gap: 1rem;
   padding: 0 0 0.2rem 1rem;
-  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: 2px dashed rgba(21, 18, 15, 0.18);
 }
 
 .intro-essay p {
@@ -664,6 +808,18 @@ textarea {
   color: var(--text-strong);
   font-size: 1.18rem;
   line-height: 1.4;
+}
+
+.intro-card:nth-child(1) {
+  transform: rotate(-1deg);
+}
+
+.intro-card:nth-child(2) {
+  transform: rotate(0.8deg);
+}
+
+.intro-card:nth-child(3) {
+  transform: rotate(-1.3deg);
 }
 
 .framework-band {
@@ -714,8 +870,8 @@ textarea {
 
 .manifesto-quote {
   padding: 1.15rem 1.2rem;
-  border-left: 1px solid rgba(255, 255, 255, 0.1);
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.032), transparent 70%);
+  border-left: 2px dashed rgba(21, 18, 15, 0.2);
+  background: linear-gradient(90deg, rgba(21, 18, 15, 0.03), transparent 70%);
 }
 
 .manifesto-quote p {
@@ -735,7 +891,19 @@ textarea {
   display: grid;
   gap: 0.7rem;
   padding: 1.15rem 0 1.15rem 1.05rem;
-  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  border-left: 2px solid rgba(21, 18, 15, 0.16);
+  position: relative;
+}
+
+.manifesto-point::after {
+  position: absolute;
+  top: 0.9rem;
+  right: 0.2rem;
+  color: rgba(21, 18, 15, 0.54);
+  font-family: "Caveat", "Ma Shan Zheng", cursive;
+  font-size: 1rem;
+  content: "note";
+  transform: rotate(-4deg);
 }
 
 .manifesto-point strong {
@@ -761,10 +929,10 @@ textarea {
   border: 1px solid var(--surface-border);
   border-radius: var(--radius-panel);
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.01)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(251, 245, 237, 0.96)),
     var(--surface);
   box-shadow: var(--shadow-panel);
-  backdrop-filter: blur(16px);
+  backdrop-filter: none;
 }
 
 .panel-header {
@@ -792,8 +960,8 @@ textarea {
   display: grid;
   gap: 1rem;
   background:
-    linear-gradient(180deg, rgba(107, 214, 255, 0.06), rgba(255, 255, 255, 0.02)),
-    rgba(255, 255, 255, 0.02);
+    linear-gradient(180deg, rgba(21, 18, 15, 0.03), rgba(255, 255, 255, 0.5)),
+    rgba(255, 251, 246, 0.92);
 }
 
 .engine-foundation-list {
@@ -806,12 +974,13 @@ textarea {
   align-items: center;
   min-height: 2.6rem;
   padding: 0.7rem 0.9rem;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1.5px solid rgba(21, 18, 15, 0.12);
   border-radius: var(--radius-card);
-  background: rgba(255, 255, 255, 0.024);
+  background: rgba(255, 252, 247, 0.82);
   color: var(--muted-strong);
   font-family: "IBM Plex Mono", "Cascadia Code", Consolas, monospace;
   font-size: 0.88rem;
+  transform: rotate(-0.6deg);
 }
 
 .engine-grid,
@@ -828,6 +997,9 @@ textarea {
   display: inline-flex;
   margin-bottom: 0.9rem;
   color: var(--accent);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-decoration-style: wavy;
 }
 
 .engine-card h3,
@@ -852,11 +1024,11 @@ textarea {
   position: relative;
   overflow: hidden;
   padding: 2rem;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 2px solid rgba(21, 18, 15, 0.22);
   border-radius: 36px;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.008)),
-    linear-gradient(180deg, rgba(5, 9, 15, 0.82), rgba(8, 13, 20, 0.98));
+    linear-gradient(180deg, rgba(255, 252, 247, 0.82), rgba(245, 237, 226, 0.98)),
+    rgba(248, 241, 232, 0.94);
   box-shadow: var(--shadow-console);
 }
 
@@ -864,11 +1036,9 @@ textarea {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(90deg, rgba(255, 255, 255, 0.038) 1px, transparent 1px),
-    linear-gradient(rgba(255, 255, 255, 0.038) 1px, transparent 1px);
-  background-size: 68px 68px;
+    repeating-linear-gradient(135deg, rgba(0, 0, 0, 0.035) 0 2px, transparent 2px 18px);
   content: "";
-  opacity: 0.14;
+  opacity: 0.08;
   pointer-events: none;
 }
 
@@ -889,18 +1059,18 @@ textarea {
 
 .repo-tree-card {
   background:
-    linear-gradient(180deg, rgba(107, 214, 255, 0.05), rgba(255, 255, 255, 0.012)),
-    rgba(255, 255, 255, 0.018);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.7), rgba(248, 241, 231, 0.96)),
+    rgba(255, 250, 244, 0.92);
 }
 
 .repo-tree-card pre {
   margin: 0;
   overflow-x: auto;
   padding: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1.5px solid rgba(21, 18, 15, 0.14);
   border-radius: var(--radius-card);
-  background: rgba(4, 11, 18, 0.76);
-  color: #d7f8ff;
+  background: rgba(255, 250, 242, 0.92);
+  color: #17130f;
   font-family: "IBM Plex Mono", "Cascadia Code", Consolas, monospace;
   font-size: 0.88rem;
   line-height: 1.7;
@@ -918,10 +1088,17 @@ textarea {
   width: 18rem;
   height: 18rem;
   border-radius: 999px;
-  background: radial-gradient(circle, rgba(213, 255, 95, 0.16), transparent 68%);
+  background:
+    radial-gradient(circle at 46% 52%, rgba(0, 0, 0, 0.08) 0 0.08rem, transparent 0.12rem),
+    radial-gradient(circle at 54% 44%, rgba(0, 0, 0, 0.06) 0 0.07rem, transparent 0.11rem);
   content: "";
-  filter: blur(36px);
+  filter: none;
+  opacity: 0.22;
   pointer-events: none;
+}
+
+.console-shell::marker {
+  content: none;
 }
 
 .console-intro {
@@ -946,9 +1123,14 @@ textarea {
   gap: 0.6rem;
   min-height: 11rem;
   padding: 1.15rem;
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  border: 1.5px solid rgba(21, 18, 15, 0.12);
   border-radius: var(--radius-card);
-  background: rgba(255, 255, 255, 0.028);
+  background: rgba(255, 251, 246, 0.74);
+  transform: rotate(-0.5deg);
+}
+
+.console-summary-card:nth-child(even) {
+  transform: rotate(0.7deg);
 }
 
 .console-summary-card strong {
@@ -973,9 +1155,14 @@ textarea {
   gap: 0.55rem;
   min-height: 10rem;
   padding: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  border: 1.5px dashed rgba(21, 18, 15, 0.14);
   border-radius: var(--radius-card);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.036), rgba(255, 255, 255, 0.014));
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.68), rgba(248, 241, 231, 0.94));
+  transform: rotate(-0.8deg);
+}
+
+.console-flow-card:nth-child(2) {
+  transform: rotate(0.8deg);
 }
 
 .console-flow-card span {
@@ -1053,9 +1240,25 @@ textarea {
 .insight-card,
 .session-export-panel {
   padding: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1.5px solid rgba(21, 18, 15, 0.12);
   border-radius: var(--radius-card);
-  background: rgba(255, 255, 255, 0.028);
+  background: rgba(255, 251, 246, 0.72);
+  position: relative;
+}
+
+.archive-card::before,
+.signal-metric-card::before,
+.insight-card::before,
+.session-export-panel::before,
+.session-reference-card::before {
+  position: absolute;
+  top: 0.55rem;
+  right: 0.7rem;
+  color: rgba(21, 18, 15, 0.4);
+  font-family: "Caveat", "Ma Shan Zheng", cursive;
+  font-size: 0.98rem;
+  content: "filed";
+  transform: rotate(6deg);
 }
 
 .provider-list,
@@ -1070,11 +1273,12 @@ textarea {
   align-items: center;
   min-height: 2.2rem;
   padding: 0.52rem 0.82rem;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1.5px solid rgba(21, 18, 15, 0.12);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 250, 242, 0.84);
   color: var(--muted-strong);
   font-size: 0.9rem;
+  transform: rotate(-1deg);
 }
 
 .provider-note {
@@ -1091,13 +1295,13 @@ textarea {
 }
 
 .status-banner-info {
-  background: rgba(107, 214, 255, 0.08);
-  color: #ddf6ff;
+  background: rgba(21, 18, 15, 0.05);
+  color: #1e1913;
 }
 
 .status-banner-error {
   background: var(--danger-soft);
-  color: #ffd0d0;
+  color: #6f261f;
 }
 
 .provider-form-grid,
@@ -1123,9 +1327,9 @@ textarea {
   width: 100%;
   min-height: 3.2rem;
   padding: 0.92rem 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1.5px solid rgba(21, 18, 15, 0.16);
   border-radius: var(--radius-control);
-  background: rgba(4, 11, 18, 0.78);
+  background: rgba(255, 252, 247, 0.95);
   color: var(--text);
   outline: none;
   transition:
@@ -1138,8 +1342,8 @@ textarea {
 .form-field select:focus,
 .session-import-textarea:focus,
 .chat-composer textarea:focus {
-  border-color: rgba(107, 214, 255, 0.42);
-  box-shadow: 0 0 0 3px rgba(107, 214, 255, 0.12);
+  border-color: rgba(21, 18, 15, 0.42);
+  box-shadow: 0 0 0 3px rgba(21, 18, 15, 0.08);
 }
 
 .form-field input::placeholder,
@@ -1182,8 +1386,39 @@ textarea {
 .archive-panel,
 .session-panel {
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.025), rgba(255, 255, 255, 0.008)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(248, 242, 232, 0.95)),
     var(--surface-console);
+}
+
+.chat-panel {
+  position: relative;
+  overflow: hidden;
+  background:
+    repeating-linear-gradient(180deg, rgba(48, 40, 33, 0.05) 0 1px, transparent 1px 2.3rem),
+    linear-gradient(180deg, rgba(255, 252, 247, 0.9), rgba(244, 235, 223, 0.98));
+}
+
+.chat-panel::before {
+  position: absolute;
+  top: 1.2rem;
+  bottom: 1.2rem;
+  left: 2rem;
+  width: 2px;
+  background: rgba(141, 58, 49, 0.18);
+  content: "";
+  pointer-events: none;
+}
+
+.chat-panel::after {
+  position: absolute;
+  top: 1rem;
+  right: 1.4rem;
+  color: rgba(21, 18, 15, 0.58);
+  font-family: "Caveat", "Ma Shan Zheng", cursive;
+  font-size: 1.2rem;
+  content: "journal page";
+  transform: rotate(4deg);
+  pointer-events: none;
 }
 
 .session-panel {
@@ -1195,9 +1430,9 @@ textarea {
   gap: 0.68rem;
   width: 100%;
   padding: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1.5px solid rgba(21, 18, 15, 0.12);
   border-radius: var(--radius-card);
-  background: rgba(255, 255, 255, 0.026);
+  background: rgba(255, 251, 246, 0.8);
   color: var(--text);
   text-align: left;
   cursor: pointer;
@@ -1209,16 +1444,16 @@ textarea {
 }
 
 .session-card:hover {
-  transform: translateY(-1px);
+  transform: translateY(-1px) rotate(-0.6deg);
   border-color: rgba(107, 214, 255, 0.28);
 }
 
 .session-card-active {
-  border-color: rgba(213, 255, 95, 0.3);
+  border-color: rgba(21, 18, 15, 0.26);
   background:
-    linear-gradient(180deg, rgba(213, 255, 95, 0.09), rgba(255, 255, 255, 0.02)),
-    rgba(255, 255, 255, 0.024);
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.24);
+    linear-gradient(180deg, rgba(21, 18, 15, 0.04), rgba(255, 255, 255, 0.5)),
+    rgba(255, 248, 238, 0.88);
+  box-shadow: 4px 5px 0 rgba(21, 18, 15, 0.08);
 }
 
 .session-card-topline,
@@ -1256,7 +1491,7 @@ textarea {
 .session-reference-list code,
 .session-reference-links span,
 .session-export-block code {
-  color: #d7f8ff;
+  color: #1e1913;
   font-family: "IBM Plex Mono", "Cascadia Code", Consolas, monospace;
   font-size: 0.82rem;
 }
@@ -1268,9 +1503,9 @@ textarea {
 .session-reference-card,
 .session-export-callout {
   padding: 0.95rem 1rem;
-  border: 1px solid rgba(107, 214, 255, 0.2);
+  border: 1.5px solid rgba(21, 18, 15, 0.16);
   border-radius: var(--radius-card);
-  background: rgba(107, 214, 255, 0.08);
+  background: rgba(255, 248, 239, 0.88);
 }
 
 .session-reference-copy,
@@ -1301,12 +1536,12 @@ textarea {
 }
 
 .session-import-error-card {
-  border: 1px solid rgba(255, 143, 143, 0.24);
+  border: 1.5px solid rgba(141, 58, 49, 0.26);
   background: var(--danger-soft);
 }
 
 .session-import-error-list {
-  color: #ffd0d0;
+  color: #7b2d25;
 }
 
 .chat-log {
@@ -1315,36 +1550,64 @@ textarea {
   min-height: 28rem;
   max-height: 38rem;
   overflow-y: auto;
-  padding-right: 0.15rem;
+  padding: 0.15rem 0.15rem 0.15rem 1.5rem;
 }
 
 .chat-bubble {
   max-width: 88%;
-  padding: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 20px;
+  padding: 1rem 1rem 0.9rem 1.15rem;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  transform: rotate(-0.3deg);
+  position: relative;
 }
 
 .chat-bubble-user {
   justify-self: end;
   background:
-    linear-gradient(135deg, rgba(213, 255, 95, 0.12), rgba(107, 214, 255, 0.08)),
-    rgba(255, 255, 255, 0.018);
+    linear-gradient(180deg, rgba(251, 242, 229, 0.98), rgba(246, 235, 220, 0.98));
+  transform: rotate(0.8deg);
+  border-left: 3px solid rgba(21, 18, 15, 0.18);
 }
 
 .chat-bubble-assistant {
   justify-self: start;
-  background: rgba(255, 255, 255, 0.032);
+  background:
+    linear-gradient(180deg, rgba(255, 253, 249, 0.98), rgba(248, 241, 232, 0.98));
+  transform: rotate(-0.6deg);
+  border-left: 3px solid rgba(71, 64, 58, 0.16);
+}
+
+.chat-bubble::after {
+  position: absolute;
+  right: 0.4rem;
+  bottom: -0.7rem;
+  color: rgba(21, 18, 15, 0.26);
+  font-family: "Caveat", "Ma Shan Zheng", cursive;
+  font-size: 1rem;
+  content: "~";
+}
+
+.chat-bubble-user::after {
+  content: "me";
+  bottom: -0.82rem;
+}
+
+.chat-bubble-assistant::after {
+  content: "echo";
+  bottom: -0.82rem;
 }
 
 .chat-role {
   display: inline-block;
   margin-bottom: 0.45rem;
-  color: var(--accent-secondary);
-  font-size: 0.8rem;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  color: rgba(21, 18, 15, 0.64);
+  font-family: "Caveat", "Ma Shan Zheng", cursive;
+  font-size: 1.02rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: none;
 }
 
 .chat-bubble p,
@@ -1352,6 +1615,29 @@ textarea {
 .empty-chat-state {
   margin: 0;
   line-height: 1.65;
+}
+
+.chat-bubble p {
+  color: #211a14;
+  font-family: "Caveat", "Ma Shan Zheng", cursive;
+  font-size: 1.42rem;
+  line-height: 1.52;
+  letter-spacing: 0.01em;
+  white-space: pre-wrap;
+}
+
+.chat-bubble-user p {
+  font-family: "Ma Shan Zheng", "Caveat", cursive;
+  font-size: 1.24rem;
+  line-height: 1.72;
+  letter-spacing: 0.01em;
+}
+
+.chat-bubble-assistant p {
+  font-family: "Caveat", "Ma Shan Zheng", cursive;
+  font-size: 1.48rem;
+  line-height: 1.5;
+  letter-spacing: 0.015em;
 }
 
 .chat-composer {
@@ -1363,6 +1649,12 @@ textarea {
 .chat-composer textarea {
   min-height: 8rem;
   resize: vertical;
+  font-family: "Caveat", "Ma Shan Zheng", cursive;
+  font-size: 1.32rem;
+  line-height: 1.6;
+  background:
+    repeating-linear-gradient(180deg, rgba(48, 40, 33, 0.05) 0 1px, transparent 1px 2.15rem),
+    rgba(255, 252, 247, 0.96);
 }
 
 .empty-chat-state {
@@ -1370,10 +1662,12 @@ textarea {
   place-items: center;
   min-height: 16rem;
   padding: 1rem;
-  border: 1px dashed rgba(255, 255, 255, 0.12);
+  border: 2px dashed rgba(21, 18, 15, 0.16);
   border-radius: var(--radius-card);
   color: var(--muted);
   text-align: center;
+  font-family: "Caveat", "Ma Shan Zheng", cursive;
+  font-size: 1.24rem;
 }
 
 .signal-metrics,
@@ -1386,6 +1680,9 @@ textarea {
   margin-top: 0.42rem;
   color: var(--text-strong);
   font-size: 1.24rem;
+  font-family: "Caveat", "Ma Shan Zheng", cursive;
+  font-size: 1.5rem;
+  letter-spacing: 0.02em;
 }
 
 .insight-list li,
@@ -1396,6 +1693,25 @@ textarea {
 .insight-list strong {
   display: block;
   margin-bottom: 0.25rem;
+  font-family: "Caveat", "Ma Shan Zheng", cursive;
+  font-size: 1.12rem;
+  font-weight: 700;
+}
+
+.insight-card p,
+.insight-list li,
+.archive-list li {
+  font-family: "Caveat", "Ma Shan Zheng", cursive;
+  font-size: 1.1rem;
+  line-height: 1.56;
+}
+
+.insight-list span,
+.archive-list span,
+.signal-metric-card span {
+  font-family: "Caveat", "Ma Shan Zheng", cursive;
+  font-size: 1rem;
+  letter-spacing: 0.01em;
 }
 
 .archive-grid {
@@ -1416,8 +1732,9 @@ textarea {
 .archive-list li {
   display: grid;
   gap: 0.28rem;
-  padding-top: 0.85rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  padding-top: 0.95rem;
+  padding-left: 0.2rem;
+  border-top: 1px dashed rgba(21, 18, 15, 0.14);
 }
 
 .archive-list li:first-child {
@@ -1429,9 +1746,25 @@ textarea {
   margin: 0;
   overflow-x: auto;
   padding: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1.5px solid rgba(21, 18, 15, 0.14);
   border-radius: var(--radius-card);
-  background: rgba(4, 11, 18, 0.78);
+  background: rgba(255, 250, 242, 0.92);
+  font-family: "IBM Plex Mono", "Cascadia Code", Consolas, monospace;
+}
+
+.archive-card:nth-child(1),
+.insight-card:nth-child(1) {
+  transform: rotate(-0.7deg);
+}
+
+.archive-card:nth-child(2),
+.insight-card:nth-child(2) {
+  transform: rotate(0.8deg);
+}
+
+.archive-card:nth-child(3),
+.insight-card:nth-child(3) {
+  transform: rotate(-0.5deg);
 }
 
 .session-export-block code {
@@ -1458,7 +1791,7 @@ textarea {
 
 .roadmap-card li {
   padding-top: 0.72rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px dashed rgba(21, 18, 15, 0.14);
   color: var(--muted-strong);
 }
 
@@ -1518,6 +1851,10 @@ textarea {
 
   .topbar-utility {
     justify-items: start;
+  }
+
+  .topbar-controls {
+    justify-content: flex-start;
   }
 
   .topnav {

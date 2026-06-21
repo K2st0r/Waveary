@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `7c04b2e` - `Refine single-page framework homepage`
+- `pending` - `Add bilingual homepage language toggle`
 
 ## Modules
 
@@ -75,6 +75,9 @@ Brand line:
   - non-default sessions can now be renamed and deleted through the web session layer
   - Windows-safe local dev and preview entrypoints are implemented for the current workspace path setup
   - package boundary is documented for future provider setup and runtime UI work
+  - homepage now supports direct Chinese and English switching through a local UI toggle
+  - homepage copy, console labels, provider setup flow labels, session management labels, runtime panels, and roadmap are now bilingual
+  - language switching now stays local to presentation state and does not reset the user's in-progress provider form input or current runtime page state
 
 ## Provider Flow
 
@@ -132,6 +135,8 @@ Brand line:
 - `npx --yes --package @playwright/cli playwright-cli -s=waveary-homepage-polish resize 1440 1200`
 - `npx --yes --package @playwright/cli playwright-cli -s=waveary-homepage-polish snapshot`
 - `npx --yes --package @playwright/cli playwright-cli -s=waveary-homepage-polish screenshot`
+- `npm run check --workspace @waveary/web`
+- `npm run web:build`
 
 ## Decision Sources
 
@@ -144,6 +149,7 @@ Brand line:
 - add focused route-level and browser-facing coverage for any remaining persistence edge cases beyond the current file/sqlite symmetry path
 - continue polishing the web shell by tightening the session and runtime panel density now that the high-level brand-versus-console hierarchy is in place
 - continue polishing the web shell by tightening the session and runtime panel density now that the new premium visual direction is in place
+- validate the bilingual homepage in a real browser pass and tune any remaining spacing or readability issues caused by mixed Chinese and English line lengths
 - consider a follow-up web pass focused specifically on message density, runtime panel compression, and archive readability now that the homepage narrative order is in a stronger place
 - consider a second frontend pass focused on chat-message rhythm, archive scanability, and runtime rail compression inside the live console
 - keep session import semantic hardening paused here unless a real malformed package reveals another high-value cross-structure gap
