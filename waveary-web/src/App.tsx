@@ -1095,6 +1095,19 @@ interface HeroPortraitCard {
   delay: string;
 }
 
+type ConsoleWorkspace = "provider" | "sessions" | "care" | "runtime";
+type HomeDoodleKind = "ruler" | "eraser" | "pencil" | "notebook" | "paperclip" | "cassette";
+
+interface HomeDoodle {
+  id: string;
+  kind: HomeDoodleKind;
+  top: string;
+  left: string;
+  rotation: string;
+  scale: number;
+  delay: string;
+}
+
 const heroPortraitCards: HeroPortraitCard[] = [
   {
     src: "/images/portraits/portrait-01.png",
@@ -1161,6 +1174,17 @@ const heroPortraitCards: HeroPortraitCard[] = [
     delay: "-21s"
   }
 ];
+
+const homeDoodles: HomeDoodle[] = [
+  { id: "doodle-ruler", kind: "ruler", top: "14%", left: "7%", rotation: "-11deg", scale: 1, delay: "-4s" },
+  { id: "doodle-eraser", kind: "eraser", top: "19%", left: "84%", rotation: "9deg", scale: 0.92, delay: "-9s" },
+  { id: "doodle-pencil", kind: "pencil", top: "48%", left: "3%", rotation: "-28deg", scale: 1.04, delay: "-13s" },
+  { id: "doodle-notebook", kind: "notebook", top: "56%", left: "86%", rotation: "8deg", scale: 1.02, delay: "-2s" },
+  { id: "doodle-paperclip", kind: "paperclip", top: "76%", left: "10%", rotation: "13deg", scale: 0.96, delay: "-16s" },
+  { id: "doodle-cassette", kind: "cassette", top: "73%", left: "78%", rotation: "-7deg", scale: 1.08, delay: "-21s" }
+];
+
+const consoleWorkspaceOrder: ConsoleWorkspace[] = ["provider", "sessions", "care", "runtime"];
 
 const HERO_BURN_CYCLE_MS = 12000;
 const PROACTIVE_AUTO_CHECK_STORAGE_KEY = "waveary-proactive-auto-check-enabled";
@@ -1254,6 +1278,7 @@ export function App(): ReactElement {
   const [sessionPackageReference, setSessionPackageReference] = useState<SessionPackageReference | null>(null);
   const sessionImportFileInputRef = useRef<HTMLInputElement | null>(null);
   const [activeBurnPortraitIndex, setActiveBurnPortraitIndex] = useState(1);
+  const [activeConsoleWorkspace, setActiveConsoleWorkspace] = useState<ConsoleWorkspace>("provider");
   const [currentPage, setCurrentPage] = useState<AppPage>(() => {
     if (typeof window === "undefined") {
       return "home";
@@ -2231,6 +2256,34 @@ export function App(): ReactElement {
     { page: "chat", label: locale === "zh" ? "对话" : "Chat" },
     { page: "roadmap", label: copy.nav[5] }
   ];
+  const consoleWorkspaceLabels: Record<ConsoleWorkspace, string> =
+    locale === "zh"
+      ? {
+          provider: "模型接入",
+          sessions: "会话档案",
+          care: "主动关怀",
+          runtime: "运行信号"
+        }
+      : {
+          provider: "Provider",
+          sessions: "Sessions",
+          care: "Care",
+          runtime: "Runtime"
+        };
+  const consoleWorkspaceDescriptions: Record<ConsoleWorkspace, string> =
+    locale === "zh"
+      ? {
+          provider: "供应商、密钥、模型发现与运行路径固定。",
+          sessions: "会话身份、持久化、导入导出与权限中心。",
+          care: "主动关怀策略、通知与本地检查循环。",
+          runtime: "当前关系、记忆、时间轴与导出结果。"
+        }
+      : {
+          provider: "Vendor setup, credentials, model discovery, and one stable runtime path.",
+          sessions: "Session identity, persistence, import/export, and the permission center.",
+          care: "Proactive-care policy, browser delivery, and bounded local checks.",
+          runtime: "Current relationship, memory, timeline, and structured export output."
+        };
   const activeBurnPortrait = heroPortraitCards[activeBurnPortraitIndex] ?? heroPortraitCards[0]!;
 
   return (
@@ -2282,6 +2335,25 @@ export function App(): ReactElement {
 
       <main className={`page-main page-main-${currentPage}`}>
         {currentPage === "home" ? (
+          <div className="home-doodle-layer" aria-hidden="true">
+            {homeDoodles.map((doodle) => (
+              <span
+                className={`home-doodle home-doodle-${doodle.kind}`}
+                key={doodle.id}
+                style={
+                  {
+                    "--doodle-top": doodle.top,
+                    "--doodle-left": doodle.left,
+                    "--doodle-rotation": doodle.rotation,
+                    "--doodle-scale": doodle.scale,
+                    "--doodle-delay": doodle.delay
+                  } as React.CSSProperties
+                }
+              />
+            ))}
+          </div>
+        ) : null}
+        {currentPage === "home" ? (
         <section className="hero section-grid" id="home">
           <div className="hero-copy">
             <div className="hero-badge-row">
@@ -2295,7 +2367,6 @@ export function App(): ReactElement {
               {copy.hero.title[1]}
             </h1>
             <p className="hero-lead">{copy.hero.lead}</p>
-            <p className="hero-support">{copy.hero.support}</p>
             <div className="hero-actions">
               <button className="button button-primary" onClick={() => navigateTo("home", "intro")} type="button">
                 {copy.hero.primary}
@@ -2304,6 +2375,7 @@ export function App(): ReactElement {
                 {copy.hero.secondary}
               </button>
             </div>
+            <p className="hero-support">{copy.hero.support}</p>
             <div className="hero-principle-strip">
               {copy.principles.map((principle) => (
                 <div className="hero-principle-pill" key={principle}>
@@ -2364,8 +2436,8 @@ export function App(): ReactElement {
               </div>
               <strong>{copy.heroCards.definitionTitle}</strong>
               <p>{copy.heroCards.definitionBody}</p>
-              <div className="hero-definition-list">
-                {copy.introStatements.map((statement) => (
+              <div className="hero-summary-grid">
+                {copy.introStatements.slice(0, 2).map((statement) => (
                   <p key={statement}>{statement}</p>
                 ))}
               </div>
@@ -2433,22 +2505,20 @@ export function App(): ReactElement {
 
         {currentPage === "home" ? (
         <section className="section-grid section-block manifesto-block">
-          <div className="manifesto-layout">
-            <div className="manifesto-copy">
-              <div className="section-heading compact-heading">
-                <span className="section-caption">{copy.manifesto.caption}</span>
-                <h2>{copy.manifesto.title}</h2>
-                <p>{copy.manifesto.description}</p>
-              </div>
-              <div className="manifesto-quote">
-                <p>{copy.manifesto.quote}</p>
-              </div>
+          <div className="section-heading compact-heading manifesto-heading">
+            <span className="section-caption">{copy.manifesto.caption}</span>
+            <h2>{copy.manifesto.title}</h2>
+            <p>{copy.manifesto.description}</p>
+          </div>
+
+          <div className="manifesto-layout manifesto-layout-condensed">
+            <div className="manifesto-quote">
+              <p>{copy.manifesto.quote}</p>
             </div>
 
             <div className="manifesto-rail">
               {copy.manifesto.points.map((point) => (
                 <article className="manifesto-point" key={point.title}>
-                  <span className="manifesto-label">{locale === "zh" ? "目标" : "Goal"}</span>
                   <strong>{point.title}</strong>
                   <p>{point.description}</p>
                 </article>
@@ -2587,12 +2657,26 @@ export function App(): ReactElement {
                   </article>
                 ))}
               </div>
+
+              <div className="console-workspace-bar">
+                {consoleWorkspaceOrder.map((workspace) => (
+                  <button
+                    className={`console-workspace-tab ${activeConsoleWorkspace === workspace ? "console-workspace-tab-active" : ""}`}
+                    key={workspace}
+                    onClick={() => setActiveConsoleWorkspace(workspace)}
+                    type="button"
+                  >
+                    <span>{consoleWorkspaceLabels[workspace]}</span>
+                    <small>{consoleWorkspaceDescriptions[workspace]}</small>
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </section>
         ) : null}
 
-        {currentPage === "console" ? (
+        {currentPage === "console" && activeConsoleWorkspace === "provider" ? (
         <section className="section-grid section-block console-stage feature-band" id="setup">
           <div className="section-heading console-stage-heading">
             <span className="section-caption">{copy.setup.caption}</span>
@@ -2746,7 +2830,7 @@ export function App(): ReactElement {
         </section>
         ) : null}
 
-        {currentPage === "console" ? (
+        {currentPage === "console" && activeConsoleWorkspace !== "provider" ? (
         <section className="section-grid section-block console-stage" id="console-manage">
           <div className="section-heading console-stage-heading">
             <span className="section-caption">{copy.runtime.caption}</span>
@@ -2758,6 +2842,7 @@ export function App(): ReactElement {
             </p>
           </div>
 
+          {activeConsoleWorkspace === "sessions" ? (
           <div className="panel session-panel">
             <div className="panel-header">
               <span>{copy.runtime.sessionLayer}</span>
@@ -3163,7 +3248,9 @@ export function App(): ReactElement {
               </div>
             </div>
           </div>
+          ) : null}
 
+          {activeConsoleWorkspace === "care" ? (
           <div className="console-diagnostics-grid">
             <div className="panel insight-panel">
               <div className="panel-header">
@@ -3562,7 +3649,11 @@ export function App(): ReactElement {
                 )}
               </div>
             </div>
+          </div>
+          ) : null}
 
+          {activeConsoleWorkspace === "runtime" ? (
+          <div className="console-diagnostics-grid">
             <div className="panel insight-panel">
               <div className="panel-header">
                 <span>{copy.runtime.signals}</span>
@@ -3675,6 +3766,7 @@ export function App(): ReactElement {
               )}
             </div>
           </div>
+          ) : null}
         </section>
         ) : null}
 
