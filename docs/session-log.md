@@ -4226,3 +4226,43 @@ Commit:
 Push:
 
 - pending
+
+## 2026-06-22
+
+Objective:
+
+Add the first browser-native microphone input path so the user can speak to Waveary from the chat page now, without waiting for realtime duplex voice.
+
+Summary:
+
+- updated `waveary-web/src/App.tsx` so the chat page can start and stop browser microphone capture through the Web Speech API, draft interim transcript text into the existing composer, and auto-send the final recognized turn through the normal `/api/chat/turn` flow
+- kept this first STT slice intentionally bounded inside the chat surface instead of adding a new server-side speech upload path or separate provider setup flow
+- added localized microphone status messaging for listening, sending, unsupported-browser, and common speech-recognition error states so the new path fails clearly instead of silently
+- updated `waveary-web/src/styles.css` so the voice area can represent microphone state alongside existing TTS controls without disturbing the rest of the chat layout
+- ignored `.playwright-cli/` in `.gitignore` so local browser tooling does not keep appearing as unrelated untracked noise
+- reconciled continuity records so the repo now points at the true preexisting TTS head (`22288c3`) and records browser-native STT as the current next voice slice baseline
+
+Files changed:
+
+- `.gitignore`
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run build:server --workspace @waveary/web`
+- `npm run test --workspace @waveary/web`
+- `npm run web:build`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending

@@ -773,3 +773,25 @@ Impact:
 - `waveary-web` now exposes `/api/voice/config` and stores `.waveary/voice-config.json`
 - `waveary-voice` now owns reusable voice presets, quality-profile-aware instruction seeds, and per-profile speed bias
 - the chat page can now switch saved provider-backed TTS profile / model / voice directly while preserving browser fallback speech when provider audio is unavailable
+
+## 2026-06-22 - First Speech Input Stays Browser-Native And Chat-Bounded
+
+Status:
+
+- accepted
+
+Decision:
+
+Implement the first speech-to-text slice through browser-native microphone capture on the chat page, using the Web Speech API to draft live transcript text into the existing composer and send the final recognized turn through the normal `/api/chat/turn` path.
+
+Reason:
+
+- the user's immediate need is to speak with Waveary now, not to wait for a full realtime duplex stack
+- a browser-native STT cut is the smallest practical way to prove voice input without introducing a second provider setup path or new server media infrastructure
+- keeping this first slice inside the chat page preserves the `waveary-voice` package boundary for later provider-backed STT, realtime transport, interruption handling, and full-duplex work
+
+Impact:
+
+- `waveary-web/src/App.tsx` now owns a bounded first speech-input controller with start/stop, live draft updates, final-turn auto-send, and localized fallback/error states
+- the first STT milestone does not yet require a saved speech provider config or server-side audio upload route
+- future voice work should extend from this bounded browser input path into provider-backed STT or realtime voice, rather than replacing it with another ad hoc UI flow

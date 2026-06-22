@@ -2672,6 +2672,13 @@ textarea {
   flex-wrap: wrap;
 }
 
+.chat-voice-button-active {
+  border-color: rgba(29, 90, 66, 0.26);
+  background: rgba(232, 247, 239, 0.92);
+  color: #174d37;
+  box-shadow: 2px 3px 0 rgba(29, 90, 66, 0.08);
+}
+
 .chat-voice-select {
   display: inline-flex;
   align-items: center;
@@ -2735,6 +2742,10 @@ textarea {
   font-size: 0.88rem;
 }
 
+.chat-voice-status-secondary {
+  margin-top: 0.55rem;
+}
+
 .chat-voice-meta {
   margin-left: auto;
   color: var(--muted);
@@ -2768,6 +2779,22 @@ textarea {
 }
 
 .chat-voice-status-error {
+  background: rgba(97, 42, 34, 0.14);
+  color: #6e2318;
+}
+
+.chat-mic-status-listening {
+  background: rgba(29, 90, 66, 0.14);
+  color: #174d37;
+}
+
+.chat-mic-status-processing {
+  background: rgba(89, 78, 58, 0.14);
+  color: var(--text);
+}
+
+.chat-mic-status-error,
+.chat-mic-status-unsupported {
   background: rgba(97, 42, 34, 0.14);
   color: #6e2318;
 }

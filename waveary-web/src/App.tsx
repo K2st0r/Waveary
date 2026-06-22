@@ -271,6 +271,49 @@ type BrowserNotificationPermissionState = NotificationPermission | "unsupported"
 type PermissionLevel = WavearyPermissionProfile["browserNotifications"];
 type PermissionPresetMode = "limited" | "elevated" | "full";
 type VoicePlaybackState = "idle" | "planning" | "speaking" | "error";
+type SpeechInputState = "idle" | "listening" | "processing" | "unsupported" | "error";
+
+interface BrowserSpeechRecognitionAlternative {
+  transcript: string;
+  confidence?: number;
+}
+
+interface BrowserSpeechRecognitionResult {
+  isFinal: boolean;
+  length: number;
+  [index: number]: BrowserSpeechRecognitionAlternative;
+}
+
+interface BrowserSpeechRecognitionResultList {
+  length: number;
+  [index: number]: BrowserSpeechRecognitionResult;
+}
+
+interface BrowserSpeechRecognitionEvent extends Event {
+  resultIndex: number;
+  results: BrowserSpeechRecognitionResultList;
+}
+
+interface BrowserSpeechRecognitionErrorEvent extends Event {
+  error: string;
+  message?: string;
+}
+
+interface BrowserSpeechRecognitionInstance extends EventTarget {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  maxAlternatives: number;
+  onstart: ((event: Event) => void) | null;
+  onresult: ((event: BrowserSpeechRecognitionEvent) => void) | null;
+  onerror: ((event: BrowserSpeechRecognitionErrorEvent) => void) | null;
+  onend: ((event: Event) => void) | null;
+  start(): void;
+  stop(): void;
+  abort(): void;
+}
+
+type BrowserSpeechRecognitionConstructor = new () => BrowserSpeechRecognitionInstance;
 
 interface PageLocation {
   page: AppPage;
@@ -1356,6 +1399,10 @@ export function App(): ReactElement {
   const [autoSpeakReplies, setAutoSpeakReplies] = useState(false);
   const [voicePlaybackState, setVoicePlaybackState] = useState<VoicePlaybackState>("idle");
   const [voiceStatusMessage, setVoiceStatusMessage] = useState("");
+  const [speechInputState, setSpeechInputState] = useState<SpeechInputState>(() =>
+    getSpeechRecognitionConstructor() ? "idle" : "unsupported"
+  );
+  const [speechInputStatusMessage, setSpeechInputStatusMessage] = useState("");
   const [chatSessions, setChatSessions] = useState<ChatSessionListItem[]>([]);
   const [activeSessionId, setActiveSessionId] = useState("");
   const [defaultSessionId, setDefaultSessionId] = useState("");
@@ -1383,10 +1430,32 @@ export function App(): ReactElement {
   });
   const activeUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const activeAudioRef = useRef<HTMLAudioElement | null>(null);
+  const speechRecognitionRef = useRef<BrowserSpeechRecognitionInstance | null>(null);
+  const speechInputBaseRef = useRef("");
+  const speechInputFinalRef = useRef("");
+  const speechInputManualStopRef = useRef(false);
+  const speechInputErrorRef = useRef(false);
 
   useEffect(() => {
     window.localStorage.setItem("waveary-locale", locale);
   }, [locale]);
+
+  useEffect(() => {
+    return () => {
+      const recognition = speechRecognitionRef.current;
+      speechRecognitionRef.current = null;
+
+      if (recognition) {
+        recognition.onstart = null;
+        recognition.onresult = null;
+        recognition.onerror = null;
+        recognition.onend = null;
+        recognition.abort();
+      }
+
+      stopVoicePlayback();
+    };
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -2332,12 +2401,16 @@ export function App(): ReactElement {
     );
   }
 
-  async function handleSendMessage(): Promise<void> {
-    const trimmed = chatInput.trim();
+  async function sendChatMessage(
+    messageInput: string,
+    options?: { fromSpeechInput?: boolean }
+  ): Promise<void> {
+    const trimmed = messageInput.trim();
     if (!trimmed) {
       return;
     }
 
+    stopSpeechRecognition({ markManualStop: true });
     const timeContext = buildChatTurnTimeContext(permissionProfile);
 
     const userMessage: ChatMessage = {
@@ -2349,6 +2422,12 @@ export function App(): ReactElement {
     setChatInput("");
     setChatState("loading");
     setChatMessages((current) => [...current, userMessage]);
+    if (options?.fromSpeechInput) {
+      setSpeechInputState("processing");
+      setSpeechInputStatusMessage(
+        locale === "zh" ? "正在发送语音消息…" : "Sending your voice message…"
+      );
+    }
 
     try {
       const response = await fetchJson<ChatTurnResponse>("/api/chat/turn", {
@@ -2396,6 +2475,12 @@ export function App(): ReactElement {
       setProactiveDecision(null);
       setProactiveDraft(null);
       setChatState("success");
+      if (options?.fromSpeechInput) {
+        setSpeechInputState("idle");
+        setSpeechInputStatusMessage(
+          locale === "zh" ? "语音消息已发出。" : "Your voice message was sent."
+        );
+      }
       if (autoSpeakReplies) {
         void speakAssistantReply(response.reply, response).catch(() => {
           // Keep chat flow successful even if voice playback fails.
@@ -2411,7 +2496,17 @@ export function App(): ReactElement {
         }
       ]);
       setChatState("error");
+      if (options?.fromSpeechInput) {
+        setSpeechInputState("error");
+        setSpeechInputStatusMessage(
+          locale === "zh" ? "语音消息发送失败了。" : "Sending the voice message failed."
+        );
+      }
     }
+  }
+
+  async function handleSendMessage(): Promise<void> {
+    await sendChatMessage(chatInput);
   }
 
   async function handleSpeakLatestReply(): Promise<void> {
@@ -2520,6 +2615,153 @@ export function App(): ReactElement {
     setVoiceStatusMessage(locale === "zh" ? "已停止朗读。" : "Speech stopped.");
   }
 
+  function handleToggleSpeechInput(): void {
+    if (speechInputState === "listening") {
+      stopSpeechRecognition({ markManualStop: true });
+      setSpeechInputState("idle");
+      setSpeechInputStatusMessage(
+        locale === "zh"
+          ? "已停止听写，你可以检查文字后发送。"
+          : "Listening stopped. Review the draft and send when ready."
+      );
+      return;
+    }
+
+    void startSpeechInput();
+  }
+
+  async function startSpeechInput(): Promise<void> {
+    const SpeechRecognition = getSpeechRecognitionConstructor();
+
+    if (!SpeechRecognition) {
+      setSpeechInputState("unsupported");
+      setSpeechInputStatusMessage(
+        locale === "zh"
+          ? "当前浏览器不支持语音输入。"
+          : "This browser does not support speech input."
+      );
+      return;
+    }
+
+    if (!chatReady || chatState === "loading" || speechInputState === "processing") {
+      return;
+    }
+
+    stopVoicePlayback();
+    stopSpeechRecognition({ markManualStop: true });
+
+    const recognition = new SpeechRecognition();
+    speechRecognitionRef.current = recognition;
+    speechInputBaseRef.current = chatInput.trim();
+    speechInputFinalRef.current = "";
+    speechInputManualStopRef.current = false;
+    speechInputErrorRef.current = false;
+
+    recognition.continuous = false;
+    recognition.interimResults = true;
+    recognition.lang = locale === "zh" ? "zh-CN" : "en-US";
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = () => {
+      setSpeechInputState("listening");
+      setSpeechInputStatusMessage(
+        locale === "zh"
+          ? "正在听你说话…说完后我会直接发出去。"
+          : "Listening… I will send it as soon as you finish."
+      );
+    };
+
+    recognition.onresult = (event) => {
+      let nextFinal = speechInputFinalRef.current;
+      let interimTranscript = "";
+
+      for (let index = event.resultIndex; index < event.results.length; index += 1) {
+        const result = event.results[index];
+        if (!result) {
+          continue;
+        }
+        const transcript = result[0]?.transcript?.trim();
+
+        if (!transcript) {
+          continue;
+        }
+
+        if (result.isFinal) {
+          nextFinal = `${nextFinal} ${transcript}`.trim();
+        } else {
+          interimTranscript = transcript;
+        }
+      }
+
+      speechInputFinalRef.current = nextFinal;
+      setChatInput(
+        composeSpeechDraft(
+          speechInputBaseRef.current,
+          speechInputFinalRef.current,
+          interimTranscript
+        )
+      );
+    };
+
+    recognition.onerror = (event) => {
+      speechInputErrorRef.current = true;
+      speechRecognitionRef.current = null;
+      setSpeechInputState("error");
+      setSpeechInputStatusMessage(localizeSpeechInputError(event.error, locale));
+    };
+
+    recognition.onend = () => {
+      if (speechRecognitionRef.current === recognition) {
+        speechRecognitionRef.current = null;
+      }
+
+      if (speechInputErrorRef.current) {
+        return;
+      }
+
+      const recognizedDraft = composeSpeechDraft(
+        speechInputBaseRef.current,
+        speechInputFinalRef.current
+      );
+
+      if (speechInputManualStopRef.current) {
+        setSpeechInputState("idle");
+        setSpeechInputStatusMessage(
+          recognizedDraft
+            ? locale === "zh"
+              ? "听写已停止，你可以修改后发送。"
+              : "Listening stopped. You can edit the draft before sending."
+            : locale === "zh"
+              ? "已停止语音输入。"
+              : "Speech input stopped."
+        );
+        return;
+      }
+
+      if (!recognizedDraft) {
+        setSpeechInputState("idle");
+        setSpeechInputStatusMessage(
+          locale === "zh" ? "这次没有听清，我们再试一次。" : "I did not catch that. Try again."
+        );
+        return;
+      }
+
+      setSpeechInputState("processing");
+      setSpeechInputStatusMessage(
+        locale === "zh" ? "听到了，正在替你发出去…" : "Got it. Sending it now…"
+      );
+      void sendChatMessage(recognizedDraft, { fromSpeechInput: true });
+    };
+
+    try {
+      recognition.start();
+    } catch (error) {
+      speechRecognitionRef.current = null;
+      setSpeechInputState("error");
+      setSpeechInputStatusMessage(getErrorMessage(error));
+    }
+  }
+
   async function playProviderAudio(planResponse: VoiceSpeakPlanResponse): Promise<void> {
     if (typeof window === "undefined" || !planResponse.audio) {
       throw new Error("Provider audio playback is not available in this environment.");
@@ -2576,6 +2818,25 @@ export function App(): ReactElement {
       activeAudioRef.current.currentTime = 0;
       activeAudioRef.current = null;
     }
+  }
+
+  function stopSpeechRecognition(options?: { markManualStop?: boolean }): void {
+    const recognition = speechRecognitionRef.current;
+
+    if (options?.markManualStop) {
+      speechInputManualStopRef.current = true;
+    }
+
+    if (!recognition) {
+      return;
+    }
+
+    speechRecognitionRef.current = null;
+    recognition.onstart = null;
+    recognition.onresult = null;
+    recognition.onerror = null;
+    recognition.onend = null;
+    recognition.stop();
   }
 
   async function handleExecutePendingLocalAction(): Promise<void> {
@@ -4486,6 +4747,25 @@ export function App(): ReactElement {
 
                   <div className="console-actions">
                     <div className="chat-voice-controls">
+                      <button
+                        className={`button button-secondary ${speechInputState === "listening" ? "chat-voice-button-active" : ""}`}
+                        onClick={() => handleToggleSpeechInput()}
+                        disabled={
+                          !chatReady ||
+                          chatState === "loading" ||
+                          speechInputState === "processing" ||
+                          speechInputState === "unsupported"
+                        }
+                        type="button"
+                      >
+                        {speechInputState === "listening"
+                          ? locale === "zh"
+                            ? "结束收听"
+                            : "Stop listening"
+                          : locale === "zh"
+                            ? "开始说话"
+                            : "Start talking"}
+                      </button>
                       <label className="chat-voice-toggle">
                         <input
                           type="checkbox"
@@ -4578,6 +4858,21 @@ export function App(): ReactElement {
                       {voiceConfig?.voice ? ` · ${voiceConfig.voice}` : ""}
                     </span>
                   ) : null}
+                </div>
+                <div className="chat-voice-status chat-voice-status-secondary" aria-live="polite">
+                  <span className={`chat-voice-status-badge chat-mic-status-${speechInputState}`}>
+                    {locale === "zh" ? "麦克风" : "Mic"}
+                  </span>
+                  <span>
+                    {speechInputStatusMessage ||
+                      (speechInputState === "unsupported"
+                        ? locale === "zh"
+                          ? "当前浏览器暂不支持语音输入。"
+                          : "Speech input is not supported in this browser."
+                        : locale === "zh"
+                          ? "点开始说话后，我会把听到的内容直接送进对话。"
+                          : "Start talking and I will turn it into the next chat turn.")}
+                  </span>
                 </div>
               </div>
             </div>
@@ -4912,6 +5207,51 @@ function pickSpeechVoice(
   );
 
   return keywordMatch ?? exactLanguageMatch ?? partialLanguageMatch ?? voices[0] ?? null;
+}
+
+function getSpeechRecognitionConstructor(): BrowserSpeechRecognitionConstructor | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  const speechWindow = window as Window & {
+    SpeechRecognition?: BrowserSpeechRecognitionConstructor;
+    webkitSpeechRecognition?: BrowserSpeechRecognitionConstructor;
+  };
+
+  return speechWindow.SpeechRecognition ?? speechWindow.webkitSpeechRecognition ?? null;
+}
+
+function composeSpeechDraft(base: string, finalTranscript: string, interimTranscript = ""): string {
+  return [base.trim(), finalTranscript.trim(), interimTranscript.trim()]
+    .filter(Boolean)
+    .join(" ");
+}
+
+function localizeSpeechInputError(error: string, locale: Locale): string {
+  if (error === "not-allowed" || error === "service-not-allowed") {
+    return locale === "zh"
+      ? "麦克风权限被拒绝了，请先允许浏览器使用麦克风。"
+      : "Microphone access was denied. Allow the browser to use your microphone first.";
+  }
+
+  if (error === "no-speech") {
+    return locale === "zh" ? "没有听到声音，我们再试一次。" : "I did not hear anything. Try again.";
+  }
+
+  if (error === "audio-capture") {
+    return locale === "zh"
+      ? "没有找到可用的麦克风。"
+      : "No working microphone was detected.";
+  }
+
+  if (error === "network") {
+    return locale === "zh"
+      ? "语音识别网络出了点问题。"
+      : "Speech recognition hit a network problem.";
+  }
+
+  return locale === "zh" ? "语音输入失败了。" : "Speech input failed.";
 }
 
 function localizeVoiceStyle(style: string, locale: Locale): string {

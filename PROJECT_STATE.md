@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `f8133cf` - `Sync TTS continuity records`
+- `22288c3` - `Add explicit voice presets and TTS config`
 
 ## Modules
 
@@ -136,6 +136,8 @@ Brand line:
   - `/api/voice/speak` now attempts a real provider-backed TTS request first by reusing the saved OpenAI-compatible provider config against `/audio/speech`, then falls back to browser speech planning if the provider path is unavailable or fails
   - provider-backed TTS now also supports explicit saved voice configuration and quality-oriented presets through `/api/voice/config`, `.waveary/voice-config.json`, and a compact chat-page voice control strip for profile / model / voice selection
   - the chat page now includes a first voice strip with `auto speak`, `speak reply`, and `stop` controls, and voice playback now supports both provider-returned audio and browser speech fallback while still following reply emotion and relationship stage
+  - the chat page now also supports first-cut browser microphone capture and speech-to-text input through the Web Speech API, drafting live transcript text into the composer and sending the final recognized turn through the normal chat flow
+  - this first speech-input slice stays browser-native and chat-bounded: start/stop listening, live draft updates, final-turn auto-send, and localized unsupported-browser fallback instead of a new server STT path
   - current-page search intent detection now runs before the narrower Bilibili follow-up probe, preventing `search this page for ...` turns from accidentally falling into the managed-browser follow-up path
   - `provider-api` route tests now explicitly close managed browser automation between cases, preventing the managed Playwright layer from leaving hanging handles in compiled server-test runs
 - `waveary-voice`
@@ -194,6 +196,7 @@ Brand line:
   - current homepage doodle inventory now includes correspondence-style objects in addition to study and youth-memory objects, and those extra assets are already wired into the homepage background layer
   - can list provider presets, fetch models through the selected provider key, and save local config
   - can run a first browser chat flow and render memory, relationship, emotion, and timeline signals
+  - can now capture microphone speech in supported browsers and turn it into the next local chat turn without leaving the chat page
   - now exposes a read-only `/api/chat/proactive/evaluate` route so the current `WPCE` decision path can be inspected from the local web runtime without generating outbound messages
   - now exposes `/api/chat/proactive/settings` so per-session proactive-care policy and care-state counters can be saved, reloaded, exported, imported, and reused by later `WPCE` evaluations
   - restores local chat history and latest runtime signals after dev server restart
@@ -280,8 +283,8 @@ Brand line:
 
 ## Next Steps
 
-- add a focused browser pass for the new chat-page voice strip so provider audio playback, browser fallback playback, voice preset switching, and `auto speak` / `stop` are visually verified alongside the existing permission tray
-- decide the next voice cut after explicit TTS configuration: browser microphone capture + STT, or richer provider-backed emotional voice controls first
+- add a focused browser pass for the chat-page voice surface so provider audio playback, browser fallback playback, browser microphone capture, transcript drafting, and `auto speak` / `stop` are visually verified together
+- decide the next voice cut after the first browser STT path: provider-backed STT, or richer provider-backed emotional voice controls first
 - consider whether the saved voice profile should stay local-only for CE or later become part of user-facing companionship preference portability
 - keep future realtime voice and full-duplex work behind the new `waveary-voice` package boundary instead of blending media logic into `waveary-web` directly
 - continue refining the new three-step chat permission presets so the difference between `high-permission` and `full-access` stays legible now that `full-access` also returns same-turn execution-consistent replies instead of showing a contradiction between model text and local action outcome
