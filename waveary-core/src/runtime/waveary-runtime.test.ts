@@ -146,6 +146,53 @@ test("WavearyRuntime shifts companion emotion toward concern when the user is sa
   assert.ok(result.reply.content.includes("weight") || result.reply.content.includes("carefully"));
 });
 
+test("WavearyRuntime avoids forcing a weak recalled memory into an emotional turn", async () => {
+  const memoryStore = new TestMemoryStore([
+    {
+      id: "memory-1",
+      userId: "user-1",
+      type: "preference",
+      content: "The user likes cloudy afternoons and sketching on weekends.",
+      importance: 0.82,
+      confidence: 0.78,
+      sourceMessageIds: ["old-message"],
+      createdAt: new Date().toISOString()
+    }
+  ]);
+  const runtime = new WavearyRuntime({
+    chatProvider: new ScriptedChatProvider(),
+    emotionAnalyzer: new SimpleEmotionAnalyzer(),
+    emotionStore: new InMemoryEmotionStore(),
+    emotionEngine: new SimpleCompanionEmotionEngine(),
+    proactiveCareEngine: new SimpleProactiveCareEngine(),
+    memoryStore,
+    memoryExtractor: new TestMemoryExtractor(),
+    relationshipStore: new InMemoryRelationshipStore(),
+    relationshipEngine: new SimpleRelationshipEngine(),
+    timelineStore: new InMemoryTimelineStore(),
+    timelineEngine: new SimpleTimelineEngine()
+  });
+
+  const context = createContext();
+  const message: Message = {
+    id: "turn-emotional-memory-1",
+    sessionId: context.session.id,
+    role: "user",
+    content: "I feel anxious tonight and I do not want to be alone with it.",
+    timestamp: new Date().toISOString(),
+    metadata: {}
+  };
+
+  const result = await runtime.handleTurn(context, message);
+
+  assert.equal(result.recalledMemories.length, 1);
+  assert.ok(
+    result.reply.content.includes("do not want to force an old detail") ||
+      result.reply.content.includes("do not want to drag in the wrong memory"),
+    "scripted reply should avoid forcing a weak memory into an emotional turn"
+  );
+});
+
 test("WavearyRuntime reflects warmer familiarity once the relationship is growing", async () => {
   const relationshipStore = new InMemoryRelationshipStore();
   await relationshipStore.applyDelta("user-1", {
@@ -319,6 +366,12 @@ test("WavearyRuntime evaluates proactive care through relationship, emotion, and
 
 class TestMemoryStore implements MemoryStore {
   private readonly records = new Map<string, MemoryItem[]>();
+
+  constructor(initialMemories?: MemoryItem[]) {
+    if (initialMemories?.length) {
+      this.records.set("user-1", initialMemories);
+    }
+  }
 
   async recallRelevantMemories(userId: string, input: string): Promise<MemoryItem[]> {
     const normalizedInput = input.toLowerCase();

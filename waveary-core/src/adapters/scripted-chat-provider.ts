@@ -1,10 +1,10 @@
 import type { ChatProvider, ChatProviderRequest } from "../index.js";
 import { resolveLocalTimeGuidance } from "./local-time-guidance.js";
+import { selectContinuityThread } from "../runtime/continuity-thread.js";
 
 export class ScriptedChatProvider implements ChatProvider {
   async generateReply(request: ChatProviderRequest): Promise<string> {
     const latestUserMessage = [...request.messages].reverse().find((message) => message.role === "user");
-    const memoryHint = request.relevantMemories[0]?.content;
 
     if (!latestUserMessage) {
       return "I am here with you.";
@@ -20,7 +20,18 @@ export class ScriptedChatProvider implements ChatProvider {
       request.emotion?.primaryEmotion,
       request
     );
-    const continuity = buildContinuityLine(memoryHint, request.relationship.stage);
+    const continuityThread = selectContinuityThread({
+      latestUserMessage,
+      relevantMemories: request.relevantMemories,
+      timeline: request.timeline
+    });
+    const continuity = buildContinuityLine(
+      continuityThread.primaryLine.startsWith("[memory:")
+        ? unwrapContinuityLine(continuityThread.primaryLine)
+        : undefined,
+      request.relationship.stage,
+      continuityThread.guidance
+    );
     const followup = buildFollowup(
       latestUserMessage.content,
       request.relationship.stage,
@@ -128,7 +139,13 @@ function buildRelationshipPrefix(
   return "I am here, and I am listening carefully.";
 }
 
-function buildContinuityLine(memoryHint: string | undefined, stage: string): string {
+function buildContinuityLine(
+  memoryHint: string | undefined,
+  stage: string,
+  continuityGuidance: string
+): string {
+  const shouldAvoidForcedMemory = continuityGuidance.startsWith("This memory is available");
+
   if (!memoryHint) {
     if (stage === "growing") {
       return "I am not treating this like a stray question. I am holding it as part of our longer thread.";
@@ -139,6 +156,14 @@ function buildContinuityLine(memoryHint: string | undefined, stage: string): str
     }
 
     return "I want to stay with what you just shared instead of turning it into a dry answer.";
+  }
+
+  if (shouldAvoidForcedMemory) {
+    if (stage === "growing") {
+      return "I do not want to drag in the wrong memory just to sound continuous. I would rather stay honestly with what this feels like right now.";
+    }
+
+    return "I do not want to force an old detail into this moment if it does not really fit what you are feeling.";
   }
 
   if (stage === "growing") {
@@ -187,4 +212,8 @@ function summarizeTopic(content: string): string {
 
 function wrapMemory(memory: string): string {
   return memory.startsWith("\"") ? memory : `"${memory}"`;
+}
+
+function unwrapContinuityLine(value: string): string {
+  return value.replace(/^\[(memory|timeline):[^\]]+\]\s*/i, "");
 }
