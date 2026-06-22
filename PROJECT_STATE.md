@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `22288c3` - `Add explicit voice presets and TTS config`
+- `38c2c1a` - `Add browser speech input to chat`
 
 ## Modules
 

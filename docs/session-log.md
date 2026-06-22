@@ -8,8 +8,7 @@ Extend the new voice layer from browser-only speech planning into a real provide
 
 Summary:
 
-- expanded `waveary-voice` result contracts from browser-plan-only into a union that can now return either browser speech settings or real audio payloads
-- added `waveary-voice/src/openai-compatible-tts-provider.ts` as the first concrete provider-backed TTS adapter, targeting OpenAI-compatible `/audio/speech` and returning base64 audio plus simple playback metadata
+- expanded `waveary-voice/src/openai-compatible-tts-provider.ts` as the first concrete provider-backed TTS adapter, targeting OpenAI-compatible `/audio/speech` and returning base64 audio plus simple playback metadata
 - updated `waveary-web/server/voice-runtime.ts` so `/api/voice/speak` first tries provider-backed TTS by reusing the saved provider config, then falls back automatically to the older `BrowserSpeechPlanner` path if the current provider does not support compatible TTS or the request fails
 - updated `waveary-web/src/App.tsx` so the chat voice strip now plays real audio when the route returns it, while preserving browser `speechSynthesis` as the fallback path and keeping `auto speak`, manual `speak reply`, and `stop` behavior intact
 - added route and package-level regression coverage for the new real-audio branch and re-verified that the broader `@waveary/web` route surface still passes
@@ -37,17 +36,17 @@ Verification:
 - `npm run check --workspace @waveary/voice`
 - `npm run test --workspace @waveary/voice`
 - `npm run build:server --workspace @waveary/web`
-- `npm run test --workspace @waveary/web`
 - `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run test --workspace @waveary/web`
 - `npm run web:build`
 
 Commit:
 
-- pending
+- `22288c3` - `Add explicit voice presets and TTS config`
 
 Push:
 
-- pending
+- succeeded: `git push origin main` pushed functional commit `22288c3` to `origin/main`
 
 ## 2026-06-22
 
@@ -4261,8 +4260,10 @@ Verification:
 
 Commit:
 
-- pending
+- `38c2c1a` - `Add browser speech input to chat`
 
 Push:
 
-- pending
+- succeeded: `git push origin main` pushed functional commit `38c2c1a` to `origin/main`
+
+
