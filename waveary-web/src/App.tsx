@@ -2265,7 +2265,8 @@ export function App(): ReactElement {
           sessionId: activeSessionId,
           actionId: pendingLocalAction.id,
           permission: permissionProfile.localActions,
-          approved: true
+          approved: true,
+          locale
         })
       });
 
@@ -2295,7 +2296,8 @@ export function App(): ReactElement {
         method: "POST",
         body: JSON.stringify({
           sessionId: activeSessionId,
-          actionId: pendingLocalAction.id
+          actionId: pendingLocalAction.id,
+          locale
         })
       });
 

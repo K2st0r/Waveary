@@ -216,6 +216,48 @@ export class PersistentChatSessionState {
     }));
   }
 
+  recordLocalActionResolution(input: {
+    pendingAction: PendingLocalAction;
+    resolution: "executed" | "dismissed";
+    note: string;
+  }): void {
+    const timestamp = new Date().toISOString();
+
+    this.runtimeState.saveState((current) => {
+      const context = cloneContext(current.context);
+      context.history = [
+        ...context.history,
+        {
+          id: `assistant-local-action-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          sessionId: context.session.id,
+          role: "assistant",
+          content: input.note,
+          timestamp,
+          metadata: {
+            source: "local-action",
+            localActionId: input.pendingAction.id,
+            localActionKind: input.pendingAction.kind,
+            localActionTarget: input.pendingAction.target,
+            localActionTargetLabel: input.pendingAction.targetLabel,
+            localActionStatus: input.resolution
+          }
+        }
+      ];
+
+      return {
+        ...current,
+        context,
+        latestInsights: current.latestInsights
+          ? {
+              ...current.latestInsights,
+              pendingLocalAction: null
+            }
+          : null,
+        updatedAt: timestamp
+      };
+    });
+  }
+
   clearUnansweredProactiveReachouts(): ProactiveCareState {
     const currentState = this.runtimeState.getProactiveCareState();
 
