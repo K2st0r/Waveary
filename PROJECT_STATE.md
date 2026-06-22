@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `4b1fad7` - `Record managed browser action layer`
+- `31202cb` - `Add bounded managed browser read routes`
 
 ## Modules
 
