@@ -4,6 +4,47 @@
 
 Objective:
 
+Make permissioned local-time awareness trustworthy for real providers by guaranteeing direct time/date/day answers in `waveary-core` instead of relying only on prompt compliance.
+
+Summary:
+
+- added a shared deterministic local-time reply helper in `waveary-core/src/runtime/local-time-reply.ts` for direct time/date/day question detection plus localized reply formatting
+- updated `WavearyRuntime.handleTurn()` to short-circuit these direct local-time questions before provider generation whenever permissioned `localTime` context is available
+- updated `ScriptedChatProvider` to reuse the same helper so scripted and real-provider reply paths no longer drift on time-answer behavior
+- added dedicated runtime and helper regression coverage proving that a direct Chinese time question now returns the local-clock answer even if the underlying provider would have replied with a generic "I do not know the time" disclaimer
+- verified the change with `@waveary/core` typecheck, fresh build, and full compiled-test execution
+
+Files changed:
+
+- `waveary-core/src/runtime/local-time-reply.ts`
+- `waveary-core/src/runtime/local-time-reply.test.ts`
+- `waveary-core/src/runtime/waveary-runtime.ts`
+- `waveary-core/src/runtime/waveary-runtime.test.ts`
+- `waveary-core/src/adapters/scripted-chat-provider.ts`
+- `waveary-core/src/index.ts`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/core`
+- `npm run build --workspace @waveary/core`
+- `npm run test --workspace @waveary/core`
+
+Commit:
+
+- `ae0b112` - `Short-circuit local time replies in runtime`
+
+Push:
+
+- succeeded: `git push origin main` pushed `ae0b112` to the SSH remote `git@github.com:K2st0r/-Waveary-.git`
+
+## 2026-06-22
+
+Objective:
+
 Turn chat-side `localActions` from a preference-only permission into the first real ask-first local execution boundary, without allowing any silent high-trust action path.
 
 Summary:

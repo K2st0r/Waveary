@@ -551,3 +551,25 @@ Impact:
 - `selectContinuityThread()` now accepts optional message history and derives a tiny source-turn preference from memory `sourceMessageIds`
 - both `OpenAICompatibleChatProvider` and `ScriptedChatProvider` now pass request message history into the shared helper
 - future continuity-scoring work can layer richer repeated-reference or session-local signals on top of current-turn match, recency, and source-turn weighting without moving the logic back into provider-local code
+
+## 2026-06-22 - Local Time Answers Should Be Guaranteed In Runtime, Not Left To Prompt Compliance
+
+Status:
+
+- accepted
+
+Decision:
+
+When a turn is a direct time/date/day question and permissioned local time context is available, answer it deterministically inside `WavearyRuntime` before provider generation instead of relying only on provider prompt instructions.
+
+Reason:
+
+- real model providers can still ignore the existing local-time prompt block and fall back to generic "I do not know the time" disclaimers
+- the product promise here is narrow, bounded, and trustworthy: if the user granted local time awareness, the companion should actually know the local time
+- this behavior belongs in shared runtime logic so scripted and real-provider paths do not drift apart on a basic companionship expectation
+
+Impact:
+
+- `waveary-core` now owns a shared local-time reply helper used by both runtime short-circuiting and the scripted provider path
+- direct local time/date/day questions no longer depend on model obedience to prompt wording
+- future bounded time-awareness refinements should extend this shared runtime helper instead of adding more provider-specific prompt hacks
