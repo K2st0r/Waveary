@@ -44,11 +44,21 @@ interface ChatTurnResponse {
   };
   recalledMemories: string[];
   storedMemories: string[];
+  pendingLocalAction?: PendingLocalAction | null;
   timeline: Array<{
     title: string;
     type: string;
     eventTime: string;
   }>;
+}
+
+interface PendingLocalAction {
+  id: string;
+  kind: "open_url" | "open_folder" | "launch_app";
+  label: string;
+  target: string;
+  targetLabel: string;
+  summary: string;
 }
 
 interface ChatTurnTimeContext {
@@ -136,6 +146,14 @@ interface ImportedChatSessionResult {
   exportedAt: string;
   importedFromSessionId: string;
   importedTitle: string;
+}
+
+interface LocalActionRouteResult {
+  session: ChatSessionSnapshot | null;
+  result: {
+    status: "executed" | "dismissed";
+    message: string;
+  };
 }
 
 interface SessionPackageReference {
@@ -1225,6 +1243,7 @@ export function App(): ReactElement {
   const [chatState, setChatState] = useState<LoadState>("idle");
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatInsights, setChatInsights] = useState<ChatTurnResponse | null>(null);
+  const [pendingLocalAction, setPendingLocalAction] = useState<PendingLocalAction | null>(null);
   const [chatRestoredAt, setChatRestoredAt] = useState<string | null>(null);
   const [sessionMemoryArchive, setSessionMemoryArchive] = useState<SessionMemoryArchiveItem[]>([]);
   const [sessionRelationship, setSessionRelationship] = useState<SessionRelationshipSnapshot | null>(null);
@@ -1273,6 +1292,7 @@ export function App(): ReactElement {
   const [proactiveAutoCheckLastOutcome, setProactiveAutoCheckLastOutcome] =
     useState<ProactiveAutoCheckOutcome | null>(null);
   const [chatPermissionTrayOpen, setChatPermissionTrayOpen] = useState(false);
+  const [localActionResolveState, setLocalActionResolveState] = useState<LoadState>("idle");
   const [chatSessions, setChatSessions] = useState<ChatSessionListItem[]>([]);
   const [activeSessionId, setActiveSessionId] = useState("");
   const [defaultSessionId, setDefaultSessionId] = useState("");
@@ -1568,6 +1588,7 @@ export function App(): ReactElement {
     if (!session) {
       setChatMessages([]);
       setChatInsights(null);
+      setPendingLocalAction(null);
       setChatRestoredAt(null);
       setSessionMemoryArchive([]);
       setSessionRelationship(null);
@@ -1579,6 +1600,7 @@ export function App(): ReactElement {
 
     setChatMessages(session.messages);
     setChatInsights(session.latestInsights);
+    setPendingLocalAction(session.latestInsights?.pendingLocalAction ?? null);
     setChatRestoredAt(session.updatedAt);
     setSessionMemoryArchive(session.memoryArchive);
     setSessionRelationship(session.relationship);
@@ -2195,6 +2217,7 @@ export function App(): ReactElement {
 
       setChatMessages((current) => [...current, assistantMessage]);
       setChatInsights(response);
+      setPendingLocalAction(response.pendingLocalAction ?? null);
       setChatRestoredAt(new Date().toISOString());
       setChatSessions(sessionsResponse.sessions);
       setDefaultSessionId(sessionsResponse.defaultSessionId);
@@ -2216,6 +2239,81 @@ export function App(): ReactElement {
         }
       ]);
       setChatState("error");
+    }
+  }
+
+  async function handleExecutePendingLocalAction(): Promise<void> {
+    if (!pendingLocalAction || !activeSessionId) {
+      return;
+    }
+
+    if (permissionProfile.localActions === "deny") {
+      setStatusMessage(
+        locale === "zh"
+          ? "当前本地动作权限为拒绝，先在聊天旁的权限面板里改成按需询问或允许。"
+          : "Local actions are currently denied. Change the permission beside the composer first."
+      );
+      return;
+    }
+
+    setLocalActionResolveState("loading");
+
+    try {
+      const response = await fetchJson<LocalActionRouteResult>("/api/chat/local-action/execute", {
+        method: "POST",
+        body: JSON.stringify({
+          sessionId: activeSessionId,
+          actionId: pendingLocalAction.id,
+          permission: permissionProfile.localActions,
+          approved: true
+        })
+      });
+
+      if (response.session) {
+        applySessionSnapshot(response.session);
+      } else {
+        setPendingLocalAction(null);
+      }
+
+      setLocalActionResolveState("success");
+      setStatusMessage(localizeLocalActionMessage(response.result.message, locale));
+    } catch (error) {
+      setLocalActionResolveState("error");
+      setStatusMessage(getErrorMessage(error));
+    }
+  }
+
+  async function handleDismissPendingLocalAction(): Promise<void> {
+    if (!pendingLocalAction || !activeSessionId) {
+      return;
+    }
+
+    setLocalActionResolveState("loading");
+
+    try {
+      const response = await fetchJson<LocalActionRouteResult>("/api/chat/local-action/dismiss", {
+        method: "POST",
+        body: JSON.stringify({
+          sessionId: activeSessionId,
+          actionId: pendingLocalAction.id
+        })
+      });
+
+      if (response.session) {
+        applySessionSnapshot(response.session);
+      } else {
+        setPendingLocalAction(null);
+      }
+
+      setLocalActionResolveState("success");
+      setStatusMessage(
+        locale === "zh"
+          ? "已取消这次本地动作请求。"
+          : "Dismissed this local action request."
+      );
+    } catch (error) {
+      setLocalActionResolveState("error");
+      setStatusMessage(getErrorMessage(error));
     }
   }
 
@@ -3865,6 +3963,62 @@ export function App(): ReactElement {
               </div>
 
               <div className="chat-composer">
+                {pendingLocalAction ? (
+                  <div className="chat-local-action-card">
+                    <div className="chat-local-action-copy">
+                      <span className="chat-local-action-kicker">
+                        {locale === "zh" ? "待确认动作" : "Pending action"}
+                      </span>
+                      <strong>{localizeLocalActionSummary(pendingLocalAction, locale)}</strong>
+                      <p>
+                        {permissionProfile.localActions === "deny"
+                          ? locale === "zh"
+                            ? "当前策略已拒绝本地动作。你可以先把旁边的本地动作权限切换为按需询问或允许。"
+                            : "The current policy denies local actions. Change the local-action permission beside the composer first."
+                          : permissionProfile.localActions === "ask"
+                            ? locale === "zh"
+                              ? "这次需要你点一次确认后才会执行。"
+                              : "This one needs your explicit approval before it runs."
+                            : locale === "zh"
+                              ? "当前策略允许本地动作，但这次仍然会等你确认后再执行。"
+                              : "The current policy allows local actions, but this still waits for your confirmation."}
+                      </p>
+                    </div>
+                    <div className="chat-local-action-meta">
+                      <span>{pendingLocalAction.targetLabel}</span>
+                      <div className="chat-local-action-buttons">
+                        <button
+                          className="button button-secondary"
+                          onClick={() => void handleDismissPendingLocalAction()}
+                          disabled={localActionResolveState === "loading"}
+                          type="button"
+                        >
+                          {locale === "zh" ? "取消" : "Dismiss"}
+                        </button>
+                        <button
+                          className="button button-primary"
+                          onClick={() => void handleExecutePendingLocalAction()}
+                          disabled={
+                            localActionResolveState === "loading" ||
+                            permissionProfile.localActions === "deny"
+                          }
+                          type="button"
+                        >
+                          {localActionResolveState === "loading"
+                            ? copy.runtime.sending
+                            : locale === "zh"
+                              ? permissionProfile.localActions === "ask"
+                                ? "允许一次并执行"
+                                : "立即执行"
+                              : permissionProfile.localActions === "ask"
+                                ? "Allow once"
+                                : "Run now"}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
+
                 <textarea
                   value={chatInput}
                   onChange={(event) => setChatInput(event.target.value)}
@@ -4236,6 +4390,36 @@ function deliverProactiveBrowserNotification(
           ? "当前会话被评估为适合主动关怀。"
           : "The active session was evaluated as ready for proactive care."
   });
+}
+
+function localizeLocalActionSummary(
+  action: PendingLocalAction,
+  locale: Locale
+): string {
+  if (locale === "zh") {
+    if (action.kind === "open_url") {
+      return `打开 ${action.targetLabel}`;
+    }
+
+    if (action.kind === "open_folder") {
+      return `打开 ${action.targetLabel} 文件夹`;
+    }
+
+    return `启动 ${action.targetLabel}`;
+  }
+
+  return action.summary;
+}
+
+function localizeLocalActionMessage(message: string, locale: Locale): string {
+  if (locale !== "zh") {
+    return message;
+  }
+
+  return message
+    .replace(/^Opened /, "已打开 ")
+    .replace(/^Launched /, "已启动 ")
+    .replace(/\.$/, "。");
 }
 
 function downloadSessionExport(exported: ExportedChatSession): void {
