@@ -21,6 +21,7 @@ import {
   type Locale,
   type ProactiveMessageDraft
 } from "../src/proactive-message-drafts.js";
+import { buildCompanionDeliveryHint } from "./companion-delivery.js";
 import {
   detectPendingLocalAction,
   runPendingLocalAction,
@@ -286,6 +287,10 @@ function getRuntimeCacheKey(sessionId: string): string {
 }
 
 function toReplyPayload(result: RuntimeTurnResult): ChatReplyPayload {
+  const delivery = result.emotion
+    ? buildCompanionDeliveryHint(result.relationship, result.emotion)
+    : undefined;
+
   return {
     reply: result.reply.content,
     relationship: result.relationship,
@@ -297,7 +302,8 @@ function toReplyPayload(result: RuntimeTurnResult): ChatReplyPayload {
       type: event.eventType,
       eventTime: event.eventTime
     })),
-    ...(result.emotion ? { emotion: result.emotion } : {})
+    ...(result.emotion ? { emotion: result.emotion } : {}),
+    ...(delivery ? { delivery } : {})
   };
 }
 

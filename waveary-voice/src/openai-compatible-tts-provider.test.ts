@@ -32,6 +32,13 @@ test("openai-compatible tts provider posts audio speech and returns base64 audio
     locale: "en-US",
     relationshipStage: "growing",
     personaTone: "warm_companion",
+    delivery: {
+      style: "concerned",
+      pace: "slower",
+      closeness: "close",
+      expressiveness: "restrained",
+      instruction: "Speak with quiet reassurance and stay emotionally close."
+    },
     emotion: {
       primaryEmotion: "concerned",
       intensity: 0.8
@@ -52,6 +59,8 @@ test("openai-compatible tts provider posts audio speech and returns base64 audio
   assert.equal(typeof parsedBody.speed, "number");
   assert.equal(result.metadata.qualityProfile, "gentle");
   assert.match(String(parsedBody.instructions), /real human companion/i);
+  assert.match(String(parsedBody.instructions), /quiet reassurance/i);
+  assert.ok(Number(parsedBody.speed) < 1);
 });
 
 test("openai-compatible tts provider surfaces upstream errors", async () => {

@@ -50,6 +50,7 @@ import {
   type SavedVoiceConfig
 } from "./voice-config.js";
 import type { VoiceOutputFormat, VoiceQualityProfile } from "@waveary/voice";
+import type { CompanionDeliveryHint } from "./companion-delivery.js";
 
 interface ProviderModelsRequest {
   provider?: string;
@@ -78,6 +79,7 @@ interface VoiceSpeakRequest {
   locale?: string;
   relationship?: RelationshipProfile | null;
   emotion?: EmotionState;
+  delivery?: CompanionDeliveryHint;
   persona?: {
     tone?: string;
     voiceStyle?: string;
@@ -270,6 +272,7 @@ export function createProviderApiMiddleware() {
           ...(payload.locale?.trim() ? { locale: payload.locale.trim() } : {}),
           ...(payload.relationship !== undefined ? { relationship: payload.relationship } : {}),
           ...(payload.emotion !== undefined ? { emotion: payload.emotion } : {}),
+          ...(payload.delivery !== undefined ? { delivery: payload.delivery } : {}),
           ...(payload.persona !== undefined ? { persona: payload.persona } : {}),
           ...(payload.voiceConfig !== undefined ? { voiceConfig: payload.voiceConfig } : {})
         });

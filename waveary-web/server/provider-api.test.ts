@@ -90,6 +90,13 @@ test("voice speak route returns an emotion-aware browser speech plan", async () 
       confidence: 0.85,
       windowStart: "2026-06-22T11:59:00.000Z",
       windowEnd: "2026-06-22T12:00:00.000Z"
+    },
+    delivery: {
+      style: "concerned",
+      pace: "slower",
+      closeness: "close",
+      expressiveness: "restrained",
+      voiceStyle: "companion-concerned"
     }
   });
 
@@ -99,8 +106,51 @@ test("voice speak route returns an emotion-aware browser speech plan", async () 
   assert.equal(response.body.plan.lang, "zh-CN");
   assert.equal(response.body.plan.styleLabel, "concerned");
   assert.ok(response.body.plan.rate < 0.98);
+  assert.equal(response.body.plan.voiceLabel, "companion-concerned");
   assert.ok(response.body.plan.preferredVoiceKeywords.includes("Mandarin"));
   assert.equal(defaultVoiceConfig.qualityProfile, "cinematic");
+});
+
+test("chat turn returns a structured companion delivery hint for downstream voice", async () => {
+  const middleware = createProviderApiMiddleware();
+
+  saveProviderConfig({
+    provider: "provider-a",
+    baseURL: "https://provider-a.example/v1",
+    apiKey: "key-a",
+    model: "model-a"
+  });
+
+  globalThis.fetch = (async () =>
+    new Response(
+      JSON.stringify({
+        choices: [
+          {
+            message: {
+              content: "我在，你慢慢说。"
+            }
+          }
+        ]
+      }),
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json"
+        }
+      }
+    )) as typeof fetch;
+
+  const response = await invokeJsonRoute(middleware, "POST", "/api/chat/turn", {
+    sessionId: DEFAULT_CHAT_SESSION_ID,
+    message: "我有点难过，陪陪我"
+  });
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.emotion.primaryEmotion, "concerned");
+  assert.equal(response.body.delivery.style, "concerned");
+  assert.equal(response.body.delivery.pace, "slower");
+  assert.ok(typeof response.body.delivery.instruction === "string");
+  assert.match(String(response.body.delivery.summary), /concerned\/slower\//);
 });
 
 test("voice speak route returns provider audio when a compatible provider tts path succeeds", async () => {

@@ -68,6 +68,15 @@ interface ChatTurnResponse {
     primaryEmotion: string;
     intensity: number;
   };
+  delivery?: {
+    style?: "soft" | "warm" | "concerned" | "quiet" | "bright" | "playful" | "steady";
+    pace?: "slower" | "steady" | "lighter";
+    closeness?: "careful" | "present" | "close";
+    expressiveness?: "restrained" | "natural" | "open";
+    voiceStyle?: string;
+    instruction?: string;
+    summary?: string;
+  };
   recalledMemories: string[];
   storedMemories: string[];
   pendingLocalAction?: PendingLocalAction | null;
@@ -1407,7 +1416,6 @@ export function App(): ReactElement {
     useState<ProactiveAutoCheckOutcome | null>(null);
   const [chatPermissionTrayOpen, setChatPermissionTrayOpen] = useState(false);
   const [localActionResolveState, setLocalActionResolveState] = useState<LoadState>("idle");
-  const [autoSpeakReplies, setAutoSpeakReplies] = useState(false);
   const [voiceConversationMode, setVoiceConversationMode] = useState(false);
   const [voicePlaybackState, setVoicePlaybackState] = useState<VoicePlaybackState>("idle");
   const [voiceStatusMessage, setVoiceStatusMessage] = useState("");
@@ -2559,7 +2567,7 @@ export function App(): ReactElement {
           locale === "zh" ? "语音消息已发出。" : "Your voice message was sent."
         );
       }
-      if (autoSpeakReplies || voiceConversationModeRef.current) {
+      if (voiceConversationModeRef.current) {
         void speakAssistantReply(response.reply, response).catch(() => {
           // Keep chat flow successful even if voice playback fails.
         });
@@ -2587,20 +2595,6 @@ export function App(): ReactElement {
     await sendChatMessage(chatInput);
   }
 
-  async function handleSpeakLatestReply(): Promise<void> {
-    const latestReply = chatInsights?.reply ?? [...chatMessages].reverse().find((message) => message.role === "assistant")?.content;
-
-    if (!latestReply) {
-      setVoiceStatusMessage(
-        locale === "zh" ? "当前还没有可朗读的回复。" : "There is no assistant reply to speak yet."
-      );
-      setVoicePlaybackState("error");
-      return;
-    }
-
-    await speakAssistantReply(latestReply, chatInsights ?? undefined);
-  }
-
   async function speakAssistantReply(
     text: string,
     insights?: ChatTurnResponse
@@ -2618,8 +2612,12 @@ export function App(): ReactElement {
           locale,
           relationship: insights?.relationship ?? sessionRelationship,
           emotion: insights?.emotion,
+          delivery: insights?.delivery,
           persona: {
-            tone: locale === "zh" ? "warm_companion" : "warm_companion"
+            tone: locale === "zh" ? "warm_companion" : "warm_companion",
+            ...(insights?.delivery?.voiceStyle
+              ? { voiceStyle: insights.delivery.voiceStyle }
+              : {})
           },
           ...(voiceConfig ? { voiceConfig } : {})
         })
@@ -2776,12 +2774,6 @@ export function App(): ReactElement {
 
       void startSpeechInput({ fromVoiceConversation: true });
     }, delayMs);
-  }
-
-  function handleStopSpeaking(): void {
-    stopVoicePlayback();
-    setVoicePlaybackState("idle");
-    setVoiceStatusMessage(locale === "zh" ? "已停止朗读。" : "Speech stopped.");
   }
 
   function handleToggleSpeechInput(): void {
@@ -5048,14 +5040,6 @@ export function App(): ReactElement {
                             ? "开始实时对话"
                             : "Start live chat"}
                       </button>
-                      <label className="chat-voice-toggle">
-                        <input
-                          type="checkbox"
-                          checked={autoSpeakReplies}
-                          onChange={(event) => setAutoSpeakReplies(event.target.checked)}
-                        />
-                        <span>{locale === "zh" ? "自动朗读" : "Auto speak"}</span>
-                      </label>
                       <label className="chat-voice-select">
                         <span>{locale === "zh" ? "风格" : "Profile"}</span>
                         <select
@@ -5289,22 +5273,6 @@ export function App(): ReactElement {
                           </label>
                         </>
                       ) : null}
-                      <button
-                        className="button button-secondary"
-                        onClick={() => void handleSpeakLatestReply()}
-                        disabled={voicePlaybackState === "planning" || chatState === "loading"}
-                        type="button"
-                      >
-                        {locale === "zh" ? "朗读回复" : "Speak reply"}
-                      </button>
-                      <button
-                        className="button button-secondary"
-                        onClick={() => handleStopSpeaking()}
-                        disabled={voicePlaybackState !== "speaking" && voicePlaybackState !== "planning"}
-                        type="button"
-                      >
-                        {locale === "zh" ? "停止" : "Stop"}
-                      </button>
                     </div>
                     <button
                       className="button button-primary"

@@ -35,11 +35,13 @@ import {
   type ChatPersistenceStatus
 } from "./chat-persistence-config.js";
 import type { PendingLocalAction } from "./local-actions.js";
+import type { CompanionDeliveryHint } from "./companion-delivery.js";
 
 export interface ChatReplyPayload {
   reply: string;
   relationship: RelationshipProfile;
   emotion?: EmotionState;
+  delivery?: CompanionDeliveryHint;
   recalledMemories: string[];
   storedMemories: string[];
   pendingLocalAction?: PendingLocalAction | null;
