@@ -43,6 +43,13 @@ import {
 import type { ChatPersistenceBackend } from "./chat-persistence-config.js";
 import type { LocalActionPermissionLevel } from "./local-actions.js";
 import { loadSavedProviderConfig, saveProviderConfig } from "./provider-config.js";
+import {
+  listVoicePresets,
+  loadSavedVoiceConfig,
+  saveVoiceConfig,
+  type SavedVoiceConfig
+} from "./voice-config.js";
+import type { VoiceOutputFormat, VoiceQualityProfile } from "@waveary/voice";
 
 interface ProviderModelsRequest {
   provider?: string;
@@ -75,6 +82,14 @@ interface VoiceSpeakRequest {
     tone?: string;
     voiceStyle?: string;
   };
+  voiceConfig?: Partial<SavedVoiceConfig>;
+}
+
+interface VoiceConfigRequest {
+  model?: string;
+  voice?: string;
+  format?: VoiceOutputFormat;
+  qualityProfile?: VoiceQualityProfile;
 }
 
 interface ChatSessionRequest {
@@ -245,10 +260,30 @@ export function createProviderApiMiddleware() {
           ...(payload.locale?.trim() ? { locale: payload.locale.trim() } : {}),
           ...(payload.relationship !== undefined ? { relationship: payload.relationship } : {}),
           ...(payload.emotion !== undefined ? { emotion: payload.emotion } : {}),
-          ...(payload.persona !== undefined ? { persona: payload.persona } : {})
+          ...(payload.persona !== undefined ? { persona: payload.persona } : {}),
+          ...(payload.voiceConfig !== undefined ? { voiceConfig: payload.voiceConfig } : {})
         });
 
         sendJson(response, 200, result);
+        return;
+      }
+
+      if (request.method === "GET" && request.url === "/api/voice/config") {
+        sendJson(response, 200, {
+          config: loadSavedVoiceConfig(),
+          presets: listVoicePresets()
+        });
+        return;
+      }
+
+      if (request.method === "POST" && request.url === "/api/voice/config") {
+        const payload = (await readJsonBody(request)) as VoiceConfigRequest;
+        const config = saveVoiceConfig(payload);
+
+        sendJson(response, 200, {
+          config,
+          presets: listVoicePresets()
+        });
         return;
       }
 

@@ -23,6 +23,22 @@ interface SavedProviderConfig {
   model: string;
 }
 
+interface SavedVoiceConfig {
+  model: string;
+  voice: string;
+  format: "mp3" | "wav" | "opus" | "aac" | "flac" | "pcm";
+  qualityProfile: string;
+}
+
+interface VoicePresetDescriptor {
+  id: string;
+  label: string;
+  description: string;
+  model: string;
+  voice: string;
+  format: string;
+}
+
 interface ModelDescriptor {
   id: string;
   provider: string;
@@ -74,8 +90,14 @@ interface VoiceSpeakPlanResponse {
   metadata?: {
     model: string;
     voice: string;
+    qualityProfile?: string;
     instructions?: string;
   };
+}
+
+interface VoiceConfigResponse {
+  config: SavedVoiceConfig;
+  presets: VoicePresetDescriptor[];
 }
 
 interface PendingLocalAction {
@@ -1265,6 +1287,8 @@ export function App(): ReactElement {
   const copy = getCopy(locale);
   const [presets, setPresets] = useState<ProviderPreset[]>([]);
   const [savedConfig, setSavedConfig] = useState<SavedProviderConfig | null>(null);
+  const [voiceConfig, setVoiceConfig] = useState<SavedVoiceConfig | null>(null);
+  const [voicePresets, setVoicePresets] = useState<VoicePresetDescriptor[]>([]);
   const [selectedProvider, setSelectedProvider] = useState("");
   const [baseURL, setBaseURL] = useState("");
   const [apiKey, setApiKey] = useState("");
@@ -1273,6 +1297,7 @@ export function App(): ReactElement {
   const [loadState, setLoadState] = useState<LoadState>("idle");
   const [modelsState, setModelsState] = useState<LoadState>("idle");
   const [saveState, setSaveState] = useState<LoadState>("idle");
+  const [voiceConfigState, setVoiceConfigState] = useState<LoadState>("idle");
   const [statusMessage, setStatusMessage] = useState<string>(zhCopy.statuses.loadingProviderConfiguration);
   const [chatInput, setChatInput] = useState("");
   const [chatState, setChatState] = useState<LoadState>("idle");
@@ -1553,9 +1578,10 @@ export function App(): ReactElement {
     setStatusMessage(copy.statuses.loadingProviderConfiguration);
 
     try {
-      const [presetResponse, configResponse, sessionFormatResponse, sessionsResponse] = await Promise.all([
+      const [presetResponse, configResponse, voiceConfigResponse, sessionFormatResponse, sessionsResponse] = await Promise.all([
         fetchJson<{ presets: ProviderPreset[] }>("/api/provider/presets"),
         fetchJson<{ config?: SavedProviderConfig }>("/api/provider/config"),
+        fetchJson<VoiceConfigResponse>("/api/voice/config"),
         fetchJson<{ reference: SessionPackageReference }>("/api/chat/session/format"),
         fetchJson<{
           sessions: ChatSessionListItem[];
@@ -1573,6 +1599,8 @@ export function App(): ReactElement {
 
       setPresets(nextPresets);
       setSavedConfig(nextConfig);
+      setVoiceConfig(voiceConfigResponse.config);
+      setVoicePresets(voiceConfigResponse.presets);
       setSessionPackageReference(sessionFormatResponse.reference);
       setChatSessions(nextSessions);
       setDefaultSessionId(nextDefaultSessionId);
@@ -1715,6 +1743,78 @@ export function App(): ReactElement {
       setSaveState("error");
       setStatusMessage(getErrorMessage(error));
     }
+  }
+
+  async function saveVoiceConfigPatch(
+    patch: Partial<SavedVoiceConfig>,
+    successMessage?: string
+  ): Promise<void> {
+    const currentVoiceConfig = voiceConfig ?? null;
+
+    if (!currentVoiceConfig) {
+      return;
+    }
+
+    setVoiceConfigState("loading");
+
+    try {
+      const response = await fetchJson<VoiceConfigResponse>("/api/voice/config", {
+        method: "POST",
+        body: JSON.stringify({
+          model: patch.model ?? currentVoiceConfig.model,
+          voice: patch.voice ?? currentVoiceConfig.voice,
+          format: patch.format ?? currentVoiceConfig.format,
+          qualityProfile: patch.qualityProfile ?? currentVoiceConfig.qualityProfile
+        })
+      });
+
+      setVoiceConfig(response.config);
+      setVoicePresets(response.presets);
+      setVoiceConfigState("success");
+      setVoiceStatusMessage(
+        successMessage ??
+          (locale === "zh" ? "语音设置已更新。" : "Voice settings updated.")
+      );
+    } catch (error) {
+      setVoiceConfigState("error");
+      setVoiceStatusMessage(getErrorMessage(error));
+    }
+  }
+
+  async function handleVoiceProfileChange(nextProfile: string): Promise<void> {
+    const preset = voicePresets.find((item) => item.id === nextProfile);
+    const patch: Partial<SavedVoiceConfig> = { qualityProfile: nextProfile };
+
+    if (preset?.model) {
+      patch.model = preset.model;
+    }
+
+    if (preset?.voice) {
+      patch.voice = preset.voice;
+    }
+
+    if (preset?.format) {
+      patch.format = preset.format as SavedVoiceConfig["format"];
+    }
+
+    await saveVoiceConfigPatch(
+      patch,
+      locale === "zh" ? "语音风格已切换。" : "Voice profile switched."
+    );
+  }
+
+  async function handleVoiceModelChange(nextModel: string): Promise<void> {
+    await saveVoiceConfigPatch(
+      { model: nextModel },
+      locale === "zh" ? "语音模型已更新。" : "Voice model updated."
+    );
+  }
+
+  async function handleVoiceNameChange(nextVoice: string): Promise<void> {
+    await saveVoiceConfigPatch(
+      { voice: nextVoice },
+      locale === "zh" ? "声线已更新。" : "Voice name updated."
+    );
   }
 
   async function handleSessionChange(nextSessionId: string): Promise<void> {
@@ -2346,7 +2446,8 @@ export function App(): ReactElement {
           emotion: insights?.emotion,
           persona: {
             tone: locale === "zh" ? "warm_companion" : "warm_companion"
-          }
+          },
+          ...(voiceConfig ? { voiceConfig } : {})
         })
       });
 
@@ -2583,7 +2684,26 @@ export function App(): ReactElement {
   const canFetchModels = Boolean(selectedProvider && baseURL.trim() && apiKey.trim()) && modelsState !== "loading";
   const canSaveConfig =
     Boolean(selectedProvider && baseURL.trim() && apiKey.trim() && selectedModel) && saveState !== "loading";
+  const canAdjustVoiceConfig = Boolean(voiceConfig) && voiceConfigState !== "loading";
   const selectedPreset = presets.find((preset) => preset.id === selectedProvider) ?? null;
+  const selectedVoicePreset =
+    voicePresets.find((preset) => preset.id === voiceConfig?.qualityProfile) ?? null;
+  const availableVoiceModels = Array.from(
+    new Set(
+      [
+        ...voicePresets.map((preset) => preset.model),
+        ...(voiceConfig?.model ? [voiceConfig.model] : [])
+      ].filter(Boolean)
+    )
+  );
+  const availableVoices = Array.from(
+    new Set(
+      [
+        ...voicePresets.map((preset) => preset.voice),
+        ...(voiceConfig?.voice ? [voiceConfig.voice] : [])
+      ].filter(Boolean)
+    )
+  );
   const chatReady = Boolean(savedConfig?.provider && savedConfig.model);
   const activeSession =
     chatSessions.find((session) => session.sessionId === activeSessionId) ??
@@ -4374,6 +4494,48 @@ export function App(): ReactElement {
                         />
                         <span>{locale === "zh" ? "自动朗读" : "Auto speak"}</span>
                       </label>
+                      <label className="chat-voice-select">
+                        <span>{locale === "zh" ? "风格" : "Profile"}</span>
+                        <select
+                          value={voiceConfig?.qualityProfile ?? ""}
+                          onChange={(event) => void handleVoiceProfileChange(event.target.value)}
+                          disabled={!canAdjustVoiceConfig}
+                        >
+                          {voicePresets.map((preset) => (
+                            <option key={preset.id} value={preset.id}>
+                              {preset.label}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <label className="chat-voice-select chat-voice-select-compact">
+                        <span>{locale === "zh" ? "模型" : "Model"}</span>
+                        <select
+                          value={voiceConfig?.model ?? ""}
+                          onChange={(event) => void handleVoiceModelChange(event.target.value)}
+                          disabled={!canAdjustVoiceConfig}
+                        >
+                          {availableVoiceModels.map((model) => (
+                            <option key={model} value={model}>
+                              {model}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <label className="chat-voice-select chat-voice-select-compact">
+                        <span>{locale === "zh" ? "声线" : "Voice"}</span>
+                        <select
+                          value={voiceConfig?.voice ?? ""}
+                          onChange={(event) => void handleVoiceNameChange(event.target.value)}
+                          disabled={!canAdjustVoiceConfig}
+                        >
+                          {availableVoices.map((voice) => (
+                            <option key={voice} value={voice}>
+                              {voice}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
                       <button
                         className="button button-secondary"
                         onClick={() => void handleSpeakLatestReply()}
@@ -4410,6 +4572,12 @@ export function App(): ReactElement {
                         ? "当前会根据回复情绪规划朗读语气。"
                         : "Reply playback will follow the current emotional tone.")}
                   </span>
+                  {selectedVoicePreset ? (
+                    <span className="chat-voice-meta">
+                      {selectedVoicePreset.label}
+                      {voiceConfig?.voice ? ` · ${voiceConfig.voice}` : ""}
+                    </span>
+                  ) : null}
                 </div>
               </div>
             </div>

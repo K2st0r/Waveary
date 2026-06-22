@@ -4,6 +4,13 @@ import type {
   TextToSpeechRequest,
   TextToSpeechResult
 } from "./types.js";
+import {
+  buildVoiceInstructionParts,
+  resolveVoicePreset,
+  resolveVoiceSpeed,
+  type VoiceOutputFormat,
+  type VoiceQualityProfile
+} from "./voice-presets.js";
 
 export interface OpenAICompatibleTextToSpeechProviderOptions {
   provider: string;
@@ -11,7 +18,8 @@ export interface OpenAICompatibleTextToSpeechProviderOptions {
   baseURL: string;
   model?: string;
   voice?: string;
-  format?: "mp3" | "wav" | "opus" | "aac" | "flac" | "pcm";
+  format?: VoiceOutputFormat;
+  qualityProfile?: VoiceQualityProfile;
   fetchFn?: typeof fetch;
 }
 
@@ -30,16 +38,19 @@ export class OpenAICompatibleTextToSpeechProvider implements TextToSpeechProvide
   private readonly baseURL: string;
   private readonly model: string;
   private readonly voice: string;
-  private readonly format: "mp3" | "wav" | "opus" | "aac" | "flac" | "pcm";
+  private readonly format: VoiceOutputFormat;
+  private readonly qualityProfile: VoiceQualityProfile;
   private readonly fetchFn: typeof fetch;
 
   constructor(options: OpenAICompatibleTextToSpeechProviderOptions) {
+    const preset = resolveVoicePreset(options.qualityProfile);
     this.provider = options.provider;
     this.apiKey = options.apiKey.trim();
     this.baseURL = options.baseURL.replace(/\/+$/, "");
-    this.model = options.model?.trim() || "gpt-4o-mini-tts";
-    this.voice = options.voice?.trim() || "alloy";
-    this.format = options.format ?? "mp3";
+    this.model = options.model?.trim() || preset.model;
+    this.voice = options.voice?.trim() || preset.voice;
+    this.format = options.format ?? preset.format;
+    this.qualityProfile = preset.id;
     this.fetchFn = options.fetchFn ?? fetch;
 
     if (!this.apiKey) {
@@ -52,7 +63,13 @@ export class OpenAICompatibleTextToSpeechProvider implements TextToSpeechProvide
   }
 
   async synthesize(request: TextToSpeechRequest): Promise<TextToSpeechResult> {
-    const body = buildSpeechBody(request, this.model, this.voice, this.format);
+    const body = buildSpeechBody(
+      request,
+      this.model,
+      this.voice,
+      this.format,
+      this.qualityProfile
+    );
     const response = await this.fetchFn(`${this.baseURL}/audio/speech`, {
       method: "POST",
       headers: {
@@ -84,6 +101,7 @@ export class OpenAICompatibleTextToSpeechProvider implements TextToSpeechProvide
       metadata: {
         model: this.model,
         voice: this.voice,
+        qualityProfile: this.qualityProfile,
         ...(body.instructions ? { instructions: body.instructions } : {})
       }
     } satisfies AudioSpeechResult;
@@ -94,16 +112,18 @@ function buildSpeechBody(
   request: TextToSpeechRequest,
   model: string,
   voice: string,
-  format: "mp3" | "wav" | "opus" | "aac" | "flac" | "pcm"
+  format: VoiceOutputFormat,
+  qualityProfile: VoiceQualityProfile
 ): OpenAICompatibleTextToSpeechBody {
+  const preset = resolveVoicePreset(qualityProfile);
   const body: OpenAICompatibleTextToSpeechBody = {
     model,
     input: request.text.trim(),
     voice
   };
 
-  const speed = resolveSpeechSpeed(request);
-  const instructions = buildSpeechInstructions(request);
+  const speed = resolveVoiceSpeed(request, preset);
+  const instructions = buildVoiceInstructionParts(request, preset).join(" ");
 
   if (format !== "mp3") {
     body.response_format = format;
@@ -120,87 +140,7 @@ function buildSpeechBody(
   return body;
 }
 
-function resolveSpeechSpeed(request: TextToSpeechRequest): number {
-  const emotion = request.emotion?.primaryEmotion?.toLowerCase() ?? "";
-  const intensity = clamp(request.emotion?.intensity ?? 0.55, 0, 1);
-  const relationshipStage = request.relationshipStage?.toLowerCase() ?? "new";
-  let speed = 1;
-
-  if (includesAny(emotion, ["concerned", "protective", "sad", "quiet", "longing"])) {
-    speed -= 0.12 + intensity * 0.08;
-  } else if (includesAny(emotion, ["playful", "happy", "joyful"])) {
-    speed += 0.05 + intensity * 0.06;
-  } else if (includesAny(emotion, ["warm", "fond", "relieved"])) {
-    speed -= 0.02;
-  }
-
-  if (relationshipStage === "growing") {
-    speed -= 0.02;
-  } else if (relationshipStage === "new") {
-    speed -= 0.01;
-  }
-
-  return Number(clamp(speed, 0.78, 1.18).toFixed(2));
-}
-
-function buildSpeechInstructions(request: TextToSpeechRequest): string | undefined {
-  const emotion = request.emotion?.primaryEmotion?.toLowerCase() ?? "calm";
-  const relationshipStage = request.relationshipStage?.toLowerCase() ?? "new";
-  const tone = request.personaTone?.trim();
-  const voiceStyle = request.personaVoiceStyle?.trim();
-  const styleParts = [
-    "Sound like a warm, emotionally present companion.",
-    describeEmotionStyle(emotion),
-    describeRelationshipStyle(relationshipStage),
-    tone ? `Overall persona tone: ${tone}.` : null,
-    voiceStyle ? `Preferred voice style: ${voiceStyle}.` : null,
-    "Keep the pacing natural and human, with subtle softness instead of announcer energy."
-  ].filter((part): part is string => Boolean(part));
-
-  return styleParts.length > 0 ? styleParts.join(" ") : undefined;
-}
-
-function describeEmotionStyle(emotion: string): string {
-  if (includesAny(emotion, ["concerned", "protective", "attentive"])) {
-    return "Speak gently, a little slower, with reassuring concern.";
-  }
-
-  if (includesAny(emotion, ["sad", "hurt", "quiet", "longing"])) {
-    return "Speak softly and quietly, carrying tenderness without sounding flat.";
-  }
-
-  if (includesAny(emotion, ["playful", "happy", "joyful"])) {
-    return "Let the voice feel a bit brighter and lighter while staying caring.";
-  }
-
-  if (includesAny(emotion, ["warm", "fond", "relieved"])) {
-    return "Let the voice feel warm, close, and softly reassuring.";
-  }
-
-  return "Keep the delivery calm, soft, and grounded.";
-}
-
-function describeRelationshipStyle(relationshipStage: string): string {
-  if (relationshipStage === "growing") {
-    return "The relationship is already growing, so it can sound softly familiar and settled.";
-  }
-
-  if (relationshipStage === "warming") {
-    return "The relationship is warming, so it should sound personal but still restrained.";
-  }
-
-  return "The relationship is still new, so keep the tone warm without sounding overly intimate.";
-}
-
-function includesAny(value: string, candidates: string[]): boolean {
-  return candidates.some((candidate) => value.includes(candidate));
-}
-
-function clamp(value: number, min: number, max: number): number {
-  return Math.min(max, Math.max(min, value));
-}
-
-function resolveMimeType(format: "mp3" | "wav" | "opus" | "aac" | "flac" | "pcm"): string {
+function resolveMimeType(format: VoiceOutputFormat): string {
   if (format === "wav") {
     return "audio/wav";
   }

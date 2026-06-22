@@ -36,6 +36,7 @@ export interface AudioSpeechResult {
   metadata: {
     model: string;
     voice: string;
+    qualityProfile?: string;
     instructions?: string;
   };
 }

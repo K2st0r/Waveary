@@ -12,6 +12,7 @@ test("openai-compatible tts provider posts audio speech and returns base64 audio
     provider: "openai",
     apiKey: "test-key",
     baseURL: "https://api.openai.com/v1",
+    qualityProfile: "gentle",
     fetchFn: (async (input, init) => {
       capturedUrl = String(input);
       capturedAuth = String((init?.headers as Record<string, string>).Authorization);
@@ -45,10 +46,12 @@ test("openai-compatible tts provider posts audio speech and returns base64 audio
 
   const parsedBody = JSON.parse(capturedBody) as Record<string, unknown>;
   assert.equal(parsedBody.model, "gpt-4o-mini-tts");
-  assert.equal(parsedBody.voice, "alloy");
+  assert.equal(parsedBody.voice, "cedar");
   assert.equal(parsedBody.input, "Stay here with me for a little while.");
   assert.equal(typeof parsedBody.instructions, "string");
   assert.equal(typeof parsedBody.speed, "number");
+  assert.equal(result.metadata.qualityProfile, "gentle");
+  assert.match(String(parsedBody.instructions), /real human companion/i);
 });
 
 test("openai-compatible tts provider surfaces upstream errors", async () => {

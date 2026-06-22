@@ -1,9 +1,13 @@
 import type { EmotionState, RelationshipProfile } from "@waveary/core";
 import {
   BrowserSpeechPlanner,
-  OpenAICompatibleTextToSpeechProvider
+  OpenAICompatibleTextToSpeechProvider,
+  resolveVoicePreset,
+  type VoiceOutputFormat,
+  type VoiceQualityProfile
 } from "@waveary/voice";
 import { loadSavedProviderConfig } from "./provider-config.js";
+import { loadSavedVoiceConfig } from "./voice-config.js";
 
 export interface VoiceSpeakPlanRequest {
   text: string;
@@ -13,6 +17,12 @@ export interface VoiceSpeakPlanRequest {
   persona?: {
     tone?: string;
     voiceStyle?: string;
+  };
+  voiceConfig?: {
+    model?: string;
+    voice?: string;
+    format?: VoiceOutputFormat;
+    qualityProfile?: VoiceQualityProfile;
   };
 }
 
@@ -46,13 +56,37 @@ export async function planChatSpeech(input: VoiceSpeakPlanRequest) {
       : {})
   };
   const savedProvider = loadSavedProviderConfig();
+  const savedVoiceConfig = loadSavedVoiceConfig();
+  const requestedVoiceConfig = input.voiceConfig;
+  const resolvedPreset = resolveVoicePreset(
+    requestedVoiceConfig?.qualityProfile ?? savedVoiceConfig.qualityProfile
+  );
+  const resolvedVoiceConfig = {
+    model:
+      requestedVoiceConfig?.model?.trim() ||
+      savedVoiceConfig.model ||
+      resolvedPreset.model,
+    voice:
+      requestedVoiceConfig?.voice?.trim() ||
+      savedVoiceConfig.voice ||
+      resolvedPreset.voice,
+    format:
+      requestedVoiceConfig?.format ??
+      savedVoiceConfig.format ??
+      resolvedPreset.format,
+    qualityProfile: resolvedPreset.id
+  };
 
   if (savedProvider) {
     try {
       const ttsProvider = new OpenAICompatibleTextToSpeechProvider({
         provider: savedProvider.provider,
         apiKey: savedProvider.apiKey,
-        baseURL: savedProvider.baseURL
+        baseURL: savedProvider.baseURL,
+        model: resolvedVoiceConfig.model,
+        voice: resolvedVoiceConfig.voice,
+        format: resolvedVoiceConfig.format,
+        qualityProfile: resolvedVoiceConfig.qualityProfile
       });
 
       return await ttsProvider.synthesize(request);
