@@ -4451,8 +4451,9 @@ Verification:
 
 Commit:
 
-- pending
+- `60953e3` - `Add dedicated Doubao voice adapter`
 
 Push:
 
-- pending
+- succeeded: `git push origin main` pushed functional commit `60953e3` to `origin/main`
+
