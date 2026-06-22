@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `e0cde27` - `Finalize dedicated voice path records`
+- `d872579` - `Add local self-hosted voice bridge`
 
 ## Modules
 
@@ -137,6 +137,7 @@ Brand line:
   - provider-backed TTS now also supports explicit saved voice configuration and quality-oriented presets through `/api/voice/config`, `.waveary/voice-config.json`, and a compact chat-page voice control strip for profile / model / voice selection
   - provider-backed TTS now also supports an explicit `shared chat provider / dedicated voice provider` split, so真人语音 can run on a stronger OpenAI-compatible TTS endpoint even when normal chat stays on a different model vendor
   - the dedicated真人语音 path now also supports a first non-OpenAI-compatible domestic adapter through Doubao TTS, with dedicated `appId / cluster / voice` settings layered into the existing voice config flow
+  - the dedicated真人语音 path now also supports a first generic local/self-hosted HTTP bridge for GPT-SoVITS / CosyVoice style engines, with dedicated `engine / endpointPath / speaker / referenceVoiceId` settings layered into the same saved voice config flow
   - the chat page now includes a first voice strip with `auto speak`, `speak reply`, and `stop` controls, and voice playback now supports both provider-returned audio and browser speech fallback while still following reply emotion and relationship stage
   - the chat page now also supports first-cut browser microphone capture and speech-to-text input through the Web Speech API, drafting live transcript text into the composer and sending the final recognized turn through the normal chat flow
   - this first speech-input slice stays browser-native and chat-bounded: start/stop listening, live draft updates, final-turn auto-send, and localized unsupported-browser fallback instead of a new server STT path
@@ -150,6 +151,8 @@ Brand line:
   - first browser-native TTS planner is implemented through `BrowserSpeechPlanner`
   - Node-based planner tests are implemented
   - first OpenAI-compatible provider-backed TTS adapter is now implemented through `OpenAICompatibleTextToSpeechProvider`, returning base64 audio plus playback metadata while preserving the shared voice contract boundary
+  - first provider-specific domestic adapter is now implemented through `DoubaoTextToSpeechProvider`
+  - first generic local HTTP TTS bridge is now implemented through `LocalHttpTextToSpeechProvider`, accepting either raw audio responses or normalized JSON base64 audio payloads from self-hosted engines
   - the first local-action execution surface stays intentionally narrow and auditable inside `waveary-web`: proposal detection is rule-based, execution is permission-gated, denied policy blocks execution, ask-first requires one explicit approval click, and dismissing the card clears the pending action from persisted session state`r`n  - executed and dismissed local actions now also append a small assistant-side audit note into persisted chat history, so trust-visible action outcomes survive reloads and restored sessions instead of living only in transient UI state
   - the visible persisted-session archive panel has been removed from the runtime rail so the console reads less like a raw internal debug dump
   - the split home / console / chat shell now has a stronger page-by-page hierarchy: the homepage reads more like a formal project front page, the console reads more like a system desk, and the chat page is more tightly focused on the active conversation surface

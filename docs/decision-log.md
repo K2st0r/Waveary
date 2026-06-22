@@ -905,3 +905,25 @@ Impact:
 - `@waveary/voice` now exports a `DoubaoTextToSpeechProvider`
 - saved voice config now also carries Doubao-specific `appId` and `cluster` fields
 - the dedicated voice UI path can now switch to `provider = doubao` and send speech through ByteDance-style TTS while keeping the chat model provider untouched
+
+## 2026-06-22 - Local Self-Hosted Voice Should Start As A Generic HTTP Bridge
+
+Status:
+
+- accepted
+
+Decision:
+
+Add the first self-hosted voice-provider path as a generic local HTTP bridge instead of binding Waveary directly to one engine protocol such as GPT-SoVITS only.
+
+Reason:
+
+- the user wants local/self-hosted voice support, but the project should not hardcode one engine family as the only future-safe path
+- a thin normalized HTTP bridge keeps the new self-hosted cut small, auditable, and compatible with several local engines that can return either raw audio or JSON-wrapped base64 audio
+- this preserves the earlier shared / dedicated voice-provider split and the newer provider-family branching without dragging engine-specific transport details into the main chat runtime
+
+Impact:
+
+- @waveary/voice now exports LocalHttpTextToSpeechProvider
+- saved voice config now also carries local-bridge-specific endpointPath, engine, speaker, and eferenceVoiceId fields
+- the chat voice strip can now switch to provider = local and send dedicated真人语音 requests through a self-hosted HTTP endpoint while leaving the chat model provider untouched

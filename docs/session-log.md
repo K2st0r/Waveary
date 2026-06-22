@@ -4457,3 +4457,93 @@ Push:
 
 - succeeded: `git push origin main` pushed functional commit `60953e3` to `origin/main`
 
+
+## 2026-06-22
+
+Objective:
+
+Add the first local/self-hosted voice-provider path through a generic HTTP bridge without disturbing the already-working shared, dedicated OpenAI-compatible, or Doubao voice flows.
+
+Summary:
+
+- added `waveary-voice/src/local-http-tts-provider.ts` plus direct package tests as a generic self-hosted TTS adapter that can accept either raw audio responses or normalized JSON base64 audio payloads
+- extended saved voice config so dedicated voice mode now also stores `endpointPath`, `engine`, `speaker`, and `referenceVoiceId` for local bridge setups
+- updated `waveary-web/server/voice-runtime.ts` so dedicated voice mode now branches between `doubao`, `local`, and the earlier OpenAI-compatible adapter instead of assuming all non-Doubao’Ê»À”Ô“Ù should hit `/audio/speech`
+- widened the chat-page dedicated voice UI so choosing `provider = local` reveals `Engine`, `Endpoint`, `Speaker`, and `Reference Voice ID` fields beside the existing dedicated voice controls
+- added route-level regression proving the web voice route can successfully synthesize through a dedicated local self-hosted configuration while leaving the normal chat provider untouched
+
+Files changed:
+
+- `waveary-voice/README.md`
+- `waveary-voice/src/index.ts`
+- `waveary-voice/src/local-http-tts-provider.ts`
+- `waveary-voice/src/local-http-tts-provider.test.ts`
+- `waveary-web/server/provider-api.test.ts`
+- `waveary-web/server/provider-api.ts`
+- `waveary-web/server/voice-config.ts`
+- `waveary-web/server/voice-runtime.ts`
+- `waveary-web/src/App.tsx`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/voice`
+- `npm run test --workspace @waveary/voice`
+- `npm run build:server --workspace @waveary/web`
+- `npm run test --workspace @waveary/web`
+
+Commit:
+
+- `d872579` - `Add local self-hosted voice bridge`
+
+Push:
+
+- succeeded: `git push origin main` pushed functional commit `d872579` to `origin/main`
+
+## 2026-06-22
+
+Objective:
+
+Add the first local/self-hosted voice-provider path through a generic HTTP bridge without disturbing the already-working shared, dedicated OpenAI-compatible, or Doubao voice flows.
+
+Summary:
+
+- added waveary-voice/src/local-http-tts-provider.ts plus direct package tests as a generic self-hosted TTS adapter that can accept either raw audio responses or normalized JSON base64 audio payloads
+- extended saved voice config so dedicated voice mode now also stores endpointPath, engine, speaker, and referenceVoiceId for local bridge setups
+- updated waveary-web/server/voice-runtime.ts so dedicated voice mode now branches between doubao, local, and the earlier OpenAI-compatible adapter instead of assuming all non-Doubao voice requests should hit /audio/speech
+- widened the chat-page dedicated voice UI so choosing provider = local reveals Engine, Endpoint, Speaker, and Reference Voice ID fields beside the existing dedicated voice controls
+- added route-level regression proving the web voice route can successfully synthesize through a dedicated local self-hosted configuration while leaving the normal chat provider untouched
+
+Files changed:
+
+- waveary-voice/README.md
+- waveary-voice/src/index.ts
+- waveary-voice/src/local-http-tts-provider.ts
+- waveary-voice/src/local-http-tts-provider.test.ts
+- waveary-web/server/provider-api.test.ts
+- waveary-web/server/provider-api.ts
+- waveary-web/server/voice-config.ts
+- waveary-web/server/voice-runtime.ts
+- waveary-web/src/App.tsx
+- PROJECT_STATE.md
+- ACTIVE_TASKS.md
+- docs/decision-log.md
+- docs/session-log.md
+
+Verification:
+
+- npm run check --workspace @waveary/voice
+- npm run test --workspace @waveary/voice
+- npm run build:server --workspace @waveary/web
+- npm run test --workspace @waveary/web
+
+Commit:
+
+- d872579 - Add local self-hosted voice bridge
+
+Push:
+
+- succeeded: git push origin main pushed functional commit d872579 to origin/main
