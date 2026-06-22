@@ -94,6 +94,8 @@ interface VoiceConfigRequest {
   provider?: string;
   baseURL?: string;
   apiKey?: string;
+  appId?: string;
+  cluster?: string;
 }
 
 interface ChatSessionRequest {

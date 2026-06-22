@@ -883,3 +883,25 @@ Impact:
 - `.waveary/voice-config.json` now stores `providerMode`, `provider`, `baseURL`, and `apiKey` in addition to voice model, voice name, format, and quality profile
 - `waveary-web/server/voice-runtime.ts` now chooses between the shared chat provider and a dedicated voice provider before attempting `/audio/speech`
 - the chat voice strip now exposes `Source`, plus dedicated provider fields when the user switches into independent真人语音 mode
+
+## 2026-06-22 - Domestic Voice Support Should Graduate Through Provider-Specific Adapters
+
+Status:
+
+- accepted
+
+Decision:
+
+Add Doubao as the first dedicated domestic voice adapter instead of forcing every Chinese voice provider through the current OpenAI-compatible `/audio/speech` path.
+
+Reason:
+
+- domestic真人语音 quality is strategically important for Waveary, but vendors like Doubao do not fit the existing OpenAI-compatible transport shape cleanly
+- keeping Doubao behind its own adapter preserves the earlier `shared / dedicated` voice-provider split without weakening the already-working OpenAI-compatible path
+- this is the safest incremental step before adding local/self-hosted voice engines, because it proves the voice layer can branch by provider family without dragging those differences into the rest of the chat runtime
+
+Impact:
+
+- `@waveary/voice` now exports a `DoubaoTextToSpeechProvider`
+- saved voice config now also carries Doubao-specific `appId` and `cluster` fields
+- the dedicated voice UI path can now switch to `provider = doubao` and send speech through ByteDance-style TTS while keeping the chat model provider untouched

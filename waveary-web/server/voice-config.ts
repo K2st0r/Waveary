@@ -19,6 +19,8 @@ export interface SavedVoiceConfig {
   provider: string;
   baseURL: string;
   apiKey: string;
+  appId: string;
+  cluster: string;
 }
 
 const CONFIG_PATH = join(getWavearyDataDir(), "voice-config.json");
@@ -34,7 +36,9 @@ export function getDefaultVoiceConfig(): SavedVoiceConfig {
     providerMode: "shared",
     provider: "",
     baseURL: "",
-    apiKey: ""
+    apiKey: "",
+    appId: "",
+    cluster: "volcano_tts"
   };
 }
 
@@ -79,6 +83,8 @@ function normalizeVoiceConfig(config: Partial<SavedVoiceConfig>): SavedVoiceConf
   const provider = config.provider?.trim() || "";
   const baseURL = config.baseURL?.trim() || "";
   const apiKey = config.apiKey?.trim() || "";
+  const appId = config.appId?.trim() || "";
+  const cluster = config.cluster?.trim() || "volcano_tts";
 
   return {
     model,
@@ -88,7 +94,9 @@ function normalizeVoiceConfig(config: Partial<SavedVoiceConfig>): SavedVoiceConf
     providerMode,
     provider,
     baseURL,
-    apiKey
+    apiKey,
+    appId,
+    cluster
   };
 }
 

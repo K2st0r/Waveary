@@ -221,6 +221,65 @@ test("voice speak route prefers dedicated voice provider config when present", a
   );
 });
 
+test("voice speak route supports dedicated doubao tts config", async () => {
+  const middleware = createProviderApiMiddleware();
+
+  globalThis.fetch = (async (input, init) => {
+    if (String(input) === "https://openspeech.bytedance.com/api/v1/tts") {
+      const body = init?.body ? (JSON.parse(String(init.body)) as {
+        app: { appid: string; cluster: string };
+        audio: { voice_type: string };
+      }) : null;
+
+      assert.equal(body?.app.appid, "doubao-app");
+      assert.equal(body?.app.cluster, "volcano_tts");
+      assert.equal(body?.audio.voice_type, "BV001_streaming");
+
+      return new Response(
+        JSON.stringify({
+          code: 3000,
+          message: "Success",
+          data: Buffer.from("doubao-voice-audio").toString("base64")
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json"
+          }
+        }
+      );
+    }
+
+    throw new Error(`Unexpected fetch URL: ${String(input)}`);
+  }) as typeof fetch;
+
+  const response = await invokeJsonRoute(middleware, "POST", "/api/voice/config", {
+    providerMode: "dedicated",
+    provider: "doubao",
+    apiKey: "doubao-key",
+    appId: "doubao-app",
+    cluster: "volcano_tts",
+    voice: "BV001_streaming",
+    model: "doubao-tts",
+    qualityProfile: "cinematic",
+    format: "mp3"
+  });
+
+  assert.equal(response.statusCode, 200);
+
+  const speakResponse = await invokeJsonRoute(middleware, "POST", "/api/voice/speak", {
+    text: "你好，我在。",
+    locale: "zh-CN"
+  });
+
+  assert.equal(speakResponse.statusCode, 200);
+  assert.equal(speakResponse.body.provider, "doubao");
+  assert.equal(
+    Buffer.from(speakResponse.body.audio.base64, "base64").toString("utf8"),
+    "doubao-voice-audio"
+  );
+});
+
 test("browser extract-text route returns bounded page text", async () => {
   const middleware = createProviderApiMiddleware();
 

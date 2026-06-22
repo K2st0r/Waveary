@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `66238b6` - `Finalize provider init recovery push record`
+- `e0cde27` - `Finalize dedicated voice path records`
 
 ## Modules
 
@@ -136,6 +136,7 @@ Brand line:
   - `/api/voice/speak` now attempts a real provider-backed TTS request first by reusing the saved OpenAI-compatible provider config against `/audio/speech`, then falls back to browser speech planning if the provider path is unavailable or fails
   - provider-backed TTS now also supports explicit saved voice configuration and quality-oriented presets through `/api/voice/config`, `.waveary/voice-config.json`, and a compact chat-page voice control strip for profile / model / voice selection
   - provider-backed TTS now also supports an explicit `shared chat provider / dedicated voice provider` split, so真人语音 can run on a stronger OpenAI-compatible TTS endpoint even when normal chat stays on a different model vendor
+  - the dedicated真人语音 path now also supports a first non-OpenAI-compatible domestic adapter through Doubao TTS, with dedicated `appId / cluster / voice` settings layered into the existing voice config flow
   - the chat page now includes a first voice strip with `auto speak`, `speak reply`, and `stop` controls, and voice playback now supports both provider-returned audio and browser speech fallback while still following reply emotion and relationship stage
   - the chat page now also supports first-cut browser microphone capture and speech-to-text input through the Web Speech API, drafting live transcript text into the composer and sending the final recognized turn through the normal chat flow
   - this first speech-input slice stays browser-native and chat-bounded: start/stop listening, live draft updates, final-turn auto-send, and localized unsupported-browser fallback instead of a new server STT path
@@ -289,6 +290,7 @@ Brand line:
 
 - add a focused browser pass for the chat-page voice surface so provider audio playback, browser fallback playback, continuous live voice mode, microphone capture, and loop resume behavior are visually verified together
 - test the new dedicated voice-provider path end-to-end in the browser by saving a separate真人语音 provider under the chat voice strip and confirming playback no longer falls back to browser speech when chat still uses a non-TTS vendor
+- run a live browser pass for dedicated Doubao voice setup, then start the next voice-provider cut by adding a local HTTP bridge path for GPT-SoVITS / CosyVoice style self-hosted engines
 - verify the restored provider console end-to-end in the browser against the currently running local dev server, then decide whether to also harden the underlying voice route startup path so `/api/voice/config` stops returning `404`
 - decide the next voice cut after the new continuous browser voice loop: provider-backed STT, or a truer realtime duplex / interruption pass first
 - consider whether the saved voice profile should stay local-only for CE or later become part of user-facing companionship preference portability
