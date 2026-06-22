@@ -1096,11 +1096,10 @@ interface HeroPortraitCard {
 }
 
 type ConsoleWorkspace = "provider" | "sessions" | "care" | "runtime";
-type HomeDoodleKind = "ruler" | "eraser" | "pencil" | "notebook" | "paperclip" | "cassette";
 
 interface HomeDoodle {
   id: string;
-  kind: HomeDoodleKind;
+  src: string;
   top: string;
   left: string;
   rotation: string;
@@ -1176,12 +1175,16 @@ const heroPortraitCards: HeroPortraitCard[] = [
 ];
 
 const homeDoodles: HomeDoodle[] = [
-  { id: "doodle-ruler", kind: "ruler", top: "14%", left: "7%", rotation: "-11deg", scale: 1, delay: "-4s" },
-  { id: "doodle-eraser", kind: "eraser", top: "19%", left: "84%", rotation: "9deg", scale: 0.92, delay: "-9s" },
-  { id: "doodle-pencil", kind: "pencil", top: "48%", left: "3%", rotation: "-28deg", scale: 1.04, delay: "-13s" },
-  { id: "doodle-notebook", kind: "notebook", top: "56%", left: "86%", rotation: "8deg", scale: 1.02, delay: "-2s" },
-  { id: "doodle-paperclip", kind: "paperclip", top: "76%", left: "10%", rotation: "13deg", scale: 0.96, delay: "-16s" },
-  { id: "doodle-cassette", kind: "cassette", top: "73%", left: "78%", rotation: "-7deg", scale: 1.08, delay: "-21s" }
+  { id: "doodle-ruler", src: "/images/doodles/ruler.png", top: "12%", left: "5%", rotation: "-9deg", scale: 0.98, delay: "-4s" },
+  { id: "doodle-bow", src: "/images/doodles/bow.png", top: "10%", left: "72%", rotation: "8deg", scale: 0.9, delay: "-9s" },
+  { id: "doodle-eraser", src: "/images/doodles/eraser.png", top: "22%", left: "86%", rotation: "11deg", scale: 0.88, delay: "-12s" },
+  { id: "doodle-pencil", src: "/images/doodles/pencil.png", top: "42%", left: "3%", rotation: "-22deg", scale: 1.02, delay: "-16s" },
+  { id: "doodle-notebook", src: "/images/doodles/notebook.png", top: "34%", left: "80%", rotation: "6deg", scale: 0.95, delay: "-3s" },
+  { id: "doodle-ribbon", src: "/images/doodles/ribbon.png", top: "58%", left: "88%", rotation: "-13deg", scale: 0.9, delay: "-14s" },
+  { id: "doodle-paperclip", src: "/images/doodles/paperclip.png", top: "69%", left: "8%", rotation: "12deg", scale: 0.9, delay: "-20s" },
+  { id: "doodle-cassette", src: "/images/doodles/cassette.png", top: "74%", left: "75%", rotation: "-8deg", scale: 1.05, delay: "-24s" },
+  { id: "doodle-star", src: "/images/doodles/paper-star.png", top: "82%", left: "21%", rotation: "-6deg", scale: 0.84, delay: "-7s" },
+  { id: "doodle-butterfly", src: "/images/doodles/butterfly.png", top: "46%", left: "92%", rotation: "9deg", scale: 0.86, delay: "-18s" }
 ];
 
 const consoleWorkspaceOrder: ConsoleWorkspace[] = ["provider", "sessions", "care", "runtime"];
@@ -2338,7 +2341,7 @@ export function App(): ReactElement {
           <div className="home-doodle-layer" aria-hidden="true">
             {homeDoodles.map((doodle) => (
               <span
-                className={`home-doodle home-doodle-${doodle.kind}`}
+                className="home-doodle"
                 key={doodle.id}
                 style={
                   {
@@ -2349,7 +2352,9 @@ export function App(): ReactElement {
                     "--doodle-delay": doodle.delay
                   } as React.CSSProperties
                 }
-              />
+              >
+                <img src={doodle.src} alt="" />
+              </span>
             ))}
           </div>
         ) : null}
@@ -2603,6 +2608,26 @@ export function App(): ReactElement {
         {currentPage === "console" ? (
         <section className="section-grid section-block console-section" id="console">
           <div className="console-shell">
+            <div className="console-toolbar">
+              <div className="console-toolbar-block">
+                <span className="section-caption">{copy.console.caption}</span>
+                <strong>{consoleWorkspaceLabels[activeConsoleWorkspace]}</strong>
+                <small>
+                  {activeConsoleWorkspace === "provider"
+                    ? configuredRuntimeLabel
+                    : activeConsoleWorkspace === "sessions"
+                      ? `${sessionSummaryLabel}${copy.formatting.sep}${archiveSummaryLabel}`
+                      : activeConsoleWorkspace === "care"
+                        ? copy.runtime.proactiveCareTag
+                        : runtimeStateLabel}
+                </small>
+              </div>
+              <div className="console-toolbar-actions">
+                <button className="button button-primary" onClick={() => navigateTo("chat")} type="button">
+                  {locale === "zh" ? "进入对话" : "Open chat"}
+                </button>
+              </div>
+            </div>
             <div className="console-intro">
               <div className="console-masthead">
                 <div className="section-heading console-heading">
