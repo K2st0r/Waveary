@@ -3800,3 +3800,37 @@ Push:
 
 
 
+## 2026-06-22
+
+Objective:
+
+Keep deterministic local-time replies trustworthy for natural Chinese conversation by catching indirect complaint-style time questions before they fall back to provider-generated disclaimers.
+
+Summary:
+
+- expanded `waveary-core/src/runtime/local-time-reply.ts` so the runtime now treats more indirect Chinese phrasings as time questions, including complaint-style turns like asking why it still cannot tell the exact time
+- normalized whitespace before matching and added extra Chinese patterns around `具体几点`, `现在几分`, and `没法/无法/不能告诉你` style wording without changing the broader permission boundary
+- added focused regression coverage in `waveary-core/src/runtime/local-time-reply.test.ts` for both direct detection and deterministic reply generation on that indirect Chinese wording
+- verified the fix with `@waveary/core` typecheck, build, and direct compiled runtime test execution for the local-time helper plus `WavearyRuntime`
+
+Files changed:
+
+- `waveary-core/src/runtime/local-time-reply.ts`
+- `waveary-core/src/runtime/local-time-reply.test.ts`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/core`
+- `npm run build --workspace @waveary/core`
+- `node --test waveary-core/dist/runtime/local-time-reply.test.js waveary-core/dist/runtime/waveary-runtime.test.js`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
