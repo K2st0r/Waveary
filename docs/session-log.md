@@ -29,7 +29,41 @@ Verification:
 
 Commit:
 
-- pending
+- superseded by `e61ef3c` - `Add full-access chat permission preset`
+
+Push:
+
+- superseded by the later push record for `e61ef3c`
+
+## 2026-06-22
+
+Objective:
+
+Extend the chat-side permission presets from two modes to three by adding an explicit `full-access` mode without weakening the existing ask-first trust boundary.
+
+Summary:
+
+- repaired `waveary-web/src/App.tsx` from the accidental malformed local edit by restoring the clean `HEAD` version first, then replaying only the intended permission-preset change on top
+- expanded the chat-side preset type and toolbar from `limited / high-permission` to `limited / high-permission / full-access`
+- kept the underlying `WavearyPermissionProfile` model unchanged and only remapped the presets more clearly: `limited` keeps `desktopPresence` and `localActions` at `ask`, `high-permission` allows desktop presence but still asks before local actions, and `full-access` allows both
+- updated preset detection and status-copy feedback so the active segmented button stays aligned with the actual underlying permission profile
+- verified the repaired file and the new preset mapping with frontend typecheck and full production web build
+
+Files changed:
+
+- `waveary-web/src/App.tsx`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run web:build`
+
+Commit:
+
+- `e61ef3c` - `Add full-access chat permission preset`
 
 Push:
 

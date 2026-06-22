@@ -14,8 +14,8 @@ Update it when:
 
 1. Keep polishing the `waveary-web` home / console shell.
    Status: in progress
-   Current state: the homepage first screen has been compressed further, the hero now fits more comfortably on common desktop heights, the homepage doodle layer now uses a broader generated black-and-white PNG set including study objects plus stamp / envelope / train-ticket / postcard paper keepsakes, the console now uses a tighter toolbar + workspace strip + compact status strip with denser viewport-based panel heights, and the chat page now exposes a compact permission tray right beside the composer.
-   Next cut: run another browser pass focused specifically on the new chat-side permission tray plus homepage doodle density / fade balance, and then check whether any remaining console workspace still forces awkward external scrolling.
+   Current state: the homepage first screen has been compressed further, the hero now fits more comfortably on common desktop heights, the homepage doodle layer now uses a broader generated black-and-white PNG set including study objects plus stamp / envelope / train-ticket / postcard paper keepsakes, the console now uses a tighter toolbar + workspace strip + compact status strip with denser viewport-based panel heights, and the chat page now exposes a compact permission tray plus three direct permission presets right beside the composer.
+   Next cut: run another browser pass focused specifically on the new three-step chat permission control plus homepage doodle density / fade balance, and then check whether any remaining console workspace still forces awkward external scrolling.
 
 2. Continue the `waveary-core` dialogue-quality pass.
    Status: in progress
@@ -24,8 +24,8 @@ Update it when:
 
 3. Keep permissioned local-time awareness and local execution boundaries bounded and trustworthy.
    Status: in progress
-   Current state: chat turns, proactive notification lead copy, and proactive console summary all respond to local daypart only when `timeAwareness` is allowed; direct time/date/day questions now short-circuit deterministically in `waveary-core` before provider generation so real providers cannot ignore the supplied local clock context; `localActions` now has its first real ask-first path through chat-side pending action cards plus permission-gated local execution for simple open-url / open-folder / launch-app requests; executed or dismissed local actions now append a small assistant-side audit note into persisted chat history; and the chat composer now exposes a direct `limited / high-permission` mode switch beside the send controls while preserving the lower-level detail popover.
-   Next cut: decide whether high-permission mode should also surface a clearer active-state badge or one-tap rollback affordance in the chat shell, then continue the local-action layer with a slightly broader but still auditable action set.
+   Current state: chat turns, proactive notification lead copy, and proactive console summary all respond to local daypart only when `timeAwareness` is allowed; direct time/date/day questions now short-circuit deterministically in `waveary-core` before provider generation so real providers cannot ignore the supplied local clock context; `localActions` now has its first real ask-first path through chat-side pending action cards plus permission-gated local execution for simple open-url / open-folder / launch-app requests; executed or dismissed local actions now append a small assistant-side audit note into persisted chat history; and the chat composer now exposes direct `limited / high-permission / full-access` presets beside the send controls while preserving the lower-level detail popover.
+   Next cut: decide whether the difference between `high-permission` and `full-access` should also surface as a clearer active-state badge or one-tap rollback affordance in the chat shell, then continue the local-action layer with a slightly broader but still auditable action set.
 
 4. Preserve continuity discipline under high-frequency iteration.
    Status: ongoing
