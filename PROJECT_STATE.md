@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- pending - `Expand homepage doodle object set`
+- `0ed7111` - `Expand homepage doodle object set`
 
 ## Modules
 
