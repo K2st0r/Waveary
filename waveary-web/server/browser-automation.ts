@@ -5,6 +5,31 @@ import { chromium, type BrowserContext, type Page } from "playwright";
 import { getWavearyDataDir } from "./data-dir.js";
 
 let browserContextPromise: Promise<BrowserContext> | null = null;
+let browserContextListenersAttached = false;
+let activeManagedPage: Page | null = null;
+
+const pageLifecycleMetadata = new WeakMap<
+  Page,
+  {
+    openedAt: string;
+    lastActiveAt: string;
+  }
+>();
+
+type BrowserAutomationOverrides = {
+  openPage?: (url: string) => Promise<BrowserOpenResult>;
+  getPageInfo?: () => Promise<BrowserPageInfo | null>;
+  extractPageText?: (
+    options?: BrowserTextExtractOptions
+  ) => Promise<BrowserTextExtractResult>;
+  searchPageText?: (
+    query: string,
+    options?: BrowserPageSearchOptions
+  ) => Promise<BrowserPageSearchResult>;
+  close?: () => Promise<void>;
+};
+
+let browserAutomationOverrides: BrowserAutomationOverrides | null = null;
 
 export interface BrowserOpenResult {
   status: "opened";
@@ -12,9 +37,45 @@ export interface BrowserOpenResult {
   title?: string;
 }
 
+export interface BrowserPageInfo {
+  url: string;
+  title?: string;
+  openedAt?: string;
+  lastActiveAt?: string;
+}
+
+export interface BrowserTextExtractOptions {
+  maxChars?: number;
+}
+
+export interface BrowserTextExtractResult {
+  page: BrowserPageInfo;
+  text: string;
+  truncated: boolean;
+  extractedAt: string;
+}
+
+export interface BrowserPageSearchOptions {
+  maxSnippets?: number;
+  snippetRadius?: number;
+}
+
+export interface BrowserPageSearchResult {
+  page: BrowserPageInfo;
+  query: string;
+  totalMatches: number;
+  snippets: string[];
+  searchedAt: string;
+}
+
 export async function openManagedBrowserPage(url: string): Promise<BrowserOpenResult> {
+  if (browserAutomationOverrides?.openPage) {
+    return browserAutomationOverrides.openPage(url);
+  }
+
   const context = await getBrowserContext();
   const page = await context.newPage();
+  registerManagedPage(page);
 
   try {
     await page.goto(url, {
@@ -22,13 +83,14 @@ export async function openManagedBrowserPage(url: string): Promise<BrowserOpenRe
       timeout: 30000
     });
 
-    await page.bringToFront();
-    const title = await safelyReadTitle(page);
+    await safelyBringToFront(page);
+    markPageActive(page);
+    const pageInfo = await describePage(page);
 
     return {
       status: "opened",
-      url: page.url(),
-      ...(title ? { title } : {})
+      url: pageInfo.url,
+      ...(pageInfo.title ? { title: pageInfo.title } : {})
     };
   } catch (error) {
     await page.close().catch(() => undefined);
@@ -36,17 +98,95 @@ export async function openManagedBrowserPage(url: string): Promise<BrowserOpenRe
   }
 }
 
+export async function getManagedBrowserPageInfo(): Promise<BrowserPageInfo | null> {
+  if (browserAutomationOverrides?.getPageInfo) {
+    return browserAutomationOverrides.getPageInfo();
+  }
+
+  const page = await resolveManagedPageOrNull();
+  if (!page) {
+    return null;
+  }
+
+  return describePage(page);
+}
+
+export async function extractManagedBrowserPageText(
+  options: BrowserTextExtractOptions = {}
+): Promise<BrowserTextExtractResult> {
+  if (browserAutomationOverrides?.extractPageText) {
+    return browserAutomationOverrides.extractPageText(options);
+  }
+
+  const page = await requireManagedPage();
+  const pageInfo = await describePage(page);
+  const maxChars = normalizePositiveInteger(options.maxChars, 12000);
+  const fullText = await readVisiblePageText(page);
+  const truncated = fullText.length > maxChars;
+
+  return {
+    page: pageInfo,
+    text: truncated ? `${fullText.slice(0, maxChars).trimEnd()}...` : fullText,
+    truncated,
+    extractedAt: new Date().toISOString()
+  };
+}
+
+export async function searchManagedBrowserPageText(
+  query: string,
+  options: BrowserPageSearchOptions = {}
+): Promise<BrowserPageSearchResult> {
+  if (browserAutomationOverrides?.searchPageText) {
+    return browserAutomationOverrides.searchPageText(query, options);
+  }
+
+  const normalizedQuery = query.trim();
+  if (!normalizedQuery) {
+    throw new Error("A non-empty browser search query is required.");
+  }
+
+  const page = await requireManagedPage();
+  const pageInfo = await describePage(page);
+  const text = await readVisiblePageText(page);
+
+  return {
+    page: pageInfo,
+    query: normalizedQuery,
+    totalMatches: countSearchMatches(text, normalizedQuery),
+    snippets: collectSearchSnippets(
+      text,
+      normalizedQuery,
+      normalizePositiveInteger(options.maxSnippets, 5),
+      normalizePositiveInteger(options.snippetRadius, 90)
+    ),
+    searchedAt: new Date().toISOString()
+  };
+}
+
 export async function closeManagedBrowserAutomation(): Promise<void> {
+  if (browserAutomationOverrides?.close) {
+    await browserAutomationOverrides.close();
+    return;
+  }
+
   if (!browserContextPromise) {
     return;
   }
 
   const context = await browserContextPromise.catch(() => null);
   browserContextPromise = null;
+  browserContextListenersAttached = false;
+  activeManagedPage = null;
 
   if (context) {
     await context.close().catch(() => undefined);
   }
+}
+
+export function setBrowserAutomationOverridesForTests(
+  overrides: BrowserAutomationOverrides | null
+): void {
+  browserAutomationOverrides = overrides;
 }
 
 async function getBrowserContext(): Promise<BrowserContext> {
@@ -60,13 +200,117 @@ async function getBrowserContext(): Promise<BrowserContext> {
     });
   }
 
-  return browserContextPromise;
+  const context = await browserContextPromise;
+
+  if (!browserContextListenersAttached) {
+    browserContextListenersAttached = true;
+    context.on("page", (page) => {
+      registerManagedPage(page);
+    });
+  }
+
+  for (const page of context.pages()) {
+    registerManagedPage(page);
+  }
+
+  return context;
 }
 
 function getBrowserProfileDir(): string {
   const dir = join(getWavearyDataDir(), "browser-profile");
   mkdirSync(dir, { recursive: true });
   return dir;
+}
+
+function registerManagedPage(page: Page): void {
+  if (!pageLifecycleMetadata.has(page)) {
+    const now = new Date().toISOString();
+    pageLifecycleMetadata.set(page, {
+      openedAt: now,
+      lastActiveAt: now
+    });
+  }
+
+  markPageActive(page);
+
+  page.on("close", () => {
+    if (activeManagedPage === page) {
+      activeManagedPage = null;
+    }
+  });
+
+  page.on("load", () => {
+    markPageActive(page);
+  });
+}
+
+function markPageActive(page: Page): void {
+  activeManagedPage = page;
+  const metadata = pageLifecycleMetadata.get(page);
+
+  if (metadata) {
+    metadata.lastActiveAt = new Date().toISOString();
+    return;
+  }
+
+  const now = new Date().toISOString();
+  pageLifecycleMetadata.set(page, {
+    openedAt: now,
+    lastActiveAt: now
+  });
+}
+
+async function resolveManagedPage(options: { allowMissing?: boolean } = {}): Promise<Page | null> {
+  const page = await resolveManagedPageOrNull();
+
+  if (page) {
+    return page;
+  }
+
+  if (options.allowMissing) {
+    return null;
+  }
+
+  throw new Error("No managed browser page is currently open.");
+}
+
+async function requireManagedPage(): Promise<Page> {
+  const page = await resolveManagedPageOrNull();
+
+  if (!page) {
+    throw new Error("No managed browser page is currently open.");
+  }
+
+  return page;
+}
+
+async function resolveManagedPageOrNull(): Promise<Page | null> {
+  const context = await getBrowserContext();
+  const candidatePages = context.pages().filter((page) => !page.isClosed());
+  const page =
+    (activeManagedPage && !activeManagedPage.isClosed() ? activeManagedPage : null) ??
+    candidatePages[candidatePages.length - 1] ??
+    null;
+
+  if (!page) {
+    return null;
+  }
+
+  markPageActive(page);
+  await safelyBringToFront(page);
+  return page;
+}
+
+async function describePage(page: Page): Promise<BrowserPageInfo> {
+  const title = await safelyReadTitle(page);
+  const metadata = pageLifecycleMetadata.get(page);
+
+  return {
+    url: page.url(),
+    ...(title ? { title } : {}),
+    ...(metadata?.openedAt ? { openedAt: metadata.openedAt } : {}),
+    ...(metadata?.lastActiveAt ? { lastActiveAt: metadata.lastActiveAt } : {})
+  };
 }
 
 async function safelyReadTitle(page: Page): Promise<string | undefined> {
@@ -77,4 +321,98 @@ async function safelyReadTitle(page: Page): Promise<string | undefined> {
   } catch {
     return undefined;
   }
+}
+
+async function safelyBringToFront(page: Page): Promise<void> {
+  try {
+    await page.bringToFront();
+  } catch {
+    // Ignore focus errors and keep the session usable.
+  }
+}
+
+async function readVisiblePageText(page: Page): Promise<string> {
+  const text = await page.evaluate(() => {
+    const source =
+      document.querySelector("main")?.textContent ||
+      document.body?.innerText ||
+      document.documentElement?.innerText ||
+      "";
+
+    return source;
+  });
+
+  return normalizeVisibleText(text);
+}
+
+function normalizeVisibleText(text: string): string {
+  return text
+    .replace(/\r/g, "")
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .replace(/[ \t]{2,}/g, " ")
+    .trim();
+}
+
+function countSearchMatches(text: string, query: string): number {
+  const matcher = new RegExp(escapeRegExp(query), "gi");
+  let count = 0;
+
+  while (matcher.exec(text)) {
+    count += 1;
+  }
+
+  return count;
+}
+
+function collectSearchSnippets(
+  text: string,
+  query: string,
+  maxSnippets: number,
+  snippetRadius: number
+): string[] {
+  const normalizedText = text.trim();
+  const lowerText = normalizedText.toLowerCase();
+  const lowerQuery = query.toLowerCase();
+  const snippets: string[] = [];
+  let startIndex = 0;
+
+  while (snippets.length < maxSnippets) {
+    const matchIndex = lowerText.indexOf(lowerQuery, startIndex);
+    if (matchIndex < 0) {
+      break;
+    }
+
+    const snippetStart = Math.max(0, matchIndex - snippetRadius);
+    const snippetEnd = Math.min(
+      normalizedText.length,
+      matchIndex + query.length + snippetRadius
+    );
+    const snippetCore = normalizedText
+      .slice(snippetStart, snippetEnd)
+      .replace(/\s+/g, " ")
+      .trim();
+
+    if (snippetCore && !snippets.includes(snippetCore)) {
+      snippets.push(
+        `${snippetStart > 0 ? "..." : ""}${snippetCore}${snippetEnd < normalizedText.length ? "..." : ""}`
+      );
+    }
+
+    startIndex = matchIndex + Math.max(query.length, 1);
+  }
+
+  return snippets;
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function normalizePositiveInteger(value: number | undefined, fallback: number): number {
+  if (!Number.isFinite(value) || !value || value < 1) {
+    return fallback;
+  }
+
+  return Math.floor(value);
 }
