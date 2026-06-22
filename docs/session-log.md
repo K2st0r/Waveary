@@ -3838,6 +3838,43 @@ Push:
 
 Objective:
 
+Extend the managed browser layer beyond `open_url` so Waveary can inspect the page it opened through a bounded, testable API instead of stopping at shell-level browser launch.
+
+Summary:
+
+- expanded `waveary-web/server/browser-automation.ts` from plain `openManagedBrowserPage()` into a small managed-browser service that can also report the current page, extract visible page text, and search that text for snippets
+- kept the boundary explicit by exposing these capabilities as `/api/browser/page`, `/api/browser/extract-text`, and `/api/browser/search-text` in `waveary-web/server/provider-api.ts` rather than mixing them into unconstrained chat-generation behavior
+- added route-level regression coverage in `waveary-web/server/provider-api.test.ts` for null-page state, text extraction, and page-text search through browser-automation test overrides
+- reconciled continuity files so the stored next step now points at one next bounded browser interaction such as click-by-text or link selection instead of rediscovering the browser-read layer from scratch
+
+Files changed:
+
+- `waveary-web/server/browser-automation.ts`
+- `waveary-web/server/provider-api.ts`
+- `waveary-web/server/provider-api.test.ts`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run test --workspace @waveary/web`
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run web:build`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-22
+
+Objective:
+
 Make browser-opening local actions feel more reliable and more human by moving `open_url` into a Waveary-managed browser context and tightening the companion-side reply wording around those actions.
 
 Summary:

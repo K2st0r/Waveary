@@ -16,6 +16,9 @@ const {
   saveChatPersistenceConfig
 } = await import("./chat-persistence-config.js");
 const {
+  setBrowserAutomationOverridesForTests
+} = await import("./browser-automation.js");
+const {
   createChatSession,
   DEFAULT_CHAT_SESSION_ID,
   importChatSession
@@ -29,6 +32,7 @@ const originalFetch = globalThis.fetch;
 after(() => {
   globalThis.fetch = originalFetch;
   setLocalActionExecutorForTests(null);
+  setBrowserAutomationOverridesForTests(null);
 
   try {
     resetChatRuntimeSessions();
@@ -44,6 +48,102 @@ beforeEach(() => {
   resetTestDataDir();
   globalThis.fetch = originalFetch;
   setLocalActionExecutorForTests(null);
+  setBrowserAutomationOverridesForTests(null);
+});
+
+test("browser page route returns null when no managed page is open", async () => {
+  const middleware = createProviderApiMiddleware();
+
+  setBrowserAutomationOverridesForTests({
+    async getPageInfo() {
+      return null;
+    }
+  });
+
+  const response = await invokeJsonRoute(middleware, "GET", "/api/browser/page");
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.page, null);
+});
+
+test("browser extract-text route returns bounded page text", async () => {
+  const middleware = createProviderApiMiddleware();
+
+  setBrowserAutomationOverridesForTests({
+    async extractPageText(options) {
+      assert.equal(options?.maxChars, 80);
+      return {
+        page: {
+          url: "https://example.com/notes",
+          title: "Notes"
+        },
+        text: "first paragraph\n\nsecond paragraph",
+        truncated: false,
+        extractedAt: "2026-06-22T08:00:00.000Z"
+      };
+    }
+  });
+
+  const response = await invokeJsonRoute(
+    middleware,
+    "POST",
+    "/api/browser/extract-text",
+    { maxChars: 80 }
+  );
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.page.url, "https://example.com/notes");
+  assert.equal(response.body.page.title, "Notes");
+  assert.equal(response.body.text, "first paragraph\n\nsecond paragraph");
+  assert.equal(response.body.truncated, false);
+  assert.equal(response.body.extractedAt, "2026-06-22T08:00:00.000Z");
+});
+
+test("browser search-text route returns snippets from the current page", async () => {
+  const middleware = createProviderApiMiddleware();
+
+  setBrowserAutomationOverridesForTests({
+    async searchPageText(query, options) {
+      assert.equal(query, "memory");
+      assert.equal(options?.maxSnippets, 3);
+      assert.equal(options?.snippetRadius, 60);
+
+      return {
+        page: {
+          url: "https://example.com/waveary",
+          title: "Waveary"
+        },
+        query,
+        totalMatches: 2,
+        snippets: [
+          "...Memory comes before model...",
+          "...relationship grows through remembered moments..."
+        ],
+        searchedAt: "2026-06-22T08:10:00.000Z"
+      };
+    }
+  });
+
+  const response = await invokeJsonRoute(
+    middleware,
+    "POST",
+    "/api/browser/search-text",
+    {
+      query: "memory",
+      maxSnippets: 3,
+      snippetRadius: 60
+    }
+  );
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.page.url, "https://example.com/waveary");
+  assert.equal(response.body.query, "memory");
+  assert.equal(response.body.totalMatches, 2);
+  assert.deepEqual(response.body.snippets, [
+    "...Memory comes before model...",
+    "...relationship grows through remembered moments..."
+  ]);
+  assert.equal(response.body.searchedAt, "2026-06-22T08:10:00.000Z");
 });
 
 test("chat turn proposes a pending local action for explicit open requests", async () => {

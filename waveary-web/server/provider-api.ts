@@ -4,6 +4,11 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { OpenAICompatibleChatProvider, PROVIDER_PRESETS } from "@waveary/core";
+import {
+  extractManagedBrowserPageText,
+  getManagedBrowserPageInfo,
+  searchManagedBrowserPageText
+} from "./browser-automation.js";
 
 import {
   dismissChatLocalAction,
@@ -59,6 +64,16 @@ interface ChatTurnRequest {
 
 interface ChatSessionRequest {
   sessionId?: string;
+}
+
+interface BrowserExtractRequest {
+  maxChars?: number;
+}
+
+interface BrowserSearchRequest {
+  query?: string;
+  maxSnippets?: number;
+  snippetRadius?: number;
 }
 
 interface ExecuteLocalActionRequest extends ChatSessionRequest {
@@ -150,7 +165,11 @@ export function createProviderApiMiddleware() {
     response: ServerResponse,
     next: NextFunction
   ): Promise<void> {
-    if (!request.url?.startsWith("/api/provider") && !request.url?.startsWith("/api/chat")) {
+    if (
+      !request.url?.startsWith("/api/provider") &&
+      !request.url?.startsWith("/api/chat") &&
+      !request.url?.startsWith("/api/browser")
+    ) {
       next();
       return;
     }
@@ -200,6 +219,40 @@ export function createProviderApiMiddleware() {
         );
 
         sendJson(response, 200, { session: session ?? null });
+        return;
+      }
+
+      if (request.method === "GET" && request.url === "/api/browser/page") {
+        const page = await getManagedBrowserPageInfo();
+        sendJson(response, 200, { page });
+        return;
+      }
+
+      if (request.method === "POST" && request.url === "/api/browser/extract-text") {
+        const payload = (await readJsonBody(request)) as BrowserExtractRequest;
+        const result = await extractManagedBrowserPageText({
+          ...(typeof payload.maxChars === "number" ? { maxChars: payload.maxChars } : {})
+        });
+
+        sendJson(response, 200, result);
+        return;
+      }
+
+      if (request.method === "POST" && request.url === "/api/browser/search-text") {
+        const payload = (await readJsonBody(request)) as BrowserSearchRequest;
+        const result = await searchManagedBrowserPageText(
+          requireNonEmpty(payload.query, "Browser search query is required."),
+          {
+            ...(typeof payload.maxSnippets === "number"
+              ? { maxSnippets: payload.maxSnippets }
+              : {}),
+            ...(typeof payload.snippetRadius === "number"
+              ? { snippetRadius: payload.snippetRadius }
+              : {})
+          }
+        );
+
+        sendJson(response, 200, result);
         return;
       }
 

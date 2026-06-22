@@ -639,3 +639,25 @@ Impact:
 - `waveary-web` now depends on `playwright` for server-side browser execution
 - `open_url` actions can evolve into later bounded browser actions such as search, click, and extract text within one managed browser profile
 - future browser automation work should extend this explicit permissioned layer before considering higher-level natural-language web-agent tooling
+
+## 2026-06-22 - First Browser Read Layer Should Stay Separate From Chat Generation
+
+Status:
+
+- accepted
+
+Decision:
+
+Expose the first post-open browser capabilities as thin `/api/browser/*` routes for current-page inspection, visible-text extraction, and page-text search, instead of hiding them inside normal chat replies or jumping to a free-form browser agent.
+
+Reason:
+
+- the project now needs browser state that Waveary can inspect deterministically, not just open
+- keeping these capabilities as explicit routes preserves auditability and makes later UI or permission wiring easier
+- this keeps the browser layer bounded and composable while avoiding premature natural-language browser autonomy
+
+Impact:
+
+- `waveary-web/server/browser-automation.ts` now owns current-page, extract-text, and search-text primitives on top of the managed Playwright context
+- `waveary-web/server/provider-api.ts` now exposes `/api/browser/page`, `/api/browser/extract-text`, and `/api/browser/search-text`
+- future browser work should grow through similarly explicit bounded actions such as click-by-text or link selection before any broader agent abstraction is considered
