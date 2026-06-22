@@ -573,3 +573,25 @@ Impact:
 - `waveary-core` now owns a shared local-time reply helper used by both runtime short-circuiting and the scripted provider path
 - direct local time/date/day questions no longer depend on model obedience to prompt wording
 - future bounded time-awareness refinements should extend this shared runtime helper instead of adding more provider-specific prompt hacks
+
+## 2026-06-22 - Local Action Outcomes Should Stay In Conversation History
+
+Status:
+
+- accepted
+
+Decision:
+
+When a pending local action is executed or dismissed, record a small assistant-side audit note in persisted chat history instead of showing the outcome only as transient UI state.
+
+Reason:
+
+- trust-sensitive local actions should remain legible after reload, session restore, export, and import
+- a conversation-visible trace fits Waveary's companion surface better than a purely technical activity log
+- keeping this note in the persisted session avoids runtime-cache drift and makes the action boundary easier to review later
+
+Impact:
+
+- `waveary-web` now appends a compact assistant note for executed and dismissed local actions
+- pending local-action state is cleared in both persisted session storage and runtime cache as part of the same resolution flow
+- future local-action work can build richer summaries or approval history on top of this persisted conversational trace instead of reintroducing purely ephemeral status handling

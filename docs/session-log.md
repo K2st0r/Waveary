@@ -4,6 +4,50 @@
 
 Objective:
 
+Keep permissioned local actions trustworthy by persisting executed and dismissed outcomes as a small conversation-visible trace instead of leaving them only in transient UI state.
+
+Summary:
+
+- added `recordLocalActionResolution(...)` in `waveary-web/server/chat-session-store.ts` so local-action resolution can append a flat-metadata assistant audit note into persisted session history while clearing `pendingLocalAction`
+- updated `waveary-web/server/local-action-runtime.ts` to record executed and dismissed outcomes with localized companion-facing notes and reset the cached runtime session immediately after each resolution
+- added `resetChatRuntimeSession(sessionId)` in `waveary-web/server/chat-runtime.ts` so persisted chat history and the in-memory runtime cache cannot drift after local-action approval or dismissal
+- widened the first safe local-action detection set in `waveary-web/server/local-actions.ts` while keeping the boundary explicit and ask-first
+- updated `/api/chat/local-action/execute` and `/api/chat/local-action/dismiss` plus the browser request payloads to forward locale, and repaired route tests so they verify the persisted chat-visible audit note and current local-time route behavior correctly
+- verified the change with fresh server build, compiled route tests, frontend typecheck, and full production web build
+
+Files changed:
+
+- `waveary-web/server/chat-runtime.ts`
+- `waveary-web/server/chat-session-store.ts`
+- `waveary-web/server/local-action-runtime.ts`
+- `waveary-web/server/local-actions.ts`
+- `waveary-web/server/provider-api.ts`
+- `waveary-web/server/provider-api.test.ts`
+- `waveary-web/src/App.tsx`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run build:server --workspace @waveary/web`
+- `node --test waveary-web/dist-server/server/provider-api.test.js`
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run web:build`
+
+Commit:
+
+- `be1b9ed` - `Record local action outcomes in chat history`
+
+Push:
+
+- pending
+
+## 2026-06-22
+
+Objective:
+
 Make permissioned local-time awareness trustworthy for real providers by guaranteeing direct time/date/day answers in `waveary-core` instead of relying only on prompt compliance.
 
 Summary:

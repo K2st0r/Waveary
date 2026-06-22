@@ -24,8 +24,8 @@ Update it when:
 
 3. Keep permissioned local-time awareness and local execution boundaries bounded and trustworthy.
    Status: in progress
-   Current state: chat turns, proactive notification lead copy, and proactive console summary all respond to local daypart only when `timeAwareness` is allowed; direct time/date/day questions now short-circuit deterministically in `waveary-core` before provider generation so real providers cannot ignore the supplied local clock context; and `localActions` now has its first real ask-first path through chat-side pending action cards plus permission-gated local execution for simple open-url / open-folder / launch-app requests.
-   Next cut: extend the new local-action layer with a slightly broader but still auditable action set, keep time awareness from silently broadening into desktop presence, and decide whether executed or dismissed local actions need a small conversation-side trace for trust legibility after the current deterministic time-answer boundary has settled.
+   Current state: chat turns, proactive notification lead copy, and proactive console summary all respond to local daypart only when `timeAwareness` is allowed; direct time/date/day questions now short-circuit deterministically in `waveary-core` before provider generation so real providers cannot ignore the supplied local clock context; `localActions` now has its first real ask-first path through chat-side pending action cards plus permission-gated local execution for simple open-url / open-folder / launch-app requests; and executed or dismissed local actions now append a small assistant-side audit note into persisted chat history so the outcome remains visible after reload and session restore.
+   Next cut: extend the new local-action layer with a slightly broader but still auditable action set, keep time awareness from silently broadening into desktop presence, and decide whether the next trust-legibility step should be richer action summaries or explicit per-action approval history.
 
 4. Preserve continuity discipline under high-frequency iteration.
    Status: ongoing

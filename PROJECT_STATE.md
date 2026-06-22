@@ -1,4 +1,4 @@
-# Project State
+﻿# Project State
 
 If a new Codex session starts in this repository, use `waveary-continuity-guard` immediately and rebuild context from this file plus `docs/session-log.md` and `docs/decision-log.md`.
 
@@ -8,15 +8,14 @@ Waveary is an open source digital life companion framework.
 
 Brand line:
 
-念念不忘，终有回响。
-
+蹇靛康涓嶅繕锛岀粓鏈夊洖鍝嶃€?
 ## Current Branch
 
 - `main`
 
 ## Latest Verified Commit
 
-- `ae0b112` - `Short-circuit local time replies in runtime`
+- `be1b9ed` - `Record local action outcomes in chat history`
 
 ## Modules
 
@@ -121,7 +120,7 @@ Brand line:
   - the live conversation experience now has its own dedicated chat page with a stripped-down journal-style canvas and composer
   - the chat page now also surfaces a compact permission tray beside the composer, so time awareness, proactive notifications, desktop presence, and local-action intent can be adjusted in conversation without sending users back to the console
   - `localActions` has now graduated from a UI-only preference slot into the first real ask-first execution path: chat turns can propose a pending local action card for simple open-url / open-folder / launch-app intents, and the user must explicitly confirm before any local execution happens
-  - the first local-action execution surface stays intentionally narrow and auditable inside `waveary-web`: proposal detection is rule-based, execution is permission-gated, denied policy blocks execution, ask-first requires one explicit approval click, and dismissing the card clears the pending action from persisted session state
+  - the first local-action execution surface stays intentionally narrow and auditable inside `waveary-web`: proposal detection is rule-based, execution is permission-gated, denied policy blocks execution, ask-first requires one explicit approval click, and dismissing the card clears the pending action from persisted session state`r`n  - executed and dismissed local actions now also append a small assistant-side audit note into persisted chat history, so trust-visible action outcomes survive reloads and restored sessions instead of living only in transient UI state
   - the visible persisted-session archive panel has been removed from the runtime rail so the console reads less like a raw internal debug dump
   - the split home / console / chat shell now has a stronger page-by-page hierarchy: the homepage reads more like a formal project front page, the console reads more like a system desk, and the chat page is more tightly focused on the active conversation surface
   - homepage hero now includes a portrait-memory visual layer with drifting hand-drawn question-mark portraits and a burn-to-ash memory focal animation
@@ -256,7 +255,7 @@ Brand line:
 - consider extracting the new console-summary and notification-copy helpers into one shared proactive presentation module if a second non-browser delivery surface is added
 - use the new route-visible proactive draft contract as the source for any next delivery surface, instead of recomputing outbound copy per-surface in the browser
 - consider whether the draft contract should stay a `waveary-web` server concern for now or move into a more shared runtime-facing layer before scheduled delivery work begins
-- consider whether the new browser-local proactive loop should surface a small in-chat or console-side “watching” indicator so the user can tell when bounded local care checks are active
+- consider whether the new browser-local proactive loop should surface a small in-chat or console-side 鈥渨atching鈥?indicator so the user can tell when bounded local care checks are active
 - expand provider-specific chat request normalization where "OpenAI-compatible" vendors diverge beyond the current shared `/chat/completions` and `/responses` paths
 - add route-level or live verification for more provider-specific chat payload divergences after the current DeepSeek and broader structured-payload compatibility baseline
 - re-run `npm run verify:provider` and `npm run models:provider` with refreshed real credentials, starting with DeepSeek because the currently saved local key now returns `401 invalid api key`
@@ -273,7 +272,7 @@ Brand line:
 - run a focused browser pass for homepage doodle density, fade rhythm, and overall visual balance now that the doodle set includes both the original study objects and the new paper-memory objects
 - visually verify and, only if needed, tighten any remaining console workspace that still forces awkward external page scrolling after the latest compact-shell pass
 - expand the new ask-first local action layer beyond the first safe open-url / open-folder / launch-app set, while keeping every higher-trust action explicit, revocable, and auditable
-- consider whether the next local-action pass should add richer action summaries, per-action approval history, or a small completed-action echo in chat so execution remains legible without clutter
+- consider whether the next local-action pass should add richer action summaries or per-action approval history now that completed and dismissed actions already leave a small completed-action echo in chat
 - continue the homepage portrait system with a more deliberate `4 male / 4 female` hand-drawn polaroid-style set so the visual range feels broader and less clustered around one youth archetype
 - consider replacing the current chroma-keyed lighter cutout with a cleaner native-alpha illustration once a final asset pass is approved
 - consider a follow-up homepage motion pass that adds a slightly stronger heat shimmer or ember flicker only if it stays subtle and does not overcomplicate the hero
@@ -297,3 +296,4 @@ Brand line:
 ## Open Issues
 
 - `npm run web:build` should not be executed in parallel with another root build command because package `dist` cleanup can race on Windows
+
