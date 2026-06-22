@@ -63,6 +63,7 @@ interface ExecuteLocalActionRequest extends ChatSessionRequest {
   actionId?: string;
   permission?: LocalActionPermissionLevel;
   approved?: boolean;
+  locale?: string;
 }
 
 interface EvaluateProactiveCareRequest extends ChatSessionRequest {
@@ -198,6 +199,7 @@ export function createProviderApiMiddleware() {
           sessionId: payload.sessionId?.trim() || DEFAULT_CHAT_SESSION_ID,
           actionId: requireNonEmpty(payload.actionId, "Action ID is required."),
           permission: requireLocalActionPermission(payload.permission),
+          locale: normalizeLocalActionLocale(payload.locale),
           ...(payload.approved !== undefined ? { approved: payload.approved } : {})
         });
 
@@ -209,7 +211,8 @@ export function createProviderApiMiddleware() {
         const payload = (await readJsonBody(request)) as ExecuteLocalActionRequest;
         const result = dismissChatLocalAction({
           sessionId: payload.sessionId?.trim() || DEFAULT_CHAT_SESSION_ID,
-          actionId: requireNonEmpty(payload.actionId, "Action ID is required.")
+          actionId: requireNonEmpty(payload.actionId, "Action ID is required."),
+          locale: normalizeLocalActionLocale(payload.locale)
         });
 
         sendJson(response, 200, result);
@@ -458,6 +461,10 @@ function requireLocalActionPermission(
   }
 
   throw new Error("A valid local action permission is required.");
+}
+
+function normalizeLocalActionLocale(value: string | undefined): "zh" | "en" {
+  return value?.toLowerCase().startsWith("zh") ? "zh" : "en";
 }
 
 function getSessionPackageReference(): SessionPackageReference {

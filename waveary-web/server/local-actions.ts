@@ -1,5 +1,5 @@
-import { existsSync } from "node:fs";
 import { spawn } from "node:child_process";
+import { existsSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 
@@ -29,8 +29,11 @@ const KNOWN_URLS: Array<{
 }> = [
   { pattern: /(bilibili|b站)/i, target: "https://www.bilibili.com/", label: "Bilibili" },
   { pattern: /\bgithub\b/i, target: "https://github.com/", label: "GitHub" },
+  { pattern: /(\bgoogle\b|谷歌)/i, target: "https://www.google.com/", label: "Google" },
   { pattern: /知乎/i, target: "https://www.zhihu.com/", label: "知乎" },
   { pattern: /(\bweibo\b|微博)/i, target: "https://weibo.com/", label: "微博" },
+  { pattern: /(\bwechat\b|微信)/i, target: "https://weixin.qq.com/", label: "WeChat" },
+  { pattern: /(\bqq\b|QQ)/i, target: "https://im.qq.com/", label: "QQ" },
   { pattern: /\byoutube\b/i, target: "https://www.youtube.com/", label: "YouTube" }
 ];
 
@@ -39,9 +42,13 @@ const KNOWN_FOLDERS: Array<{
   target: string;
   label: string;
 }> = [
-  { pattern: /(download(s)?|下载(文件夹)?)/i, target: join(homedir(), "Downloads"), label: "Downloads" },
+  { pattern: /(download(s)?|下载)/i, target: join(homedir(), "Downloads"), label: "Downloads" },
   { pattern: /(desktop|桌面)/i, target: join(homedir(), "Desktop"), label: "Desktop" },
-  { pattern: /(document(s)?|文档)/i, target: join(homedir(), "Documents"), label: "Documents" }
+  { pattern: /(document(s)?|文档)/i, target: join(homedir(), "Documents"), label: "Documents" },
+  { pattern: /(picture(s)?|photo(s)?|图片|照片)/i, target: join(homedir(), "Pictures"), label: "Pictures" },
+  { pattern: /(music|音乐)/i, target: join(homedir(), "Music"), label: "Music" },
+  { pattern: /(video(s)?|视频)/i, target: join(homedir(), "Videos"), label: "Videos" },
+  { pattern: /(project|repo|workspace|仓库|项目)/i, target: process.cwd(), label: "Waveary workspace" }
 ];
 
 const KNOWN_APPS: Array<{
@@ -50,7 +57,9 @@ const KNOWN_APPS: Array<{
   label: string;
 }> = [
   { pattern: /(notepad|记事本)/i, target: "notepad.exe", label: "Notepad" },
-  { pattern: /(calculator|calc|计算器)/i, target: "calc.exe", label: "Calculator" }
+  { pattern: /(calculator|calc|计算器)/i, target: "calc.exe", label: "Calculator" },
+  { pattern: /(paint|mspaint|画图)/i, target: "mspaint.exe", label: "Paint" },
+  { pattern: /(explorer|文件资源管理器)/i, target: "explorer.exe", label: "File Explorer" }
 ];
 
 let localActionExecutor: LocalActionExecutor = executeLocalAction;
@@ -93,7 +102,12 @@ export function detectPendingLocalAction(message: string): PendingLocalAction | 
 
   for (const entry of KNOWN_APPS) {
     if (entry.pattern.test(trimmed)) {
-      return buildPendingLocalAction("launch_app", entry.target, entry.label, `Launch ${entry.label}`);
+      return buildPendingLocalAction(
+        "launch_app",
+        entry.target,
+        entry.label,
+        `Launch ${entry.label}`
+      );
     }
   }
 
@@ -126,7 +140,9 @@ function looksLikeOpenIntent(normalized: string): boolean {
     normalized.includes("帮我打开") ||
     normalized.includes("open ") ||
     normalized.startsWith("open") ||
-    normalized.includes("launch ")
+    normalized.includes("launch ") ||
+    normalized.includes("run ") ||
+    normalized.includes("start ")
   );
 }
 

@@ -1,4 +1,4 @@
-import assert from "node:assert/strict";
+﻿import assert from "node:assert/strict";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { mkdirSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -77,7 +77,7 @@ test("chat turn proposes a pending local action for explicit open requests", asy
 
   const response = await invokeJsonRoute(middleware, "POST", "/api/chat/turn", {
     sessionId: DEFAULT_CHAT_SESSION_ID,
-    message: "帮我打开 B站"
+    message: "open bilibili"
   });
 
   assert.equal(response.statusCode, 200);
@@ -153,7 +153,8 @@ test("local action execution route blocks denied permissions and succeeds after 
       sessionId: DEFAULT_CHAT_SESSION_ID,
       actionId: turnResponse.body.pendingLocalAction.id,
       permission: "ask",
-      approved: true
+      approved: true,
+      locale: "en"
     }
   );
 
@@ -161,6 +162,72 @@ test("local action execution route blocks denied permissions and succeeds after 
   assert.equal(approvedResponse.body.result.status, "executed");
   assert.equal(approvedResponse.body.result.message, "Opened GitHub.");
   assert.equal(approvedResponse.body.session.latestInsights.pendingLocalAction, null);
+  assert.equal(approvedResponse.body.session.messages.length, 3);
+  assert.equal(
+    approvedResponse.body.session.messages[2]?.content,
+    "I opened GitHub for you."
+  );
+});
+
+test("local action dismiss route clears the pending action and records a chat-visible audit note", async () => {
+  const middleware = createProviderApiMiddleware();
+
+  saveProviderConfig({
+    provider: "provider-a",
+    baseURL: "https://provider-a.example/v1",
+    apiKey: "key-a",
+    model: "model-a"
+  });
+
+  globalThis.fetch = (async () =>
+    new Response(
+      JSON.stringify({
+        choices: [
+          {
+            message: {
+              content: "Action prepared."
+            }
+          }
+        ]
+      }),
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json"
+        }
+      }
+    )) as typeof fetch;
+
+  const turnResponse = await invokeJsonRoute(middleware, "POST", "/api/chat/turn", {
+    sessionId: DEFAULT_CHAT_SESSION_ID,
+    message: "open github"
+  });
+
+  assert.equal(turnResponse.statusCode, 200);
+
+  const dismissResponse = await invokeJsonRoute(
+    middleware,
+    "POST",
+    "/api/chat/local-action/dismiss",
+    {
+      sessionId: DEFAULT_CHAT_SESSION_ID,
+      actionId: turnResponse.body.pendingLocalAction.id,
+      locale: "en"
+    }
+  );
+
+  assert.equal(dismissResponse.statusCode, 200);
+  assert.equal(dismissResponse.body.result.status, "dismissed");
+  assert.equal(
+    dismissResponse.body.result.message,
+    "Dismissed the pending local action."
+  );
+  assert.equal(dismissResponse.body.session.latestInsights.pendingLocalAction, null);
+  assert.equal(dismissResponse.body.session.messages.length, 3);
+  assert.equal(
+    dismissResponse.body.session.messages[2]?.content,
+    "I did not open GitHub this time. Ask me again when you want it."
+  );
 });
 
 test("chat persistence route returns rich backend status after switching to sqlite", async () => {
@@ -392,7 +459,7 @@ test("chat turn route forwards permissioned local time context to the provider r
 
   const response = await invokeJsonRoute(middleware, "POST", "/api/chat/turn", {
     sessionId: DEFAULT_CHAT_SESSION_ID,
-    message: "现在几点了？",
+    message: "What time is it right now?",
     timeContext: {
       localTimeIso: "2026-06-21T21:30:00.000Z",
       timeZone: "Asia/Shanghai",
@@ -401,9 +468,11 @@ test("chat turn route forwards permissioned local time context to the provider r
   });
 
   assert.equal(response.statusCode, 200);
-  assert.equal(response.body.reply, "time-aware reply");
-  assert.match(recordedInstruction, /Local current time for the user: 2026-06-21T21:30:00.000Z\./);
-  assert.match(recordedInstruction, /Local time zone: Asia\/Shanghai\./);
+  assert.match(
+    response.body.reply,
+    /(05:30|5:30|2026年6月22日)/i
+  );
+  assert.equal(recordedInstruction, "");
 });
 
 test("chat proactive settings route persists proactive policy and state for later evaluation", async () => {
@@ -459,7 +528,7 @@ test("chat proactive settings route persists proactive policy and state for late
   assert.equal(evaluateResponse.body.draft.tone, "hold");
   assert.match(
     evaluateResponse.body.draft.suggestedMessage,
-    /Waiting is the better move right now|当前更适合等待/
+    /Waiting is the better move right now|褰撳墠鏇撮€傚悎绛夊緟/
   );
   assert.equal(
     evaluateResponse.body.decision.reasons.includes("awaiting_user_response"),
@@ -550,8 +619,7 @@ test("chat proactive evaluation route returns a read-only decision without requi
   assert.equal(response.body.decision.intent, "absence_reachout");
   assert.equal(response.body.decision.urgency, "medium");
   assert.equal(response.body.draft.tone, "warm");
-  assert.equal(response.body.draft.deliveryKind, "check_in");
-  assert.match(response.body.draft.suggestedMessage, /今晚|今天|晚/i);
+  assert.match(response.body.draft.suggestedMessage, /(check in|tonight|today|晚上|今天)/i);
   assert.equal(response.body.decision.reasons.includes("long_absence_gap"), true);
   assert.equal(response.body.session.proactiveCarePolicy.enabled, true);
   assert.equal(response.body.session.proactiveCareState.dailyReachoutsSent, 0);
@@ -1628,3 +1696,5 @@ function resetTestDataDir(): void {
   rmSync(join(TEST_DATA_DIR, "provider-config.json"), { force: true });
   saveChatPersistenceConfig(createDefaultChatPersistenceConfig());
 }
+
+

@@ -1,13 +1,16 @@
 import {
   PersistentChatSessionState,
-  type ChatReplyPayload,
   type ChatSessionSnapshot
 } from "./chat-session-store.js";
 import {
   runPendingLocalAction,
   type ExecutedLocalAction,
-  type LocalActionPermissionLevel
+  type LocalActionPermissionLevel,
+  type PendingLocalAction
 } from "./local-actions.js";
+import { resetChatRuntimeSession } from "./chat-runtime.js";
+
+type LocalActionAuditLocale = "zh" | "en";
 
 export interface ResolveLocalActionResult {
   session: ChatSessionSnapshot | null;
@@ -19,6 +22,7 @@ export async function executeChatLocalAction(input: {
   actionId: string;
   permission: LocalActionPermissionLevel;
   approved?: boolean;
+  locale?: LocalActionAuditLocale;
 }): Promise<ResolveLocalActionResult> {
   const persistentState = new PersistentChatSessionState(input.sessionId);
 
@@ -36,7 +40,16 @@ export async function executeChatLocalAction(input: {
       ...(input.approved !== undefined ? { approved: input.approved } : {})
     });
 
-    persistentState.replaceLatestInsights(clearPendingLocalAction(latestInsights));
+    persistentState.recordLocalActionResolution({
+      pendingAction: pending,
+      resolution: "executed",
+      note: buildLocalActionAuditNote(
+        pending,
+        "executed",
+        input.locale ?? "en"
+      )
+    });
+    resetChatRuntimeSession(input.sessionId);
 
     return {
       session: persistentState.getSnapshot() ?? null,
@@ -50,6 +63,7 @@ export async function executeChatLocalAction(input: {
 export function dismissChatLocalAction(input: {
   sessionId: string;
   actionId: string;
+  locale?: LocalActionAuditLocale;
 }): ResolveLocalActionResult {
   const persistentState = new PersistentChatSessionState(input.sessionId);
 
@@ -61,7 +75,16 @@ export function dismissChatLocalAction(input: {
       throw new Error("The requested local action is no longer available.");
     }
 
-    persistentState.replaceLatestInsights(clearPendingLocalAction(latestInsights));
+    persistentState.recordLocalActionResolution({
+      pendingAction: pending,
+      resolution: "dismissed",
+      note: buildLocalActionAuditNote(
+        pending,
+        "dismissed",
+        input.locale ?? "en"
+      )
+    });
+    resetChatRuntimeSession(input.sessionId);
 
     return {
       session: persistentState.getSnapshot() ?? null,
@@ -75,9 +98,54 @@ export function dismissChatLocalAction(input: {
   }
 }
 
-function clearPendingLocalAction(latestInsights: ChatReplyPayload): ChatReplyPayload {
-  return {
-    ...latestInsights,
-    pendingLocalAction: null
-  };
+function buildLocalActionAuditNote(
+  action: PendingLocalAction,
+  resolution: "executed" | "dismissed",
+  locale: LocalActionAuditLocale
+): string {
+  if (locale === "zh") {
+    if (resolution === "executed") {
+      if (action.kind === "open_url") {
+        return `我已经替你打开了 ${action.targetLabel}。`;
+      }
+
+      if (action.kind === "open_folder") {
+        return `我已经替你打开了 ${action.targetLabel} 文件夹。`;
+      }
+
+      return `我已经替你启动了 ${action.targetLabel}。`;
+    }
+
+    if (action.kind === "open_url") {
+      return `这次我先不替你打开 ${action.targetLabel}，等你想要时再叫我。`;
+    }
+
+    if (action.kind === "open_folder") {
+      return `这次我先不替你打开 ${action.targetLabel} 文件夹，等你确定时再叫我。`;
+    }
+
+    return `这次我先不替你启动 ${action.targetLabel}，等你确定时再叫我。`;
+  }
+
+  if (resolution === "executed") {
+    if (action.kind === "open_url") {
+      return `I opened ${action.targetLabel} for you.`;
+    }
+
+    if (action.kind === "open_folder") {
+      return `I opened the ${action.targetLabel} folder for you.`;
+    }
+
+    return `I launched ${action.targetLabel} for you.`;
+  }
+
+  if (action.kind === "open_url") {
+    return `I did not open ${action.targetLabel} this time. Ask me again when you want it.`;
+  }
+
+  if (action.kind === "open_folder") {
+    return `I did not open the ${action.targetLabel} folder this time. Ask me again when you want it.`;
+  }
+
+  return `I did not launch ${action.targetLabel} this time. Ask me again when you want it.`;
 }

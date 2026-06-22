@@ -115,6 +115,17 @@ export function resetChatRuntimeSessions(): void {
   sessions.clear();
 }
 
+export function resetChatRuntimeSession(sessionId: string): void {
+  for (const [cacheKey, state] of sessions.entries()) {
+    if (!cacheKey.endsWith(`:${sessionId}`)) {
+      continue;
+    }
+
+    state.persistentState.close();
+    sessions.delete(cacheKey);
+  }
+}
+
 export async function evaluateChatProactiveCare(
   sessionId: string,
   options: ChatProactiveCareEvaluationOptions = {}
