@@ -705,3 +705,26 @@ Impact:
 - `detectPendingLocalAction()` now recognizes bounded browser intents such as reading the current page, searching page text, listing clickable items, and clicking by visible text
 - `sendChatTurn()` and the execute route now prefer action-returned grounded companion notes for browser actions, so chat replies match what actually happened on the page
 - future browser control should keep graduating through this same permissioned action path unless a deliberately separate higher-trust layer is designed
+
+## 2026-06-22 - Voice Starts With Emotion-Aware TTS, Not Full Duplex
+
+Status:
+
+- accepted
+
+Decision:
+
+Start the first dedicated voice implementation by creating `waveary-voice` as its own workspace package, defining stable TTS-facing contracts, and shipping an emotion-aware browser speech planning path before attempting microphone capture, streaming STT, interruption handling, or full duplex conversation.
+
+Reason:
+
+- the product roadmap already treats voice as a first-class system, but jumping straight to realtime duplex would create too much surface area at once
+- the fastest meaningful user-visible cut is letting the current chat page actually speak replies in a way that follows companion emotion and relationship stage
+- a dedicated voice package preserves architecture boundaries so future provider-backed TTS/STT work does not get trapped inside `waveary-web`
+
+Impact:
+
+- `waveary-voice` now exists as a workspace package with `TextToSpeechRequest` / `TextToSpeechResult` contracts and a first `BrowserSpeechPlanner`
+- `waveary-core` now includes first voice-domain contracts (`VoiceSession`, `SpeechInput`, `SpeechOutput`) so voice is no longer only a documentation placeholder
+- `waveary-web` now exposes `/api/voice/speak` and the chat page can auto-speak or manually speak the latest reply using emotion-aware browser speech settings
+- future real provider-backed voice work should extend this new package boundary instead of wiring vendor speech behavior directly into frontend components

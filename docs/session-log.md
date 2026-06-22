@@ -4063,3 +4063,64 @@ Commit:
 Push:
 
 - succeeded: `git push origin main` pushed functional commit `8bd9c62` to `origin/main`
+# Session Log
+
+## 2026-06-22
+
+Objective:
+
+Start the first dedicated voice module by creating a real `waveary-voice` package, wiring emotion-aware TTS planning into `waveary-web`, and making the chat page speak replies.
+
+Summary:
+
+- added a new `waveary-voice` workspace package with stable TTS-facing contracts plus a first `BrowserSpeechPlanner` that maps locale, relationship stage, and companion emotion into browser speech rate, pitch, volume, and preferred-voice hints
+- added first voice-domain contracts to `waveary-core` through `VoiceSession`, `SpeechInput`, and `SpeechOutput`, so the framework boundary now has explicit voice objects instead of leaving voice only in docs
+- added `waveary-web/server/voice-runtime.ts` plus `/api/voice/speak` in the local API layer, keeping voice planning on the server side and out of direct UI-only heuristics
+- updated the chat page in `waveary-web/src/App.tsx` and `waveary-web/src/styles.css` with a first voice strip: `auto speak`, `speak reply`, and `stop`, using browser `speechSynthesis` and the server-returned emotional speech plan
+- fixed one managed-browser test hang while doing this work by moving current-page search intent detection ahead of the narrower Bilibili follow-up branch and by explicitly closing managed browser automation between `provider-api` tests
+- updated `package.json`, `waveary-web/package.json`, and `package-lock.json` so the new voice workspace is built and tested as part of the monorepo workflow
+
+Files changed:
+
+- `package.json`
+- `package-lock.json`
+- `waveary-core/src/domain/voice.ts`
+- `waveary-core/src/index.ts`
+- `waveary-core/src/providers/interfaces.ts`
+- `waveary-voice/package.json`
+- `waveary-voice/README.md`
+- `waveary-voice/tsconfig.json`
+- `waveary-voice/src/index.ts`
+- `waveary-voice/src/types.ts`
+- `waveary-voice/src/browser-speech-planner.ts`
+- `waveary-voice/src/browser-speech-planner.test.ts`
+- `waveary-web/package.json`
+- `waveary-web/server/local-actions.ts`
+- `waveary-web/server/provider-api.ts`
+- `waveary-web/server/provider-api.test.ts`
+- `waveary-web/server/voice-runtime.ts`
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/voice`
+- `npm run test --workspace @waveary/voice`
+- `npm run build:server --workspace @waveary/web`
+- `node --test waveary-web/dist-server/server/provider-api.test.js`
+- `node --test waveary-web/dist-server/server/chat-session-store.test.js`
+- `npm run check --workspace @waveary/web`
+- `npm run test --workspace @waveary/web`
+- `npm run web:build`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending

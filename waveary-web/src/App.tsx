@@ -52,6 +52,22 @@ interface ChatTurnResponse {
   }>;
 }
 
+interface VoiceSpeakPlanResponse {
+  provider: string;
+  plan: {
+    mode: "browser-speech";
+    lang: string;
+    voiceLabel: string;
+    styleLabel: string;
+    rate: number;
+    pitch: number;
+    volume: number;
+    preDelayMs: number;
+    postDelayMs: number;
+    preferredVoiceKeywords: string[];
+  };
+}
+
 interface PendingLocalAction {
   id: string;
   kind:
@@ -222,6 +238,7 @@ type AppPage = "home" | "console" | "chat" | "roadmap";
 type BrowserNotificationPermissionState = NotificationPermission | "unsupported";
 type PermissionLevel = WavearyPermissionProfile["browserNotifications"];
 type PermissionPresetMode = "limited" | "elevated" | "full";
+type VoicePlaybackState = "idle" | "planning" | "speaking" | "error";
 
 interface PageLocation {
   page: AppPage;
@@ -1301,6 +1318,9 @@ export function App(): ReactElement {
     useState<ProactiveAutoCheckOutcome | null>(null);
   const [chatPermissionTrayOpen, setChatPermissionTrayOpen] = useState(false);
   const [localActionResolveState, setLocalActionResolveState] = useState<LoadState>("idle");
+  const [autoSpeakReplies, setAutoSpeakReplies] = useState(false);
+  const [voicePlaybackState, setVoicePlaybackState] = useState<VoicePlaybackState>("idle");
+  const [voiceStatusMessage, setVoiceStatusMessage] = useState("");
   const [chatSessions, setChatSessions] = useState<ChatSessionListItem[]>([]);
   const [activeSessionId, setActiveSessionId] = useState("");
   const [defaultSessionId, setDefaultSessionId] = useState("");
@@ -1326,6 +1346,7 @@ export function App(): ReactElement {
 
     return parsePageLocation(window.location.hash).page;
   });
+  const activeUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
   useEffect(() => {
     window.localStorage.setItem("waveary-locale", locale);
@@ -2264,6 +2285,11 @@ export function App(): ReactElement {
       setProactiveDecision(null);
       setProactiveDraft(null);
       setChatState("success");
+      if (autoSpeakReplies) {
+        void speakAssistantReply(response.reply, response).catch(() => {
+          // Keep chat flow successful even if voice playback fails.
+        });
+      }
     } catch (error) {
       setChatMessages((current) => [
         ...current,
@@ -2275,6 +2301,108 @@ export function App(): ReactElement {
       ]);
       setChatState("error");
     }
+  }
+
+  async function handleSpeakLatestReply(): Promise<void> {
+    const latestReply = chatInsights?.reply ?? [...chatMessages].reverse().find((message) => message.role === "assistant")?.content;
+
+    if (!latestReply) {
+      setVoiceStatusMessage(
+        locale === "zh" ? "当前还没有可朗读的回复。" : "There is no assistant reply to speak yet."
+      );
+      setVoicePlaybackState("error");
+      return;
+    }
+
+    await speakAssistantReply(latestReply, chatInsights ?? undefined);
+  }
+
+  async function speakAssistantReply(
+    text: string,
+    insights?: ChatTurnResponse
+  ): Promise<void> {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+      setVoicePlaybackState("error");
+      setVoiceStatusMessage(
+        locale === "zh"
+          ? "当前浏览器不支持语音朗读。"
+          : "This browser does not support speech synthesis."
+      );
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+    activeUtteranceRef.current = null;
+    setVoicePlaybackState("planning");
+    setVoiceStatusMessage(locale === "zh" ? "正在准备语音…" : "Preparing voice…");
+
+    try {
+      const planResponse = await fetchJson<VoiceSpeakPlanResponse>("/api/voice/speak", {
+        method: "POST",
+        body: JSON.stringify({
+          text,
+          locale,
+          relationship: insights?.relationship ?? sessionRelationship,
+          emotion: insights?.emotion,
+          persona: {
+            tone: locale === "zh" ? "warm_companion" : "warm_companion"
+          }
+        })
+      });
+
+      const utterance = new SpeechSynthesisUtterance(text);
+      const plan = planResponse.plan;
+      utterance.lang = plan.lang;
+      utterance.rate = plan.rate;
+      utterance.pitch = plan.pitch;
+      utterance.volume = plan.volume;
+
+      const availableVoices = window.speechSynthesis.getVoices();
+      const matchedVoice = pickSpeechVoice(availableVoices, plan);
+      if (matchedVoice) {
+        utterance.voice = matchedVoice;
+      }
+
+      utterance.onstart = () => {
+        setVoicePlaybackState("speaking");
+        setVoiceStatusMessage(
+          locale === "zh"
+            ? `正在朗读，语气：${localizeVoiceStyle(plan.styleLabel, locale)}`
+            : `Speaking in a ${localizeVoiceStyle(plan.styleLabel, locale)} tone.`
+        );
+      };
+      utterance.onend = () => {
+        activeUtteranceRef.current = null;
+        setVoicePlaybackState("idle");
+        setVoiceStatusMessage(locale === "zh" ? "朗读完成。" : "Finished speaking.");
+      };
+      utterance.onerror = () => {
+        activeUtteranceRef.current = null;
+        setVoicePlaybackState("error");
+        setVoiceStatusMessage(
+          locale === "zh" ? "语音朗读失败了。" : "Speech playback failed."
+        );
+      };
+
+      activeUtteranceRef.current = utterance;
+      window.setTimeout(() => {
+        window.speechSynthesis.speak(utterance);
+      }, plan.preDelayMs);
+    } catch (error) {
+      setVoicePlaybackState("error");
+      setVoiceStatusMessage(getErrorMessage(error));
+    }
+  }
+
+  function handleStopSpeaking(): void {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+    activeUtteranceRef.current = null;
+    setVoicePlaybackState("idle");
+    setVoiceStatusMessage(locale === "zh" ? "已停止朗读。" : "Speech stopped.");
   }
 
   async function handleExecutePendingLocalAction(): Promise<void> {
@@ -4165,6 +4293,32 @@ export function App(): ReactElement {
                   </div>
 
                   <div className="console-actions">
+                    <div className="chat-voice-controls">
+                      <label className="chat-voice-toggle">
+                        <input
+                          type="checkbox"
+                          checked={autoSpeakReplies}
+                          onChange={(event) => setAutoSpeakReplies(event.target.checked)}
+                        />
+                        <span>{locale === "zh" ? "自动朗读" : "Auto speak"}</span>
+                      </label>
+                      <button
+                        className="button button-secondary"
+                        onClick={() => void handleSpeakLatestReply()}
+                        disabled={voicePlaybackState === "planning" || chatState === "loading"}
+                        type="button"
+                      >
+                        {locale === "zh" ? "朗读回复" : "Speak reply"}
+                      </button>
+                      <button
+                        className="button button-secondary"
+                        onClick={() => handleStopSpeaking()}
+                        disabled={voicePlaybackState !== "speaking" && voicePlaybackState !== "planning"}
+                        type="button"
+                      >
+                        {locale === "zh" ? "停止" : "Stop"}
+                      </button>
+                    </div>
                     <button
                       className="button button-primary"
                       onClick={() => void handleSendMessage()}
@@ -4173,6 +4327,17 @@ export function App(): ReactElement {
                       {chatState === "loading" ? copy.runtime.sending : copy.runtime.send}
                     </button>
                   </div>
+                </div>
+                <div className="chat-voice-status" aria-live="polite">
+                  <span className={`chat-voice-status-badge chat-voice-status-${voicePlaybackState}`}>
+                    {locale === "zh" ? "语音" : "Voice"}
+                  </span>
+                  <span>
+                    {voiceStatusMessage ||
+                      (locale === "zh"
+                        ? "当前会根据回复情绪规划朗读语气。"
+                        : "Reply playback will follow the current emotional tone.")}
+                  </span>
                 </div>
               </div>
             </div>
@@ -4484,6 +4649,53 @@ function formatProactiveAutoCheckOutcome(
   }
 
   return copy.runtime.proactiveAutoOutcomeWait;
+}
+
+function pickSpeechVoice(
+  voices: SpeechSynthesisVoice[],
+  plan: VoiceSpeakPlanResponse["plan"]
+): SpeechSynthesisVoice | null {
+  if (voices.length === 0) {
+    return null;
+  }
+
+  const normalizedKeywords = plan.preferredVoiceKeywords.map((keyword) => keyword.toLowerCase());
+  const normalizedLang = plan.lang.toLowerCase();
+
+  const exactLanguageMatch = voices.find((voice) => voice.lang.toLowerCase() === normalizedLang);
+  const keywordMatch = voices.find((voice) => {
+    const label = `${voice.name} ${voice.lang}`.toLowerCase();
+    return normalizedKeywords.some((keyword) => label.includes(keyword));
+  });
+  const partialLanguageMatch = voices.find((voice) =>
+    voice.lang.toLowerCase().startsWith(normalizedLang.split("-")[0] ?? normalizedLang)
+  );
+
+  return keywordMatch ?? exactLanguageMatch ?? partialLanguageMatch ?? voices[0] ?? null;
+}
+
+function localizeVoiceStyle(style: string, locale: Locale): string {
+  if (locale !== "zh") {
+    return style;
+  }
+
+  if (style === "concerned") {
+    return "担心";
+  }
+
+  if (style === "bright") {
+    return "轻快";
+  }
+
+  if (style === "warm") {
+    return "温柔";
+  }
+
+  if (style === "quiet") {
+    return "轻声";
+  }
+
+  return "柔和";
 }
 
 function deliverProactiveBrowserNotification(

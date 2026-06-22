@@ -4,6 +4,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { OpenAICompatibleChatProvider, PROVIDER_PRESETS } from "@waveary/core";
+import type { EmotionState, RelationshipProfile } from "@waveary/core";
 import {
   clickManagedBrowserElementByText,
   extractManagedBrowserPageText,
@@ -22,6 +23,7 @@ import {
   resetChatRuntimeSessions,
   sendChatTurn
 } from "./chat-runtime.js";
+import { planChatSpeech } from "./voice-runtime.js";
 import {
   CHAT_SESSION_SCHEMA_VERSION,
   ChatSessionImportValidationError,
@@ -61,6 +63,17 @@ interface ChatTurnRequest {
     localTimeIso?: string;
     timeZone?: string;
     locale?: string;
+  };
+}
+
+interface VoiceSpeakRequest {
+  text?: string;
+  locale?: string;
+  relationship?: RelationshipProfile | null;
+  emotion?: EmotionState;
+  persona?: {
+    tone?: string;
+    voiceStyle?: string;
   };
 }
 
@@ -180,7 +193,8 @@ export function createProviderApiMiddleware() {
     if (
       !request.url?.startsWith("/api/provider") &&
       !request.url?.startsWith("/api/chat") &&
-      !request.url?.startsWith("/api/browser")
+      !request.url?.startsWith("/api/browser") &&
+      !request.url?.startsWith("/api/voice")
     ) {
       next();
       return;
@@ -219,6 +233,20 @@ export function createProviderApiMiddleware() {
               : {})
           }
         );
+
+        sendJson(response, 200, result);
+        return;
+      }
+
+      if (request.method === "POST" && request.url === "/api/voice/speak") {
+        const payload = (await readJsonBody(request)) as VoiceSpeakRequest;
+        const result = await planChatSpeech({
+          text: requireNonEmpty(payload.text, "Voice text is required."),
+          ...(payload.locale?.trim() ? { locale: payload.locale.trim() } : {}),
+          ...(payload.relationship !== undefined ? { relationship: payload.relationship } : {}),
+          ...(payload.emotion !== undefined ? { emotion: payload.emotion } : {}),
+          ...(payload.persona !== undefined ? { persona: payload.persona } : {})
+        });
 
         sendJson(response, 200, result);
         return;

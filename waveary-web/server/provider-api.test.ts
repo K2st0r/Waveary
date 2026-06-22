@@ -16,6 +16,7 @@ const {
   saveChatPersistenceConfig
 } = await import("./chat-persistence-config.js");
 const {
+  closeManagedBrowserAutomation,
   setBrowserAutomationOverridesForTests
 } = await import("./browser-automation.js");
 const {
@@ -29,12 +30,13 @@ const { resetChatRuntimeSessions } = await import("./chat-runtime.js");
 
 const originalFetch = globalThis.fetch;
 
-after(() => {
+after(async () => {
   globalThis.fetch = originalFetch;
   setLocalActionExecutorForTests(null);
   setBrowserAutomationOverridesForTests(null);
 
   try {
+    await closeManagedBrowserAutomation();
     resetChatRuntimeSessions();
     resetTestDataDir();
     rmSync(TEST_ROOT_DIR, { recursive: true, force: true });
@@ -43,7 +45,8 @@ after(() => {
   }
 });
 
-beforeEach(() => {
+beforeEach(async () => {
+  await closeManagedBrowserAutomation();
   resetChatRuntimeSessions();
   resetTestDataDir();
   globalThis.fetch = originalFetch;
@@ -64,6 +67,37 @@ test("browser page route returns null when no managed page is open", async () =>
 
   assert.equal(response.statusCode, 200);
   assert.equal(response.body.page, null);
+});
+
+test("voice speak route returns an emotion-aware browser speech plan", async () => {
+  const middleware = createProviderApiMiddleware();
+  const response = await invokeJsonRoute(middleware, "POST", "/api/voice/speak", {
+    text: "我在这儿，你慢慢说。",
+    locale: "zh-CN",
+    relationship: {
+      stage: "growing",
+      affinityScore: 0.78,
+      trustScore: 0.74,
+      stabilityScore: 0.68,
+      lastUpdatedAt: "2026-06-22T12:00:00.000Z"
+    },
+    emotion: {
+      userId: "user-web-1",
+      primaryEmotion: "concerned",
+      intensity: 0.82,
+      confidence: 0.85,
+      windowStart: "2026-06-22T11:59:00.000Z",
+      windowEnd: "2026-06-22T12:00:00.000Z"
+    }
+  });
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.provider, "waveary-browser-speech-planner");
+  assert.equal(response.body.plan.mode, "browser-speech");
+  assert.equal(response.body.plan.lang, "zh-CN");
+  assert.equal(response.body.plan.styleLabel, "concerned");
+  assert.ok(response.body.plan.rate < 0.98);
+  assert.ok(response.body.plan.preferredVoiceKeywords.includes("Mandarin"));
 });
 
 test("browser extract-text route returns bounded page text", async () => {

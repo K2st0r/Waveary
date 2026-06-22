@@ -8,6 +8,7 @@ import type {
 import type { RelationshipDelta, RelationshipProfile } from "../domain/relationship.js";
 import type { Message, PersonaProfile, Session, UserProfile } from "../domain/session.js";
 import type { TimelineEvent } from "../domain/timeline.js";
+import type { SpeechInput, SpeechOutput } from "../domain/voice.js";
 
 export interface LocalTimeContext {
   iso: string;
@@ -41,6 +42,22 @@ export interface ModelDescriptor {
 
 export interface ModelDiscoveryProvider {
   listModels(): Promise<ModelDescriptor[]>;
+}
+
+export interface SpeechToTextProvider {
+  transcribe(input: SpeechInput): Promise<SpeechInput>;
+}
+
+export interface TextToSpeechProvider {
+  synthesize(input: {
+    session: Session;
+    user: UserProfile;
+    persona: PersonaProfile;
+    text: string;
+    relationship: RelationshipProfile;
+    emotion?: EmotionState;
+    locale?: string;
+  }): Promise<SpeechOutput>;
 }
 
 export interface EmotionAnalyzer {

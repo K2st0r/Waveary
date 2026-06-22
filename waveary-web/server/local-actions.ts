@@ -99,6 +99,17 @@ export async function detectPendingLocalAction(message: string): Promise<Pending
     return null;
   }
 
+  const browserSearchQuery = extractBrowserSearchQuery(trimmed);
+
+  if (browserSearchQuery) {
+    return buildPendingLocalAction(
+      "browser_search_text",
+      browserSearchQuery,
+      browserSearchQuery,
+      `Search the current page for ${browserSearchQuery}`
+    );
+  }
+
   const bilibiliFollowupQuery = await extractBilibiliFollowupQuery(trimmed);
   if (bilibiliFollowupQuery) {
     return buildPendingLocalAction(
@@ -110,16 +121,6 @@ export async function detectPendingLocalAction(message: string): Promise<Pending
   }
 
   const normalized = trimmed.toLowerCase();
-  const browserSearchQuery = extractBrowserSearchQuery(trimmed);
-
-  if (browserSearchQuery) {
-    return buildPendingLocalAction(
-      "browser_search_text",
-      browserSearchQuery,
-      browserSearchQuery,
-      `Search the current page for ${browserSearchQuery}`
-    );
-  }
 
   if (looksLikeBrowserClickableListIntent(trimmed)) {
     return buildPendingLocalAction(

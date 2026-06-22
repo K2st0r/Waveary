@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `8bd9c62` - `Integrate browser actions into chat permission flow`
+- `6466594` - `Follow Bilibili watch requests in chat`
 
 ## Modules
 
@@ -43,6 +43,7 @@ Brand line:
   - local time context now also resolves a bounded daypart hint so late-night and evening turns can bias toward softer companion tone without expanding into broader desktop-awareness inputs
   - direct local time/date/day questions now also short-circuit inside `WavearyRuntime` through a shared deterministic reply helper before provider generation, so real providers can no longer ignore the supplied local clock context and fall back to generic "I do not know the time" disclaimers
   - deterministic local-time question detection now also catches more indirect Chinese complaint-style phrasings such as asking why the companion still cannot tell the exact time, so those turns no longer slip past the runtime short-circuit and fall back to provider disclaimers
+  - first voice-domain contracts now exist through `VoiceSession`, `SpeechInput`, and `SpeechOutput`, so the framework boundary no longer leaves voice only at the architecture-document level
   - first formal product and architecture draft for companion emotional continuity and proactive care now exists in `docs/emotion-proactive-care.md`, defining `Waveary Emotion Engine (WEE)` and `Waveary Proactive Care Engine (WPCE)` as the next major runtime-facing design targets
   - first companion-side emotion runtime layer is now implemented through a persisted `EmotionStore`, a `SimpleCompanionEmotionEngine`, and runtime wiring that updates and returns companion emotion state on each turn
   - first `WPCE` decision-only runtime layer is now implemented through proactive care domain types, a `SimpleProactiveCareEngine`, and a dedicated `evaluateProactiveCare()` runtime path that combines policy, relationship stage, interaction gap, and companion emotion without generating outbound messages yet
@@ -131,6 +132,15 @@ Brand line:
   - browser action execution notes can now return grounded companion-side summaries such as page-reading excerpts, page-search matches, clickable-target lists, and click-follow-up state instead of always reusing the older open-site wording
   - local-action reply wording now stays more companion-like after execution or dismissal, so successful browser opens no longer read like a sterile audit log or drift into made-up “virtual homepage” narration
   - Chinese open-site detection now recognizes broader Bilibili phrasing such as `打开哔哩哔哩` in addition to raw English `open bilibili`
+  - the web server now exposes a first `/api/voice/speak` route that returns an emotion-aware browser speech plan instead of hard-wiring speech behavior directly inside the UI layer
+  - the chat page now includes a first voice strip with `auto speak`, `speak reply`, and `stop` controls, and browser speech playback now follows reply emotion and relationship stage through the new voice planner
+  - current-page search intent detection now runs before the narrower Bilibili follow-up probe, preventing `search this page for ...` turns from accidentally falling into the managed-browser follow-up path
+  - `provider-api` route tests now explicitly close managed browser automation between cases, preventing the managed Playwright layer from leaving hanging handles in compiled server-test runs
+- `waveary-voice`
+  - independent workspace package exists
+  - first `TextToSpeechRequest` / `TextToSpeechResult` contracts are implemented
+  - first browser-native TTS planner is implemented through `BrowserSpeechPlanner`
+  - Node-based planner tests are implemented
   - the first local-action execution surface stays intentionally narrow and auditable inside `waveary-web`: proposal detection is rule-based, execution is permission-gated, denied policy blocks execution, ask-first requires one explicit approval click, and dismissing the card clears the pending action from persisted session state`r`n  - executed and dismissed local actions now also append a small assistant-side audit note into persisted chat history, so trust-visible action outcomes survive reloads and restored sessions instead of living only in transient UI state
   - the visible persisted-session archive panel has been removed from the runtime rail so the console reads less like a raw internal debug dump
   - the split home / console / chat shell now has a stronger page-by-page hierarchy: the homepage reads more like a formal project front page, the console reads more like a system desk, and the chat page is more tightly focused on the active conversation surface
@@ -251,6 +261,14 @@ Brand line:
 - `npm run web:build`
 - `npx tsc --noEmit -p waveary-web/tsconfig.json`
 - `npm run web:build`
+- `npm run check --workspace @waveary/voice`
+- `npm run test --workspace @waveary/voice`
+- `npm run build:server --workspace @waveary/web`
+- `node --test waveary-web/dist-server/server/provider-api.test.js`
+- `node --test waveary-web/dist-server/server/chat-session-store.test.js`
+- `npm run check --workspace @waveary/web`
+- `npm run test --workspace @waveary/web`
+- `npm run web:build`
 
 ## Decision Sources
 
@@ -258,8 +276,10 @@ Brand line:
 
 ## Next Steps
 
-- define the first delivery path for proactive care in the web surface, likely browser or local notifications before any broader desktop action layer
-- extend the browser notification path from manual console evaluation into a bounded scheduled or reminder-style delivery loop without introducing hidden background behavior
+- extend the new `waveary-voice` layer from browser speech planning into a real provider-backed TTS adapter while preserving the same request/result contract
+- add a focused browser pass for the new chat-page voice strip so `auto speak`, `speak reply`, and `stop` are visually verified alongside the existing permission tray
+- decide the next voice cut after TTS playback: browser microphone capture + STT, or provider-backed richer emotional TTS first
+- keep future realtime voice and full-duplex work behind the new `waveary-voice` package boundary instead of blending media logic into `waveary-web` directly
 - continue refining the new three-step chat permission presets so the difference between `high-permission` and `full-access` stays legible now that `full-access` also returns same-turn execution-consistent replies instead of showing a contradiction between model text and local action outcome
 - add a focused browser pass for chat-integrated browser actions so the live `#chat` page is re-verified end-to-end against page-read, page-search, clickable-list, and click-by-text flows, not only route-level tests
 - extend the new Playwright-backed browser path from current-page info, extract-text, page-search, clickable-list, and click-by-text into one next bounded interaction cut such as explicit link selection or form-field targeting, while keeping permission prompts, auditability, and revocation explicit
