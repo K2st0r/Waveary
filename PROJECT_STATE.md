@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `pending` - `Add source-turn weighting to continuity memories`
+- `519e500` - `Add source-turn weighting to continuity memories`
 
 ## Modules
 
