@@ -440,3 +440,26 @@ Impact:
 - provider instructions now include current-turn focus, one named primary continuity thread, and a secondary recalled-memory block
 - the prompt now explicitly tells the model not to force weak continuity into emotionally heavy turns
 - follow-up work can decide whether this selection logic should stay provider-local or move toward a shared runtime helper
+
+## 2026-06-22 - Continuity Thread Selection Should Move Into Shared Runtime Logic
+
+Status:
+
+- accepted
+
+Decision:
+
+Move continuity-thread selection and current-turn focus summarization out of `OpenAICompatibleChatProvider` prompt-local helpers into shared `waveary-core` runtime utilities that other reply surfaces can reuse.
+
+Reason:
+
+- continuity selection had become meaningful runtime behavior, not just prompt formatting
+- keeping the logic inside one provider risked drift between scripted and real-provider companionship behavior
+- emotional-turn conservatism and primary-thread choice should stay consistent across reply paths before more live-provider regression is added
+
+Impact:
+
+- `selectContinuityThread()` and `summarizeCurrentTurnFocus()` now live under `waveary-core/src/runtime/`
+- `OpenAICompatibleChatProvider` now consumes the shared helper instead of maintaining its own private scoring and emotional-turn heuristics
+- `ScriptedChatProvider` now also follows the same continuity-thread choice and weak-memory fallback guidance
+- future care, summary, or additional provider surfaces should reuse this shared helper instead of reintroducing parallel continuity-selection logic

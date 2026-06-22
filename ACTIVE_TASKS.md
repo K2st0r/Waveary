@@ -14,8 +14,8 @@ Update it when:
 
 1. Continue the `waveary-core` dialogue-quality pass.
    Status: in progress
-   Current state: memory recall is now stricter and updates `lastRecalledAt`, user-emotion detection is broader than `joy/sadness/neutral`, companion emotion transitions carry more relationship-aware tone state, scripted/provider guidance separates `new`, `warming`, and `growing`, and the real-provider prompt now names one primary continuity thread instead of flattening every recalled item.
-   Next cut: add stronger live-provider regression around multi-turn continuity-thread choice and decide whether primary-thread selection should remain prompt-local or move toward a shared runtime helper.
+   Current state: memory recall is now stricter and updates `lastRecalledAt`, user-emotion detection is broader than `joy/sadness/neutral`, companion emotion transitions carry more relationship-aware tone state, scripted/provider guidance separates `new`, `warming`, and `growing`, and primary continuity-thread selection plus current-turn focus summarization now live in one shared runtime helper reused by both scripted and real-provider reply paths.
+   Next cut: add stronger live-provider regression around multi-turn continuity-thread choice and relationship-distance behavior now that the selection logic has moved out of prompt-local code.
 
 2. Keep permissioned local-time awareness bounded and trustworthy.
    Status: in progress
@@ -30,7 +30,7 @@ Update it when:
 ## Deferred But Important
 
 1. Strengthen live-provider dialogue regression beyond scripted providers.
-   Reason: the current quality pass now includes provider-side primary-thread selection, but real OpenAI-compatible behavior still needs more direct coverage for continuity-thread choice and relationship-distance behavior across multiple turns.
+   Reason: the current quality pass now includes a shared runtime continuity-thread helper, but real OpenAI-compatible behavior still needs more direct coverage for continuity-thread choice and relationship-distance behavior across multiple turns.
 
 2. Decide whether to harden `@waveary/core` test execution on Windows.
    Reason: the current package test script depends on compiled `dist` output and can be misleading unless build and test are run in the right order.

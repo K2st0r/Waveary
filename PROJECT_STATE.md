@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `8c3a7be` - `Structure provider continuity thread guidance`
+- `3f3ef8c` - `Share continuity thread selection across runtime paths`
 
 ## Modules
 
@@ -34,6 +34,7 @@ Brand line:
   - runtime dialogue scaffolding now biases more strongly toward companion-style continuity by using relationship-stage-aware reply guidance, less mechanical memory phrasing, and more behavior-driven relationship growth signals
   - dialogue quality has now been pushed further through context-sensitive memory recall thresholds, persisted `lastRecalledAt` updates, richer user-emotion detection, more stateful companion-emotion transitions, and clearer reply-distance differences across `new`, `warming`, and `growing` relationship stages
   - real-provider dialogue guidance now also names a current-turn focus plus one primary continuity thread, keeps extra recalled memories in a secondary block, and becomes more conservative about forcing weak memory links into emotionally heavy turns
+  - shared continuity-thread selection now lives in `waveary-core` runtime code and is reused by both the OpenAI-compatible provider path and the scripted provider path, so primary-thread choice, emotional-turn conservatism, and current-turn focus summarization no longer drift apart across those reply surfaces
   - permissioned local time context can now be injected into normal chat turns so the companion can answer time/date-style questions from the user's device-local clock without claiming it lacks real-time awareness
   - local time context now also resolves a bounded daypart hint so late-night and evening turns can bias toward softer companion tone without expanding into broader desktop-awareness inputs
   - first formal product and architecture draft for companion emotional continuity and proactive care now exists in `docs/emotion-proactive-care.md`, defining `Waveary Emotion Engine (WEE)` and `Waveary Proactive Care Engine (WPCE)` as the next major runtime-facing design targets
@@ -202,6 +203,7 @@ Brand line:
 - Playwright browser verification for `#console` and `#chat` on `http://127.0.0.1:4173/`
 - Playwright browser verification for refreshed `#home`, `#console`, and `#chat` first screens on `http://127.0.0.1:4173/`
 - `npm run check --workspace @waveary/core`
+- PowerShell compiled-test verification for `waveary-core/dist/**/*.test.js` via `node --test`
 - `npm run test --workspace @waveary/core`
 - `npx tsc --noEmit -p waveary-web/tsconfig.json`
 - `npx tsc --noEmit -p waveary-web/tsconfig.server.json`
@@ -232,7 +234,8 @@ Brand line:
 - add route-level or live verification for more provider-specific chat payload divergences after the current DeepSeek and broader structured-payload compatibility baseline
 - re-run `npm run verify:provider` and `npm run models:provider` with refreshed real credentials, starting with DeepSeek because the currently saved local key now returns `401 invalid api key`
 - continue the dialogue-quality pass by making recalled memory selection more context-sensitive and by surfacing relationship-stage differences more clearly in real provider conversations, not just scripted runtime tests
-- extend the dialogue-quality pass from the current provider-side primary-thread structure into broader live-provider regression and, if needed, shared runtime-visible continuity-selection helpers beyond prompt-only shaping
+- extend the dialogue-quality pass from the new shared continuity-thread helper into broader live-provider regression, especially multi-turn primary-thread choice and relationship-distance behavior under real OpenAI-compatible providers
+- consider reusing the shared continuity-thread helper in future runtime-facing care or summary surfaces instead of reintroducing prompt-local continuity heuristics elsewhere
 - decide whether to harden `@waveary/core`'s Windows test script so it rebuilds or expands compiled test-file arguments more robustly, since the current `npm run test --workspace @waveary/core` path can misbehave if relied on alone after source edits
 - add focused route-level and browser-facing coverage for any remaining persistence edge cases beyond the current file/sqlite symmetry path
 - continue polishing the split web shell by tightening session-management density below the console fold and improving message rhythm plus mixed-language balance in the dedicated chat page

@@ -1,5 +1,46 @@
 # Session Log
 
+## 2026-06-22
+
+Objective:
+
+Promote continuity-thread selection out of provider-local prompt logic into shared `waveary-core` runtime utilities so scripted and real-provider dialogue paths follow the same continuity rule.
+
+Summary:
+
+- added `waveary-core/src/runtime/continuity-thread.ts` with shared continuity-thread selection and current-turn focus summarization helpers
+- moved primary-thread scoring, emotional-turn conservatism, and secondary-memory selection out of `OpenAICompatibleChatProvider` and into that shared runtime helper
+- updated `ScriptedChatProvider` to consume the same helper and avoid forcing weak recalled memories into emotionally heavy turns just to sound continuous
+- added focused runtime-level regression coverage for strong continuity matches and emotional weak-memory fallback behavior
+- verified the change with `@waveary/core` typecheck, fresh build, and compiled-test execution against `dist/**/*.test.js`
+
+Files changed:
+
+- `waveary-core/src/runtime/continuity-thread.ts`
+- `waveary-core/src/runtime/continuity-thread.test.ts`
+- `waveary-core/src/adapters/openai-compatible-provider.ts`
+- `waveary-core/src/adapters/scripted-chat-provider.ts`
+- `waveary-core/src/runtime/waveary-runtime.test.ts`
+- `waveary-core/src/index.ts`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/core`
+- `npm run build --workspace @waveary/core`
+- PowerShell `Get-ChildItem waveary-core/dist -Recurse -Filter *.test.js | ForEach-Object { $_.FullName }` followed by `node --test <compiled test files>`
+
+Commit:
+
+- `3f3ef8c` - `Share continuity thread selection across runtime paths`
+
+Push:
+
+- succeeded: `git push origin main` pushed `3f3ef8c` to the SSH remote `git@github.com:K2st0r/-Waveary-.git`
+
 ## 2026-06-21
 
 Objective:
