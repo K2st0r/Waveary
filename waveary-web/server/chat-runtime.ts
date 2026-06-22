@@ -81,7 +81,7 @@ export async function sendChatTurn(
 
   const state = createOrReuseSession(sessionId);
   const context = state.persistentState.getContext();
-  const pendingLocalAction = detectPendingLocalAction(trimmed);
+  const pendingLocalAction = await detectPendingLocalAction(trimmed);
   const input: Message = {
     id: `user-${Date.now()}`,
     sessionId: context.session.id,

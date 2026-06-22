@@ -5,7 +5,9 @@ import { join } from "node:path";
 import {
   clickManagedBrowserElementByText,
   extractManagedBrowserPageText,
+  getManagedBrowserPageInfo,
   listManagedBrowserClickableElements,
+  openManagedBrowserFirstVisibleLink,
   openManagedBrowserPage,
   searchManagedBrowserPageText,
   type BrowserClickableElement,
@@ -19,7 +21,8 @@ export type LocalActionKind =
   | "browser_extract_text"
   | "browser_search_text"
   | "browser_list_clickable"
-  | "browser_click_text";
+  | "browser_click_text"
+  | "browser_open_bilibili_video";
 export type LocalActionPermissionLevel = "allow" | "ask" | "deny";
 export type LocalActionLocale = "zh" | "en";
 
@@ -89,11 +92,21 @@ const KNOWN_APPS: Array<{
 
 let localActionExecutor: LocalActionExecutor = executeLocalAction;
 
-export function detectPendingLocalAction(message: string): PendingLocalAction | null {
+export async function detectPendingLocalAction(message: string): Promise<PendingLocalAction | null> {
   const trimmed = message.trim();
 
   if (!trimmed) {
     return null;
+  }
+
+  const bilibiliFollowupQuery = await extractBilibiliFollowupQuery(trimmed);
+  if (bilibiliFollowupQuery) {
+    return buildPendingLocalAction(
+      "browser_open_bilibili_video",
+      bilibiliFollowupQuery,
+      bilibiliFollowupQuery,
+      `Find and open a Bilibili video about ${bilibiliFollowupQuery}`
+    );
   }
 
   const normalized = trimmed.toLowerCase();
@@ -279,6 +292,25 @@ function extractBrowserClickTarget(message: string): string | null {
   return null;
 }
 
+async function extractBilibiliFollowupQuery(message: string): Promise<string | null> {
+  const match =
+    message.match(/^(?:看|搜|找|查)(.+)$/) ||
+    message.match(/^(?:看看|搜搜|找找)(.+)$/) ||
+    message.match(/^(?:watch|search|find)\s+(.+)$/i);
+
+  const query = match?.[1]?.trim();
+  if (!query) {
+    return null;
+  }
+
+  const page = await getManagedBrowserPageInfo();
+  if (!page?.url || !/bilibili\.com/i.test(page.url)) {
+    return null;
+  }
+
+  return stripTrailingPunctuation(query);
+}
+
 function buildPendingLocalAction(
   kind: LocalActionKind,
   target: string,
@@ -318,6 +350,10 @@ function summarizeKind(kind: LocalActionKind): string {
 
   if (kind === "browser_list_clickable") {
     return "Inspect clickable items";
+  }
+
+  if (kind === "browser_open_bilibili_video") {
+    return "Open Bilibili video";
   }
 
   return "Click page item";
@@ -428,6 +464,24 @@ async function executeLocalAction(
     };
   }
 
+  if (action.kind === "browser_open_bilibili_video") {
+    const query = action.targetLabel;
+    const searchUrl = `https://search.bilibili.com/all?keyword=${encodeURIComponent(query)}`;
+    await openManagedBrowserPage(searchUrl);
+    const result = await openManagedBrowserFirstVisibleLink({
+      hrefIncludes: "/video/"
+    });
+
+    return {
+      status: "executed",
+      message:
+        locale === "zh"
+          ? `已替你找一个和“${query}”有关的 Bilibili 视频并打开了。`
+          : `Found and opened a Bilibili video about "${query}".`,
+      assistantNote: buildBilibiliOpenAssistantNote(result.page, result.matchedText, query, locale)
+    };
+  }
+
   throw new Error("Unsupported local action kind.");
 }
 
@@ -511,6 +565,19 @@ function buildBrowserClickAssistantNote(
   return locale === "zh"
     ? `我已经替你点了“${matchedText}”。现在页面来到了${pageRef}，如果你想，我可以继续陪你往下走。`
     : `I clicked "${matchedText}" for you. The page is now at ${pageRef}, and I can keep going with you if you want.`;
+}
+
+function buildBilibiliOpenAssistantNote(
+  page: BrowserPageInfo,
+  matchedText: string,
+  query: string,
+  locale: LocalActionLocale
+): string {
+  const pageRef = describePage(page, locale);
+
+  return locale === "zh"
+    ? `我已经替你在 Bilibili 里顺着“${query}”找了一个视频，并打开了「${matchedText}」。现在就在${pageRef}，如果你愿意，我还能继续陪你往下挑。`
+    : `I followed "${query}" on Bilibili and opened "${matchedText}" for you. We are at ${pageRef} now, and I can keep browsing with you if you want.`;
 }
 
 function describePage(page: BrowserPageInfo, locale: LocalActionLocale): string {

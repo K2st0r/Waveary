@@ -33,6 +33,9 @@ type BrowserAutomationOverrides = {
     text: string,
     options?: BrowserClickByTextOptions
   ) => Promise<BrowserClickByTextResult>;
+  openFirstVisibleLink?: (
+    options?: BrowserOpenFirstVisibleLinkOptions
+  ) => Promise<BrowserOpenFirstVisibleLinkResult>;
   close?: () => Promise<void>;
 };
 
@@ -103,6 +106,18 @@ export interface BrowserClickByTextResult {
   matchedText: string;
   exact: boolean;
   clickedAt: string;
+}
+
+export interface BrowserOpenFirstVisibleLinkOptions {
+  hrefIncludes?: string;
+  timeoutMs?: number;
+}
+
+export interface BrowserOpenFirstVisibleLinkResult {
+  page: BrowserPageInfo;
+  matchedText: string;
+  href: string;
+  openedAt: string;
 }
 
 export async function openManagedBrowserPage(url: string): Promise<BrowserOpenResult> {
@@ -384,6 +399,108 @@ export async function clickManagedBrowserElementByText(
     matchedText: clicked,
     exact,
     clickedAt: new Date().toISOString()
+  };
+}
+
+export async function openManagedBrowserFirstVisibleLink(
+  options: BrowserOpenFirstVisibleLinkOptions = {}
+): Promise<BrowserOpenFirstVisibleLinkResult> {
+  if (browserAutomationOverrides?.openFirstVisibleLink) {
+    return browserAutomationOverrides.openFirstVisibleLink(options);
+  }
+
+  const page = await requireManagedPage();
+  const timeoutMs = normalizePositiveInteger(options.timeoutMs, 5000);
+  const hrefIncludes = options.hrefIncludes?.trim().toLowerCase() || "";
+
+  await page.waitForLoadState("domcontentloaded", {
+    timeout: timeoutMs
+  });
+
+  await page.waitForFunction(
+    (hrefNeedle) => {
+      const matchesHref = (href: string) =>
+        !hrefNeedle || href.toLowerCase().includes(hrefNeedle);
+
+      return Array.from(document.querySelectorAll<HTMLAnchorElement>("a")).some((element) => {
+        const rect = element.getBoundingClientRect();
+        const style = window.getComputedStyle(element);
+        const href = element.href || element.getAttribute("href") || "";
+
+        if (!href || !matchesHref(href)) {
+          return false;
+        }
+
+        return !(
+          rect.width <= 0 ||
+          rect.height <= 0 ||
+          style.visibility === "hidden" ||
+          style.display === "none"
+        );
+      });
+    },
+    hrefIncludes,
+    {
+      timeout: timeoutMs
+    }
+  );
+
+  const match = await page.evaluate((hrefNeedle) => {
+    const matchesHref = (href: string) =>
+      !hrefNeedle || href.toLowerCase().includes(hrefNeedle);
+
+    for (const element of Array.from(document.querySelectorAll<HTMLAnchorElement>("a"))) {
+      const rect = element.getBoundingClientRect();
+      const style = window.getComputedStyle(element);
+      const href = element.href || element.getAttribute("href") || "";
+      const text = (
+        element.innerText ||
+        element.textContent ||
+        element.getAttribute("aria-label") ||
+        ""
+      )
+        .replace(/\s+/g, " ")
+        .trim();
+
+      if (!href || !matchesHref(href)) {
+        continue;
+      }
+
+      if (
+        rect.width <= 0 ||
+        rect.height <= 0 ||
+        style.visibility === "hidden" ||
+        style.display === "none"
+      ) {
+        continue;
+      }
+
+      return {
+        href: new URL(href, window.location.href).href,
+        text: text || href
+      };
+    }
+
+    return null;
+  }, hrefIncludes);
+
+  if (!match) {
+    throw new Error("No visible matching link is currently available.");
+  }
+
+  await page.goto(match.href, {
+    waitUntil: "domcontentloaded",
+    timeout: 30000
+  });
+
+  markPageActive(page);
+  const pageInfo = await describePage(page);
+
+  return {
+    page: pageInfo,
+    matchedText: match.text,
+    href: match.href,
+    openedAt: new Date().toISOString()
   };
 }
 
