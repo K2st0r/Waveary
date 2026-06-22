@@ -214,7 +214,7 @@ type LoadState = "idle" | "loading" | "success" | "error";
 type AppPage = "home" | "console" | "chat" | "roadmap";
 type BrowserNotificationPermissionState = NotificationPermission | "unsupported";
 type PermissionLevel = WavearyPermissionProfile["browserNotifications"];
-type PermissionPresetMode = "limited" | "elevated";
+type PermissionPresetMode = "limited" | "elevated" | "full";
 
 interface PageLocation {
   page: AppPage;
@@ -2170,20 +2170,26 @@ export function App(): ReactElement {
 
   function handlePermissionPresetChange(mode: PermissionPresetMode): void {
     const nextProfile =
-      mode === "elevated"
-        ? createElevatedPermissionProfile()
-        : createLimitedPermissionProfile();
+      mode === "full"
+        ? createFullAccessPermissionProfile()
+        : mode === "elevated"
+          ? createElevatedPermissionProfile()
+          : createLimitedPermissionProfile();
 
     setPermissionProfile(nextProfile);
     setProactiveNotificationEnabled(nextProfile.proactiveNotifications === "allow");
     setStatusMessage(
       locale === "zh"
-        ? mode === "elevated"
-          ? "已切换为高权限模式。"
-          : "已切换为受限模式。"
-        : mode === "elevated"
-          ? "Switched to high-permission mode."
-          : "Switched to limited mode."
+        ? mode === "full"
+          ? "已切换为完全访问模式。"
+          : mode === "elevated"
+            ? "已切换为高权限模式。"
+            : "已切换为受限模式。"
+        : mode === "full"
+          ? "Switched to full-access mode."
+          : mode === "elevated"
+            ? "Switched to high-permission mode."
+            : "Switched to limited mode."
     );
   }
 
@@ -4055,7 +4061,7 @@ export function App(): ReactElement {
                         onClick={() => handlePermissionPresetChange("limited")}
                         type="button"
                       >
-                        {locale === "zh" ? "受限权限" : "Limited"}
+                        {locale === "zh" ? "受限" : "Limited"}
                       </button>
                       <button
                         className={`chat-permission-mode-button ${getPermissionPresetMode(permissionProfile) === "elevated" ? "chat-permission-mode-button-active" : ""}`}
@@ -4063,6 +4069,13 @@ export function App(): ReactElement {
                         type="button"
                       >
                         {locale === "zh" ? "高权限" : "High"}
+                      </button>
+                      <button
+                        className={`chat-permission-mode-button ${getPermissionPresetMode(permissionProfile) === "full" ? "chat-permission-mode-button-active" : ""}`}
+                        onClick={() => handlePermissionPresetChange("full")}
+                        type="button"
+                      >
+                        {locale === "zh" ? "完全访问" : "Full"}
                       </button>
                     </div>
 
@@ -4329,6 +4342,16 @@ function createElevatedPermissionProfile(): WavearyPermissionProfile {
     proactiveNotifications: "allow",
     timeAwareness: "allow",
     desktopPresence: "allow",
+    localActions: "ask"
+  };
+}
+
+function createFullAccessPermissionProfile(): WavearyPermissionProfile {
+  return {
+    browserNotifications: "allow",
+    proactiveNotifications: "allow",
+    timeAwareness: "allow",
+    desktopPresence: "allow",
     localActions: "allow"
   };
 }
@@ -4376,6 +4399,16 @@ function getPermissionPresetMode(
     permissionProfile.timeAwareness === "allow" &&
     permissionProfile.desktopPresence === "allow" &&
     permissionProfile.localActions === "allow"
+  ) {
+    return "full";
+  }
+
+  if (
+    permissionProfile.browserNotifications === "allow" &&
+    permissionProfile.proactiveNotifications === "allow" &&
+    permissionProfile.timeAwareness === "allow" &&
+    permissionProfile.desktopPresence === "allow" &&
+    permissionProfile.localActions === "ask"
   ) {
     return "elevated";
   }
