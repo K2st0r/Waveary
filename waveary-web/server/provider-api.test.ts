@@ -86,6 +86,46 @@ test("chat turn proposes a pending local action for explicit open requests", asy
   assert.equal(response.body.pendingLocalAction.target, "https://www.bilibili.com/");
 });
 
+test("chat turn recognizes Chinese bilibili aliases as local open actions", async () => {
+  const middleware = createProviderApiMiddleware();
+
+  saveProviderConfig({
+    provider: "provider-a",
+    baseURL: "https://provider-a.example/v1",
+    apiKey: "key-a",
+    model: "model-a"
+  });
+
+  globalThis.fetch = (async () =>
+    new Response(
+      JSON.stringify({
+        choices: [
+          {
+            message: {
+              content: "Let me handle that for you."
+            }
+          }
+        ]
+      }),
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json"
+        }
+      }
+    )) as typeof fetch;
+
+  const response = await invokeJsonRoute(middleware, "POST", "/api/chat/turn", {
+    sessionId: DEFAULT_CHAT_SESSION_ID,
+    message: "打开哔哩哔哩"
+  });
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.pendingLocalAction.kind, "open_url");
+  assert.equal(response.body.pendingLocalAction.targetLabel, "Bilibili");
+  assert.equal(response.body.pendingLocalAction.target, "https://www.bilibili.com/");
+});
+
 test("chat turn auto-executes local actions in full-access mode and returns an execution-consistent reply", async () => {
   const middleware = createProviderApiMiddleware();
 
@@ -128,7 +168,10 @@ test("chat turn auto-executes local actions in full-access mode and returns an e
   });
 
   assert.equal(response.statusCode, 200);
-  assert.equal(response.body.reply, "I opened Bilibili for you.");
+  assert.equal(
+    response.body.reply,
+    "I opened Bilibili for you. If you want, I can stay with you and help with the next step too."
+  );
   assert.equal(response.body.pendingLocalAction, null);
 
   const sessionResponse = await invokeJsonRoute(middleware, "POST", "/api/chat/session", {
@@ -138,9 +181,15 @@ test("chat turn auto-executes local actions in full-access mode and returns an e
   assert.equal(sessionResponse.statusCode, 200);
   assert.equal(sessionResponse.body.session.messages.length, 2);
   assert.equal(sessionResponse.body.session.messages[0]?.content, "open bilibili");
-  assert.equal(sessionResponse.body.session.messages[1]?.content, "I opened Bilibili for you.");
+  assert.equal(
+    sessionResponse.body.session.messages[1]?.content,
+    "I opened Bilibili for you. If you want, I can stay with you and help with the next step too."
+  );
   assert.equal(sessionResponse.body.session.latestInsights.pendingLocalAction, null);
-  assert.equal(sessionResponse.body.session.latestInsights.reply, "I opened Bilibili for you.");
+  assert.equal(
+    sessionResponse.body.session.latestInsights.reply,
+    "I opened Bilibili for you. If you want, I can stay with you and help with the next step too."
+  );
 });
 
 test("local action execution route blocks denied permissions and succeeds after approval", async () => {
@@ -222,7 +271,7 @@ test("local action execution route blocks denied permissions and succeeds after 
   assert.equal(approvedResponse.body.session.messages.length, 3);
   assert.equal(
     approvedResponse.body.session.messages[2]?.content,
-    "I opened GitHub for you."
+    "I opened GitHub for you. If you want, I can stay with you and help with the next step too."
   );
 });
 
@@ -283,7 +332,7 @@ test("local action dismiss route clears the pending action and records a chat-vi
   assert.equal(dismissResponse.body.session.messages.length, 3);
   assert.equal(
     dismissResponse.body.session.messages[2]?.content,
-    "I did not open GitHub this time. Ask me again when you want it."
+    "I did not open GitHub this time. Ask me again when you want it, and I will stay right here."
   );
 });
 

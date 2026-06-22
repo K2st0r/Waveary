@@ -2,6 +2,7 @@ import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
+import { openManagedBrowserPage } from "./browser-automation.js";
 
 export type LocalActionKind = "open_url" | "open_folder" | "launch_app";
 export type LocalActionPermissionLevel = "allow" | "ask" | "deny";
@@ -27,7 +28,11 @@ const KNOWN_URLS: Array<{
   target: string;
   label: string;
 }> = [
-  { pattern: /(bilibili|b站)/i, target: "https://www.bilibili.com/", label: "Bilibili" },
+  {
+    pattern: /(\bbilibili\b|哔哩哔哩|哔哩|b站|bilibili站|哔站)/i,
+    target: "https://www.bilibili.com/",
+    label: "Bilibili"
+  },
   { pattern: /\bgithub\b/i, target: "https://github.com/", label: "GitHub" },
   { pattern: /(\bgoogle\b|谷歌)/i, target: "https://www.google.com/", label: "Google" },
   { pattern: /知乎/i, target: "https://www.zhihu.com/", label: "知乎" },
@@ -138,6 +143,8 @@ function looksLikeOpenIntent(normalized: string): boolean {
   return (
     normalized.includes("打开") ||
     normalized.includes("帮我打开") ||
+    normalized.includes("给我打开") ||
+    normalized.includes("替我打开") ||
     normalized.includes("open ") ||
     normalized.startsWith("open") ||
     normalized.includes("launch ") ||
@@ -176,11 +183,7 @@ function summarizeKind(kind: LocalActionKind): string {
 
 async function executeLocalAction(action: PendingLocalAction): Promise<ExecutedLocalAction> {
   if (action.kind === "open_url") {
-    spawn("explorer.exe", [action.target], {
-      detached: true,
-      stdio: "ignore",
-      windowsHide: true
-    }).unref();
+    await openManagedBrowserPage(action.target);
 
     return {
       status: "executed",
