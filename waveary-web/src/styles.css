@@ -321,7 +321,7 @@ textarea {
 
 .home-doodle-layer {
   position: absolute;
-  inset: 7rem 0 0;
+  inset: 6rem 0 0;
   z-index: 1;
   pointer-events: none;
 }
@@ -355,17 +355,17 @@ textarea {
 .hero {
   display: grid;
   grid-template-columns: minmax(0, 0.9fr) minmax(380px, 1.1fr);
-  gap: 2.4rem;
+  gap: 2rem;
   align-items: center;
-  min-height: min(760px, calc(100dvh - 6.4rem));
-  padding: 1.85rem 0 1.9rem;
+  min-height: min(700px, calc(100dvh - 5.8rem));
+  padding: 1.15rem 0 1.25rem;
 }
 
 .hero-copy {
   display: grid;
-  gap: 0.95rem;
+  gap: 0.8rem;
   position: relative;
-  padding-top: 0.4rem;
+  padding-top: 0.2rem;
 }
 
 .hero-badge-row {
@@ -439,7 +439,7 @@ textarea {
   max-width: 8.6ch;
   margin: 0;
   color: var(--text-strong);
-  font-size: clamp(3rem, 5.4vw, 5rem);
+  font-size: clamp(2.8rem, 5vw, 4.55rem);
   line-height: 1;
   letter-spacing: -0.07em;
   text-wrap: balance;
@@ -486,17 +486,17 @@ textarea {
 }
 
 .hero-lead {
-  max-width: 31rem;
+  max-width: 29rem;
   margin: 0;
-  font-size: 1rem;
-  line-height: 1.64;
+  font-size: 0.97rem;
+  line-height: 1.56;
 }
 
 .hero-support {
-  max-width: 29rem;
+  max-width: 27rem;
   margin: 0;
-  font-size: 0.92rem;
-  line-height: 1.64;
+  font-size: 0.88rem;
+  line-height: 1.55;
 }
 
 .button {
@@ -543,7 +543,7 @@ textarea {
 .hero-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.9rem;
+  gap: 0.75rem;
 }
 
 .status-dot,
@@ -592,13 +592,13 @@ textarea {
 .hero-principle-pill {
   display: inline-flex;
   align-items: center;
-  min-height: 2.2rem;
-  padding: 0.55rem 0.82rem;
+  min-height: 2.05rem;
+  padding: 0.48rem 0.74rem;
   border: 1.5px solid rgba(20, 17, 13, 0.14);
   border-radius: 999px;
   background: rgba(255, 255, 252, 0.86);
   color: var(--muted-strong);
-  font-size: 0.84rem;
+  font-size: 0.8rem;
   font-weight: 600;
   transform: rotate(-1deg);
 }
@@ -613,14 +613,14 @@ textarea {
 
 .hero-frame {
   display: grid;
-  gap: 0.8rem;
+  gap: 0.72rem;
   padding-top: 0.1rem;
 }
 
 .hero-frame-footer {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1.05rem;
+  gap: 0.8rem;
 }
 
 .hero-frame-panel,
@@ -629,8 +629,8 @@ textarea {
 .repo-tree-card,
 .repo-module-card {
   display: grid;
-  gap: 0.6rem;
-  padding: 1.05rem;
+  gap: 0.52rem;
+  padding: 0.92rem;
   border: 1.5px solid rgba(21, 18, 15, 0.14);
   border-radius: var(--radius-panel);
   background:
@@ -661,8 +661,8 @@ textarea {
 .hero-frame-panel-primary {
   position: relative;
   overflow: hidden;
-  min-height: 31rem;
-  padding: 1.15rem;
+  min-height: 28.6rem;
+  padding: 1rem;
   border-color: rgba(20, 17, 13, 0.18);
   background:
     radial-gradient(circle at 84% 16%, rgba(0, 0, 0, 0.022), transparent 20%),
@@ -687,8 +687,8 @@ textarea {
 
 .hero-memory-stage {
   position: relative;
-  min-height: 18.8rem;
-  margin: 0.2rem 0 0.55rem;
+  min-height: 16.9rem;
+  margin: 0.1rem 0 0.35rem;
   border-radius: calc(var(--radius-panel) - 4px);
   background:
     radial-gradient(circle at 18% 20%, rgba(0, 0, 0, 0.04), transparent 20%),
@@ -1626,10 +1626,14 @@ textarea {
   padding-bottom: 2rem;
 }
 
+.console-section-shell {
+  padding-bottom: 1.35rem;
+}
+
 .console-shell {
   position: relative;
   overflow: hidden;
-  padding: 2rem;
+  padding: 1.3rem;
   border: 2px solid rgba(21, 18, 15, 0.22);
   border-radius: 36px;
   background:
@@ -1822,9 +1826,9 @@ textarea {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 0.95rem;
-  padding: 0.9rem 1rem;
+  gap: 0.8rem;
+  margin-bottom: 0.75rem;
+  padding: 0.78rem 0.9rem;
   border: 1.5px solid rgba(21, 18, 15, 0.12);
   border-radius: var(--radius-card);
   background: rgba(255, 251, 246, 0.86);
@@ -1838,14 +1842,14 @@ textarea {
 
 .console-toolbar-block strong {
   color: var(--text-strong);
-  font-size: 1.05rem;
+  font-size: 0.98rem;
   line-height: 1.25;
 }
 
 .console-toolbar-block small {
   color: var(--muted);
-  font-size: 0.84rem;
-  line-height: 1.5;
+  font-size: 0.8rem;
+  line-height: 1.42;
 }
 
 .console-toolbar-actions {
@@ -1863,14 +1867,14 @@ textarea {
 .console-workspace-bar {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.85rem;
+  gap: 0.62rem;
 }
 
 .console-workspace-tab {
   display: grid;
-  gap: 0.4rem;
-  min-height: 5.4rem;
-  padding: 0.9rem;
+  gap: 0.28rem;
+  min-height: 4.15rem;
+  padding: 0.74rem 0.78rem;
   border: 1.5px solid rgba(21, 18, 15, 0.12);
   border-radius: var(--radius-card);
   background: rgba(255, 251, 246, 0.78);
@@ -1886,15 +1890,15 @@ textarea {
 
 .console-workspace-tab span {
   color: var(--text-strong);
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 700;
   line-height: 1.35;
 }
 
 .console-workspace-tab small {
   color: var(--muted);
-  font-size: 0.78rem;
-  line-height: 1.45;
+  font-size: 0.73rem;
+  line-height: 1.35;
 }
 
 .console-workspace-tab:hover {
@@ -1908,6 +1912,34 @@ textarea {
     rgba(255, 248, 238, 0.92);
   border-color: rgba(21, 18, 15, 0.24);
   box-shadow: 3px 4px 0 rgba(21, 18, 15, 0.08);
+}
+
+.console-status-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin-top: 0.68rem;
+}
+
+.console-status-strip span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.2rem;
+  padding: 0.5rem 0.7rem;
+  border: 1px dashed rgba(21, 18, 15, 0.16);
+  border-radius: 999px;
+  background: rgba(255, 251, 246, 0.62);
+  color: var(--muted-strong);
+  font-size: 0.76rem;
+  font-weight: 600;
+  line-height: 1.3;
+  text-align: center;
+}
+
+.console-stage-compact {
+  padding-top: 0.35rem;
+  padding-bottom: 2rem;
 }
 
 .feature-band {
@@ -2189,7 +2221,7 @@ textarea {
 .console-export-panel,
 .provider-console-panel,
 .setup-overview-panel {
-  min-height: calc(100dvh - 17rem);
+  min-height: calc(100dvh - 15.75rem);
 }
 
 .session-panel,
@@ -2200,7 +2232,7 @@ textarea {
 
 .session-controls,
 .insight-stack {
-  max-height: calc(100dvh - 22rem);
+  max-height: calc(100dvh - 20.25rem);
   overflow-y: auto;
   padding-right: 0.15rem;
 }
@@ -2803,7 +2835,8 @@ textarea {
   .repo-module-grid,
   .console-status-board,
   .console-flow-strip,
-  .console-workspace-bar {
+  .console-workspace-bar,
+  .console-status-strip {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -2862,7 +2895,8 @@ textarea {
   .roadmap-grid,
   .console-status-board,
   .console-flow-strip,
-  .console-workspace-bar {
+  .console-workspace-bar,
+  .console-status-strip {
     grid-template-columns: 1fr;
   }
 

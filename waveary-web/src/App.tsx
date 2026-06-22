@@ -2606,7 +2606,7 @@ export function App(): ReactElement {
         ) : null}
 
         {currentPage === "console" ? (
-        <section className="section-grid section-block console-section" id="console">
+        <section className="section-grid section-block console-section console-section-shell" id="console">
           <div className="console-shell">
             <div className="console-toolbar">
               <div className="console-toolbar-block">
@@ -2696,13 +2696,19 @@ export function App(): ReactElement {
                   </button>
                 ))}
               </div>
+              <div className="console-status-strip">
+                <span>{configuredRuntimeLabel}</span>
+                <span>{sessionSummaryLabel}</span>
+                <span>{archiveSummaryLabel}</span>
+                <span>{runtimeStateLabel}</span>
+              </div>
             </div>
           </div>
         </section>
         ) : null}
 
         {currentPage === "console" && activeConsoleWorkspace === "provider" ? (
-        <section className="section-grid section-block console-stage feature-band" id="setup">
+        <section className="section-grid section-block console-stage console-stage-compact feature-band" id="setup">
           <div className="section-heading console-stage-heading">
             <span className="section-caption">{copy.setup.caption}</span>
             <h2>{copy.setup.title}</h2>
@@ -2856,7 +2862,7 @@ export function App(): ReactElement {
         ) : null}
 
         {currentPage === "console" && activeConsoleWorkspace !== "provider" ? (
-        <section className="section-grid section-block console-stage" id="console-manage">
+        <section className="section-grid section-block console-stage console-stage-compact" id="console-manage">
           <div className="section-heading console-stage-heading">
             <span className="section-caption">{copy.runtime.caption}</span>
             <h2>{locale === "zh" ? "会话与持久化控制台" : "Session and persistence console"}</h2>
