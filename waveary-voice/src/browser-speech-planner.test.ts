@@ -41,3 +41,27 @@ test("browser speech plan brightens playful English turns", () => {
   assert.ok(plan.pitch > 1.05);
   assert.ok(plan.rate > 1);
 });
+
+test("browser speech plan obeys explicit delivery hints", () => {
+  const plan = buildBrowserSpeechPlan({
+    text: "I'm here. Take your time.",
+    locale: "en-US",
+    relationshipStage: "warming",
+    emotion: {
+      primaryEmotion: "warm",
+      intensity: 0.6
+    },
+    delivery: {
+      style: "quiet",
+      pace: "slower",
+      closeness: "careful",
+      expressiveness: "restrained",
+      voiceStyle: "companion-quiet"
+    }
+  });
+
+  assert.equal(plan.styleLabel, "quiet");
+  assert.equal(plan.voiceLabel, "companion-quiet");
+  assert.ok(plan.rate < 1);
+  assert.ok(plan.volume < 0.92);
+});

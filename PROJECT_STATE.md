@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `d872579` - `Add local self-hosted voice bridge`
+- `pending` - `Add companion delivery hints for voice`
 
 ## Modules
 
@@ -139,9 +139,11 @@ Brand line:
   - the dedicated真人语音 path now also supports a first non-OpenAI-compatible domestic adapter through Doubao TTS, with dedicated `appId / cluster / voice` settings layered into the existing voice config flow
   - the dedicated真人语音 path now also supports a first generic local/self-hosted HTTP bridge for GPT-SoVITS / CosyVoice style engines, with dedicated `engine / endpointPath / speaker / referenceVoiceId` settings layered into the same saved voice config flow
   - the chat page now includes a first voice strip with `auto speak`, `speak reply`, and `stop` controls, and voice playback now supports both provider-returned audio and browser speech fallback while still following reply emotion and relationship stage
+  - normal chat turns now also emit a structured companion delivery hint covering style, pace, closeness, and expressiveness, so reply speech no longer depends only on raw text plus generic emotion inference
   - the chat page now also supports first-cut browser microphone capture and speech-to-text input through the Web Speech API, drafting live transcript text into the composer and sending the final recognized turn through the normal chat flow
   - this first speech-input slice stays browser-native and chat-bounded: start/stop listening, live draft updates, final-turn auto-send, and localized unsupported-browser fallback instead of a new server STT path
   - the chat page now also supports a continuous live voice conversation mode that keeps alternating between microphone listening and spoken replies, automatically resuming listening after each reply instead of stopping after one speech turn
+  - `/api/voice/speak`, browser speech planning, and provider-backed TTS instruction building now all consume that shared delivery hint, keeping chat/runtime emotional intent more aligned with final spoken output across browser, OpenAI-compatible, Doubao, and local self-hosted voice paths
   - console initialization now treats `/api/voice/config` as an optional capability instead of a hard prerequisite, so a missing or stale local voice route no longer wipes out provider presets, saved provider selection, or model setup visibility
   - current-page search intent detection now runs before the narrower Bilibili follow-up probe, preventing `search this page for ...` turns from accidentally falling into the managed-browser follow-up path
   - `provider-api` route tests now explicitly close managed browser automation between cases, preventing the managed Playwright layer from leaving hanging handles in compiled server-test runs
@@ -291,9 +293,9 @@ Brand line:
 
 ## Next Steps
 
-- add a focused browser pass for the chat-page voice surface so provider audio playback, browser fallback playback, continuous live voice mode, microphone capture, and loop resume behavior are visually verified together
-- test the new dedicated voice-provider path end-to-end in the browser by saving a separate真人语音 provider under the chat voice strip and confirming playback no longer falls back to browser speech when chat still uses a non-TTS vendor
-- run a live browser pass for dedicated Doubao voice setup, then start the next voice-provider cut by adding a local HTTP bridge path for GPT-SoVITS / CosyVoice style self-hosted engines
+- run a focused browser pass for the chat-page voice surface so the new structured companion delivery hint is visually verified through provider audio playback, browser fallback playback, continuous live voice mode, microphone capture, and loop resume behavior together
+- test the dedicated voice-provider path end-to-end in the browser by saving a separate真人语音 provider under the chat voice strip and confirming the delivery hint still shapes playback when chat stays on a different vendor
+- decide the next voice cut after this delivery-hint pass: provider-backed STT, or a truer realtime duplex / interruption pass first
 - verify the restored provider console end-to-end in the browser against the currently running local dev server, then decide whether to also harden the underlying voice route startup path so `/api/voice/config` stops returning `404`
 - decide the next voice cut after the new continuous browser voice loop: provider-backed STT, or a truer realtime duplex / interruption pass first
 - consider whether the saved voice profile should stay local-only for CE or later become part of user-facing companionship preference portability

@@ -927,3 +927,24 @@ Impact:
 - @waveary/voice now exports LocalHttpTextToSpeechProvider
 - saved voice config now also carries local-bridge-specific endpointPath, engine, speaker, and eferenceVoiceId fields
 - the chat voice strip can now switch to provider = local and send dedicated真人语音 requests through a self-hosted HTTP endpoint while leaving the chat model provider untouched
+## 2026-06-22 - Chat Should Emit An Explicit Companion Delivery Hint For Voice
+
+Status:
+
+- accepted
+
+Decision:
+
+Normal chat turns should return a structured companion delivery hint and the voice layer should consume it directly, instead of making every TTS path infer delivery only from plain reply text plus a loose emotion hint.
+
+Reason:
+
+- the product goal is not just "text gets read aloud" but "the companion sounds emotionally present and relationally appropriate"
+- chat/runtime already knows more than the TTS adapter alone: relationship stage, companion emotion, and whether the turn should sound careful, close, steady, or playful
+- one explicit delivery contract keeps browser speech, OpenAI-compatible TTS, Doubao, and local self-hosted voice paths aligned instead of letting each provider family drift into separate heuristics
+
+Impact:
+
+- chat reply payloads now include a `delivery` hint with style, pace, closeness, expressiveness, and a provider-usable instruction summary
+- `/api/voice/speak` now accepts and forwards that delivery hint through the voice runtime
+- browser speech planning and provider-backed instruction construction now both use the same delivery contract rather than re-deriving tone independently from text

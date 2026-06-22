@@ -8,6 +8,7 @@ import {
   type VoiceOutputFormat,
   type VoiceQualityProfile
 } from "@waveary/voice";
+import type { CompanionDeliveryHint } from "./companion-delivery.js";
 import { loadSavedProviderConfig } from "./provider-config.js";
 import { loadSavedVoiceConfig } from "./voice-config.js";
 
@@ -20,6 +21,7 @@ export interface VoiceSpeakPlanRequest {
     tone?: string;
     voiceStyle?: string;
   };
+  delivery?: CompanionDeliveryHint;
   voiceConfig?: {
     model?: string;
     voice?: string;
@@ -57,6 +59,7 @@ export async function planChatSpeech(input: VoiceSpeakPlanRequest) {
     ...(input.persona?.voiceStyle
       ? { personaVoiceStyle: input.persona.voiceStyle }
       : {}),
+    ...(input.delivery ? { delivery: input.delivery } : {}),
     ...(input.emotion
       ? {
           emotion: {

@@ -20,13 +20,19 @@ export function buildBrowserSpeechPlan(request: TextToSpeechRequest): BrowserSpe
   const emotion = request.emotion?.primaryEmotion?.toLowerCase() ?? "calm";
   const intensity = clamp(request.emotion?.intensity ?? 0.55, 0, 1);
   const relationshipStage = request.relationshipStage?.toLowerCase() ?? "new";
+  const delivery = request.delivery;
 
   const basePlan = locale.startsWith("zh")
     ? createChineseBasePlan()
     : createEnglishBasePlan();
 
   const emotionAdjusted = applyEmotionTuning(basePlan, emotion, intensity);
-  return applyRelationshipTuning(emotionAdjusted, relationshipStage, request.personaVoiceStyle);
+  const deliveryAdjusted = applyDeliveryTuning(emotionAdjusted, delivery);
+  return applyRelationshipTuning(
+    deliveryAdjusted,
+    relationshipStage,
+    request.personaVoiceStyle ?? delivery?.voiceStyle
+  );
 }
 
 function createChineseBasePlan(): BrowserSpeechPlan {
@@ -121,6 +127,67 @@ function applyRelationshipTuning(
 
   if (personaVoiceStyle?.trim()) {
     tuned.voiceLabel = personaVoiceStyle.trim();
+  }
+
+  return tuned;
+}
+
+function applyDeliveryTuning(
+  plan: BrowserSpeechPlan,
+  delivery: TextToSpeechRequest["delivery"]
+): BrowserSpeechPlan {
+  if (!delivery) {
+    return plan;
+  }
+
+  const tuned = { ...plan };
+
+  if (delivery.style === "quiet") {
+    tuned.styleLabel = "quiet";
+    tuned.rate = clamp(tuned.rate - 0.04, 0.85, 1.16);
+    tuned.pitch = clamp(tuned.pitch - 0.03, 0.82, 1.2);
+    tuned.volume = clamp(tuned.volume - 0.03, 0.7, 1);
+  } else if (delivery.style === "concerned") {
+    tuned.styleLabel = "concerned";
+    tuned.rate = clamp(tuned.rate - 0.03, 0.85, 1.16);
+    tuned.preDelayMs += 40;
+  } else if (delivery.style === "bright") {
+    tuned.styleLabel = "bright";
+    tuned.rate = clamp(tuned.rate + 0.03, 0.85, 1.16);
+    tuned.pitch = clamp(tuned.pitch + 0.04, 0.82, 1.2);
+  } else if (delivery.style === "playful") {
+    tuned.styleLabel = "bright";
+    tuned.rate = clamp(tuned.rate + 0.05, 0.85, 1.16);
+    tuned.pitch = clamp(tuned.pitch + 0.05, 0.82, 1.2);
+  } else if (delivery.style === "warm") {
+    tuned.styleLabel = "warm";
+    tuned.pitch = clamp(tuned.pitch + 0.02, 0.82, 1.2);
+  } else if (delivery.style === "steady") {
+    tuned.styleLabel = "soft";
+    tuned.rate = clamp(tuned.rate - 0.01, 0.85, 1.16);
+  }
+
+  if (delivery.pace === "slower") {
+    tuned.rate = clamp(tuned.rate - 0.05, 0.85, 1.16);
+    tuned.preDelayMs += 30;
+  } else if (delivery.pace === "lighter") {
+    tuned.rate = clamp(tuned.rate + 0.04, 0.85, 1.16);
+  }
+
+  if (delivery.closeness === "careful") {
+    tuned.volume = clamp(tuned.volume - 0.02, 0.7, 1);
+  } else if (delivery.closeness === "close") {
+    tuned.volume = clamp(tuned.volume + 0.02, 0.7, 1);
+  }
+
+  if (delivery.expressiveness === "restrained") {
+    tuned.postDelayMs += 20;
+  } else if (delivery.expressiveness === "open") {
+    tuned.pitch = clamp(tuned.pitch + 0.02, 0.82, 1.2);
+  }
+
+  if (delivery.voiceStyle?.trim()) {
+    tuned.voiceLabel = delivery.voiceStyle.trim();
   }
 
   return tuned;

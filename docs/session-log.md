@@ -4547,3 +4547,51 @@ Commit:
 Push:
 
 - succeeded: git push origin main pushed functional commit d872579 to origin/main
+## 2026-06-22
+
+Objective:
+
+Make voice output follow an explicit companion delivery contract from chat/runtime instead of relying only on raw text plus generic emotion hints.
+
+Summary:
+
+- added a shared `companion-delivery` mapper in the web server layer that turns relationship stage plus companion emotion into a structured delivery hint (`style / pace / closeness / expressiveness`)
+- updated `waveary-web/server/chat-runtime.ts` and `chat-session-store.ts` so normal chat turns now return that delivery hint alongside reply text, relationship, memory, timeline, and emotion
+- updated `waveary-web/server/voice-runtime.ts`, `/api/voice/speak`, and `waveary-web/src/App.tsx` so live reply playback forwards the delivery hint into the voice layer
+- updated `waveary-voice` browser speech planning and OpenAI-compatible TTS instruction building so they both consume the explicit delivery hint instead of only guessing from the reply text
+- added regression coverage proving that the voice route honors delivery hints and that `/api/chat/turn` now returns a structured companion delivery hint for downstream voice
+
+Files changed:
+
+- `waveary-voice/src/types.ts`
+- `waveary-voice/src/browser-speech-planner.ts`
+- `waveary-voice/src/browser-speech-planner.test.ts`
+- `waveary-voice/src/openai-compatible-tts-provider.test.ts`
+- `waveary-voice/src/voice-presets.ts`
+- `waveary-web/server/companion-delivery.ts`
+- `waveary-web/server/chat-runtime.ts`
+- `waveary-web/server/chat-session-store.ts`
+- `waveary-web/server/provider-api.ts`
+- `waveary-web/server/provider-api.test.ts`
+- `waveary-web/server/voice-runtime.ts`
+- `waveary-web/src/App.tsx`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/voice`
+- `npm run test --workspace @waveary/voice`
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run build:server --workspace @waveary/web`
+- `npm run test --workspace @waveary/web`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending

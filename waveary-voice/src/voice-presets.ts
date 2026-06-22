@@ -84,7 +84,8 @@ export function buildVoiceInstructionParts(
   const emotion = request.emotion?.primaryEmotion?.toLowerCase() ?? "calm";
   const relationshipStage = request.relationshipStage?.toLowerCase() ?? "new";
   const tone = request.personaTone?.trim();
-  const voiceStyle = request.personaVoiceStyle?.trim();
+  const voiceStyle = request.personaVoiceStyle?.trim() || request.delivery?.voiceStyle?.trim();
+  const deliveryInstruction = request.delivery?.instruction?.trim();
 
   return [
     "Sound like a real human companion, not a voice assistant or announcer.",
@@ -93,6 +94,7 @@ export function buildVoiceInstructionParts(
     describeRelationshipStyle(relationshipStage),
     tone ? `Overall persona tone: ${tone}.` : null,
     voiceStyle ? `Preferred voice style: ${voiceStyle}.` : null,
+    deliveryInstruction ?? null,
     "Use natural pauses, soft breaths, and gentle variation in emphasis where it fits the sentence.",
     "Avoid sounding theatrical, robotic, overly polished, or overly cheerful."
   ].filter((part): part is string => Boolean(part));
@@ -119,6 +121,12 @@ export function resolveVoiceSpeed(
     speed -= 0.02;
   } else if (relationshipStage === "new") {
     speed -= 0.01;
+  }
+
+  if (request.delivery?.pace === "slower") {
+    speed -= 0.05;
+  } else if (request.delivery?.pace === "lighter") {
+    speed += 0.04;
   }
 
   return Number(clamp(speed, 0.76, 1.18).toFixed(2));

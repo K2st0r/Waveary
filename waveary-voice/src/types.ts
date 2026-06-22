@@ -4,6 +4,16 @@ export interface VoiceEmotionHint {
   modifiers?: string[];
 }
 
+export interface VoiceDeliveryHint {
+  style?: "soft" | "warm" | "concerned" | "quiet" | "bright" | "playful" | "steady";
+  pace?: "slower" | "steady" | "lighter";
+  closeness?: "careful" | "present" | "close";
+  expressiveness?: "restrained" | "natural" | "open";
+  voiceStyle?: string;
+  instruction?: string;
+  summary?: string;
+}
+
 export interface TextToSpeechRequest {
   text: string;
   locale?: string;
@@ -11,6 +21,7 @@ export interface TextToSpeechRequest {
   personaTone?: string;
   personaVoiceStyle?: string;
   emotion?: VoiceEmotionHint;
+  delivery?: VoiceDeliveryHint;
 }
 
 export interface BrowserSpeechPlan {
