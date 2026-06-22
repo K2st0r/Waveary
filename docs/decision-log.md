@@ -840,3 +840,24 @@ Impact:
 - the console toolbar now includes a fixed shortcut back to `模型接入 / Model setup`
 - the console status strip now exposes provider and model as separate visible state pills instead of collapsing all runtime readiness into one opaque label
 - when no runnable provider/model configuration exists yet, the console automatically returns to the provider workspace instead of leaving the user stranded in a different workspace
+## 2026-06-22 - Voice Config Loading Must Not Block Provider Console Initialization
+
+Status:
+
+- accepted
+
+Decision:
+
+Treat `/api/voice/config` as an optional initialization dependency in the web console instead of loading it in one all-or-nothing `Promise.all(...)` bundle with provider presets, saved provider config, session format, and session list.
+
+Reason:
+
+- the current local runtime can expose healthy `/api/provider/*` routes while still returning `404` for `/api/voice/config`
+- binding voice config into the same hard-fail init chain caused a false top-level console failure: provider presets vanished, the supplier dropdown rendered empty, and the UI incorrectly implied that provider routes were missing
+- provider/model setup is a foundational path and must stay available even when an adjacent optional subsystem such as saved voice config is temporarily unavailable or running on a stale server build
+
+Impact:
+
+- `waveary-web/src/App.tsx` now logs voice-config init failure as an optional warning and continues loading provider presets, saved provider config, session metadata, and chat state
+- the provider dropdown, saved provider selection, and model setup surface can recover independently from voice-route startup drift
+- a later server/runtime pass can still fix the underlying `/api/voice/config` `404`, but that mismatch no longer breaks core console use

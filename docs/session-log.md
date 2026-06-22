@@ -4337,3 +4337,38 @@ Commit:
 Push:
 
 - succeeded: `git push origin main` pushed functional commit `1374a56` to `origin/main`
+## 2026-06-22
+
+Objective:
+
+Restore provider setup reliability in the console when the local voice config route is missing or stale.
+
+Summary:
+
+- updated `waveary-web/src/App.tsx` so `loadInitialState()` no longer hard-fails the entire console when `/api/voice/config` returns `404`
+- kept provider presets, saved provider config, session metadata, and model setup on the required init path while downgrading voice-config loading to an optional warning-only branch
+- verified the specific split-state regression directly against the local dev server: `/api/provider/presets` returned the expected provider list while `/api/voice/config` still returned `404`
+- preserved the existing provider/model setup UX instead of refactoring that flow again, so this fix only hardens initialization against adjacent voice-route drift
+
+Files changed:
+
+- `waveary-web/src/App.tsx`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run test --workspace @waveary/web`
+- `curl.exe -s http://127.0.0.1:4173/api/provider/presets`
+- `curl.exe -s -o NUL -w "%{http_code}" http://127.0.0.1:4173/api/voice/config`
+
+Commit:
+
+- `ba4a3af` - `Tolerate missing voice config during console init`
+
+Push:
+
+- pending

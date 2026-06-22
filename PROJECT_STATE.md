@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `586c0b1` - `Add continuous live voice chat loop`
+- `ba4a3af` - `Tolerate missing voice config during console init`
 
 ## Modules
 
@@ -139,6 +139,7 @@ Brand line:
   - the chat page now also supports first-cut browser microphone capture and speech-to-text input through the Web Speech API, drafting live transcript text into the composer and sending the final recognized turn through the normal chat flow
   - this first speech-input slice stays browser-native and chat-bounded: start/stop listening, live draft updates, final-turn auto-send, and localized unsupported-browser fallback instead of a new server STT path
   - the chat page now also supports a continuous live voice conversation mode that keeps alternating between microphone listening and spoken replies, automatically resuming listening after each reply instead of stopping after one speech turn
+  - console initialization now treats `/api/voice/config` as an optional capability instead of a hard prerequisite, so a missing or stale local voice route no longer wipes out provider presets, saved provider selection, or model setup visibility
   - current-page search intent detection now runs before the narrower Bilibili follow-up probe, preventing `search this page for ...` turns from accidentally falling into the managed-browser follow-up path
   - `provider-api` route tests now explicitly close managed browser automation between cases, preventing the managed Playwright layer from leaving hanging handles in compiled server-test runs
 - `waveary-voice`
@@ -286,6 +287,7 @@ Brand line:
 ## Next Steps
 
 - add a focused browser pass for the chat-page voice surface so provider audio playback, browser fallback playback, continuous live voice mode, microphone capture, and loop resume behavior are visually verified together
+- verify the restored provider console end-to-end in the browser against the currently running local dev server, then decide whether to also harden the underlying voice route startup path so `/api/voice/config` stops returning `404`
 - decide the next voice cut after the new continuous browser voice loop: provider-backed STT, or a truer realtime duplex / interruption pass first
 - consider whether the saved voice profile should stay local-only for CE or later become part of user-facing companionship preference portability
 - keep future realtime voice and full-duplex work behind the new `waveary-voice` package boundary instead of blending media logic into `waveary-web` directly
@@ -345,4 +347,5 @@ Brand line:
 
 - `npm run web:build` should not be executed in parallel with another root build command because package `dist` cleanup can race on Windows
 - `npm run web:build` can still fail on Windows with `EPERM` while removing `waveary-core/dist` if a prior build or process is holding the directory, even when narrower `@waveary/web` test and typecheck verification succeeds
+- the currently running local dev server can expose healthy `/api/provider/*` routes while still returning `404` for `/api/voice/config`; the frontend now tolerates that split state, but the server/runtime mismatch still needs a separate root-cause pass
 
