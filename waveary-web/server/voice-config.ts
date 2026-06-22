@@ -21,6 +21,10 @@ export interface SavedVoiceConfig {
   apiKey: string;
   appId: string;
   cluster: string;
+  endpointPath: string;
+  engine: string;
+  speaker: string;
+  referenceVoiceId: string;
 }
 
 const CONFIG_PATH = join(getWavearyDataDir(), "voice-config.json");
@@ -38,7 +42,11 @@ export function getDefaultVoiceConfig(): SavedVoiceConfig {
     baseURL: "",
     apiKey: "",
     appId: "",
-    cluster: "volcano_tts"
+    cluster: "volcano_tts",
+    endpointPath: "/tts",
+    engine: "generic",
+    speaker: "",
+    referenceVoiceId: ""
   };
 }
 
@@ -85,6 +93,10 @@ function normalizeVoiceConfig(config: Partial<SavedVoiceConfig>): SavedVoiceConf
   const apiKey = config.apiKey?.trim() || "";
   const appId = config.appId?.trim() || "";
   const cluster = config.cluster?.trim() || "volcano_tts";
+  const endpointPath = normalizeEndpointPath(config.endpointPath);
+  const engine = config.engine?.trim() || "generic";
+  const speaker = config.speaker?.trim() || "";
+  const referenceVoiceId = config.referenceVoiceId?.trim() || "";
 
   return {
     model,
@@ -96,7 +108,11 @@ function normalizeVoiceConfig(config: Partial<SavedVoiceConfig>): SavedVoiceConf
     baseURL,
     apiKey,
     appId,
-    cluster
+    cluster,
+    endpointPath,
+    engine,
+    speaker,
+    referenceVoiceId
   };
 }
 
@@ -109,4 +125,13 @@ function isVoiceFormat(value: unknown): value is VoiceOutputFormat {
     value === "flac" ||
     value === "pcm"
   );
+}
+
+function normalizeEndpointPath(value: unknown): string {
+  if (typeof value !== "string" || !value.trim()) {
+    return "/tts";
+  }
+
+  const normalized = value.trim();
+  return normalized.startsWith("/") ? normalized : `/${normalized}`;
 }

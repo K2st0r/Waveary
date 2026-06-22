@@ -2,6 +2,7 @@ import type { EmotionState, RelationshipProfile } from "@waveary/core";
 import {
   BrowserSpeechPlanner,
   DoubaoTextToSpeechProvider,
+  LocalHttpTextToSpeechProvider,
   OpenAICompatibleTextToSpeechProvider,
   resolveVoicePreset,
   type VoiceOutputFormat,
@@ -30,6 +31,10 @@ export interface VoiceSpeakPlanRequest {
     apiKey?: string;
     appId?: string;
     cluster?: string;
+    endpointPath?: string;
+    engine?: string;
+    speaker?: string;
+    referenceVoiceId?: string;
   };
 }
 
@@ -102,7 +107,17 @@ export async function planChatSpeech(input: VoiceSpeakPlanRequest) {
       savedVoiceConfig.apiKey ||
       (savedVoiceConfig.providerMode !== "dedicated" ? savedProvider?.apiKey || "" : ""),
     appId: requestedVoiceConfig?.appId?.trim() || savedVoiceConfig.appId || "",
-    cluster: requestedVoiceConfig?.cluster?.trim() || savedVoiceConfig.cluster || "volcano_tts"
+    cluster: requestedVoiceConfig?.cluster?.trim() || savedVoiceConfig.cluster || "volcano_tts",
+    endpointPath:
+      requestedVoiceConfig?.endpointPath?.trim() ||
+      savedVoiceConfig.endpointPath ||
+      "/tts",
+    engine: requestedVoiceConfig?.engine?.trim() || savedVoiceConfig.engine || "generic",
+    speaker: requestedVoiceConfig?.speaker?.trim() || savedVoiceConfig.speaker || "",
+    referenceVoiceId:
+      requestedVoiceConfig?.referenceVoiceId?.trim() ||
+      savedVoiceConfig.referenceVoiceId ||
+      ""
   };
 
   const providerBackedVoiceConfig =
@@ -110,13 +125,19 @@ export async function planChatSpeech(input: VoiceSpeakPlanRequest) {
       ? resolvedVoiceConfig.provider &&
         (resolvedVoiceConfig.provider === "doubao"
           ? resolvedVoiceConfig.apiKey && resolvedVoiceConfig.appId
-          : resolvedVoiceConfig.baseURL && resolvedVoiceConfig.apiKey)
+          : resolvedVoiceConfig.provider === "local"
+            ? resolvedVoiceConfig.baseURL
+            : resolvedVoiceConfig.baseURL && resolvedVoiceConfig.apiKey)
         ? {
             provider: resolvedVoiceConfig.provider,
             baseURL: resolvedVoiceConfig.baseURL,
             apiKey: resolvedVoiceConfig.apiKey,
             appId: resolvedVoiceConfig.appId,
-            cluster: resolvedVoiceConfig.cluster
+            cluster: resolvedVoiceConfig.cluster,
+            endpointPath: resolvedVoiceConfig.endpointPath,
+            engine: resolvedVoiceConfig.engine,
+            speaker: resolvedVoiceConfig.speaker,
+            referenceVoiceId: resolvedVoiceConfig.referenceVoiceId
           }
         : null
       : savedProvider
@@ -141,6 +162,31 @@ export async function planChatSpeech(input: VoiceSpeakPlanRequest) {
           appId,
           voiceType: resolvedVoiceConfig.voice,
           cluster: providerBackedVoiceConfig.cluster
+        });
+
+        return await ttsProvider.synthesize(request);
+      }
+
+      if (providerBackedVoiceConfig.provider === "local") {
+        const ttsProvider = new LocalHttpTextToSpeechProvider({
+          baseURL: providerBackedVoiceConfig.baseURL,
+          ...(providerBackedVoiceConfig.endpointPath
+            ? { endpointPath: providerBackedVoiceConfig.endpointPath }
+            : {}),
+          ...(providerBackedVoiceConfig.engine
+            ? { engine: providerBackedVoiceConfig.engine }
+            : {}),
+          voice: resolvedVoiceConfig.voice,
+          ...(providerBackedVoiceConfig.speaker
+            ? { speaker: providerBackedVoiceConfig.speaker }
+            : {}),
+          ...(providerBackedVoiceConfig.referenceVoiceId
+            ? { referenceVoiceId: providerBackedVoiceConfig.referenceVoiceId }
+            : {}),
+          format: resolvedVoiceConfig.format,
+          ...(providerBackedVoiceConfig.apiKey
+            ? { apiKey: providerBackedVoiceConfig.apiKey }
+            : {})
         });
 
         return await ttsProvider.synthesize(request);

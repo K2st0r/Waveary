@@ -96,6 +96,10 @@ interface VoiceConfigRequest {
   apiKey?: string;
   appId?: string;
   cluster?: string;
+  endpointPath?: string;
+  engine?: string;
+  speaker?: string;
+  referenceVoiceId?: string;
 }
 
 interface ChatSessionRequest {
