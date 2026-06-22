@@ -529,3 +529,25 @@ Impact:
 - `selectContinuityThread()` now adds a small age-based ranking bonus for recent memories before selecting the primary thread
 - near-tied memory candidates no longer depend as heavily on recall ordering alone
 - future scoring work can add source-turn or session-local weighting on top of this without replacing the shared helper boundary
+
+## 2026-06-22 - Near-Tied Continuity Memories Should Also Respect More Recent Source Turns
+
+Status:
+
+- accepted
+
+Decision:
+
+When continuity memories are semantically tied and similarly recent, apply a very light source-turn bonus so memories tied to a more recent user turn win over otherwise equal memories from older turns.
+
+Reason:
+
+- the new recency-aware helper still had one tie class left: same-content memories created in the same age band could still fall back to array order
+- companionship continuity should follow the live conversational arc, not only abstract memory freshness
+- the bias should stay weaker than semantic match and weaker than broad age bands so it only resolves near ties instead of dominating normal selection
+
+Impact:
+
+- `selectContinuityThread()` now accepts optional message history and derives a tiny source-turn preference from memory `sourceMessageIds`
+- both `OpenAICompatibleChatProvider` and `ScriptedChatProvider` now pass request message history into the shared helper
+- future continuity-scoring work can layer richer repeated-reference or session-local signals on top of current-turn match, recency, and source-turn weighting without moving the logic back into provider-local code

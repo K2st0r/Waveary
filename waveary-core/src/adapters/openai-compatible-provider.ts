@@ -270,6 +270,7 @@ function buildDeveloperInstruction(request: ChatProviderRequest): string {
     : "No explicit user-turn focus was available.";
   const continuityThread = selectContinuityThread({
     latestUserMessage,
+    messageHistory: request.messages,
     relevantMemories: request.relevantMemories,
     timeline: request.timeline
   });

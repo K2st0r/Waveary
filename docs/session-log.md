@@ -4,6 +4,45 @@
 
 Objective:
 
+Add a minimal source-turn-aware refinement to shared continuity-thread selection so same-age tied memories prefer the thread anchored in the more recent user turn instead of falling back to array order.
+
+Summary:
+
+- added focused `selectContinuityThread()` regression coverage proving that two otherwise equal memory candidates should prefer the one tied to the more recent user-source turn
+- kept the refinement inside the shared runtime helper by extending it with optional message history rather than reintroducing provider-local continuity heuristics
+- updated the shared continuity helper to derive a very small source-turn bonus from memory `sourceMessageIds` across recent user messages, while keeping current-turn lexical match and broad recency as the dominant ranking signals
+- updated both the OpenAI-compatible and scripted provider paths to pass their current message history into the shared helper so the new weighting applies consistently across reply surfaces
+- verified the refinement with `@waveary/core` typecheck, fresh build, and compiled-test execution against `dist/**/*.test.js`
+
+Files changed:
+
+- `waveary-core/src/runtime/continuity-thread.ts`
+- `waveary-core/src/runtime/continuity-thread.test.ts`
+- `waveary-core/src/adapters/openai-compatible-provider.ts`
+- `waveary-core/src/adapters/scripted-chat-provider.ts`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/core`
+- `npm run build --workspace @waveary/core`
+- PowerShell `Get-ChildItem waveary-core/dist -Recurse -Filter *.test.js | ForEach-Object { $_.FullName }` followed by `node --test <compiled test files>`
+
+Commit:
+
+- `pending` - `Add source-turn weighting to continuity memories`
+
+Push:
+
+- pending
+
+## 2026-06-22
+
+Objective:
+
 Add a minimal recency-aware refinement to shared continuity-thread selection so near-tied remembered threads prefer fresher context instead of falling back to retrieval order.
 
 Summary:

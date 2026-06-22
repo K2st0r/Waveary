@@ -22,6 +22,7 @@ export class ScriptedChatProvider implements ChatProvider {
     );
     const continuityThread = selectContinuityThread({
       latestUserMessage,
+      messageHistory: request.messages,
       relevantMemories: request.relevantMemories,
       timeline: request.timeline
     });

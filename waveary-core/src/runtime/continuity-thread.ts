@@ -10,6 +10,7 @@ export interface ContinuityThreadSelection {
 
 export interface ContinuityThreadSelectionInput {
   latestUserMessage?: Message | undefined;
+  messageHistory?: Message[] | undefined;
   relevantMemories: MemoryItem[];
   timeline: TimelineEvent[];
 }
@@ -23,7 +24,7 @@ export function selectContinuityThread(
     .map((memory) => ({
       memory,
       rawScore: scoreContinuityMatch(memory.content, turnText),
-      rankingScore: rankMemoryCandidate(memory, turnText)
+      rankingScore: rankMemoryCandidate(memory, turnText, input.messageHistory)
     }))
     .sort((left, right) => right.rankingScore - left.rankingScore);
   const sortedTimelineCandidates = [...input.timeline]
@@ -123,10 +124,15 @@ export function selectContinuityThread(
   };
 }
 
-function rankMemoryCandidate(memory: MemoryItem, turnText: string): number {
+function rankMemoryCandidate(
+  memory: MemoryItem,
+  turnText: string,
+  messageHistory?: Message[]
+): number {
   const baseScore = scoreContinuityMatch(memory.content, turnText);
   const recencyBonus = resolveMemoryRecencyBonus(memory.createdAt);
-  return baseScore + recencyBonus;
+  const sourceTurnBonus = resolveMemorySourceTurnBonus(memory, messageHistory);
+  return baseScore + recencyBonus + sourceTurnBonus;
 }
 
 function resolveMemoryRecencyBonus(createdAt: string): number {
@@ -151,6 +157,38 @@ function resolveMemoryRecencyBonus(createdAt: string): number {
   }
 
   return 0;
+}
+
+function resolveMemorySourceTurnBonus(
+  memory: MemoryItem,
+  messageHistory?: Message[]
+): number {
+  if (!messageHistory || messageHistory.length === 0 || memory.sourceMessageIds.length === 0) {
+    return 0;
+  }
+
+  const userMessages = messageHistory.filter((message) => message.role === "user");
+
+  if (userMessages.length === 0) {
+    return 0;
+  }
+
+  let bestRank = -1;
+
+  for (let index = 0; index < userMessages.length; index += 1) {
+    const message = userMessages[index];
+
+    if (message && memory.sourceMessageIds.includes(message.id)) {
+      bestRank = Math.max(bestRank, index);
+    }
+  }
+
+  if (bestRank < 0) {
+    return 0;
+  }
+
+  const relativeRank = (bestRank + 1) / userMessages.length;
+  return 0.03 * relativeRank;
 }
 
 export function summarizeCurrentTurnFocus(content: string): string {
