@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `519e500` - `Add source-turn weighting to continuity memories`
+- `aa0a2ef` - `Refine homepage hero and console workspace layout`
 
 ## Modules
 
@@ -128,6 +128,11 @@ Brand line:
   - homepage lighter flame now uses a multi-layer animated flame stack with halo, outer flame, inner flame, and core so the burn focal point feels more like a real lighter flame than a flat icon
   - homepage lighter flame anchor is now nudged slightly further left and upward across desktop and mobile breakpoints so the burn contact point aligns more tightly with the lighter nozzle
   - homepage lighter flame anchor has received one additional micro-adjustment farther left/up so the visible ignition point sits closer to the lighter tip without shifting the burn animation itself
+  - homepage first screen is now compressed so slogan, framework copy, and portrait burn stage fit more fully on open without forcing an immediate downward scroll on desktop
+  - homepage hero definition copy now uses shorter two-note summary cards instead of a taller stacked list, reducing first-screen height while preserving positioning clarity
+  - homepage now includes drifting black doodle background objects outside the portrait stage so the milk-white surface feels more like a lived memory board than a blank landing page
+  - console intro now includes an explicit workspace switcher so provider setup, session controls, proactive care, and runtime observation no longer read like one long vertically stacked tools page
+  - console runtime body is now split by active workspace, keeping the top-level system summary stable while swapping only the focused operational surface below it
 
 ## Provider Flow
 
@@ -245,6 +250,8 @@ Brand line:
 - decide whether to harden `@waveary/core`'s Windows test script so it rebuilds or expands compiled test-file arguments more robustly, since the current `npm run test --workspace @waveary/core` path can misbehave if relied on alone after source edits
 - add focused route-level and browser-facing coverage for any remaining persistence edge cases beyond the current file/sqlite symmetry path
 - continue polishing the split web shell by tightening session-management density below the console fold and improving message rhythm plus mixed-language balance in the dedicated chat page
+- visually verify and tune the new console workspace switching flow in-browser, especially the non-session tabs, now that the long-form console has been split into focused surfaces
+- continue refining the homepage hero so the first screen feels complete across more desktop and laptop heights, with no further scroll-first regression after future copy or asset additions
 - continue the homepage portrait system with a more deliberate `4 male / 4 female` hand-drawn polaroid-style set so the visual range feels broader and less clustered around one youth archetype
 - consider replacing the current chroma-keyed lighter cutout with a cleaner native-alpha illustration once a final asset pass is approved
 - consider a follow-up homepage motion pass that adds a slightly stronger heat shimmer or ember flicker only if it stays subtle and does not overcomplicate the hero

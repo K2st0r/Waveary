@@ -4,6 +4,42 @@
 
 Objective:
 
+Tighten the homepage first screen and split the web console into focused workspaces so the public shell feels more like a formal project homepage plus a usable system desk.
+
+Summary:
+
+- compressed the homepage hero so the slogan, framework copy, and portrait burn stage sit more completely inside the first screen instead of forcing an immediate downward scroll on desktop
+- shortened the hero definition copy into two compact summary notes and added drifting monochrome doodle background objects outside the portrait area to reinforce the milk-white hand-drawn direction
+- added a console workspace switcher that separates provider setup, session controls, proactive care, and runtime observation instead of keeping everything in one long stacked page
+- preserved the existing provider, session, permissions, proactive-care, and runtime logic by reorganizing only the presentation layer in `waveary-web/src/App.tsx` and `waveary-web/src/styles.css`
+- verified the frontend pass with real typecheck and production build commands after the structural UI changes
+
+Files changed:
+
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run web:build`
+- `Invoke-WebRequest http://127.0.0.1:4173/`
+
+Commit:
+
+- `aa0a2ef` - `Refine homepage hero and console workspace layout`
+
+Push:
+
+- pending
+
+## 2026-06-22
+
+Objective:
+
 Add a minimal source-turn-aware refinement to shared continuity-thread selection so same-age tied memories prefer the thread anchored in the more recent user turn instead of falling back to array order.
 
 Summary:

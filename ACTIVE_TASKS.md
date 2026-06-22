@@ -12,17 +12,22 @@ Update it when:
 
 ## Current Focus
 
-1. Continue the `waveary-core` dialogue-quality pass.
+1. Keep polishing the `waveary-web` home / console shell.
+   Status: in progress
+   Current state: the homepage first screen has been compressed, the hero definition block has been shortened, drifting monochrome doodle objects now animate in the background, and the console has been split into focused provider / sessions / care / runtime workspaces instead of one long scroll.
+   Next cut: visually verify and refine the non-session console workspaces plus any remaining first-screen overflow or spacing issues on real browser heights.
+
+2. Continue the `waveary-core` dialogue-quality pass.
    Status: in progress
    Current state: memory recall is now stricter and updates `lastRecalledAt`, user-emotion detection is broader than `joy/sadness/neutral`, companion emotion transitions carry more relationship-aware tone state, scripted/provider guidance separates `new`, `warming`, and `growing`, primary continuity-thread selection plus current-turn focus summarization now live in one shared runtime helper reused by both scripted and real-provider reply paths, the helper ranks recalled memories by latest-turn match instead of blindly taking the first recalled item, weak timeline threads are now handled more conservatively during emotional turns, near-tied memory candidates get a small recency bias toward fresher remembered threads, and same-age tied memories now also get a very light source-turn preference toward the more recent user-origin thread.
    Next cut: expand live-provider regression beyond prompt-body inspection into stronger emotional-stress cases and richer memory-vs-timeline competition now that current-turn match, recency, and source-turn weighting all exist in the shared continuity helper.
 
-2. Keep permissioned local-time awareness bounded and trustworthy.
+3. Keep permissioned local-time awareness bounded and trustworthy.
    Status: in progress
    Current state: chat turns, proactive notification lead copy, and proactive console summary all respond to local daypart only when `timeAwareness` is allowed.
    Next cut: reuse the same bounded daypart logic if proactive message drafting expands, without silently broadening into desktop presence.
 
-3. Preserve continuity discipline under high-frequency iteration.
+4. Preserve continuity discipline under high-frequency iteration.
    Status: ongoing
    Current state: each meaningful step is being verified, committed, pushed, and written back into continuity files.
    Next cut: keep repository-side state files aligned so session resets do not cause duplicate work or architectural drift, and record any verification caveats like the current Windows `@waveary/core` test-script behavior.
