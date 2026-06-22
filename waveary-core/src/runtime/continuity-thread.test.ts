@@ -111,10 +111,52 @@ test("selectContinuityThread keeps a weak timeline thread restrained during an e
   );
 });
 
+test("selectContinuityThread prefers the more recent memory when relevance is otherwise tied", () => {
+  const latestUserMessage: Message = {
+    id: "message-4",
+    sessionId: "session-1",
+    role: "user",
+    content: "I still care about continuity and I want it to feel steady.",
+    timestamp: "2026-06-22T12:00:00.000Z",
+    metadata: {}
+  };
+
+  const relevantMemories: MemoryItem[] = [
+    createMemory(
+      "memory-older",
+      "fact",
+      "The user cares about continuity and wants it to feel steady.",
+      "2026-05-01T10:00:00.000Z",
+      ["message-old"]
+    ),
+    createMemory(
+      "memory-newer",
+      "preference",
+      "The user cares about continuity and wants it to feel steady.",
+      "2026-06-21T10:00:00.000Z",
+      ["message-new"]
+    )
+  ];
+
+  const selection = selectContinuityThread({
+    latestUserMessage,
+    relevantMemories,
+    timeline: []
+  });
+
+  assert.equal(
+    selection.primaryLine,
+    "[memory:preference] The user cares about continuity and wants it to feel steady."
+  );
+  assert.equal(selection.secondaryMemories[0]?.id, "memory-older");
+});
+
 function createMemory(
   id: string,
   type: MemoryItem["type"],
-  content: string
+  content: string,
+  createdAt = new Date().toISOString(),
+  sourceMessageIds = ["message-source"]
 ): MemoryItem {
   return {
     id,
@@ -123,7 +165,7 @@ function createMemory(
     content,
     importance: 0.8,
     confidence: 0.8,
-    sourceMessageIds: ["message-source"],
-    createdAt: new Date().toISOString()
+    sourceMessageIds,
+    createdAt
   };
 }
