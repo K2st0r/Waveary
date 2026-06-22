@@ -40,6 +40,9 @@ Only write preferences here when they are likely to remain useful over time.
 - The homepage should stay introduction-first and not collapse back into one long tools page.
 - The chat experience should stay simpler and more companion-focused than the console.
 - The user prefers a more emotional, higher-quality, less generic frontend feel over generic utility UI.
+- The console should behave like a compact real control desk: no marketing-style intro cards at the top, no long explanatory blocks, and no avoidable full-page scrolling for routine controls.
+- The homepage background objects should ultimately come from transparent PNG doodle assets generated through `C:\Users\13571\Desktop\micu-image-20260608.html`, not from long-term CSS-only fake doodle shapes.
+- Those doodle assets should be black-and-white, hand-drawn, memory-laden everyday objects with slightly denser distribution across the milk-white homepage background.
 
 ## Development Workflow Preferences
 

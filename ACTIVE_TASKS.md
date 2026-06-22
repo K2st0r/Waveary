@@ -14,8 +14,8 @@ Update it when:
 
 1. Keep polishing the `waveary-web` home / console shell.
    Status: in progress
-   Current state: the homepage first screen has been compressed, the hero definition block has been shortened, drifting monochrome doodle objects now animate in the background, and the console has been split into focused provider / sessions / care / runtime workspaces instead of one long scroll.
-   Next cut: visually verify and refine the non-session console workspaces plus any remaining first-screen overflow or spacing issues on real browser heights.
+   Current state: the homepage first screen has been compressed, the hero definition block has been shortened, the homepage doodle layer now points at image-based doodle assets instead of hard-coded CSS object shapes, and the console top intro has been suppressed in favor of a tighter toolbar plus focused provider / sessions / care / runtime workspaces.
+   Next cut: replace the current doodle placeholder PNGs with real transparent hand-drawn assets generated through `C:\Users\13571\Desktop\micu-image-20260608.html`, then visually verify the compact console workspaces on real browser heights.
 
 2. Continue the `waveary-core` dialogue-quality pass.
    Status: in progress

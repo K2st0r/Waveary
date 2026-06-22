@@ -4,6 +4,45 @@
 
 Objective:
 
+Make the console feel like a compact real control desk instead of a second landing section, and switch the homepage doodle system toward image-based assets with continuity rules for the local image tool.
+
+Summary:
+
+- added a compact console toolbar ahead of the workspace tabs so the page now exposes one clear operational header instead of relying on the older long-form intro treatment
+- suppressed the old console intro / summary / flow presentation through the stylesheet so the console reads more like a usable control surface and less like a marketing continuation of the homepage
+- changed homepage doodle rendering from CSS shape variants to image-backed doodle assets under `waveary-web/public/images/doodles/`
+- added temporary transparent placeholder PNG files so the build stays green while the final hand-drawn object set is still pending generation from `C:\Users\13571\Desktop\micu-image-20260608.html`
+- updated product and continuity records so future sessions remember the console-density preference and the requirement to use the local image tool for final homepage doodle assets
+
+Files changed:
+
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `waveary-web/public/images/doodles/README.md`
+- `waveary-web/public/images/doodles/*.png`
+- `docs/product-preferences.md`
+- `ACTIVE_TASKS.md`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+- `C:\Users\13571\.codex\skills\waveary-continuity-guard\SKILL.md`
+
+Verification:
+
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run web:build`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-22
+
+Objective:
+
 Tighten the homepage first screen and split the web console into focused workspaces so the public shell feels more like a formal project homepage plus a usable system desk.
 
 Summary:
