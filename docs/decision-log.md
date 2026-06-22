@@ -661,3 +661,25 @@ Impact:
 - `waveary-web/server/browser-automation.ts` now owns current-page, extract-text, and search-text primitives on top of the managed Playwright context
 - `waveary-web/server/provider-api.ts` now exposes `/api/browser/page`, `/api/browser/extract-text`, and `/api/browser/search-text`
 - future browser work should grow through similarly explicit bounded actions such as click-by-text or link selection before any broader agent abstraction is considered
+
+## 2026-06-22 - Browser Interaction Should Graduate Through Explicit Click Primitives
+
+Status:
+
+- accepted
+
+Decision:
+
+Advance the managed browser layer from read-only inspection into one explicit interaction step by supporting visible clickable-element listing and click-by-text, while still refusing a free-form browser-agent abstraction.
+
+Reason:
+
+- once Waveary can read the current page, the next stable capability is a narrow click primitive rather than unrestricted automation
+- listing visible click targets keeps the interaction legible and debuggable before later UI or permission wiring
+- click-by-text is enough to validate a real browser control loop without introducing arbitrary DOM scripting or natural-language overreach
+
+Impact:
+
+- `waveary-web/server/browser-automation.ts` now owns `listManagedBrowserClickableElements()` and `clickManagedBrowserElementByText()`
+- `waveary-web/server/provider-api.ts` now exposes `/api/browser/clickable-elements` and `/api/browser/click-text`
+- future browser work should continue through bounded actions like explicit link selection or form-field targeting, not by collapsing straight into a broad autonomous browser agent

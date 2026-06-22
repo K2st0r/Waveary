@@ -3838,6 +3838,43 @@ Push:
 
 Objective:
 
+Extend the managed browser layer one step beyond read-only inspection by adding explicit clickable-target discovery and click-by-text actions without turning Waveary into a free-form browser agent.
+
+Summary:
+
+- expanded `waveary-web/server/browser-automation.ts` so the managed Playwright layer can now list visible clickable elements and click the first visible match by text, on top of the existing page-info, extract-text, and search-text primitives
+- exposed those capabilities as `/api/browser/clickable-elements` and `/api/browser/click-text` through `waveary-web/server/provider-api.ts`, keeping the browser interaction boundary explicit and separate from normal chat generation
+- added route-level regression coverage in `waveary-web/server/provider-api.test.ts` for clickable-element listing and click-by-text payload handling through browser-automation test overrides
+- re-ran `@waveary/web` tests and typecheck successfully, and recorded that root `npm run web:build` still hit the known Windows `EPERM` dist-cleanup issue in `waveary-core/dist` rather than a new browser-layer logic failure
+
+Files changed:
+
+- `waveary-web/server/browser-automation.ts`
+- `waveary-web/server/provider-api.ts`
+- `waveary-web/server/provider-api.test.ts`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run test --workspace @waveary/web`
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run web:build` failed on Windows with `EPERM` while removing `waveary-core/dist`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-22
+
+Objective:
+
 Extend the managed browser layer beyond `open_url` so Waveary can inspect the page it opened through a bounded, testable API instead of stopping at shell-level browser launch.
 
 Summary:

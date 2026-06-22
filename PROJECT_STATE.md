@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `31202cb` - `Add bounded managed browser read routes`
+- `3c731bc` - `Record bounded browser read routes`
 
 ## Modules
 
@@ -126,6 +126,7 @@ Brand line:
   - same-turn local action handling is now reply-consistent under `full-access`: `/api/chat/turn` receives the current local-action permission, auto-runs supported actions server-side when permission is `allow`, and returns an execution-consistent assistant reply instead of leaving a contradictory model disclaimer beside a successful local action
   - browser `open_url` local actions now run through a Waveary-managed Playwright persistent browser context instead of delegating directly to the system shell, giving the project its first reusable browser automation footing without rewriting the wider local-action trust boundary
   - the managed browser layer now also exposes bounded same-origin `/api/browser/*` routes for current-page inspection, visible-text extraction, and page-text search, so Waveary can begin reading and navigating the browser state it opened without jumping to a free-form web agent
+  - the managed browser layer now also supports listing visible clickable elements and clicking a matched element by visible text through bounded `/api/browser/*` routes, so browser control can advance one stable interaction step beyond pure page reading while remaining explicit and auditable
   - local-action reply wording now stays more companion-like after execution or dismissal, so successful browser opens no longer read like a sterile audit log or drift into made-up “virtual homepage” narration
   - Chinese open-site detection now recognizes broader Bilibili phrasing such as `打开哔哩哔哩` in addition to raw English `open bilibili`
   - the first local-action execution surface stays intentionally narrow and auditable inside `waveary-web`: proposal detection is rule-based, execution is permission-gated, denied policy blocks execution, ask-first requires one explicit approval click, and dismissing the card clears the pending action from persisted session state`r`n  - executed and dismissed local actions now also append a small assistant-side audit note into persisted chat history, so trust-visible action outcomes survive reloads and restored sessions instead of living only in transient UI state
@@ -204,6 +205,8 @@ Brand line:
 - `GET /api/browser/page` route-level coverage via `npm run test --workspace @waveary/web`
 - `POST /api/browser/extract-text` route-level coverage via `npm run test --workspace @waveary/web`
 - `POST /api/browser/search-text` route-level coverage via `npm run test --workspace @waveary/web`
+- `POST /api/browser/clickable-elements` route-level coverage via `npm run test --workspace @waveary/web`
+- `POST /api/browser/click-text` route-level coverage via `npm run test --workspace @waveary/web`
 - `npm run demo:provider` shows required provider configuration guidance
 - `npm run setup:provider` is available for interactive provider selection and config saving
 - `npm run test --workspace @waveary/core`
@@ -257,7 +260,7 @@ Brand line:
 - extend the browser notification path from manual console evaluation into a bounded scheduled or reminder-style delivery loop without introducing hidden background behavior
 - continue refining the new three-step chat permission presets so the difference between `high-permission` and `full-access` stays legible now that `full-access` also returns same-turn execution-consistent replies instead of showing a contradiction between model text and local action outcome
 - add a focused browser pass for `full-access` local actions so the live chat page is re-verified end-to-end against the now server-driven same-turn execution path, not only route-level tests
-- extend the new Playwright-backed browser path from current-page info, extract-text, and page-search into one next bounded interaction cut such as click-by-text or link selection, while keeping permission prompts, auditability, and revocation explicit
+- extend the new Playwright-backed browser path from current-page info, extract-text, page-search, and click-by-text into one next bounded interaction cut such as explicit link selection or form-field targeting, while keeping permission prompts, auditability, and revocation explicit
 - consider showing a user-facing indicator in the console or chat flow when a proactive care wait-state has been cleared by a real reply, so the permissioned care loop is more legible
 - consider distinguishing affirmative proactive recommendations from blocked evaluations more visually in the console card now that their text is user-facing
 - consider exposing a smaller single-line status echo near the evaluate button so the latest `WPCE` conclusion remains visible even when the full decision card scrolls out of view
@@ -310,4 +313,5 @@ Brand line:
 ## Open Issues
 
 - `npm run web:build` should not be executed in parallel with another root build command because package `dist` cleanup can race on Windows
+- `npm run web:build` can still fail on Windows with `EPERM` while removing `waveary-core/dist` if a prior build or process is holding the directory, even when narrower `@waveary/web` test and typecheck verification succeeds
 

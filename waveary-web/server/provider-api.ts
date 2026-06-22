@@ -5,8 +5,10 @@ import { fileURLToPath } from "node:url";
 
 import { OpenAICompatibleChatProvider, PROVIDER_PRESETS } from "@waveary/core";
 import {
+  clickManagedBrowserElementByText,
   extractManagedBrowserPageText,
   getManagedBrowserPageInfo,
+  listManagedBrowserClickableElements,
   searchManagedBrowserPageText
 } from "./browser-automation.js";
 
@@ -74,6 +76,16 @@ interface BrowserSearchRequest {
   query?: string;
   maxSnippets?: number;
   snippetRadius?: number;
+}
+
+interface BrowserClickableElementsRequest {
+  maxElements?: number;
+}
+
+interface BrowserClickTextRequest {
+  text?: string;
+  exact?: boolean;
+  timeoutMs?: number;
 }
 
 interface ExecuteLocalActionRequest extends ChatSessionRequest {
@@ -248,6 +260,34 @@ export function createProviderApiMiddleware() {
               : {}),
             ...(typeof payload.snippetRadius === "number"
               ? { snippetRadius: payload.snippetRadius }
+              : {})
+          }
+        );
+
+        sendJson(response, 200, result);
+        return;
+      }
+
+      if (request.method === "POST" && request.url === "/api/browser/clickable-elements") {
+        const payload = (await readJsonBody(request)) as BrowserClickableElementsRequest;
+        const result = await listManagedBrowserClickableElements({
+          ...(typeof payload.maxElements === "number"
+            ? { maxElements: payload.maxElements }
+            : {})
+        });
+
+        sendJson(response, 200, result);
+        return;
+      }
+
+      if (request.method === "POST" && request.url === "/api/browser/click-text") {
+        const payload = (await readJsonBody(request)) as BrowserClickTextRequest;
+        const result = await clickManagedBrowserElementByText(
+          requireNonEmpty(payload.text, "Browser click target text is required."),
+          {
+            ...(typeof payload.exact === "boolean" ? { exact: payload.exact } : {}),
+            ...(typeof payload.timeoutMs === "number"
+              ? { timeoutMs: payload.timeoutMs }
               : {})
           }
         );
