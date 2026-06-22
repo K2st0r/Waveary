@@ -22,9 +22,10 @@ export function selectContinuityThread(
   const sortedMemoryCandidates = [...input.relevantMemories]
     .map((memory) => ({
       memory,
-      rawScore: scoreContinuityMatch(memory.content, turnText)
+      rawScore: scoreContinuityMatch(memory.content, turnText),
+      rankingScore: rankMemoryCandidate(memory, turnText)
     }))
-    .sort((left, right) => right.rawScore - left.rawScore);
+    .sort((left, right) => right.rankingScore - left.rankingScore);
   const sortedTimelineCandidates = [...input.timeline]
     .map((event) => ({
       event,
@@ -120,6 +121,36 @@ export function selectContinuityThread(
       "No strong continuity thread is available. Stay with the current emotional moment rather than inventing continuity.",
     secondaryMemories: []
   };
+}
+
+function rankMemoryCandidate(memory: MemoryItem, turnText: string): number {
+  const baseScore = scoreContinuityMatch(memory.content, turnText);
+  const recencyBonus = resolveMemoryRecencyBonus(memory.createdAt);
+  return baseScore + recencyBonus;
+}
+
+function resolveMemoryRecencyBonus(createdAt: string): number {
+  const createdAtMs = Date.parse(createdAt);
+
+  if (!Number.isFinite(createdAtMs)) {
+    return 0;
+  }
+
+  const ageDays = Math.max(0, (Date.now() - createdAtMs) / (1000 * 60 * 60 * 24));
+
+  if (ageDays <= 3) {
+    return 0.08;
+  }
+
+  if (ageDays <= 14) {
+    return 0.04;
+  }
+
+  if (ageDays <= 45) {
+    return 0.015;
+  }
+
+  return 0;
 }
 
 export function summarizeCurrentTurnFocus(content: string): string {
