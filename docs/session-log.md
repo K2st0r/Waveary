@@ -4300,3 +4300,40 @@ Commit:
 Push:
 
 - succeeded: `git push origin main` pushed functional commit `586c0b1` to `origin/main`
+
+## 2026-06-22
+
+Objective:
+
+Restore the visibility of provider and model setup in the console after the compact workspace shell made that flow feel missing.
+
+Summary:
+
+- confirmed that provider presets, model discovery state, selected model state, and the provider setup panel code were still present in `waveary-web/src/App.tsx`; the regression was a console-shell visibility problem rather than deleted model logic
+- updated the console toolbar so `模型接入 / Model setup` is always one click away even after switching into other workspaces
+- changed the console status strip to show provider and model separately, so the current setup state no longer collapses into one ambiguous runtime label
+- added an automatic return to the provider workspace whenever the runtime is not fully configured, so users cannot land in another workspace and conclude the model selector is gone
+- re-verified the web package through typecheck, server build, route tests, and production build after the console visibility fix
+
+Files changed:
+
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+
+Verification:
+
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run build:server --workspace @waveary/web`
+- `npm run test --workspace @waveary/web`
+- `npm run web:build`
+
+Commit:
+
+- `1374a56` - `Restore visible provider model setup in console`
+
+Push:
+
+- succeeded: `git push origin main` pushed functional commit `1374a56` to `origin/main`

@@ -818,3 +818,25 @@ Impact:
 - spoken replies now automatically resume microphone listening when live mode is still active, for both browser speech synthesis and provider-returned audio playback
 - no-speech and playback-failure edges now stay inside the live loop more gracefully instead of always forcing the user to restart from scratch
 - the next voice cut should choose deliberately between provider-backed STT and a truer duplex / interruption model rather than rediscovering the live-loop step again
+
+## 2026-06-22 - Provider And Model Setup Must Stay Explicitly Reachable In The Console
+
+Status:
+
+- accepted
+
+Decision:
+
+Do not let provider selection, model discovery, or model selection become effectively hidden behind a compressed console workspace flow. The console may stay compact, but model setup must remain obviously reachable and legible at all times.
+
+Reason:
+
+- hiding the provider workspace behind denser shell controls made it feel like the model selector had disappeared, even though the underlying state and routes still existed
+- provider and model setup are foundational prerequisites, not optional diagnostics, so regressions in their visibility are product-breaking
+- future shell polish should add new control surfaces without making already-working setup paths ambiguous or easy to lose
+
+Impact:
+
+- the console toolbar now includes a fixed shortcut back to `模型接入 / Model setup`
+- the console status strip now exposes provider and model as separate visible state pills instead of collapsing all runtime readiness into one opaque label
+- when no runnable provider/model configuration exists yet, the console automatically returns to the provider workspace instead of leaving the user stranded in a different workspace

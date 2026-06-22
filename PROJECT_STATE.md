@@ -171,6 +171,7 @@ Brand line:
   - the console page now also exposes a tighter top toolbar and suppresses the earlier intro / summary / flow marketing block so the page reads more like a control desk than a second landing section
   - homepage hero and top doodle layer are now compressed further so the opening screen fits more comfortably on common desktop heights without immediately feeling below-the-fold
   - the console shell is now tighter again through denser workspace tabs, a compact status strip, reduced shell padding, and shorter viewport-based panel heights so the operational surface stays closer to one-screen use
+  - the console now also keeps provider/model setup explicitly reachable through a fixed toolbar shortcut back to `模型接入 / Model setup`, separate provider/model status pills, and an automatic return to the provider workspace whenever the runtime is not fully configured, so the model selector can no longer feel like it disappeared behind another workspace
 
 ## Provider Flow
 
