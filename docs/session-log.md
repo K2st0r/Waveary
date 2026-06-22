@@ -4,6 +4,42 @@
 
 Objective:
 
+Move the most important permission controls closer to the live conversation surface so users can adjust companionship-relevant trust settings without leaving the chat page.
+
+Summary:
+
+- added a compact chat-side permission tray beside the conversation composer in `waveary-web/src/App.tsx`
+- reused the existing permission model and `handlePermissionLevelChange()` flow instead of creating a second permission state path, so the chat tray and console permission center stay synchronized
+- exposed the highest-conversation-relevance permissions there first: time awareness, proactive notifications, desktop presence, and local actions
+- added dedicated chat-tray styling in `waveary-web/src/styles.css`, including a floating desktop popover and a stacked mobile layout
+- verified the UI change with TypeScript and full web production build
+
+Files changed:
+
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/product-preferences.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run web:build`
+
+Commit:
+
+- pending - `Add chat-side permission tray`
+
+Push:
+
+- pending
+
+## 2026-06-22
+
+Objective:
+
 Shift the default proactive-care posture toward a more companion-like baseline so Waveary does not wait for users to manually enable ordinary care behavior before it can feel present.
 
 Summary:

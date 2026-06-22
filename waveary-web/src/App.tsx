@@ -806,6 +806,8 @@ const enCopy = {
     placeholder: "Tell Waveary something worth remembering...",
     sending: "Sending...",
     send: "Send Message",
+    quickPermissions: "Quick Permissions",
+    quickPermissionsHint: "Adjust time, care, and local powers here without leaving the conversation.",
     sessionExport: "Session Export",
     structuredJson: "Structured JSON",
     exportDescription: "This export package includes conversation, persisted memories, relationship state, timeline events, and latest insights for the active session.",
@@ -1270,6 +1272,7 @@ export function App(): ReactElement {
   const [proactiveAutoCheckLastRunAt, setProactiveAutoCheckLastRunAt] = useState<string | null>(null);
   const [proactiveAutoCheckLastOutcome, setProactiveAutoCheckLastOutcome] =
     useState<ProactiveAutoCheckOutcome | null>(null);
+  const [chatPermissionTrayOpen, setChatPermissionTrayOpen] = useState(false);
   const [chatSessions, setChatSessions] = useState<ChatSessionListItem[]>([]);
   const [activeSessionId, setActiveSessionId] = useState("");
   const [defaultSessionId, setDefaultSessionId] = useState("");
@@ -3868,14 +3871,70 @@ export function App(): ReactElement {
                   placeholder={copy.runtime.placeholder}
                   disabled={!chatReady || chatState === "loading"}
                 />
-                <div className="console-actions">
-                  <button
-                    className="button button-primary"
-                    onClick={() => void handleSendMessage()}
-                    disabled={!chatReady || !chatInput.trim() || chatState === "loading"}
-                  >
-                    {chatState === "loading" ? copy.runtime.sending : copy.runtime.send}
-                  </button>
+                <div className="chat-composer-toolbar">
+                  <div className="chat-permission-tray">
+                    <button
+                      className={`button button-secondary chat-permission-trigger ${chatPermissionTrayOpen ? "chat-permission-trigger-active" : ""}`}
+                      onClick={() => setChatPermissionTrayOpen((current) => !current)}
+                      type="button"
+                    >
+                      {copy.runtime.permissions}
+                    </button>
+
+                    {chatPermissionTrayOpen ? (
+                      <div className="chat-permission-popover">
+                        <div className="chat-permission-popover-header">
+                          <strong>{copy.runtime.permissions}</strong>
+                          <span>{copy.runtime.permissionsHint}</span>
+                        </div>
+
+                        <div className="chat-permission-inline-grid">
+                          {(
+                            [
+                              ["timeAwareness", copy.runtime.permissionTimeAwareness],
+                              ["proactiveNotifications", copy.runtime.permissionProactiveNotifications],
+                              ["desktopPresence", copy.runtime.permissionDesktopPresence],
+                              ["localActions", copy.runtime.permissionLocalActions]
+                            ] as const
+                          ).map(([key, label]) => (
+                            <div className="chat-permission-inline-card" key={key}>
+                              <strong>{label}</strong>
+                              <div className="permission-level-group chat-permission-level-group">
+                                {(
+                                  [
+                                    ["deny", copy.runtime.permissionDeny],
+                                    ["ask", copy.runtime.permissionAsk],
+                                    ["allow", copy.runtime.permissionAllow]
+                                  ] as const
+                                ).map(([value, valueLabel]) => (
+                                  <label className="permission-choice chat-permission-choice" key={value}>
+                                    <input
+                                      type="radio"
+                                      name={`chat-permission-${key}`}
+                                      value={value}
+                                      checked={permissionProfile[key] === value}
+                                      onChange={() => handlePermissionLevelChange(key, value)}
+                                    />
+                                    <span>{valueLabel}</span>
+                                  </label>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <div className="console-actions">
+                    <button
+                      className="button button-primary"
+                      onClick={() => void handleSendMessage()}
+                      disabled={!chatReady || !chatInput.trim() || chatState === "loading"}
+                    >
+                      {chatState === "loading" ? copy.runtime.sending : copy.runtime.send}
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

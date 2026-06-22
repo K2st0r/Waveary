@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `1d981d7` - `Default proactive care toward autonomous companionship`
+- pending - `Add chat-side permission tray`
 
 ## Modules
 
@@ -118,6 +118,7 @@ Brand line:
   - proactive-care evaluation output and browser notification copy now translate raw `WPCE` intent, urgency, and reason codes into user-facing Chinese and English labels instead of exposing internal engine enums directly
   - the `WPCE` console decision card now visually separates affirmative reachout recommendations from policy-blocked evaluations through distinct summary copy, badge states, and surface treatment, so users can scan the outcome without parsing every field
   - the live conversation experience now has its own dedicated chat page with a stripped-down journal-style canvas and composer
+  - the chat page now also surfaces a compact permission tray beside the composer, so time awareness, proactive notifications, desktop presence, and local-action intent can be adjusted in conversation without sending users back to the console
   - the visible persisted-session archive panel has been removed from the runtime rail so the console reads less like a raw internal debug dump
   - the split home / console / chat shell now has a stronger page-by-page hierarchy: the homepage reads more like a formal project front page, the console reads more like a system desk, and the chat page is more tightly focused on the active conversation surface
   - homepage hero now includes a portrait-memory visual layer with drifting hand-drawn question-mark portraits and a burn-to-ash memory focal animation
@@ -269,6 +270,7 @@ Brand line:
 - run a focused browser pass for homepage doodle density, fade rhythm, and overall visual balance now that the doodle set includes both the original study objects and the new paper-memory objects
 - visually verify and, only if needed, tighten any remaining console workspace that still forces awkward external page scrolling after the latest compact-shell pass
 - design the next real execution layer for higher-trust capabilities so desktop presence and local actions can move from permission placeholders into auditable ask-first implementations instead of remaining UI-only policy slots
+- wire the new chat-side permission tray into the first real ask-first local action flow so those toggles graduate from preference state into usable companion-side execution boundaries
 - continue the homepage portrait system with a more deliberate `4 male / 4 female` hand-drawn polaroid-style set so the visual range feels broader and less clustered around one youth archetype
 - consider replacing the current chroma-keyed lighter cutout with a cleaner native-alpha illustration once a final asset pass is approved
 - consider a follow-up homepage motion pass that adds a slightly stronger heat shimmer or ember flicker only if it stays subtle and does not overcomplicate the hero
