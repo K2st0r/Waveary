@@ -382,6 +382,85 @@ test("chat turn auto-executes local actions in full-access mode and returns an e
   );
 });
 
+test("chat turn follows up inside Bilibili and opens a matching video for 看 + keyword requests", async () => {
+  const middleware = createProviderApiMiddleware();
+
+  saveProviderConfig({
+    provider: "provider-a",
+    baseURL: "https://provider-a.example/v1",
+    apiKey: "key-a",
+    model: "model-a"
+  });
+
+  globalThis.fetch = (async () =>
+    new Response(
+      JSON.stringify({
+        choices: [
+          {
+            message: {
+              content: "I can help with that."
+            }
+          }
+        ]
+      }),
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json"
+        }
+      }
+    )) as typeof fetch;
+
+  let openedUrls: string[] = [];
+
+  setBrowserAutomationOverridesForTests({
+    async getPageInfo() {
+      return {
+        url: "https://www.bilibili.com/",
+        title: "Bilibili"
+      };
+    },
+    async openPage(url) {
+      openedUrls.push(url);
+      return {
+        status: "opened",
+        url,
+        title: "Bilibili Search"
+      };
+    },
+    async openFirstVisibleLink(options) {
+      assert.equal(options?.hrefIncludes, "/video/");
+      return {
+        page: {
+          url: "https://www.bilibili.com/video/BV1test",
+          title: "CSGO Major Highlights"
+        },
+        matchedText: "CSGO Major Highlights",
+        href: "https://www.bilibili.com/video/BV1test",
+        openedAt: "2026-06-22T11:00:00.000Z"
+      };
+    }
+  });
+
+  const response = await invokeJsonRoute(middleware, "POST", "/api/chat/turn", {
+    sessionId: DEFAULT_CHAT_SESSION_ID,
+    message: "看csgo",
+    localActionPermission: "allow",
+    locale: "zh"
+  });
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.pendingLocalAction, null);
+  assert.equal(
+    openedUrls[0],
+    "https://search.bilibili.com/all?keyword=csgo"
+  );
+  assert.match(
+    response.body.reply,
+    /我已经替你在 Bilibili 里顺着“csgo”找了一个视频，并打开了「CSGO Major Highlights」/
+  );
+});
+
 test("chat turn proposes a pending browser read action for current-page reading requests", async () => {
   const middleware = createProviderApiMiddleware();
 
