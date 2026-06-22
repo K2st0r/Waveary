@@ -74,6 +74,17 @@ export function selectContinuityThread(
     };
   }
 
+  if (timelineCandidate && emotionalTurn && rawTimelineScore < 0.48) {
+    return {
+      primaryLine: `[timeline:${timelineCandidate.eventType}] ${timelineCandidate.title}`,
+      guidance:
+        "This timeline thread is available, but do not force it unless it naturally matches the user's present concern.",
+      secondaryMemories: sortedMemoryCandidates
+        .map((candidate) => candidate.memory)
+        .slice(0, 2)
+    };
+  }
+
   if (timelineCandidate && timelineScore >= 0.18) {
     return {
       primaryLine: `[timeline:${timelineCandidate.eventType}] ${timelineCandidate.title}`,

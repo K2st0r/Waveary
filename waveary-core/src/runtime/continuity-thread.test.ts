@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 import type { Message } from "../domain/session.js";
 import type { MemoryItem } from "../domain/memory.js";
+import type { TimelineEvent } from "../domain/timeline.js";
 import { selectContinuityThread, summarizeCurrentTurnFocus } from "./continuity-thread.js";
 
 test("selectContinuityThread prefers a strong matching memory as the primary thread", () => {
@@ -69,6 +70,45 @@ test("selectContinuityThread avoids forcing a weak memory into an emotional turn
   );
   assert.match(selection.guidance, /only use it if the current turn clearly connects/i);
   assert.equal(selection.secondaryMemories.length, 0);
+});
+
+test("selectContinuityThread keeps a weak timeline thread restrained during an emotional turn", () => {
+  const latestUserMessage: Message = {
+    id: "message-3",
+    sessionId: "session-1",
+    role: "user",
+    content: "I feel anxious tonight and I do not want to sit in this alone.",
+    timestamp: new Date().toISOString(),
+    metadata: {}
+  };
+
+  const timeline: TimelineEvent[] = [
+    {
+      id: "timeline-1",
+      userId: "user-1",
+      title: "Went sketching in the park",
+      description: "The user spent a quiet afternoon sketching in the park last month.",
+      eventType: "memory",
+      eventTime: new Date().toISOString(),
+      importance: 0.72,
+      linkedMemoryIds: []
+    }
+  ];
+
+  const selection = selectContinuityThread({
+    latestUserMessage,
+    relevantMemories: [],
+    timeline
+  });
+
+  assert.equal(
+    selection.primaryLine,
+    "[timeline:memory] Went sketching in the park"
+  );
+  assert.match(
+    selection.guidance,
+    /do not force it unless it naturally matches the user's present concern/i
+  );
 });
 
 function createMemory(
