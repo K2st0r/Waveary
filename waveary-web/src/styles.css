@@ -1858,6 +1858,12 @@ textarea {
   gap: 0.75rem;
 }
 
+.console-provider-shortcut-active {
+  border-color: rgba(21, 18, 15, 0.24);
+  background: rgba(255, 248, 238, 0.92);
+  box-shadow: 3px 4px 0 rgba(21, 18, 15, 0.08);
+}
+
 .console-intro > .console-masthead,
 .console-intro > .console-status-board,
 .console-intro > .console-flow-strip {
@@ -1916,7 +1922,7 @@ textarea {
 
 .console-status-strip {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 0.55rem;
   margin-top: 0.68rem;
 }

@@ -3176,6 +3176,8 @@ export function App(): ReactElement {
     ? copy.formatting.archiveSummary(sessionMemoryArchive.length, sessionTimelineEvents.length)
     : copy.formatting.noArchive;
   const runtimeStateLabel = chatReady ? copy.formatting.ready : copy.formatting.waiting;
+  const configuredProviderLabel = savedConfig?.provider ?? (locale === "zh" ? "未配置供应商" : "No provider");
+  const configuredModelLabel = savedConfig?.model ?? (locale === "zh" ? "未选择模型" : "No model selected");
   const navigationItems: ReadonlyArray<{ page: AppPage; label: string }> = [
     { page: "home", label: copy.nav[0] },
     { page: "console", label: copy.nav[4] },
@@ -3211,6 +3213,16 @@ export function App(): ReactElement {
           runtime: "Current relationship, memory, timeline, and structured export output."
         };
   const activeBurnPortrait = heroPortraitCards[activeBurnPortraitIndex] ?? heroPortraitCards[0]!;
+
+  useEffect(() => {
+    if (currentPage !== "console") {
+      return;
+    }
+
+    if (!chatReady && activeConsoleWorkspace !== "provider") {
+      setActiveConsoleWorkspace("provider");
+    }
+  }, [activeConsoleWorkspace, chatReady, currentPage]);
 
   return (
     <div className="page-shell">
@@ -3546,6 +3558,13 @@ export function App(): ReactElement {
                 </small>
               </div>
               <div className="console-toolbar-actions">
+                <button
+                  className={`button button-secondary ${activeConsoleWorkspace === "provider" ? "console-provider-shortcut-active" : ""}`}
+                  onClick={() => setActiveConsoleWorkspace("provider")}
+                  type="button"
+                >
+                  {locale === "zh" ? "模型接入" : "Model setup"}
+                </button>
                 <button className="button button-primary" onClick={() => navigateTo("chat")} type="button">
                   {locale === "zh" ? "进入对话" : "Open chat"}
                 </button>
@@ -3621,8 +3640,9 @@ export function App(): ReactElement {
               </div>
               <div className="console-status-strip">
                 <span>{configuredRuntimeLabel}</span>
+                <span>{configuredProviderLabel}</span>
+                <span>{configuredModelLabel}</span>
                 <span>{sessionSummaryLabel}</span>
-                <span>{archiveSummaryLabel}</span>
                 <span>{runtimeStateLabel}</span>
               </div>
             </div>
