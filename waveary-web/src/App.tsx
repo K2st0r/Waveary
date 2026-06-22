@@ -1177,11 +1177,15 @@ const heroPortraitCards: HeroPortraitCard[] = [
 const homeDoodles: HomeDoodle[] = [
   { id: "doodle-ruler", src: "/images/doodles/ruler.png", top: "12%", left: "5%", rotation: "-9deg", scale: 0.98, delay: "-4s" },
   { id: "doodle-bow", src: "/images/doodles/bow.png", top: "10%", left: "72%", rotation: "8deg", scale: 0.9, delay: "-9s" },
+  { id: "doodle-stamp", src: "/images/doodles/stamp.png", top: "16%", left: "30%", rotation: "-7deg", scale: 0.82, delay: "-11s" },
   { id: "doodle-eraser", src: "/images/doodles/eraser.png", top: "22%", left: "86%", rotation: "11deg", scale: 0.88, delay: "-12s" },
+  { id: "doodle-envelope", src: "/images/doodles/envelope.png", top: "28%", left: "15%", rotation: "10deg", scale: 0.92, delay: "-6s" },
   { id: "doodle-pencil", src: "/images/doodles/pencil.png", top: "42%", left: "3%", rotation: "-22deg", scale: 1.02, delay: "-16s" },
   { id: "doodle-notebook", src: "/images/doodles/notebook.png", top: "34%", left: "80%", rotation: "6deg", scale: 0.95, delay: "-3s" },
+  { id: "doodle-postcard", src: "/images/doodles/postcard.png", top: "48%", left: "83%", rotation: "-5deg", scale: 0.86, delay: "-13s" },
   { id: "doodle-ribbon", src: "/images/doodles/ribbon.png", top: "58%", left: "88%", rotation: "-13deg", scale: 0.9, delay: "-14s" },
   { id: "doodle-paperclip", src: "/images/doodles/paperclip.png", top: "69%", left: "8%", rotation: "12deg", scale: 0.9, delay: "-20s" },
+  { id: "doodle-train-ticket", src: "/images/doodles/train-ticket.png", top: "71%", left: "58%", rotation: "7deg", scale: 0.88, delay: "-19s" },
   { id: "doodle-cassette", src: "/images/doodles/cassette.png", top: "74%", left: "75%", rotation: "-8deg", scale: 1.05, delay: "-24s" },
   { id: "doodle-star", src: "/images/doodles/paper-star.png", top: "82%", left: "21%", rotation: "-6deg", scale: 0.84, delay: "-7s" },
   { id: "doodle-butterfly", src: "/images/doodles/butterfly.png", top: "46%", left: "92%", rotation: "9deg", scale: 0.86, delay: "-18s" }
