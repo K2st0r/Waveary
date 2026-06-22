@@ -4,6 +4,44 @@
 
 Objective:
 
+Compress the homepage hero further and tighten the console shell into a denser operational surface without changing provider, session, or care logic.
+
+Summary:
+
+- compressed the homepage hero again by reducing vertical spacing, card height, text rhythm, and doodle inset so the opening screen fits more fully on common desktop heights
+- tightened the console shell with smaller toolbar spacing, denser workspace tabs, a new compact status strip, reduced shell padding, and shorter viewport-based panel heights
+- kept the current provider, session, proactive-care, and runtime logic intact by limiting the change to shell structure and visual density in `waveary-web/src/App.tsx` and `waveary-web/src/styles.css`
+- verified the result with `tsc`, full web production build, and a real Playwright browser pass against `#home` and `#console`
+
+Files changed:
+
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run web:build`
+- `npx --yes --package @playwright/cli playwright-cli -s=waveary-console-tighten open http://127.0.0.1:4173/#home --headed`
+- `npx --yes --package @playwright/cli playwright-cli -s=waveary-console-tighten resize 1440 1100`
+- `npx --yes --package @playwright/cli playwright-cli -s=waveary-console-tighten screenshot`
+- `npx --yes --package @playwright/cli playwright-cli -s=waveary-console-tighten tab-new http://127.0.0.1:4173/#console`
+
+Commit:
+
+- `d4208f3` - `Tighten homepage hero and compact console shell`
+
+Push:
+
+- pending
+
+## 2026-06-22
+
+Objective:
+
 Make the console feel like a compact real control desk instead of a second landing section, and switch the homepage doodle system toward image-based assets with continuity rules for the local image tool.
 
 Summary:

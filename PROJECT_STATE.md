@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `75b8064` - `Tighten console workspace and image doodle pipeline`
+- `d4208f3` - `Tighten homepage hero and compact console shell`
 
 ## Modules
 
@@ -135,6 +135,8 @@ Brand line:
   - console intro now includes an explicit workspace switcher so provider setup, session controls, proactive care, and runtime observation no longer read like one long vertically stacked tools page
   - console runtime body is now split by active workspace, keeping the top-level system summary stable while swapping only the focused operational surface below it
   - the console page now also exposes a tighter top toolbar and suppresses the earlier intro / summary / flow marketing block so the page reads more like a control desk than a second landing section
+  - homepage hero and top doodle layer are now compressed further so the opening screen fits more comfortably on common desktop heights without immediately feeling below-the-fold
+  - the console shell is now tighter again through denser workspace tabs, a compact status strip, reduced shell padding, and shorter viewport-based panel heights so the operational surface stays closer to one-screen use
 
 ## Provider Flow
 
@@ -257,6 +259,7 @@ Brand line:
 - continue polishing the split web shell by tightening session-management density below the console fold and improving message rhythm plus mixed-language balance in the dedicated chat page
 - visually verify and tune the new compact console toolbar plus non-session workspace flow in-browser, especially the internal scrolling behavior now that the marketing-style console intro has been suppressed
 - continue refining the homepage hero so the first screen feels complete across more desktop and laptop heights, with no further scroll-first regression after future copy or asset additions
+- keep iterating on the compact console shell only after visual verification shows a remaining real usability gap, instead of re-expanding it into explanatory blocks
 - replace the current doodle placeholder PNG files with real transparent hand-drawn object assets generated through `C:\Users\13571\Desktop\micu-image-20260608.html`
 - continue the homepage portrait system with a more deliberate `4 male / 4 female` hand-drawn polaroid-style set so the visual range feels broader and less clustered around one youth archetype
 - consider replacing the current chroma-keyed lighter cutout with a cleaner native-alpha illustration once a final asset pass is approved
