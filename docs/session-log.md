@@ -4,6 +4,44 @@
 
 Objective:
 
+Extend real-provider continuity regression into emotionally heavy and timeline-led cases, then fix any shared continuity-helper gap that the new provider coverage exposes.
+
+Summary:
+
+- added focused `OpenAICompatibleChatProvider` regression coverage for emotionally heavy turns where only a weak timeline thread is available, so provider-side guidance must stay present and avoid over-forcing continuity
+- added focused provider regression coverage for turns where a timeline event matches the latest user concern more strongly than weak recalled memories, so the prompt should choose timeline as the primary continuity thread while preserving relevant supporting memories
+- the new regression exposed a real shared-helper asymmetry: weak memories already received emotional-turn restraint, but weak timeline threads still used strong anchoring guidance
+- updated `selectContinuityThread()` so weak timeline threads now receive the same conservative "do not force it" treatment during emotional turns, and documented that timeline-led secondary recalled memories are ordered by current-turn relevance
+- verified the fix and new provider coverage with `@waveary/core` typecheck, fresh build, and compiled-test execution against `dist/**/*.test.js`
+
+Files changed:
+
+- `waveary-core/src/adapters/openai-compatible-provider.test.ts`
+- `waveary-core/src/runtime/continuity-thread.ts`
+- `waveary-core/src/runtime/continuity-thread.test.ts`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/core`
+- `npm run build --workspace @waveary/core`
+- PowerShell `Get-ChildItem waveary-core/dist -Recurse -Filter *.test.js | ForEach-Object { $_.FullName }` followed by `node --test <compiled test files>`
+
+Commit:
+
+- `09ffe0e` - `Harden emotional timeline continuity guidance`
+
+Push:
+
+- succeeded: `git push origin main` pushed `09ffe0e` to the SSH remote `git@github.com:K2st0r/-Waveary-.git`
+
+## 2026-06-22
+
+Objective:
+
 Strengthen real-provider dialogue regression around multi-turn continuity-thread choice and relationship-stage distance, then fix any provider-path continuity bug that the new regression exposes.
 
 Summary:

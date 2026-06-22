@@ -485,3 +485,25 @@ Impact:
 - `selectContinuityThread()` now ranks recalled memories and timeline candidates by current-turn match before choosing a primary thread
 - real-provider prompt guidance and scripted replies now stay better aligned with the user's latest focus in multi-turn conversations
 - future scoring work can extend this shared ranking with recency or source-turn weighting without reverting to provider-local heuristics
+
+## 2026-06-22 - Weak Timeline Threads Need The Same Emotional-Turn Restraint As Weak Memories
+
+Status:
+
+- accepted
+
+Decision:
+
+When the current turn is emotionally heavy, weakly matching timeline threads should receive the same "do not force it" treatment that weak recalled memories already receive.
+
+Reason:
+
+- new provider regression around emotional and timeline-led continuity exposed an asymmetry: weak memories were handled conservatively, but weak timeline events could still be framed as confident anchoring material
+- companionship realism breaks when an emotionally vulnerable turn gets steered into a barely related past life event just because timeline context exists
+- this restraint belongs in the shared continuity helper so provider prompts and scripted reply behavior stay aligned on the same edge case
+
+Impact:
+
+- `selectContinuityThread()` now downgrades weak timeline guidance during emotional turns instead of always using the stronger timeline-anchoring wording
+- provider prompt guidance now stays more emotionally present when only a low-signal life-event thread is available
+- timeline-led secondary recalled memories continue to be preserved, but their ordering now reflects current-turn relevance rather than raw retrieval order
