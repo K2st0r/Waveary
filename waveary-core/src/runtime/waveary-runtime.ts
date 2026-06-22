@@ -23,6 +23,7 @@ import type {
   RuntimeTurnOptions,
   RuntimeTurnResult
 } from "./types.js";
+import { buildDeterministicLocalTimeReply } from "./local-time-reply.js";
 
 export interface WavearyRuntimeDependencies {
   chatProvider: ChatProvider;
@@ -97,9 +98,15 @@ export class WavearyRuntime {
       ...(options.localTime ? { localTime: options.localTime } : {}),
       ...(detectedUserEmotion ? { detectedUserEmotion } : {})
     };
-    const content = await this.deps.chatProvider.generateReply(
-      emotion ? { ...request, emotion } : request
+    const deterministicLocalTimeReply = buildDeterministicLocalTimeReply(
+      input.content,
+      options.localTime
     );
+    const content =
+      deterministicLocalTimeReply ??
+      (await this.deps.chatProvider.generateReply(
+        emotion ? { ...request, emotion } : request
+      ));
 
     const reply: Message = {
       id: `reply-${input.id}`,
