@@ -293,6 +293,43 @@ test("WavearyRuntime softens scripted replies during late-night local time when 
   );
 });
 
+test("WavearyRuntime answers direct local-time questions deterministically before provider fallback", async () => {
+  const runtime = new WavearyRuntime({
+    chatProvider: new NeverUseThisTimeFallbackProvider(),
+    emotionAnalyzer: new SimpleEmotionAnalyzer(),
+    emotionStore: new InMemoryEmotionStore(),
+    emotionEngine: new SimpleCompanionEmotionEngine(),
+    proactiveCareEngine: new SimpleProactiveCareEngine(),
+    memoryStore: new TestMemoryStore(),
+    memoryExtractor: new TestMemoryExtractor(),
+    relationshipStore: new InMemoryRelationshipStore(),
+    relationshipEngine: new SimpleRelationshipEngine(),
+    timelineStore: new InMemoryTimelineStore(),
+    timelineEngine: new SimpleTimelineEngine()
+  });
+
+  const context = createContext();
+  const message: Message = {
+    id: "turn-time-1",
+    sessionId: context.session.id,
+    role: "user",
+    content: "现在几点了？",
+    timestamp: new Date().toISOString(),
+    metadata: {}
+  };
+
+  const result = await runtime.handleTurn(context, message, {
+    localTime: {
+      iso: "2026-06-22T13:30:00.000Z",
+      timeZone: "Asia/Shanghai",
+      locale: "zh-CN"
+    }
+  });
+
+  assert.ok(result.reply.content.includes("本地时间是"));
+  assert.ok(!result.reply.content.includes("没法准确告诉你"));
+});
+
 test("WavearyRuntime evaluates proactive care through relationship, emotion, and policy state", async () => {
   const relationshipStore = new InMemoryRelationshipStore();
   const emotionStore = new InMemoryEmotionStore();
@@ -436,5 +473,11 @@ class TestMemoryExtractor implements MemoryExtractor {
         confidence: 0.8
       }
     ];
+  }
+}
+
+class NeverUseThisTimeFallbackProvider extends ScriptedChatProvider {
+  override async generateReply(): Promise<string> {
+    return "我目前没有联网获取实时时间的能力，所以没法准确告诉你现在是几点几分。";
   }
 }
