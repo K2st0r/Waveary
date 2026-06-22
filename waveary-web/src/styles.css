@@ -2665,6 +2665,72 @@ textarea {
   flex-wrap: wrap;
 }
 
+.chat-voice-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.chat-voice-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 2.4rem;
+  padding: 0.45rem 0.8rem;
+  border: 1.5px solid rgba(21, 18, 15, 0.14);
+  border-radius: 999px;
+  background: rgba(255, 252, 247, 0.92);
+  color: var(--text);
+  font-size: 0.86rem;
+}
+
+.chat-voice-toggle input {
+  margin: 0;
+}
+
+.chat-voice-status {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin-top: 0.85rem;
+  padding: 0.72rem 0.9rem;
+  border: 1px solid rgba(21, 18, 15, 0.1);
+  border-radius: 1rem;
+  background: rgba(255, 252, 247, 0.78);
+  color: rgba(27, 22, 17, 0.72);
+  font-size: 0.88rem;
+}
+
+.chat-voice-status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 3.15rem;
+  min-height: 1.8rem;
+  padding: 0 0.7rem;
+  border-radius: 999px;
+  background: rgba(21, 18, 15, 0.08);
+  color: var(--text);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.chat-voice-status-speaking {
+  background: rgba(25, 25, 25, 0.86);
+  color: #fffdfa;
+}
+
+.chat-voice-status-planning {
+  background: rgba(89, 78, 58, 0.14);
+}
+
+.chat-voice-status-error {
+  background: rgba(97, 42, 34, 0.14);
+  color: #6e2318;
+}
+
 .chat-permission-mode-switch {
   display: inline-flex;
   align-items: center;
@@ -3109,6 +3175,15 @@ textarea {
   .chat-permission-controls {
     width: 100%;
     align-items: stretch;
+  }
+
+  .chat-voice-controls {
+    width: 100%;
+  }
+
+  .chat-voice-toggle {
+    width: 100%;
+    justify-content: center;
   }
 
   .chat-permission-mode-switch {

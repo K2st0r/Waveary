@@ -4,6 +4,7 @@
   "workspaces": [
     "waveary-core",
     "waveary-memory",
+    "waveary-voice",
     "waveary-web"
   ],
   "devDependencies": {
@@ -18,10 +19,10 @@
     "models:provider": "npm run demo:build && node examples/dist/list-provider-models.js",
     "verify:provider": "npm run demo:build && node examples/dist/verify-provider.js",
     "setup:provider": "npm run demo:build && node examples/dist/setup-provider.js",
-    "demo:build": "npm run build --workspace @waveary/core && npm run build --workspace @waveary/memory && tsc -p examples/tsconfig.json",
-    "web:build": "npm run build --workspace @waveary/core && npm run build --workspace @waveary/memory && npm run build --workspace @waveary/web",
-    "web:dev": "npm run build --workspace @waveary/core && npm run build --workspace @waveary/memory && npm run dev --workspace @waveary/web",
-    "web:preview": "npm run build --workspace @waveary/core && npm run build --workspace @waveary/memory && npm run build --workspace @waveary/web && npm run preview --workspace @waveary/web",
-    "test": "npm run build --workspaces && npm run test --workspace @waveary/memory && npm run test --workspace @waveary/core && npm run test --workspace @waveary/web"
+    "demo:build": "npm run build --workspace @waveary/core && npm run build --workspace @waveary/memory && npm run build --workspace @waveary/voice && tsc -p examples/tsconfig.json",
+    "web:build": "npm run build --workspace @waveary/core && npm run build --workspace @waveary/memory && npm run build --workspace @waveary/voice && npm run build --workspace @waveary/web",
+    "web:dev": "npm run build --workspace @waveary/core && npm run build --workspace @waveary/memory && npm run build --workspace @waveary/voice && npm run dev --workspace @waveary/web",
+    "web:preview": "npm run build --workspace @waveary/core && npm run build --workspace @waveary/memory && npm run build --workspace @waveary/voice && npm run build --workspace @waveary/web && npm run preview --workspace @waveary/web",
+    "test": "npm run build --workspaces && npm run test --workspace @waveary/memory && npm run test --workspace @waveary/core && npm run test --workspace @waveary/voice && npm run test --workspace @waveary/web"
   }
 }

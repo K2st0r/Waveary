@@ -16,6 +16,7 @@ export * from "./domain/proactive-care.js";
 export * from "./domain/relationship.js";
 export * from "./domain/session.js";
 export * from "./domain/timeline.js";
+export * from "./domain/voice.js";
 export * from "./providers/interfaces.js";
 export * from "./runtime/types.js";
 export * from "./runtime/continuity-thread.js";
