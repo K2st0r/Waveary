@@ -86,6 +86,63 @@ test("chat turn proposes a pending local action for explicit open requests", asy
   assert.equal(response.body.pendingLocalAction.target, "https://www.bilibili.com/");
 });
 
+test("chat turn auto-executes local actions in full-access mode and returns an execution-consistent reply", async () => {
+  const middleware = createProviderApiMiddleware();
+
+  saveProviderConfig({
+    provider: "provider-a",
+    baseURL: "https://provider-a.example/v1",
+    apiKey: "key-a",
+    model: "model-a"
+  });
+
+  globalThis.fetch = (async () =>
+    new Response(
+      JSON.stringify({
+        choices: [
+          {
+            message: {
+              content: "I cannot directly open apps or websites for you."
+            }
+          }
+        ]
+      }),
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json"
+        }
+      }
+    )) as typeof fetch;
+
+  setLocalActionExecutorForTests(async (action: { targetLabel: string }) => ({
+    status: "executed",
+    message: `Opened ${action.targetLabel}.`
+  }));
+
+  const response = await invokeJsonRoute(middleware, "POST", "/api/chat/turn", {
+    sessionId: DEFAULT_CHAT_SESSION_ID,
+    message: "open bilibili",
+    localActionPermission: "allow",
+    locale: "en"
+  });
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.reply, "I opened Bilibili for you.");
+  assert.equal(response.body.pendingLocalAction, null);
+
+  const sessionResponse = await invokeJsonRoute(middleware, "POST", "/api/chat/session", {
+    sessionId: DEFAULT_CHAT_SESSION_ID
+  });
+
+  assert.equal(sessionResponse.statusCode, 200);
+  assert.equal(sessionResponse.body.session.messages.length, 2);
+  assert.equal(sessionResponse.body.session.messages[0]?.content, "open bilibili");
+  assert.equal(sessionResponse.body.session.messages[1]?.content, "I opened Bilibili for you.");
+  assert.equal(sessionResponse.body.session.latestInsights.pendingLocalAction, null);
+  assert.equal(sessionResponse.body.session.latestInsights.reply, "I opened Bilibili for you.");
+});
+
 test("local action execution route blocks denied permissions and succeeds after approval", async () => {
   const middleware = createProviderApiMiddleware();
 

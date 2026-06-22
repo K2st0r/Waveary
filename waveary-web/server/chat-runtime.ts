@@ -21,7 +21,16 @@ import {
   type Locale,
   type ProactiveMessageDraft
 } from "../src/proactive-message-drafts.js";
-import { detectPendingLocalAction } from "./local-actions.js";
+import {
+  detectPendingLocalAction,
+  runPendingLocalAction,
+  type LocalActionPermissionLevel
+} from "./local-actions.js";
+import {
+  buildLocalActionAuditNote,
+  buildLocalActionFailureNote,
+  type LocalActionAuditLocale
+} from "./local-action-audit.js";
 
 import {
   PersistentChatSessionState,
@@ -60,6 +69,8 @@ export async function sendChatTurn(
   content: string,
   options: {
     localTime?: LocalTimeContext;
+    localActionPermission?: LocalActionPermissionLevel;
+    locale?: LocalActionAuditLocale;
   } = {}
 ): Promise<ChatReplyPayload> {
   const trimmed = content.trim();
@@ -70,6 +81,7 @@ export async function sendChatTurn(
 
   const state = createOrReuseSession(sessionId);
   const context = state.persistentState.getContext();
+  const pendingLocalAction = detectPendingLocalAction(trimmed);
   const input: Message = {
     id: `user-${Date.now()}`,
     sessionId: context.session.id,
@@ -82,10 +94,52 @@ export async function sendChatTurn(
   const result = await state.runtime.handleTurn(context, input, {
     ...(options.localTime ? { localTime: options.localTime } : {})
   });
-  context.history = [...context.history, input, result.reply];
-
   const payload = toReplyPayload(result);
-  payload.pendingLocalAction = detectPendingLocalAction(trimmed);
+  const locale = options.locale ?? "en";
+  const shouldAutoRunLocalAction =
+    pendingLocalAction !== null && options.localActionPermission === "allow";
+
+  if (shouldAutoRunLocalAction && pendingLocalAction) {
+    try {
+      await runPendingLocalAction({
+        action: pendingLocalAction,
+        permission: "allow",
+        approved: true
+      });
+
+      const auditReply: Message = {
+        id: `assistant-local-action-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        sessionId: context.session.id,
+        role: "assistant",
+        content: buildLocalActionAuditNote(pendingLocalAction, "executed", locale),
+        timestamp: new Date().toISOString(),
+        metadata: {
+          source: "local-action",
+          localActionId: pendingLocalAction.id,
+          localActionKind: pendingLocalAction.kind,
+          localActionTarget: pendingLocalAction.target,
+          localActionTargetLabel: pendingLocalAction.targetLabel,
+          localActionStatus: "executed"
+        }
+      };
+
+      context.history = [...context.history, input, auditReply];
+      payload.reply = auditReply.content;
+      payload.pendingLocalAction = null;
+    } catch (error) {
+      context.history = [...context.history, input, result.reply];
+      payload.pendingLocalAction = pendingLocalAction;
+      payload.reply = buildLocalActionFailureNote(
+        pendingLocalAction,
+        locale,
+        error instanceof Error ? error.message : undefined
+      );
+    }
+  } else {
+    context.history = [...context.history, input, result.reply];
+    payload.pendingLocalAction = pendingLocalAction;
+  }
+
   state.persistentState.clearUnansweredProactiveReachouts();
   state.persistentState.saveTurn(context, payload);
 
