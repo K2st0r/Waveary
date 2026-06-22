@@ -795,3 +795,26 @@ Impact:
 - `waveary-web/src/App.tsx` now owns a bounded first speech-input controller with start/stop, live draft updates, final-turn auto-send, and localized fallback/error states
 - the first STT milestone does not yet require a saved speech provider config or server-side audio upload route
 - future voice work should extend from this bounded browser input path into provider-backed STT or realtime voice, rather than replacing it with another ad hoc UI flow
+
+## 2026-06-22 - Realtime Voice Advances First As A Continuous Turn Loop
+
+Status:
+
+- accepted
+
+Decision:
+
+Advance the next voice milestone by turning the existing browser STT plus reply playback path into a continuous live conversation loop, instead of jumping straight to true full-duplex streaming or adding a second one-off microphone mode.
+
+Reason:
+
+- the user wants something that already feels like real spoken conversation now, not another isolated speech-input button
+- the current architecture already has the minimum pieces needed: browser STT, provider-or-browser reply playback, and a dedicated chat page
+- a continuous `listen -> send -> reply -> resume listening` loop moves the product materially closer to真人对话 without prematurely collapsing the `waveary-voice` boundary into ad hoc realtime transport work
+
+Impact:
+
+- `waveary-web/src/App.tsx` now tracks a dedicated live voice conversation mode instead of treating browser speech input as only one-shot capture
+- spoken replies now automatically resume microphone listening when live mode is still active, for both browser speech synthesis and provider-returned audio playback
+- no-speech and playback-failure edges now stay inside the live loop more gracefully instead of always forcing the user to restart from scratch
+- the next voice cut should choose deliberately between provider-backed STT and a truer duplex / interruption model rather than rediscovering the live-loop step again

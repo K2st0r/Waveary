@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `38c2c1a` - `Add browser speech input to chat`
+- `586c0b1` - `Add continuous live voice chat loop`
 
 ## Modules
 
@@ -138,6 +138,7 @@ Brand line:
   - the chat page now includes a first voice strip with `auto speak`, `speak reply`, and `stop` controls, and voice playback now supports both provider-returned audio and browser speech fallback while still following reply emotion and relationship stage
   - the chat page now also supports first-cut browser microphone capture and speech-to-text input through the Web Speech API, drafting live transcript text into the composer and sending the final recognized turn through the normal chat flow
   - this first speech-input slice stays browser-native and chat-bounded: start/stop listening, live draft updates, final-turn auto-send, and localized unsupported-browser fallback instead of a new server STT path
+  - the chat page now also supports a continuous live voice conversation mode that keeps alternating between microphone listening and spoken replies, automatically resuming listening after each reply instead of stopping after one speech turn
   - current-page search intent detection now runs before the narrower Bilibili follow-up probe, preventing `search this page for ...` turns from accidentally falling into the managed-browser follow-up path
   - `provider-api` route tests now explicitly close managed browser automation between cases, preventing the managed Playwright layer from leaving hanging handles in compiled server-test runs
 - `waveary-voice`
@@ -283,8 +284,8 @@ Brand line:
 
 ## Next Steps
 
-- add a focused browser pass for the chat-page voice surface so provider audio playback, browser fallback playback, browser microphone capture, transcript drafting, and `auto speak` / `stop` are visually verified together
-- decide the next voice cut after the first browser STT path: provider-backed STT, or richer provider-backed emotional voice controls first
+- add a focused browser pass for the chat-page voice surface so provider audio playback, browser fallback playback, continuous live voice mode, microphone capture, and loop resume behavior are visually verified together
+- decide the next voice cut after the new continuous browser voice loop: provider-backed STT, or a truer realtime duplex / interruption pass first
 - consider whether the saved voice profile should stay local-only for CE or later become part of user-facing companionship preference portability
 - keep future realtime voice and full-duplex work behind the new `waveary-voice` package boundary instead of blending media logic into `waveary-web` directly
 - continue refining the new three-step chat permission presets so the difference between `high-permission` and `full-access` stays legible now that `full-access` also returns same-turn execution-consistent replies instead of showing a contradiction between model text and local action outcome

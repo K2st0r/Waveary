@@ -4267,3 +4267,36 @@ Push:
 - succeeded: `git push origin main` pushed functional commit `38c2c1a` to `origin/main`
 
 
+
+## 2026-06-22
+
+Objective:
+
+Turn the existing browser STT and reply playback path into a continuous live voice conversation loop so Waveary can alternate between listening and speaking more like a real spoken chat.
+
+Summary:
+
+- updated `waveary-web/src/App.tsx` so the chat page now has an explicit live voice conversation mode instead of only one-shot browser speech capture
+- wired that mode through the existing browser STT and provider/browser TTS paths, so recognized speech still flows through the normal `/api/chat/turn` request while spoken replies automatically resume listening afterward
+- added bounded live-loop recovery behavior for `no-speech`, playback completion, and playback failure cases so the user does not have to restart the whole voice flow after every turn
+- tightened playback cleanup around browser speech synthesis and provider audio object URLs so stopping live chat or stopping speech does not leave stale auto-resume timers behind
+- updated the chat voice control copy so the primary mic button now reads as `开始实时对话 / 结束实时对话` and the mic status line describes the continuous listen-reply-listen behavior more clearly
+
+Files changed:
+
+- `waveary-web/src/App.tsx`
+
+Verification:
+
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run build:server --workspace @waveary/web`
+- `npm run test --workspace @waveary/web`
+- `npm run web:build`
+
+Commit:
+
+- `586c0b1` - `Add continuous live voice chat loop`
+
+Push:
+
+- succeeded: `git push origin main` pushed functional commit `586c0b1` to `origin/main`
