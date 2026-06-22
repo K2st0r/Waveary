@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `pending` - `Add ask-first local action chat flow`
+- `41b6fb5` - `Add ask-first local action chat flow`
 
 ## Modules
 
