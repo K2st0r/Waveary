@@ -1656,6 +1656,8 @@ export function App(): ReactElement {
 
   async function loadInitialState(): Promise<void> {
     setLoadState("loading");
+    setModelsState("idle");
+    setSaveState("idle");
     setStatusMessage(copy.statuses.loadingProviderConfiguration);
 
     try {
@@ -1679,6 +1681,8 @@ export function App(): ReactElement {
       const nextActiveSessionId = nextSessions[0]?.sessionId ?? nextDefaultSessionId;
 
       setPresets(nextPresets);
+      setModels([]);
+      setSelectedModel("");
       setSavedConfig(nextConfig);
       setVoiceConfig(voiceConfigResponse.config);
       setVoicePresets(voiceConfigResponse.presets);
@@ -1701,8 +1705,12 @@ export function App(): ReactElement {
       } else if (fallbackPreset) {
         setSelectedProvider(fallbackPreset.id);
         setBaseURL(fallbackPreset.baseURL);
+        setApiKey("");
         setStatusMessage(copy.statuses.chooseProvider);
       } else {
+        setSelectedProvider("");
+        setBaseURL("");
+        setApiKey("");
         setStatusMessage(copy.statuses.noPresets);
       }
 
@@ -3767,6 +3775,19 @@ export function App(): ReactElement {
               </div>
 
               <div className="console-actions">
+                <button
+                  className="button button-secondary"
+                  onClick={() => void loadInitialState()}
+                  disabled={loadState === "loading"}
+                >
+                  {locale === "zh"
+                    ? loadState === "loading"
+                      ? "正在刷新供应商..."
+                      : "刷新供应商"
+                    : loadState === "loading"
+                      ? "Refreshing providers..."
+                      : "Refresh providers"}
+                </button>
                 <button className="button button-primary" onClick={() => void handleFetchModels()} disabled={!canFetchModels}>
                   {modelsState === "loading" ? copy.setup.fetchingModels : copy.setup.fetchModels}
                 </button>
