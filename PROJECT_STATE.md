@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `37e1b33` - `Record local-time detection push result`
+- `ed4ae3b` - `Record full-access local action behavior`
 
 ## Modules
 
