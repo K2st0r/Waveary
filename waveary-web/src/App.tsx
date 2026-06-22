@@ -1661,16 +1661,20 @@ export function App(): ReactElement {
     setStatusMessage(copy.statuses.loadingProviderConfiguration);
 
     try {
-      const [presetResponse, configResponse, voiceConfigResponse, sessionFormatResponse, sessionsResponse] = await Promise.all([
+      const voiceConfigPromise = fetchJson<VoiceConfigResponse>("/api/voice/config").catch((error) => {
+        console.warn("Optional voice config init failed.", error);
+        return null;
+      });
+      const [presetResponse, configResponse, sessionFormatResponse, sessionsResponse, voiceConfigResponse] = await Promise.all([
         fetchJson<{ presets: ProviderPreset[] }>("/api/provider/presets"),
         fetchJson<{ config?: SavedProviderConfig }>("/api/provider/config"),
-        fetchJson<VoiceConfigResponse>("/api/voice/config"),
         fetchJson<{ reference: SessionPackageReference }>("/api/chat/session/format"),
         fetchJson<{
           sessions: ChatSessionListItem[];
           defaultSessionId: string;
           persistence: ChatPersistenceStatus;
-        }>("/api/chat/sessions")
+        }>("/api/chat/sessions"),
+        voiceConfigPromise
       ]);
 
       const nextConfig = configResponse.config ?? null;
@@ -1684,8 +1688,10 @@ export function App(): ReactElement {
       setModels([]);
       setSelectedModel("");
       setSavedConfig(nextConfig);
-      setVoiceConfig(voiceConfigResponse.config);
-      setVoicePresets(voiceConfigResponse.presets);
+      if (voiceConfigResponse) {
+        setVoiceConfig(voiceConfigResponse.config);
+        setVoicePresets(voiceConfigResponse.presets);
+      }
       setSessionPackageReference(sessionFormatResponse.reference);
       setChatSessions(nextSessions);
       setDefaultSessionId(nextDefaultSessionId);
