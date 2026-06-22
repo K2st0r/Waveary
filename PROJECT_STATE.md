@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `pending` - `Integrate browser actions into chat permission flow`
+- `8bd9c62` - `Integrate browser actions into chat permission flow`
 
 ## Modules
 
