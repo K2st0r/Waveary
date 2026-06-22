@@ -14,8 +14,8 @@ Update it when:
 
 1. Keep polishing the `waveary-web` home / console shell.
    Status: in progress
-   Current state: the homepage first screen has been compressed further, the hero now fits more comfortably on common desktop heights, the homepage doodle layer points at image-based doodle assets instead of hard-coded CSS object shapes, and the console now uses a tighter toolbar + workspace strip + compact status strip with denser viewport-based panel heights.
-   Next cut: replace the current doodle placeholder PNGs with real transparent hand-drawn assets generated through `C:\Users\13571\Desktop\micu-image-20260608.html`, then run another browser pass focused specifically on whether any remaining console workspace still forces awkward external scrolling.
+   Current state: the homepage first screen has been compressed further, the hero now fits more comfortably on common desktop heights, the homepage doodle layer now uses real generated black-and-white PNG objects instead of CSS shapes or placeholder files, and the console now uses a tighter toolbar + workspace strip + compact status strip with denser viewport-based panel heights.
+   Next cut: run another browser pass focused specifically on homepage doodle density / fade balance and whether any remaining console workspace still forces awkward external scrolling.
 
 2. Continue the `waveary-core` dialogue-quality pass.
    Status: in progress
@@ -30,7 +30,7 @@ Update it when:
 4. Preserve continuity discipline under high-frequency iteration.
    Status: ongoing
    Current state: each meaningful step is being verified, committed, pushed, and written back into continuity files.
-   Next cut: keep repository-side state files aligned so session resets do not cause duplicate work or architectural drift, and record any verification caveats like the current Windows `@waveary/core` test-script behavior.
+   Next cut: keep repository-side state files aligned so session resets do not cause duplicate work or architectural drift, record any verification caveats like the current Windows `@waveary/core` test-script behavior, and preserve the doodle-generation constraints that avoid repeated `524` timeouts.
 
 ## Deferred But Important
 

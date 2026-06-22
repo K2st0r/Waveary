@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `d4208f3` - `Tighten homepage hero and compact console shell`
+- pending - `Replace homepage doodle placeholders with generated assets`
 
 ## Modules
 
@@ -132,6 +132,8 @@ Brand line:
   - homepage hero definition copy now uses shorter two-note summary cards instead of a taller stacked list, reducing first-screen height while preserving positioning clarity
   - homepage now includes drifting black doodle background objects outside the portrait stage so the milk-white surface feels more like a lived memory board than a blank landing page
   - homepage doodle layer now resolves through image asset paths under `waveary-web/public/images/doodles` instead of binding the long-term design to CSS-drawn fake object shapes
+  - homepage doodle placeholder PNGs have now been replaced with real black-and-white generated object assets under `waveary-web/public/images/doodles`
+  - the current doodle asset pass was generated successfully only after constraining requests to `gpt-image-2`, `1024x1024`, transparent background, one image per request, and short low-complexity prompts because longer prompts or heavier requests frequently timed out through the current network path with `524`
   - console intro now includes an explicit workspace switcher so provider setup, session controls, proactive care, and runtime observation no longer read like one long vertically stacked tools page
   - console runtime body is now split by active workspace, keeping the top-level system summary stable while swapping only the focused operational surface below it
   - the console page now also exposes a tighter top toolbar and suppresses the earlier intro / summary / flow marketing block so the page reads more like a control desk than a second landing section
@@ -159,6 +161,7 @@ Brand line:
   - now uses shorter hash-based page views so the homepage stays brand-first while console tooling, dedicated chat, and roadmap live on separate screens
   - now keeps all explanatory framework material on the homepage while reserving the console page for system management and the chat page for the active dialogue only
   - now expects homepage doodle assets under `waveary-web/public/images/doodles/`, with final asset generation intended to come from the local tool `C:\Users\13571\Desktop\micu-image-20260608.html`
+  - current doodle assets under that path are now real generated PNGs rather than transparent placeholders, and future refreshes should preserve the same low-complexity `gpt-image-2` generation strategy that avoided repeated `524` gateway timeouts
   - can list provider presets, fetch models through the selected provider key, and save local config
   - can run a first browser chat flow and render memory, relationship, emotion, and timeline signals
   - now exposes a read-only `/api/chat/proactive/evaluate` route so the current `WPCE` decision path can be inspected from the local web runtime without generating outbound messages
@@ -260,7 +263,8 @@ Brand line:
 - visually verify and tune the new compact console toolbar plus non-session workspace flow in-browser, especially the internal scrolling behavior now that the marketing-style console intro has been suppressed
 - continue refining the homepage hero so the first screen feels complete across more desktop and laptop heights, with no further scroll-first regression after future copy or asset additions
 - keep iterating on the compact console shell only after visual verification shows a remaining real usability gap, instead of re-expanding it into explanatory blocks
-- replace the current doodle placeholder PNG files with real transparent hand-drawn object assets generated through `C:\Users\13571\Desktop\micu-image-20260608.html`
+- run a focused browser pass for homepage doodle density, fade rhythm, and overall visual balance now that the placeholder doodles have been replaced with real assets
+- visually verify and, only if needed, tighten any remaining console workspace that still forces awkward external page scrolling after the latest compact-shell pass
 - continue the homepage portrait system with a more deliberate `4 male / 4 female` hand-drawn polaroid-style set so the visual range feels broader and less clustered around one youth archetype
 - consider replacing the current chroma-keyed lighter cutout with a cleaner native-alpha illustration once a final asset pass is approved
 - consider a follow-up homepage motion pass that adds a slightly stronger heat shimmer or ember flicker only if it stays subtle and does not overcomplicate the hero

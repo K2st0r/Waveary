@@ -4,6 +4,50 @@
 
 Objective:
 
+Replace the homepage doodle placeholder PNGs with real generated assets and preserve the working generation constraints so future sessions do not regress into timeout-prone image requests.
+
+Summary:
+
+- replaced all homepage doodle placeholder PNGs under `waveary-web/public/images/doodles/` with real black-and-white generated object assets
+- kept the homepage visual direction intact by generating nostalgic everyday doodles with transparent backgrounds instead of changing layout or chat / console logic
+- confirmed the practical generation boundary for the current local tool and network path: `gpt-image-2`, `1024x1024`, transparent background, one image per request, and short prompts succeeded while heavier prompts or requests often failed with `524`
+- re-verified the web surface with TypeScript and production build checks after the asset replacement, and previously confirmed the refreshed homepage visually through a Playwright browser pass
+
+Files changed:
+
+- `waveary-web/public/images/doodles/bow.png`
+- `waveary-web/public/images/doodles/butterfly.png`
+- `waveary-web/public/images/doodles/cassette.png`
+- `waveary-web/public/images/doodles/eraser.png`
+- `waveary-web/public/images/doodles/notebook.png`
+- `waveary-web/public/images/doodles/paper-star.png`
+- `waveary-web/public/images/doodles/paperclip.png`
+- `waveary-web/public/images/doodles/pencil.png`
+- `waveary-web/public/images/doodles/ribbon.png`
+- `waveary-web/public/images/doodles/ruler.png`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/product-preferences.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run web:build`
+- Playwright homepage visual check previously completed against `http://127.0.0.1:4173/#home` after asset replacement
+
+Commit:
+
+- pending - `Replace homepage doodle placeholders with generated assets`
+
+Push:
+
+- pending
+
+## 2026-06-22
+
+Objective:
+
 Compress the homepage hero further and tighten the console shell into a denser operational surface without changing provider, session, or care logic.
 
 Summary:
