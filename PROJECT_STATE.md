@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `pending` - `Add companion delivery hints for voice`
+- `e19b20c` - `Add companion delivery hints for voice`
 
 ## Modules
 
@@ -357,4 +357,5 @@ Brand line:
 - `npm run web:build` should not be executed in parallel with another root build command because package `dist` cleanup can race on Windows
 - `npm run web:build` can still fail on Windows with `EPERM` while removing `waveary-core/dist` if a prior build or process is holding the directory, even when narrower `@waveary/web` test and typecheck verification succeeds
 - the currently running local dev server can expose healthy `/api/provider/*` routes while still returning `404` for `/api/voice/config`; the frontend now tolerates that split state, but the server/runtime mismatch still needs a separate root-cause pass
+
 
