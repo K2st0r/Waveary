@@ -751,3 +751,25 @@ Impact:
 - `/api/voice/speak` can now return either real audio or a browser speech plan through one shared contract
 - `waveary-web/src/App.tsx` now plays provider audio when available and falls back to browser `speechSynthesis` otherwise
 - a later pass should expose explicit voice-model and voice-style configuration rather than relying forever on the saved chat-provider defaults
+
+## 2026-06-22 - Provider-Backed TTS Now Gets Its Own Saved Voice Profile
+
+Status:
+
+- accepted
+
+Decision:
+
+Expose provider-backed TTS configuration through a dedicated saved voice config plus quality-oriented presets, instead of continuing to hide voice selection behind one hardcoded default or folding it into the chat-provider config.
+
+Reason:
+
+- the user goal is not just “voice output exists”, but “voice output feels more human”
+- chat-provider model selection and voice-expression selection are different concerns and should not be forced into one config slot
+- a compact chat-page control strip is enough to make this configurable now without inflating the console or creating a second heavy setup flow
+
+Impact:
+
+- `waveary-web` now exposes `/api/voice/config` and stores `.waveary/voice-config.json`
+- `waveary-voice` now owns reusable voice presets, quality-profile-aware instruction seeds, and per-profile speed bias
+- the chat page can now switch saved provider-backed TTS profile / model / voice directly while preserving browser fallback speech when provider audio is unavailable

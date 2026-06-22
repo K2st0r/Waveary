@@ -27,6 +27,7 @@ const {
 const { setLocalActionExecutorForTests } = await import("./local-actions.js");
 const { saveProviderConfig } = await import("./provider-config.js");
 const { resetChatRuntimeSessions } = await import("./chat-runtime.js");
+const { getDefaultVoiceConfig } = await import("./voice-config.js");
 
 const originalFetch = globalThis.fetch;
 
@@ -71,6 +72,7 @@ test("browser page route returns null when no managed page is open", async () =>
 
 test("voice speak route returns an emotion-aware browser speech plan", async () => {
   const middleware = createProviderApiMiddleware();
+  const defaultVoiceConfig = getDefaultVoiceConfig();
   const response = await invokeJsonRoute(middleware, "POST", "/api/voice/speak", {
     text: "我在这儿，你慢慢说。",
     locale: "zh-CN",
@@ -98,6 +100,7 @@ test("voice speak route returns an emotion-aware browser speech plan", async () 
   assert.equal(response.body.plan.styleLabel, "concerned");
   assert.ok(response.body.plan.rate < 0.98);
   assert.ok(response.body.plan.preferredVoiceKeywords.includes("Mandarin"));
+  assert.equal(defaultVoiceConfig.qualityProfile, "cinematic");
 });
 
 test("voice speak route returns provider audio when a compatible provider tts path succeeds", async () => {
@@ -125,17 +128,48 @@ test("voice speak route returns provider audio when a compatible provider tts pa
 
   const response = await invokeJsonRoute(middleware, "POST", "/api/voice/speak", {
     text: "Stay with me for a bit.",
-    locale: "en-US"
+    locale: "en-US",
+    voiceConfig: {
+      qualityProfile: "gentle",
+      voice: "cedar"
+    }
   });
 
   assert.equal(response.statusCode, 200);
   assert.equal(response.body.provider, "openai");
   assert.equal(response.body.mode, "audio");
   assert.equal(response.body.audio.mimeType, "audio/mpeg");
+  assert.equal(response.body.metadata.voice, "cedar");
+  assert.equal(response.body.metadata.qualityProfile, "gentle");
   assert.equal(
     Buffer.from(response.body.audio.base64, "base64").toString("utf8"),
     "voice-audio"
   );
+});
+
+test("voice config route returns saved config plus presets", async () => {
+  const middleware = createProviderApiMiddleware();
+  const response = await invokeJsonRoute(middleware, "GET", "/api/voice/config");
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.config.qualityProfile, "cinematic");
+  assert.ok(Array.isArray(response.body.presets));
+  assert.ok(response.body.presets.length >= 4);
+});
+
+test("voice config route persists a selected preset", async () => {
+  const middleware = createProviderApiMiddleware();
+  const response = await invokeJsonRoute(middleware, "POST", "/api/voice/config", {
+    qualityProfile: "gentle",
+    model: "gpt-4o-mini-tts",
+    voice: "cedar",
+    format: "mp3"
+  });
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.config.qualityProfile, "gentle");
+  assert.equal(response.body.config.voice, "cedar");
+  assert.equal(response.body.config.model, "gpt-4o-mini-tts");
 });
 
 test("browser extract-text route returns bounded page text", async () => {
@@ -2344,6 +2378,7 @@ function resetTestDataDir(): void {
   rmSync(join(TEST_DATA_DIR, "chat-sessions.db"), { force: true });
   rmSync(join(TEST_DATA_DIR, "chat-persistence.json"), { force: true });
   rmSync(join(TEST_DATA_DIR, "provider-config.json"), { force: true });
+  rmSync(join(TEST_DATA_DIR, "voice-config.json"), { force: true });
   saveChatPersistenceConfig(createDefaultChatPersistenceConfig());
 }
 

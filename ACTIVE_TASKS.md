@@ -14,12 +14,12 @@ Update it when:
 
 1. Start the first `waveary-voice` delivery path.
    Status: in progress
-   Current state: a dedicated `waveary-voice` workspace now exists, the first browser-native TTS planner is implemented, `waveary-web` exposes `/api/voice/speak`, the chat page can already auto-speak or manually speak the latest reply, and that route now prefers a real OpenAI-compatible `/audio/speech` TTS call before falling back to browser speech planning.
-   Next cut: expose explicit voice-model / voice-style configuration for provider-backed TTS, then decide whether microphone capture + STT or richer emotional TTS controls should come first for the next voice milestone.
+   Current state: a dedicated `waveary-voice` workspace now exists, the first browser-native TTS planner is implemented, `waveary-web` exposes `/api/voice/speak`, the chat page can already auto-speak or manually speak the latest reply, that route now prefers a real OpenAI-compatible `/audio/speech` TTS call before falling back to browser speech planning, and provider-backed TTS now has explicit saved voice config plus quality-oriented voice presets exposed through `/api/voice/config` and the compact chat voice strip.
+   Next cut: run a focused browser pass on the new voice strip and then decide whether microphone capture + STT or richer provider-backed emotional voice controls should come first for the next voice milestone.
 
 2. Keep polishing the `waveary-web` home / console shell.
    Status: in progress
-   Current state: the homepage first screen has been compressed further, the hero now fits more comfortably on common desktop heights, the homepage doodle layer now uses a broader generated black-and-white PNG set including study objects plus stamp / envelope / train-ticket / postcard paper keepsakes, the console now uses a tighter toolbar + workspace strip + compact status strip with denser viewport-based panel heights, and the chat page now exposes a compact permission tray plus three direct permission presets right beside the composer plus a first voice strip.
+   Current state: the homepage first screen has been compressed further, the hero now fits more comfortably on common desktop heights, the homepage doodle layer now uses a broader generated black-and-white PNG set including study objects plus stamp / envelope / train-ticket / postcard paper keepsakes, the console now uses a tighter toolbar + workspace strip + compact status strip with denser viewport-based panel heights, and the chat page now exposes a compact permission tray plus three direct permission presets right beside the composer plus a stronger voice strip with preset / model / voice controls.
    Next cut: run another browser pass focused specifically on the chat-page voice strip, three-step chat permission control, and homepage doodle density / fade balance, and then check whether any remaining console workspace still forces awkward external scrolling.
 
 3. Continue the `waveary-core` dialogue-quality pass.

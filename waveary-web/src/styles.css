@@ -2672,6 +2672,39 @@ textarea {
   flex-wrap: wrap;
 }
 
+.chat-voice-select {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 2.4rem;
+  padding: 0.45rem 0.72rem;
+  border: 1.5px solid rgba(21, 18, 15, 0.14);
+  border-radius: 999px;
+  background: rgba(255, 252, 247, 0.92);
+  color: var(--text);
+  font-size: 0.84rem;
+}
+
+.chat-voice-select span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.chat-voice-select select {
+  min-width: 7rem;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  outline: none;
+}
+
+.chat-voice-select-compact select {
+  min-width: 5.6rem;
+}
+
 .chat-voice-toggle {
   display: inline-flex;
   align-items: center;
@@ -2700,6 +2733,14 @@ textarea {
   background: rgba(255, 252, 247, 0.78);
   color: rgba(27, 22, 17, 0.72);
   font-size: 0.88rem;
+}
+
+.chat-voice-meta {
+  margin-left: auto;
+  color: var(--muted);
+  font-family: "IBM Plex Mono", "Cascadia Code", Consolas, monospace;
+  font-size: 0.76rem;
+  white-space: nowrap;
 }
 
 .chat-voice-status-badge {

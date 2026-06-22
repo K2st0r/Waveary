@@ -4175,3 +4175,54 @@ Push:
 - succeeded: `git push origin main` pushed functional commit `e5a68af` to `origin/main`
 
 
+
+## 2026-06-22
+
+Objective:
+
+Expose explicit high-quality provider-backed TTS configuration so Waveary voice can move beyond one hidden default and feel more human without breaking the existing chat-page speech flow.
+
+Summary:
+
+- added reusable `waveary-voice/src/voice-presets.ts` so provider-backed TTS can choose quality-oriented profiles such as `cinematic`, `gentle`, `bright`, and `steady` with profile-specific instruction seeds, speed bias, and default model / voice pairs
+- updated `OpenAICompatibleTextToSpeechProvider` to accept `qualityProfile`, derive stronger human-delivery instructions from the preset plus emotion / relationship context, and include the chosen quality profile in returned metadata
+- added `waveary-web/server/voice-config.ts` plus new `/api/voice/config` routes so voice profile, model, voice, and output format can be saved locally in `.waveary/voice-config.json` instead of being trapped in hardcoded TTS defaults
+- updated `waveary-web/server/voice-runtime.ts` so `/api/voice/speak` now merges saved voice config, request overrides, and preset defaults before attempting provider-backed TTS, while preserving browser speech fallback
+- extended `waveary-web/src/App.tsx` with a compact chat voice control strip for profile / model / voice selection beside the existing `auto speak`, `speak reply`, and `stop` controls
+- added regression coverage for the new voice config routes and verified that the provider-backed TTS path now honors explicit preset / voice overrides
+
+Files changed:
+
+- `waveary-voice/src/voice-presets.ts`
+- `waveary-voice/src/index.ts`
+- `waveary-voice/src/openai-compatible-tts-provider.ts`
+- `waveary-voice/src/openai-compatible-tts-provider.test.ts`
+- `waveary-voice/src/types.ts`
+- `waveary-web/server/voice-config.ts`
+- `waveary-web/server/voice-runtime.ts`
+- `waveary-web/server/provider-api.ts`
+- `waveary-web/server/provider-api.test.ts`
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/voice`
+- `npm run build --workspace @waveary/voice`
+- `npm run test --workspace @waveary/voice`
+- `npm run build:server --workspace @waveary/web`
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run test --workspace @waveary/web`
+- `npm run web:build`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending

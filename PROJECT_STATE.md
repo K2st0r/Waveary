@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `edb9ceb` - `Add provider-backed TTS fallback path`
+- `f8133cf` - `Sync TTS continuity records`
 
 ## Modules
 
@@ -134,6 +134,7 @@ Brand line:
   - Chinese open-site detection now recognizes broader Bilibili phrasing such as `打开哔哩哔哩` in addition to raw English `open bilibili`
   - the web server now exposes a first `/api/voice/speak` route that initially returned an emotion-aware browser speech plan instead of hard-wiring speech behavior directly inside the UI layer
   - `/api/voice/speak` now attempts a real provider-backed TTS request first by reusing the saved OpenAI-compatible provider config against `/audio/speech`, then falls back to browser speech planning if the provider path is unavailable or fails
+  - provider-backed TTS now also supports explicit saved voice configuration and quality-oriented presets through `/api/voice/config`, `.waveary/voice-config.json`, and a compact chat-page voice control strip for profile / model / voice selection
   - the chat page now includes a first voice strip with `auto speak`, `speak reply`, and `stop` controls, and voice playback now supports both provider-returned audio and browser speech fallback while still following reply emotion and relationship stage
   - current-page search intent detection now runs before the narrower Bilibili follow-up probe, preventing `search this page for ...` turns from accidentally falling into the managed-browser follow-up path
   - `provider-api` route tests now explicitly close managed browser automation between cases, preventing the managed Playwright layer from leaving hanging handles in compiled server-test runs
@@ -279,9 +280,9 @@ Brand line:
 
 ## Next Steps
 
-- expose explicit voice model / voice-style configuration so provider-backed TTS is not forced to reuse only the current chat-provider defaults
-- add a focused browser pass for the new chat-page voice strip so provider audio playback, browser fallback playback, `auto speak`, and `stop` are visually verified alongside the existing permission tray
-- decide the next voice cut after real TTS playback: browser microphone capture + STT, or richer provider-backed emotional voice controls first
+- add a focused browser pass for the new chat-page voice strip so provider audio playback, browser fallback playback, voice preset switching, and `auto speak` / `stop` are visually verified alongside the existing permission tray
+- decide the next voice cut after explicit TTS configuration: browser microphone capture + STT, or richer provider-backed emotional voice controls first
+- consider whether the saved voice profile should stay local-only for CE or later become part of user-facing companionship preference portability
 - keep future realtime voice and full-duplex work behind the new `waveary-voice` package boundary instead of blending media logic into `waveary-web` directly
 - continue refining the new three-step chat permission presets so the difference between `high-permission` and `full-access` stays legible now that `full-access` also returns same-turn execution-consistent replies instead of showing a contradiction between model text and local action outcome
 - add a focused browser pass for chat-integrated browser actions so the live `#chat` page is re-verified end-to-end against page-read, page-search, clickable-list, and click-by-text flows, not only route-level tests
