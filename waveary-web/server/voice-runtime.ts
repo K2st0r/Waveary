@@ -1,6 +1,7 @@
 import type { EmotionState, RelationshipProfile } from "@waveary/core";
 import {
   BrowserSpeechPlanner,
+  DoubaoTextToSpeechProvider,
   OpenAICompatibleTextToSpeechProvider,
   resolveVoicePreset,
   type VoiceOutputFormat,
@@ -27,6 +28,8 @@ export interface VoiceSpeakPlanRequest {
     provider?: string;
     baseURL?: string;
     apiKey?: string;
+    appId?: string;
+    cluster?: string;
   };
 }
 
@@ -97,16 +100,23 @@ export async function planChatSpeech(input: VoiceSpeakPlanRequest) {
     apiKey:
       requestedVoiceConfig?.apiKey?.trim() ||
       savedVoiceConfig.apiKey ||
-      (savedVoiceConfig.providerMode !== "dedicated" ? savedProvider?.apiKey || "" : "")
+      (savedVoiceConfig.providerMode !== "dedicated" ? savedProvider?.apiKey || "" : ""),
+    appId: requestedVoiceConfig?.appId?.trim() || savedVoiceConfig.appId || "",
+    cluster: requestedVoiceConfig?.cluster?.trim() || savedVoiceConfig.cluster || "volcano_tts"
   };
 
   const providerBackedVoiceConfig =
     resolvedVoiceConfig.providerMode === "dedicated"
-      ? resolvedVoiceConfig.provider && resolvedVoiceConfig.baseURL && resolvedVoiceConfig.apiKey
+      ? resolvedVoiceConfig.provider &&
+        (resolvedVoiceConfig.provider === "doubao"
+          ? resolvedVoiceConfig.apiKey && resolvedVoiceConfig.appId
+          : resolvedVoiceConfig.baseURL && resolvedVoiceConfig.apiKey)
         ? {
             provider: resolvedVoiceConfig.provider,
             baseURL: resolvedVoiceConfig.baseURL,
-            apiKey: resolvedVoiceConfig.apiKey
+            apiKey: resolvedVoiceConfig.apiKey,
+            appId: resolvedVoiceConfig.appId,
+            cluster: resolvedVoiceConfig.cluster
           }
         : null
       : savedProvider
@@ -119,6 +129,23 @@ export async function planChatSpeech(input: VoiceSpeakPlanRequest) {
 
   if (providerBackedVoiceConfig) {
     try {
+      if (providerBackedVoiceConfig.provider === "doubao") {
+        const appId = providerBackedVoiceConfig.appId;
+
+        if (!appId) {
+          throw new Error("Doubao voice config requires an appId.");
+        }
+
+        const ttsProvider = new DoubaoTextToSpeechProvider({
+          apiKey: providerBackedVoiceConfig.apiKey,
+          appId,
+          voiceType: resolvedVoiceConfig.voice,
+          cluster: providerBackedVoiceConfig.cluster
+        });
+
+        return await ttsProvider.synthesize(request);
+      }
+
       const ttsProvider = new OpenAICompatibleTextToSpeechProvider({
         provider: providerBackedVoiceConfig.provider,
         apiKey: providerBackedVoiceConfig.apiKey,

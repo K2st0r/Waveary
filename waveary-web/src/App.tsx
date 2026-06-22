@@ -32,6 +32,8 @@ interface SavedVoiceConfig {
   provider: string;
   baseURL: string;
   apiKey: string;
+  appId: string;
+  cluster: string;
 }
 
 interface VoicePresetDescriptor {
@@ -1867,7 +1869,9 @@ export function App(): ReactElement {
           providerMode: patch.providerMode ?? currentVoiceConfig.providerMode,
           provider: patch.provider ?? currentVoiceConfig.provider,
           baseURL: patch.baseURL ?? currentVoiceConfig.baseURL,
-          apiKey: patch.apiKey ?? currentVoiceConfig.apiKey
+          apiKey: patch.apiKey ?? currentVoiceConfig.apiKey,
+          appId: patch.appId ?? currentVoiceConfig.appId,
+          cluster: patch.cluster ?? currentVoiceConfig.cluster
         })
       });
 
@@ -1934,7 +1938,7 @@ export function App(): ReactElement {
   }
 
   async function handleVoiceProviderFieldChange(
-    field: "provider" | "baseURL" | "apiKey",
+    field: "provider" | "baseURL" | "apiKey" | "appId" | "cluster",
     value: string
   ): Promise<void> {
     await saveVoiceConfigPatch(
@@ -5128,6 +5132,44 @@ export function App(): ReactElement {
                               disabled={!canAdjustVoiceConfig}
                             />
                           </label>
+                          {voiceConfig?.provider === "doubao" ? (
+                            <>
+                              <label className="chat-voice-select">
+                                <span>App ID</span>
+                                <input
+                                  type="text"
+                                  value={voiceConfig?.appId ?? ""}
+                                  onChange={(event) =>
+                                    setVoiceConfig((current) =>
+                                      current ? { ...current, appId: event.target.value } : current
+                                    )
+                                  }
+                                  onBlur={(event) =>
+                                    void handleVoiceProviderFieldChange("appId", event.target.value)
+                                  }
+                                  placeholder="Doubao appid"
+                                  disabled={!canAdjustVoiceConfig}
+                                />
+                              </label>
+                              <label className="chat-voice-select">
+                                <span>Cluster</span>
+                                <input
+                                  type="text"
+                                  value={voiceConfig?.cluster ?? ""}
+                                  onChange={(event) =>
+                                    setVoiceConfig((current) =>
+                                      current ? { ...current, cluster: event.target.value } : current
+                                    )
+                                  }
+                                  onBlur={(event) =>
+                                    void handleVoiceProviderFieldChange("cluster", event.target.value)
+                                  }
+                                  placeholder="volcano_tts"
+                                  disabled={!canAdjustVoiceConfig}
+                                />
+                              </label>
+                            </>
+                          ) : null}
                           <label className="chat-voice-select chat-voice-select-wide">
                             <span>{locale === "zh" ? "语音 Key" : "Voice Key"}</span>
                             <input
