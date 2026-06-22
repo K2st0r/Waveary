@@ -16,6 +16,7 @@ Brand line:
 ## Latest Verified Commit
 
 - `be1b9ed` - `Record local action outcomes in chat history`
+- `be1b9ed` - `Record local action outcomes in chat history`
 
 ## Modules
 
@@ -119,6 +120,7 @@ Brand line:
   - the `WPCE` console decision card now visually separates affirmative reachout recommendations from policy-blocked evaluations through distinct summary copy, badge states, and surface treatment, so users can scan the outcome without parsing every field
   - the live conversation experience now has its own dedicated chat page with a stripped-down journal-style canvas and composer
   - the chat page now also surfaces a compact permission tray beside the composer, so time awareness, proactive notifications, desktop presence, and local-action intent can be adjusted in conversation without sending users back to the console
+  - the chat composer now also exposes a direct `limited / high-permission` mode switch beside send controls, mapping the live conversation surface onto the existing permission model without removing the lower-level detail popover
   - `localActions` has now graduated from a UI-only preference slot into the first real ask-first execution path: chat turns can propose a pending local action card for simple open-url / open-folder / launch-app intents, and the user must explicitly confirm before any local execution happens
   - the first local-action execution surface stays intentionally narrow and auditable inside `waveary-web`: proposal detection is rule-based, execution is permission-gated, denied policy blocks execution, ask-first requires one explicit approval click, and dismissing the card clears the pending action from persisted session state`r`n  - executed and dismissed local actions now also append a small assistant-side audit note into persisted chat history, so trust-visible action outcomes survive reloads and restored sessions instead of living only in transient UI state
   - the visible persisted-session archive panel has been removed from the runtime rail so the console reads less like a raw internal debug dump

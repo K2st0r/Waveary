@@ -214,6 +214,7 @@ type LoadState = "idle" | "loading" | "success" | "error";
 type AppPage = "home" | "console" | "chat" | "roadmap";
 type BrowserNotificationPermissionState = NotificationPermission | "unsupported";
 type PermissionLevel = WavearyPermissionProfile["browserNotifications"];
+type PermissionPresetMode = "limited" | "elevated";
 
 interface PageLocation {
   page: AppPage;
@@ -2167,6 +2168,25 @@ export function App(): ReactElement {
     setStatusMessage(copy.runtime.permissionSaved);
   }
 
+  function handlePermissionPresetChange(mode: PermissionPresetMode): void {
+    const nextProfile =
+      mode === "elevated"
+        ? createElevatedPermissionProfile()
+        : createLimitedPermissionProfile();
+
+    setPermissionProfile(nextProfile);
+    setProactiveNotificationEnabled(nextProfile.proactiveNotifications === "allow");
+    setStatusMessage(
+      locale === "zh"
+        ? mode === "elevated"
+          ? "已切换为高权限模式。"
+          : "已切换为受限模式。"
+        : mode === "elevated"
+          ? "Switched to high-permission mode."
+          : "Switched to limited mode."
+    );
+  }
+
   async function handleSendMessage(): Promise<void> {
     const trimmed = chatInput.trim();
     if (!trimmed) {
@@ -4028,58 +4048,77 @@ export function App(): ReactElement {
                   disabled={!chatReady || chatState === "loading"}
                 />
                 <div className="chat-composer-toolbar">
-                  <div className="chat-permission-tray">
-                    <button
-                      className={`button button-secondary chat-permission-trigger ${chatPermissionTrayOpen ? "chat-permission-trigger-active" : ""}`}
-                      onClick={() => setChatPermissionTrayOpen((current) => !current)}
-                      type="button"
-                    >
-                      {copy.runtime.permissions}
-                    </button>
+                  <div className="chat-permission-controls">
+                    <div className="chat-permission-mode-switch" role="group" aria-label={copy.runtime.permissions}>
+                      <button
+                        className={`chat-permission-mode-button ${getPermissionPresetMode(permissionProfile) === "limited" ? "chat-permission-mode-button-active" : ""}`}
+                        onClick={() => handlePermissionPresetChange("limited")}
+                        type="button"
+                      >
+                        {locale === "zh" ? "受限权限" : "Limited"}
+                      </button>
+                      <button
+                        className={`chat-permission-mode-button ${getPermissionPresetMode(permissionProfile) === "elevated" ? "chat-permission-mode-button-active" : ""}`}
+                        onClick={() => handlePermissionPresetChange("elevated")}
+                        type="button"
+                      >
+                        {locale === "zh" ? "高权限" : "High"}
+                      </button>
+                    </div>
 
-                    {chatPermissionTrayOpen ? (
-                      <div className="chat-permission-popover">
-                        <div className="chat-permission-popover-header">
-                          <strong>{copy.runtime.permissions}</strong>
-                          <span>{copy.runtime.permissionsHint}</span>
-                        </div>
+                    <div className="chat-permission-tray">
+                      <button
+                        className={`button button-secondary chat-permission-trigger ${chatPermissionTrayOpen ? "chat-permission-trigger-active" : ""}`}
+                        onClick={() => setChatPermissionTrayOpen((current) => !current)}
+                        type="button"
+                      >
+                        {locale === "zh" ? "细项" : "Details"}
+                      </button>
 
-                        <div className="chat-permission-inline-grid">
-                          {(
-                            [
-                              ["timeAwareness", copy.runtime.permissionTimeAwareness],
-                              ["proactiveNotifications", copy.runtime.permissionProactiveNotifications],
-                              ["desktopPresence", copy.runtime.permissionDesktopPresence],
-                              ["localActions", copy.runtime.permissionLocalActions]
-                            ] as const
-                          ).map(([key, label]) => (
-                            <div className="chat-permission-inline-card" key={key}>
-                              <strong>{label}</strong>
-                              <div className="permission-level-group chat-permission-level-group">
-                                {(
-                                  [
-                                    ["deny", copy.runtime.permissionDeny],
-                                    ["ask", copy.runtime.permissionAsk],
-                                    ["allow", copy.runtime.permissionAllow]
-                                  ] as const
-                                ).map(([value, valueLabel]) => (
-                                  <label className="permission-choice chat-permission-choice" key={value}>
-                                    <input
-                                      type="radio"
-                                      name={`chat-permission-${key}`}
-                                      value={value}
-                                      checked={permissionProfile[key] === value}
-                                      onChange={() => handlePermissionLevelChange(key, value)}
-                                    />
-                                    <span>{valueLabel}</span>
-                                  </label>
-                                ))}
+                      {chatPermissionTrayOpen ? (
+                        <div className="chat-permission-popover">
+                          <div className="chat-permission-popover-header">
+                            <strong>{copy.runtime.permissions}</strong>
+                            <span>{copy.runtime.permissionsHint}</span>
+                          </div>
+
+                          <div className="chat-permission-inline-grid">
+                            {(
+                              [
+                                ["timeAwareness", copy.runtime.permissionTimeAwareness],
+                                ["proactiveNotifications", copy.runtime.permissionProactiveNotifications],
+                                ["desktopPresence", copy.runtime.permissionDesktopPresence],
+                                ["localActions", copy.runtime.permissionLocalActions]
+                              ] as const
+                            ).map(([key, label]) => (
+                              <div className="chat-permission-inline-card" key={key}>
+                                <strong>{label}</strong>
+                                <div className="permission-level-group chat-permission-level-group">
+                                  {(
+                                    [
+                                      ["deny", copy.runtime.permissionDeny],
+                                      ["ask", copy.runtime.permissionAsk],
+                                      ["allow", copy.runtime.permissionAllow]
+                                    ] as const
+                                  ).map(([value, valueLabel]) => (
+                                    <label className="permission-choice chat-permission-choice" key={value}>
+                                      <input
+                                        type="radio"
+                                        name={`chat-permission-${key}`}
+                                        value={value}
+                                        checked={permissionProfile[key] === value}
+                                        onChange={() => handlePermissionLevelChange(key, value)}
+                                      />
+                                      <span>{valueLabel}</span>
+                                    </label>
+                                  ))}
+                                </div>
                               </div>
-                            </div>
-                          ))}
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    ) : null}
+                      ) : null}
+                    </div>
                   </div>
 
                   <div className="console-actions">
@@ -4271,12 +4310,26 @@ function getBrowserNotificationPermission(): BrowserNotificationPermissionState 
 }
 
 function createDefaultPermissionProfile(): WavearyPermissionProfile {
+  return createLimitedPermissionProfile();
+}
+
+function createLimitedPermissionProfile(): WavearyPermissionProfile {
   return {
     browserNotifications: "allow",
     proactiveNotifications: "allow",
     timeAwareness: "allow",
     desktopPresence: "ask",
     localActions: "ask"
+  };
+}
+
+function createElevatedPermissionProfile(): WavearyPermissionProfile {
+  return {
+    browserNotifications: "allow",
+    proactiveNotifications: "allow",
+    timeAwareness: "allow",
+    desktopPresence: "allow",
+    localActions: "allow"
   };
 }
 
@@ -4312,6 +4365,22 @@ function normalizePermissionLevel(
   fallback: PermissionLevel
 ): PermissionLevel {
   return value === "allow" || value === "ask" || value === "deny" ? value : fallback;
+}
+
+function getPermissionPresetMode(
+  permissionProfile: WavearyPermissionProfile
+): PermissionPresetMode {
+  if (
+    permissionProfile.browserNotifications === "allow" &&
+    permissionProfile.proactiveNotifications === "allow" &&
+    permissionProfile.timeAwareness === "allow" &&
+    permissionProfile.desktopPresence === "allow" &&
+    permissionProfile.localActions === "allow"
+  ) {
+    return "elevated";
+  }
+
+  return "limited";
 }
 
 function formatBrowserNotificationPermission(

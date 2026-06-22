@@ -4,6 +4,41 @@
 
 Objective:
 
+Move the most important trust control in the chat shell closer to the send action by exposing a direct `limited / high-permission` mode switch beside the composer.
+
+Summary:
+
+- added a chat-side permission preset concept in `waveary-web/src/App.tsx` that maps the existing `WavearyPermissionProfile` onto two direct modes: a default limited profile and a high-permission profile
+- kept the underlying permission model intact instead of rewriting runtime or server-side trust handling, so existing time-awareness, proactive-notification, desktop-presence, and local-action boundaries continue to work as before
+- updated the chat composer toolbar so the new two-button mode switch sits beside the send flow, while the older fine-grained permission panel remains available as a secondary detail popover instead of disappearing entirely
+- added matching toolbar and segmented-control styling in `waveary-web/src/styles.css` so the new control reads like a direct conversation-side mode switch rather than another buried settings block
+- verified the change with frontend typecheck and full production web build
+
+Files changed:
+
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run web:build`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-22
+
+Objective:
+
 Keep permissioned local actions trustworthy by persisting executed and dismissed outcomes as a small conversation-visible trace instead of leaving them only in transient UI state.
 
 Summary:
@@ -3728,4 +3763,6 @@ Commit:
 Push:
 
 - succeeded
+
+
 
