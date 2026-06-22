@@ -463,3 +463,25 @@ Impact:
 - `OpenAICompatibleChatProvider` now consumes the shared helper instead of maintaining its own private scoring and emotional-turn heuristics
 - `ScriptedChatProvider` now also follows the same continuity-thread choice and weak-memory fallback guidance
 - future care, summary, or additional provider surfaces should reuse this shared helper instead of reintroducing parallel continuity-selection logic
+
+## 2026-06-22 - Primary Continuity Thread Should Follow Best Match, Not Recall Order
+
+Status:
+
+- accepted
+
+Decision:
+
+When multiple recalled memories are available, choose the primary continuity thread by strongest match to the latest user turn instead of always taking the first recalled memory entry.
+
+Reason:
+
+- newly added multi-turn provider regression showed that the first recalled memory could still reflect an older topic even when a later recalled item matched the user's newest concern more directly
+- companionship continuity should privilege what the user is most presently reaching for, not whichever memory arrived first from the retrieval layer
+- keeping this behavior in the shared runtime helper prevents prompt-side and scripted reply paths from drifting on the same edge case
+
+Impact:
+
+- `selectContinuityThread()` now ranks recalled memories and timeline candidates by current-turn match before choosing a primary thread
+- real-provider prompt guidance and scripted replies now stay better aligned with the user's latest focus in multi-turn conversations
+- future scoring work can extend this shared ranking with recency or source-turn weighting without reverting to provider-local heuristics

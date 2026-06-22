@@ -14,8 +14,8 @@ Update it when:
 
 1. Continue the `waveary-core` dialogue-quality pass.
    Status: in progress
-   Current state: memory recall is now stricter and updates `lastRecalledAt`, user-emotion detection is broader than `joy/sadness/neutral`, companion emotion transitions carry more relationship-aware tone state, scripted/provider guidance separates `new`, `warming`, and `growing`, and primary continuity-thread selection plus current-turn focus summarization now live in one shared runtime helper reused by both scripted and real-provider reply paths.
-   Next cut: add stronger live-provider regression around multi-turn continuity-thread choice and relationship-distance behavior now that the selection logic has moved out of prompt-local code.
+   Current state: memory recall is now stricter and updates `lastRecalledAt`, user-emotion detection is broader than `joy/sadness/neutral`, companion emotion transitions carry more relationship-aware tone state, scripted/provider guidance separates `new`, `warming`, and `growing`, primary continuity-thread selection plus current-turn focus summarization now live in one shared runtime helper reused by both scripted and real-provider reply paths, and the helper now ranks recalled memories by latest-turn match instead of blindly taking the first recalled item.
+   Next cut: expand live-provider regression beyond prompt-body inspection into more emotionally heavy and timeline-led cases, and decide whether continuity scoring now needs lightweight recency weighting in addition to lexical overlap.
 
 2. Keep permissioned local-time awareness bounded and trustworthy.
    Status: in progress

@@ -4,6 +4,43 @@
 
 Objective:
 
+Strengthen real-provider dialogue regression around multi-turn continuity-thread choice and relationship-stage distance, then fix any provider-path continuity bug that the new regression exposes.
+
+Summary:
+
+- added focused `OpenAICompatibleChatProvider` regression coverage for multi-turn continuity-thread selection based on the latest user turn instead of a flat recalled-memory order
+- added focused provider-prompt regression coverage proving `new`, `warming`, and `growing` relationship stages emit distinct relationship-distance guidance in the real-provider instruction path
+- the new multi-turn regression exposed a real shared-helper bug: `selectContinuityThread()` still trusted the first recalled memory entry even when another recalled memory matched the newest user turn more strongly
+- updated the shared continuity helper to rank memory and timeline candidates by latest-turn match before choosing the primary thread, while keeping the existing emotional-turn conservatism and secondary-memory behavior
+- verified the fix and new coverage with `@waveary/core` typecheck, fresh build, and compiled-test execution against `dist/**/*.test.js`
+
+Files changed:
+
+- `waveary-core/src/adapters/openai-compatible-provider.test.ts`
+- `waveary-core/src/runtime/continuity-thread.ts`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/core`
+- `npm run build --workspace @waveary/core`
+- PowerShell `Get-ChildItem waveary-core/dist -Recurse -Filter *.test.js | ForEach-Object { $_.FullName }` followed by `node --test <compiled test files>`
+
+Commit:
+
+- `a625c32` - `Improve multi-turn continuity thread selection`
+
+Push:
+
+- succeeded: `git push origin main` pushed `a625c32` to the SSH remote `git@github.com:K2st0r/-Waveary-.git`
+
+## 2026-06-22
+
+Objective:
+
 Promote continuity-thread selection out of provider-local prompt logic into shared `waveary-core` runtime utilities so scripted and real-provider dialogue paths follow the same continuity rule.
 
 Summary:

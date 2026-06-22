@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `3f3ef8c` - `Share continuity thread selection across runtime paths`
+- `a625c32` - `Improve multi-turn continuity thread selection`
 
 ## Modules
 
@@ -35,6 +35,7 @@ Brand line:
   - dialogue quality has now been pushed further through context-sensitive memory recall thresholds, persisted `lastRecalledAt` updates, richer user-emotion detection, more stateful companion-emotion transitions, and clearer reply-distance differences across `new`, `warming`, and `growing` relationship stages
   - real-provider dialogue guidance now also names a current-turn focus plus one primary continuity thread, keeps extra recalled memories in a secondary block, and becomes more conservative about forcing weak memory links into emotionally heavy turns
   - shared continuity-thread selection now lives in `waveary-core` runtime code and is reused by both the OpenAI-compatible provider path and the scripted provider path, so primary-thread choice, emotional-turn conservatism, and current-turn focus summarization no longer drift apart across those reply surfaces
+  - shared continuity-thread selection now also ranks recalled memory candidates by match to the latest user turn instead of always trusting array order, so real-provider prompt guidance can keep the primary thread aligned with the user's most recent concern in multi-turn conversations
   - permissioned local time context can now be injected into normal chat turns so the companion can answer time/date-style questions from the user's device-local clock without claiming it lacks real-time awareness
   - local time context now also resolves a bounded daypart hint so late-night and evening turns can bias toward softer companion tone without expanding into broader desktop-awareness inputs
   - first formal product and architecture draft for companion emotional continuity and proactive care now exists in `docs/emotion-proactive-care.md`, defining `Waveary Emotion Engine (WEE)` and `Waveary Proactive Care Engine (WPCE)` as the next major runtime-facing design targets
@@ -234,8 +235,9 @@ Brand line:
 - add route-level or live verification for more provider-specific chat payload divergences after the current DeepSeek and broader structured-payload compatibility baseline
 - re-run `npm run verify:provider` and `npm run models:provider` with refreshed real credentials, starting with DeepSeek because the currently saved local key now returns `401 invalid api key`
 - continue the dialogue-quality pass by making recalled memory selection more context-sensitive and by surfacing relationship-stage differences more clearly in real provider conversations, not just scripted runtime tests
-- extend the dialogue-quality pass from the new shared continuity-thread helper into broader live-provider regression, especially multi-turn primary-thread choice and relationship-distance behavior under real OpenAI-compatible providers
+- extend the dialogue-quality pass from the new shared continuity-thread helper into broader live-provider regression beyond the current prompt-shaping coverage, especially real provider outputs under emotionally heavy and timeline-led turns
 - consider reusing the shared continuity-thread helper in future runtime-facing care or summary surfaces instead of reintroducing prompt-local continuity heuristics elsewhere
+- consider whether continuity-thread scoring should incorporate lightweight recency or source-turn weighting beyond lexical overlap now that multi-turn provider regression is in place
 - decide whether to harden `@waveary/core`'s Windows test script so it rebuilds or expands compiled test-file arguments more robustly, since the current `npm run test --workspace @waveary/core` path can misbehave if relied on alone after source edits
 - add focused route-level and browser-facing coverage for any remaining persistence edge cases beyond the current file/sqlite symmetry path
 - continue polishing the split web shell by tightening session-management density below the console fold and improving message rhythm plus mixed-language balance in the dedicated chat page
