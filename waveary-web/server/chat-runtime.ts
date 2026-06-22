@@ -21,6 +21,7 @@ import {
   type Locale,
   type ProactiveMessageDraft
 } from "../src/proactive-message-drafts.js";
+import { detectPendingLocalAction } from "./local-actions.js";
 
 import {
   PersistentChatSessionState,
@@ -84,6 +85,7 @@ export async function sendChatTurn(
   context.history = [...context.history, input, result.reply];
 
   const payload = toReplyPayload(result);
+  payload.pendingLocalAction = detectPendingLocalAction(trimmed);
   state.persistentState.clearUnansweredProactiveReachouts();
   state.persistentState.saveTurn(context, payload);
 
@@ -221,6 +223,7 @@ function toReplyPayload(result: RuntimeTurnResult): ChatReplyPayload {
     relationship: result.relationship,
     recalledMemories: result.recalledMemories.map((memory) => memory.content),
     storedMemories: result.storedMemories.map((memory) => memory.content),
+    pendingLocalAction: null,
     timeline: result.timeline.map((event) => ({
       title: event.title,
       type: event.eventType,

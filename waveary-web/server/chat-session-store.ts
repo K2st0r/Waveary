@@ -34,6 +34,7 @@ import {
   type ChatPersistenceBackend,
   type ChatPersistenceStatus
 } from "./chat-persistence-config.js";
+import type { PendingLocalAction } from "./local-actions.js";
 
 export interface ChatReplyPayload {
   reply: string;
@@ -41,6 +42,7 @@ export interface ChatReplyPayload {
   emotion?: EmotionState;
   recalledMemories: string[];
   storedMemories: string[];
+  pendingLocalAction?: PendingLocalAction | null;
   timeline: Array<{
     title: string;
     type: string;
@@ -176,6 +178,10 @@ export class PersistentChatSessionState {
     return this.runtimeState.getProactiveCareState();
   }
 
+  getLatestInsights(): ChatReplyPayload | null {
+    return this.runtimeState.getState().latestInsights;
+  }
+
   saveProactiveCareSettings(input: {
     policy?: Partial<ProactiveCarePolicy>;
     state?: Partial<ProactiveCareState>;
@@ -197,6 +203,14 @@ export class PersistentChatSessionState {
     this.runtimeState.saveState((current) => ({
       ...current,
       context: cloneContext(context),
+      latestInsights,
+      updatedAt: new Date().toISOString()
+    }));
+  }
+
+  replaceLatestInsights(latestInsights: ChatReplyPayload | null): void {
+    this.runtimeState.saveState((current) => ({
+      ...current,
       latestInsights,
       updatedAt: new Date().toISOString()
     }));

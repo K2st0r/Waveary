@@ -22,10 +22,10 @@ Update it when:
    Current state: memory recall is now stricter and updates `lastRecalledAt`, user-emotion detection is broader than `joy/sadness/neutral`, companion emotion transitions carry more relationship-aware tone state, scripted/provider guidance separates `new`, `warming`, and `growing`, primary continuity-thread selection plus current-turn focus summarization now live in one shared runtime helper reused by both scripted and real-provider reply paths, the helper ranks recalled memories by latest-turn match instead of blindly taking the first recalled item, weak timeline threads are now handled more conservatively during emotional turns, near-tied memory candidates get a small recency bias toward fresher remembered threads, and same-age tied memories now also get a very light source-turn preference toward the more recent user-origin thread.
    Next cut: expand live-provider regression beyond prompt-body inspection into stronger emotional-stress cases and richer memory-vs-timeline competition now that current-turn match, recency, and source-turn weighting all exist in the shared continuity helper.
 
-3. Keep permissioned local-time awareness bounded and trustworthy.
+3. Keep permissioned local-time awareness and local execution boundaries bounded and trustworthy.
    Status: in progress
-   Current state: chat turns, proactive notification lead copy, and proactive console summary all respond to local daypart only when `timeAwareness` is allowed, and the default local permission baseline now leaves time awareness enabled instead of requiring an extra setup step.
-   Next cut: reuse the same bounded daypart logic if proactive message drafting expands, without silently broadening into desktop presence, and begin turning the current desktop/action permission placeholders into a real ask-first execution layer.
+   Current state: chat turns, proactive notification lead copy, and proactive console summary all respond to local daypart only when `timeAwareness` is allowed; the default local permission baseline now leaves time awareness enabled; and `localActions` now has its first real ask-first path through chat-side pending action cards plus permission-gated local execution for simple open-url / open-folder / launch-app requests.
+   Next cut: extend the new local-action layer with a slightly broader but still auditable action set, keep time awareness from silently broadening into desktop presence, and decide whether executed or dismissed local actions need a small conversation-side trace for trust legibility.
 
 4. Preserve continuity discipline under high-frequency iteration.
    Status: ongoing

@@ -2594,6 +2594,62 @@ textarea {
   margin-top: 1rem;
 }
 
+.chat-local-action-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem;
+  padding: 0.95rem 1rem;
+  border: 1.5px solid rgba(21, 18, 15, 0.12);
+  border-radius: 1.2rem;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(248, 242, 232, 0.88));
+  box-shadow: 0 16px 30px rgba(33, 25, 17, 0.06);
+}
+
+.chat-local-action-copy {
+  display: grid;
+  gap: 0.32rem;
+}
+
+.chat-local-action-kicker {
+  color: rgba(21, 18, 15, 0.54);
+  font-size: 0.75rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.chat-local-action-copy strong {
+  color: var(--text-strong);
+  font-size: 1rem;
+}
+
+.chat-local-action-copy p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.chat-local-action-meta {
+  display: grid;
+  gap: 0.65rem;
+  align-content: center;
+  justify-items: end;
+  min-width: 13rem;
+}
+
+.chat-local-action-meta span {
+  color: rgba(21, 18, 15, 0.58);
+  font-size: 0.88rem;
+  text-align: right;
+}
+
+.chat-local-action-buttons {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
 .chat-composer-toolbar {
   display: flex;
   align-items: flex-end;
@@ -3002,6 +3058,27 @@ textarea {
 
   .chat-composer-toolbar {
     align-items: stretch;
+  }
+
+  .chat-local-action-card {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .chat-local-action-meta {
+    justify-items: stretch;
+    min-width: 0;
+  }
+
+  .chat-local-action-meta span {
+    text-align: left;
+  }
+
+  .chat-local-action-buttons {
+    justify-content: stretch;
+  }
+
+  .chat-local-action-buttons .button {
+    flex: 1 1 0;
   }
 
   .chat-permission-popover {

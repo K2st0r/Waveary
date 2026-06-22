@@ -6,6 +6,10 @@ import { fileURLToPath } from "node:url";
 import { OpenAICompatibleChatProvider, PROVIDER_PRESETS } from "@waveary/core";
 
 import {
+  dismissChatLocalAction,
+  executeChatLocalAction
+} from "./local-action-runtime.js";
+import {
   evaluateChatProactiveCare,
   loadChatSessionSnapshot,
   resetChatRuntimeSessions,
@@ -28,6 +32,7 @@ import {
   updateChatSessionProactiveCare
 } from "./chat-session-store.js";
 import type { ChatPersistenceBackend } from "./chat-persistence-config.js";
+import type { LocalActionPermissionLevel } from "./local-actions.js";
 import { loadSavedProviderConfig, saveProviderConfig } from "./provider-config.js";
 
 interface ProviderModelsRequest {
@@ -52,6 +57,12 @@ interface ChatTurnRequest {
 
 interface ChatSessionRequest {
   sessionId?: string;
+}
+
+interface ExecuteLocalActionRequest extends ChatSessionRequest {
+  actionId?: string;
+  permission?: LocalActionPermissionLevel;
+  approved?: boolean;
 }
 
 interface EvaluateProactiveCareRequest extends ChatSessionRequest {
@@ -178,6 +189,30 @@ export function createProviderApiMiddleware() {
         );
 
         sendJson(response, 200, { session: session ?? null });
+        return;
+      }
+
+      if (request.method === "POST" && request.url === "/api/chat/local-action/execute") {
+        const payload = (await readJsonBody(request)) as ExecuteLocalActionRequest;
+        const result = await executeChatLocalAction({
+          sessionId: payload.sessionId?.trim() || DEFAULT_CHAT_SESSION_ID,
+          actionId: requireNonEmpty(payload.actionId, "Action ID is required."),
+          permission: requireLocalActionPermission(payload.permission),
+          ...(payload.approved !== undefined ? { approved: payload.approved } : {})
+        });
+
+        sendJson(response, 200, result);
+        return;
+      }
+
+      if (request.method === "POST" && request.url === "/api/chat/local-action/dismiss") {
+        const payload = (await readJsonBody(request)) as ExecuteLocalActionRequest;
+        const result = dismissChatLocalAction({
+          sessionId: payload.sessionId?.trim() || DEFAULT_CHAT_SESSION_ID,
+          actionId: requireNonEmpty(payload.actionId, "Action ID is required.")
+        });
+
+        sendJson(response, 200, result);
         return;
       }
 
@@ -413,6 +448,16 @@ function requirePersistenceBackend(
   }
 
   throw new Error("A valid chat persistence backend is required.");
+}
+
+function requireLocalActionPermission(
+  value: LocalActionPermissionLevel | undefined
+): LocalActionPermissionLevel {
+  if (value === "allow" || value === "ask" || value === "deny") {
+    return value;
+  }
+
+  throw new Error("A valid local action permission is required.");
 }
 
 function getSessionPackageReference(): SessionPackageReference {

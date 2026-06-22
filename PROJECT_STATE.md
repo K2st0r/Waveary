@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `6897423` - `Add chat-side permission tray`
+- `pending` - `Add ask-first local action chat flow`
 
 ## Modules
 
@@ -119,6 +119,8 @@ Brand line:
   - the `WPCE` console decision card now visually separates affirmative reachout recommendations from policy-blocked evaluations through distinct summary copy, badge states, and surface treatment, so users can scan the outcome without parsing every field
   - the live conversation experience now has its own dedicated chat page with a stripped-down journal-style canvas and composer
   - the chat page now also surfaces a compact permission tray beside the composer, so time awareness, proactive notifications, desktop presence, and local-action intent can be adjusted in conversation without sending users back to the console
+  - `localActions` has now graduated from a UI-only preference slot into the first real ask-first execution path: chat turns can propose a pending local action card for simple open-url / open-folder / launch-app intents, and the user must explicitly confirm before any local execution happens
+  - the first local-action execution surface stays intentionally narrow and auditable inside `waveary-web`: proposal detection is rule-based, execution is permission-gated, denied policy blocks execution, ask-first requires one explicit approval click, and dismissing the card clears the pending action from persisted session state
   - the visible persisted-session archive panel has been removed from the runtime rail so the console reads less like a raw internal debug dump
   - the split home / console / chat shell now has a stronger page-by-page hierarchy: the homepage reads more like a formal project front page, the console reads more like a system desk, and the chat page is more tightly focused on the active conversation surface
   - homepage hero now includes a portrait-memory visual layer with drifting hand-drawn question-mark portraits and a burn-to-ash memory focal animation
@@ -269,8 +271,8 @@ Brand line:
 - keep iterating on the compact console shell only after visual verification shows a remaining real usability gap, instead of re-expanding it into explanatory blocks
 - run a focused browser pass for homepage doodle density, fade rhythm, and overall visual balance now that the doodle set includes both the original study objects and the new paper-memory objects
 - visually verify and, only if needed, tighten any remaining console workspace that still forces awkward external page scrolling after the latest compact-shell pass
-- design the next real execution layer for higher-trust capabilities so desktop presence and local actions can move from permission placeholders into auditable ask-first implementations instead of remaining UI-only policy slots
-- wire the new chat-side permission tray into the first real ask-first local action flow so those toggles graduate from preference state into usable companion-side execution boundaries
+- expand the new ask-first local action layer beyond the first safe open-url / open-folder / launch-app set, while keeping every higher-trust action explicit, revocable, and auditable
+- consider whether the next local-action pass should add richer action summaries, per-action approval history, or a small completed-action echo in chat so execution remains legible without clutter
 - continue the homepage portrait system with a more deliberate `4 male / 4 female` hand-drawn polaroid-style set so the visual range feels broader and less clustered around one youth archetype
 - consider replacing the current chroma-keyed lighter cutout with a cleaner native-alpha illustration once a final asset pass is approved
 - consider a follow-up homepage motion pass that adds a slightly stronger heat shimmer or ember flicker only if it stays subtle and does not overcomplicate the hero

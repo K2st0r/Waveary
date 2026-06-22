@@ -4,6 +4,49 @@
 
 Objective:
 
+Turn chat-side `localActions` from a preference-only permission into the first real ask-first local execution boundary, without allowing any silent high-trust action path.
+
+Summary:
+
+- added a first local-action detection and execution layer in `waveary-web/server/local-actions.ts` and `waveary-web/server/local-action-runtime.ts`
+- kept the first supported action set intentionally narrow and auditable: simple open-url, open-folder, and launch-app requests only, detected by lightweight rule matching rather than model-side tool execution
+- extended chat turn payloads and persisted `latestInsights` so a pending local action can survive session persistence and re-render as a compact approval card in the chat page
+- added new `/api/chat/local-action/execute` and `/api/chat/local-action/dismiss` routes, with explicit permission handling: `deny` blocks execution, `ask` requires approval, and executed or dismissed actions clear the pending state
+- added a compact approval surface above the chat composer in `waveary-web/src/App.tsx` and `waveary-web/src/styles.css`, preserving the journal-style chat focus while keeping local trust decisions visible near the message flow
+- verified the new execution boundary with `@waveary/web` route tests, frontend typecheck, and full web production build
+
+Files changed:
+
+- `waveary-web/server/local-actions.ts`
+- `waveary-web/server/local-action-runtime.ts`
+- `waveary-web/server/chat-runtime.ts`
+- `waveary-web/server/chat-session-store.ts`
+- `waveary-web/server/provider-api.ts`
+- `waveary-web/server/provider-api.test.ts`
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run test --workspace @waveary/web`
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run web:build`
+
+Commit:
+
+- `pending` - `Add ask-first local action chat flow`
+
+Push:
+
+- pending
+
+## 2026-06-22
+
+Objective:
+
 Move the most important permission controls closer to the live conversation surface so users can adjust companionship-relevant trust settings without leaving the chat page.
 
 Summary:

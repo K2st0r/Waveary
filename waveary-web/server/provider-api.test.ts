@@ -20,6 +20,7 @@ const {
   DEFAULT_CHAT_SESSION_ID,
   importChatSession
 } = await import("./chat-session-store.js");
+const { setLocalActionExecutorForTests } = await import("./local-actions.js");
 const { saveProviderConfig } = await import("./provider-config.js");
 const { resetChatRuntimeSessions } = await import("./chat-runtime.js");
 
@@ -27,6 +28,7 @@ const originalFetch = globalThis.fetch;
 
 after(() => {
   globalThis.fetch = originalFetch;
+  setLocalActionExecutorForTests(null);
 
   try {
     resetChatRuntimeSessions();
@@ -41,6 +43,124 @@ beforeEach(() => {
   resetChatRuntimeSessions();
   resetTestDataDir();
   globalThis.fetch = originalFetch;
+  setLocalActionExecutorForTests(null);
+});
+
+test("chat turn proposes a pending local action for explicit open requests", async () => {
+  const middleware = createProviderApiMiddleware();
+
+  saveProviderConfig({
+    provider: "provider-a",
+    baseURL: "https://provider-a.example/v1",
+    apiKey: "key-a",
+    model: "model-a"
+  });
+
+  globalThis.fetch = (async () =>
+    new Response(
+      JSON.stringify({
+        choices: [
+          {
+            message: {
+              content: "I can prepare that action for you."
+            }
+          }
+        ]
+      }),
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json"
+        }
+      }
+    )) as typeof fetch;
+
+  const response = await invokeJsonRoute(middleware, "POST", "/api/chat/turn", {
+    sessionId: DEFAULT_CHAT_SESSION_ID,
+    message: "帮我打开 B站"
+  });
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.reply, "I can prepare that action for you.");
+  assert.equal(response.body.pendingLocalAction.kind, "open_url");
+  assert.equal(response.body.pendingLocalAction.target, "https://www.bilibili.com/");
+});
+
+test("local action execution route blocks denied permissions and succeeds after approval", async () => {
+  const middleware = createProviderApiMiddleware();
+
+  saveProviderConfig({
+    provider: "provider-a",
+    baseURL: "https://provider-a.example/v1",
+    apiKey: "key-a",
+    model: "model-a"
+  });
+
+  globalThis.fetch = (async () =>
+    new Response(
+      JSON.stringify({
+        choices: [
+          {
+            message: {
+              content: "Action prepared."
+            }
+          }
+        ]
+      }),
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json"
+        }
+      }
+    )) as typeof fetch;
+
+  setLocalActionExecutorForTests(async (action: { targetLabel: string }) => ({
+    status: "executed",
+    message: `Opened ${action.targetLabel}.`
+  }));
+
+  const turnResponse = await invokeJsonRoute(middleware, "POST", "/api/chat/turn", {
+    sessionId: DEFAULT_CHAT_SESSION_ID,
+    message: "open github"
+  });
+
+  assert.equal(turnResponse.statusCode, 200);
+
+  const deniedResponse = await invokeJsonRoute(
+    middleware,
+    "POST",
+    "/api/chat/local-action/execute",
+    {
+      sessionId: DEFAULT_CHAT_SESSION_ID,
+      actionId: turnResponse.body.pendingLocalAction.id,
+      permission: "deny",
+      approved: true
+    }
+  );
+
+  assert.equal(deniedResponse.statusCode, 400);
+  assert.equal(
+    deniedResponse.body.error,
+    "Local action execution is denied by the current permission setting."
+  );
+
+  const approvedResponse = await invokeJsonRoute(
+    middleware,
+    "POST",
+    "/api/chat/local-action/execute",
+    {
+      sessionId: DEFAULT_CHAT_SESSION_ID,
+      actionId: turnResponse.body.pendingLocalAction.id,
+      permission: "ask",
+      approved: true
+    }
+  );
+
+  assert.equal(approvedResponse.statusCode, 200);
+  assert.equal(approvedResponse.body.result.status, "executed");
+  assert.equal(approvedResponse.body.result.message, "Opened GitHub.");
+  assert.equal(approvedResponse.body.session.latestInsights.pendingLocalAction, null);
 });
 
 test("chat persistence route returns rich backend status after switching to sqlite", async () => {
