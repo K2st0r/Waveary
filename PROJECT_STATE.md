@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `1171496` - `Record full-access reply consistency fix`
+- `8a2308e` - `Add managed browser open action layer`
 
 ## Modules
 
