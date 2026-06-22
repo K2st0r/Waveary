@@ -18,6 +18,18 @@ const ZH_TIME_PATTERNS = [
   "几点",
   "几点了",
   "现在几点",
+  "具体几点",
+  "现在是几点",
+  "现在是什么时间",
+  "现在几分",
+  "几点几分",
+  "现在几点几分",
+  "告诉我几点",
+  "告诉你现在几点",
+  "不知道几点",
+  "没法告诉你",
+  "无法告诉你",
+  "不能告诉你",
   "时间",
   "日期",
   "几号",
@@ -31,7 +43,7 @@ const ZH_TIME_PATTERNS = [
 ];
 
 export function isDirectLocalTimeQuestion(content: string): boolean {
-  const normalized = content.toLowerCase();
+  const normalized = content.toLowerCase().replace(/\s+/g, "");
 
   if (ZH_TIME_PATTERNS.some((pattern) => normalized.includes(pattern))) {
     return true;
