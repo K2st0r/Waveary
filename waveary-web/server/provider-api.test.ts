@@ -280,6 +280,90 @@ test("voice speak route supports dedicated doubao tts config", async () => {
   );
 });
 
+test("voice speak route supports dedicated local self-hosted tts config", async () => {
+  const middleware = createProviderApiMiddleware();
+
+  globalThis.fetch = (async (input, init) => {
+    if (String(input) === "http://127.0.0.1:9880/tts") {
+      const body = init?.body
+        ? (JSON.parse(String(init.body)) as {
+            text: string;
+            engine: string;
+            voice: string;
+            speaker: string;
+            referenceVoiceId: string;
+            format: string;
+          })
+        : null;
+
+      assert.equal(body?.text, "你好，我在。");
+      assert.equal(body?.engine, "gpt-sovits");
+      assert.equal(body?.voice, "warm-youth");
+      assert.equal(body?.speaker, "speaker-a");
+      assert.equal(body?.referenceVoiceId, "ref-voice-1");
+      assert.equal(body?.format, "mp3");
+
+      return new Response(
+        JSON.stringify({
+          provider: "local-gpt-sovits",
+          audio: {
+            base64: Buffer.from("local-self-hosted-audio").toString("base64"),
+            mimeType: "audio/mpeg"
+          },
+          metadata: {
+            model: "gpt-sovits-v2",
+            voice: "speaker-a"
+          }
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json"
+          }
+        }
+      );
+    }
+
+    throw new Error(`Unexpected fetch URL: ${String(input)}`);
+  }) as typeof fetch;
+
+  const response = await invokeJsonRoute(middleware, "POST", "/api/voice/config", {
+    providerMode: "dedicated",
+    provider: "local",
+    baseURL: "http://127.0.0.1:9880",
+    endpointPath: "/tts",
+    engine: "gpt-sovits",
+    apiKey: "",
+    speaker: "speaker-a",
+    referenceVoiceId: "ref-voice-1",
+    voice: "warm-youth",
+    model: "local-bridge",
+    qualityProfile: "gentle",
+    format: "mp3"
+  });
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.config.provider, "local");
+  assert.equal(response.body.config.endpointPath, "/tts");
+  assert.equal(response.body.config.engine, "gpt-sovits");
+  assert.equal(response.body.config.speaker, "speaker-a");
+  assert.equal(response.body.config.referenceVoiceId, "ref-voice-1");
+
+  const speakResponse = await invokeJsonRoute(middleware, "POST", "/api/voice/speak", {
+    text: "你好，我在。",
+    locale: "zh-CN"
+  });
+
+  assert.equal(speakResponse.statusCode, 200);
+  assert.equal(speakResponse.body.provider, "local-gpt-sovits");
+  assert.equal(
+    Buffer.from(speakResponse.body.audio.base64, "base64").toString("utf8"),
+    "local-self-hosted-audio"
+  );
+  assert.equal(speakResponse.body.metadata.model, "gpt-sovits-v2");
+  assert.equal(speakResponse.body.metadata.voice, "speaker-a");
+});
+
 test("browser extract-text route returns bounded page text", async () => {
   const middleware = createProviderApiMiddleware();
 

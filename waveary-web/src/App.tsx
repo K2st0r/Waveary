@@ -34,6 +34,10 @@ interface SavedVoiceConfig {
   apiKey: string;
   appId: string;
   cluster: string;
+  endpointPath: string;
+  engine: string;
+  speaker: string;
+  referenceVoiceId: string;
 }
 
 interface VoicePresetDescriptor {
@@ -1871,7 +1875,11 @@ export function App(): ReactElement {
           baseURL: patch.baseURL ?? currentVoiceConfig.baseURL,
           apiKey: patch.apiKey ?? currentVoiceConfig.apiKey,
           appId: patch.appId ?? currentVoiceConfig.appId,
-          cluster: patch.cluster ?? currentVoiceConfig.cluster
+          cluster: patch.cluster ?? currentVoiceConfig.cluster,
+          endpointPath: patch.endpointPath ?? currentVoiceConfig.endpointPath,
+          engine: patch.engine ?? currentVoiceConfig.engine,
+          speaker: patch.speaker ?? currentVoiceConfig.speaker,
+          referenceVoiceId: patch.referenceVoiceId ?? currentVoiceConfig.referenceVoiceId
         })
       });
 
@@ -1938,7 +1946,16 @@ export function App(): ReactElement {
   }
 
   async function handleVoiceProviderFieldChange(
-    field: "provider" | "baseURL" | "apiKey" | "appId" | "cluster",
+    field:
+      | "provider"
+      | "baseURL"
+      | "apiKey"
+      | "appId"
+      | "cluster"
+      | "endpointPath"
+      | "engine"
+      | "speaker"
+      | "referenceVoiceId",
     value: string
   ): Promise<void> {
     await saveVoiceConfigPatch(
@@ -3193,6 +3210,10 @@ export function App(): ReactElement {
   );
   const voiceProviderMode = voiceConfig?.providerMode ?? "shared";
   const usesDedicatedVoiceProvider = voiceProviderMode === "dedicated";
+  const usesLocalVoiceProvider =
+    usesDedicatedVoiceProvider && (voiceConfig?.provider ?? "").trim().toLowerCase() === "local";
+  const usesDoubaoVoiceProvider =
+    usesDedicatedVoiceProvider && (voiceConfig?.provider ?? "").trim().toLowerCase() === "doubao";
   const chatReady = Boolean(savedConfig?.provider && savedConfig.model);
   const activeSession =
     chatSessions.find((session) => session.sessionId === activeSessionId) ??
@@ -5132,7 +5153,7 @@ export function App(): ReactElement {
                               disabled={!canAdjustVoiceConfig}
                             />
                           </label>
-                          {voiceConfig?.provider === "doubao" ? (
+                          {usesDoubaoVoiceProvider ? (
                             <>
                               <label className="chat-voice-select">
                                 <span>App ID</span>
@@ -5165,6 +5186,85 @@ export function App(): ReactElement {
                                     void handleVoiceProviderFieldChange("cluster", event.target.value)
                                   }
                                   placeholder="volcano_tts"
+                                  disabled={!canAdjustVoiceConfig}
+                                />
+                              </label>
+                            </>
+                          ) : null}
+                          {usesLocalVoiceProvider ? (
+                            <>
+                              <label className="chat-voice-select">
+                                <span>{locale === "zh" ? "引擎" : "Engine"}</span>
+                                <input
+                                  type="text"
+                                  value={voiceConfig?.engine ?? ""}
+                                  onChange={(event) =>
+                                    setVoiceConfig((current) =>
+                                      current ? { ...current, engine: event.target.value } : current
+                                    )
+                                  }
+                                  onBlur={(event) =>
+                                    void handleVoiceProviderFieldChange("engine", event.target.value)
+                                  }
+                                  placeholder={locale === "zh" ? "例如 gpt-sovits" : "e.g. gpt-sovits"}
+                                  disabled={!canAdjustVoiceConfig}
+                                />
+                              </label>
+                              <label className="chat-voice-select">
+                                <span>{locale === "zh" ? "接口路径" : "Endpoint"}</span>
+                                <input
+                                  type="text"
+                                  value={voiceConfig?.endpointPath ?? ""}
+                                  onChange={(event) =>
+                                    setVoiceConfig((current) =>
+                                      current ? { ...current, endpointPath: event.target.value } : current
+                                    )
+                                  }
+                                  onBlur={(event) =>
+                                    void handleVoiceProviderFieldChange("endpointPath", event.target.value)
+                                  }
+                                  placeholder="/tts"
+                                  disabled={!canAdjustVoiceConfig}
+                                />
+                              </label>
+                              <label className="chat-voice-select">
+                                <span>{locale === "zh" ? "Speaker" : "Speaker"}</span>
+                                <input
+                                  type="text"
+                                  value={voiceConfig?.speaker ?? ""}
+                                  onChange={(event) =>
+                                    setVoiceConfig((current) =>
+                                      current ? { ...current, speaker: event.target.value } : current
+                                    )
+                                  }
+                                  onBlur={(event) =>
+                                    void handleVoiceProviderFieldChange("speaker", event.target.value)
+                                  }
+                                  placeholder={locale === "zh" ? "可选 speaker" : "Optional speaker"}
+                                  disabled={!canAdjustVoiceConfig}
+                                />
+                              </label>
+                              <label className="chat-voice-select chat-voice-select-wide">
+                                <span>{locale === "zh" ? "参考音色 ID" : "Reference Voice ID"}</span>
+                                <input
+                                  type="text"
+                                  value={voiceConfig?.referenceVoiceId ?? ""}
+                                  onChange={(event) =>
+                                    setVoiceConfig((current) =>
+                                      current
+                                        ? { ...current, referenceVoiceId: event.target.value }
+                                        : current
+                                    )
+                                  }
+                                  onBlur={(event) =>
+                                    void handleVoiceProviderFieldChange(
+                                      "referenceVoiceId",
+                                      event.target.value
+                                    )
+                                  }
+                                  placeholder={
+                                    locale === "zh" ? "可选参考音色或角色 ID" : "Optional reference voice or role ID"
+                                  }
                                   disabled={!canAdjustVoiceConfig}
                                 />
                               </label>
@@ -5228,8 +5328,8 @@ export function App(): ReactElement {
                   <span className="chat-voice-meta">
                     {usesDedicatedVoiceProvider
                       ? locale === "zh"
-                        ? `独立真人语音${voiceConfig?.provider ? ` · ${voiceConfig.provider}` : ""}`
-                        : `Dedicated voice${voiceConfig?.provider ? ` · ${voiceConfig.provider}` : ""}`
+                        ? `独立真人语音${voiceConfig?.provider ? ` · ${voiceConfig.provider}` : ""}${usesLocalVoiceProvider && voiceConfig?.engine ? ` · ${voiceConfig.engine}` : ""}`
+                        : `Dedicated voice${voiceConfig?.provider ? ` · ${voiceConfig.provider}` : ""}${usesLocalVoiceProvider && voiceConfig?.engine ? ` · ${voiceConfig.engine}` : ""}`
                       : locale === "zh"
                         ? "跟随聊天模型"
                         : "Using chat provider"}
