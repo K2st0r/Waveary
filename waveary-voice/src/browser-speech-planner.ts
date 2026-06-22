@@ -9,6 +9,7 @@ export class BrowserSpeechPlanner implements TextToSpeechProvider {
   async synthesize(request: TextToSpeechRequest): Promise<TextToSpeechResult> {
     return {
       provider: "waveary-browser-speech-planner",
+      mode: "browser-speech",
       plan: buildBrowserSpeechPlan(request)
     };
   }

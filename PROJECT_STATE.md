@@ -132,8 +132,9 @@ Brand line:
   - browser action execution notes can now return grounded companion-side summaries such as page-reading excerpts, page-search matches, clickable-target lists, and click-follow-up state instead of always reusing the older open-site wording
   - local-action reply wording now stays more companion-like after execution or dismissal, so successful browser opens no longer read like a sterile audit log or drift into made-up “virtual homepage” narration
   - Chinese open-site detection now recognizes broader Bilibili phrasing such as `打开哔哩哔哩` in addition to raw English `open bilibili`
-  - the web server now exposes a first `/api/voice/speak` route that returns an emotion-aware browser speech plan instead of hard-wiring speech behavior directly inside the UI layer
-  - the chat page now includes a first voice strip with `auto speak`, `speak reply`, and `stop` controls, and browser speech playback now follows reply emotion and relationship stage through the new voice planner
+  - the web server now exposes a first `/api/voice/speak` route that initially returned an emotion-aware browser speech plan instead of hard-wiring speech behavior directly inside the UI layer
+  - `/api/voice/speak` now attempts a real provider-backed TTS request first by reusing the saved OpenAI-compatible provider config against `/audio/speech`, then falls back to browser speech planning if the provider path is unavailable or fails
+  - the chat page now includes a first voice strip with `auto speak`, `speak reply`, and `stop` controls, and voice playback now supports both provider-returned audio and browser speech fallback while still following reply emotion and relationship stage
   - current-page search intent detection now runs before the narrower Bilibili follow-up probe, preventing `search this page for ...` turns from accidentally falling into the managed-browser follow-up path
   - `provider-api` route tests now explicitly close managed browser automation between cases, preventing the managed Playwright layer from leaving hanging handles in compiled server-test runs
 - `waveary-voice`
@@ -141,6 +142,7 @@ Brand line:
   - first `TextToSpeechRequest` / `TextToSpeechResult` contracts are implemented
   - first browser-native TTS planner is implemented through `BrowserSpeechPlanner`
   - Node-based planner tests are implemented
+  - first OpenAI-compatible provider-backed TTS adapter is now implemented through `OpenAICompatibleTextToSpeechProvider`, returning base64 audio plus playback metadata while preserving the shared voice contract boundary
   - the first local-action execution surface stays intentionally narrow and auditable inside `waveary-web`: proposal detection is rule-based, execution is permission-gated, denied policy blocks execution, ask-first requires one explicit approval click, and dismissing the card clears the pending action from persisted session state`r`n  - executed and dismissed local actions now also append a small assistant-side audit note into persisted chat history, so trust-visible action outcomes survive reloads and restored sessions instead of living only in transient UI state
   - the visible persisted-session archive panel has been removed from the runtime rail so the console reads less like a raw internal debug dump
   - the split home / console / chat shell now has a stronger page-by-page hierarchy: the homepage reads more like a formal project front page, the console reads more like a system desk, and the chat page is more tightly focused on the active conversation surface
@@ -269,6 +271,7 @@ Brand line:
 - `npm run check --workspace @waveary/web`
 - `npm run test --workspace @waveary/web`
 - `npm run web:build`
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
 
 ## Decision Sources
 
@@ -276,9 +279,9 @@ Brand line:
 
 ## Next Steps
 
-- extend the new `waveary-voice` layer from browser speech planning into a real provider-backed TTS adapter while preserving the same request/result contract
-- add a focused browser pass for the new chat-page voice strip so `auto speak`, `speak reply`, and `stop` are visually verified alongside the existing permission tray
-- decide the next voice cut after TTS playback: browser microphone capture + STT, or provider-backed richer emotional TTS first
+- expose explicit voice model / voice-style configuration so provider-backed TTS is not forced to reuse only the current chat-provider defaults
+- add a focused browser pass for the new chat-page voice strip so provider audio playback, browser fallback playback, `auto speak`, and `stop` are visually verified alongside the existing permission tray
+- decide the next voice cut after real TTS playback: browser microphone capture + STT, or richer provider-backed emotional voice controls first
 - keep future realtime voice and full-duplex work behind the new `waveary-voice` package boundary instead of blending media logic into `waveary-web` directly
 - continue refining the new three-step chat permission presets so the difference between `high-permission` and `full-access` stays legible now that `full-access` also returns same-turn execution-consistent replies instead of showing a contradiction between model text and local action outcome
 - add a focused browser pass for chat-integrated browser actions so the live `#chat` page is re-verified end-to-end against page-read, page-search, clickable-list, and click-by-text flows, not only route-level tests

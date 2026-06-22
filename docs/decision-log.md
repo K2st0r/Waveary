@@ -728,3 +728,26 @@ Impact:
 - `waveary-core` now includes first voice-domain contracts (`VoiceSession`, `SpeechInput`, `SpeechOutput`) so voice is no longer only a documentation placeholder
 - `waveary-web` now exposes `/api/voice/speak` and the chat page can auto-speak or manually speak the latest reply using emotion-aware browser speech settings
 - future real provider-backed voice work should extend this new package boundary instead of wiring vendor speech behavior directly into frontend components
+
+## 2026-06-22 - Real TTS Should Reuse The Existing Provider Path Before Adding A Separate Voice Console
+
+Status:
+
+- accepted
+
+Decision:
+
+For the first real TTS slice, reuse the currently saved OpenAI-compatible provider config and attempt `/audio/speech` behind `waveary-web/server/voice-runtime.ts`, while keeping browser speech planning as an automatic fallback instead of blocking voice on a new settings surface.
+
+Reason:
+
+- the project already has a saved provider identity, API key, and base URL, so a second parallel voice-only credential flow would add setup friction before proving the real-audio path
+- this gives Waveary a concrete provider-backed voice improvement immediately while preserving the current chat-page experience if the upstream provider lacks TTS support
+- keeping the fallback explicit means the user-visible voice feature stays resilient instead of becoming all-or-nothing
+
+Impact:
+
+- `waveary-voice` now includes `OpenAICompatibleTextToSpeechProvider`
+- `/api/voice/speak` can now return either real audio or a browser speech plan through one shared contract
+- `waveary-web/src/App.tsx` now plays provider audio when available and falls back to browser `speechSynthesis` otherwise
+- a later pass should expose explicit voice-model and voice-style configuration rather than relying forever on the saved chat-provider defaults

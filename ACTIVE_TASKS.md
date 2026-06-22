@@ -14,8 +14,8 @@ Update it when:
 
 1. Start the first `waveary-voice` delivery path.
    Status: in progress
-   Current state: a dedicated `waveary-voice` workspace now exists, the first browser-native TTS planner is implemented, `waveary-web` exposes `/api/voice/speak`, and the chat page can already auto-speak or manually speak the latest reply with emotion-aware browser speech settings.
-   Next cut: add one real provider-backed TTS adapter behind the same contract, or decide whether microphone capture + STT should come first for the next voice milestone.
+   Current state: a dedicated `waveary-voice` workspace now exists, the first browser-native TTS planner is implemented, `waveary-web` exposes `/api/voice/speak`, the chat page can already auto-speak or manually speak the latest reply, and that route now prefers a real OpenAI-compatible `/audio/speech` TTS call before falling back to browser speech planning.
+   Next cut: expose explicit voice-model / voice-style configuration for provider-backed TTS, then decide whether microphone capture + STT or richer emotional TTS controls should come first for the next voice milestone.
 
 2. Keep polishing the `waveary-web` home / console shell.
    Status: in progress
