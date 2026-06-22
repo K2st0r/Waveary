@@ -54,7 +54,14 @@ interface ChatTurnResponse {
 
 interface PendingLocalAction {
   id: string;
-  kind: "open_url" | "open_folder" | "launch_app";
+  kind:
+    | "open_url"
+    | "open_folder"
+    | "launch_app"
+    | "browser_extract_text"
+    | "browser_search_text"
+    | "browser_list_clickable"
+    | "browser_click_text";
   label: string;
   target: string;
   targetLabel: string;
@@ -4036,7 +4043,7 @@ export function App(): ReactElement {
                       </p>
                     </div>
                     <div className="chat-local-action-meta">
-                      <span>{pendingLocalAction.targetLabel}</span>
+                      <span>{localizeLocalActionTargetLabel(pendingLocalAction, locale)}</span>
                       <div className="chat-local-action-buttons">
                         <button
                           className="button button-secondary"
@@ -4532,10 +4539,40 @@ function localizeLocalActionSummary(
       return `打开 ${action.targetLabel} 文件夹`;
     }
 
-    return `启动 ${action.targetLabel}`;
+    if (action.kind === "launch_app") {
+      return `启动 ${action.targetLabel}`;
+    }
+
+    if (action.kind === "browser_extract_text") {
+      return "读取当前页面";
+    }
+
+    if (action.kind === "browser_search_text") {
+      return `在当前页面搜索 ${action.targetLabel}`;
+    }
+
+    if (action.kind === "browser_list_clickable") {
+      return "查看当前页面可点击项";
+    }
+
+    return `点击 ${action.targetLabel}`;
   }
 
   return action.summary;
+}
+
+function localizeLocalActionTargetLabel(
+  action: PendingLocalAction,
+  locale: Locale
+): string {
+  if (
+    action.kind === "browser_extract_text" ||
+    action.kind === "browser_list_clickable"
+  ) {
+    return locale === "zh" ? "当前页面" : "Current page";
+  }
+
+  return action.targetLabel;
 }
 
 function localizeLocalActionMessage(message: string, locale: Locale): string {
@@ -4546,6 +4583,10 @@ function localizeLocalActionMessage(message: string, locale: Locale): string {
   return message
     .replace(/^Opened /, "已打开 ")
     .replace(/^Launched /, "已启动 ")
+    .replace(/^Read the current page\.$/, "已读取当前页面。")
+    .replace(/^Checked clickable items on the current page\.$/, "已查看当前页面可点击项。")
+    .replace(/^Clicked "(.+?)"\.$/, "已点击“$1”。")
+    .replace(/^Searched the current page for "(.+?)"\.$/, "已在当前页面搜索“$1”。")
     .replace(/\.$/, "。");
 }
 

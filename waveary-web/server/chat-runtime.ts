@@ -101,17 +101,20 @@ export async function sendChatTurn(
 
   if (shouldAutoRunLocalAction && pendingLocalAction) {
     try {
-      await runPendingLocalAction({
+      const actionResult = await runPendingLocalAction({
         action: pendingLocalAction,
         permission: "allow",
-        approved: true
+        approved: true,
+        locale
       });
 
       const auditReply: Message = {
         id: `assistant-local-action-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         sessionId: context.session.id,
         role: "assistant",
-        content: buildLocalActionAuditNote(pendingLocalAction, "executed", locale),
+        content:
+          actionResult.assistantNote ??
+          buildLocalActionAuditNote(pendingLocalAction, "executed", locale),
         timestamp: new Date().toISOString(),
         metadata: {
           source: "local-action",

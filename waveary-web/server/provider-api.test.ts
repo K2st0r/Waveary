@@ -382,6 +382,122 @@ test("chat turn auto-executes local actions in full-access mode and returns an e
   );
 });
 
+test("chat turn proposes a pending browser read action for current-page reading requests", async () => {
+  const middleware = createProviderApiMiddleware();
+
+  saveProviderConfig({
+    provider: "provider-a",
+    baseURL: "https://provider-a.example/v1",
+    apiKey: "key-a",
+    model: "model-a"
+  });
+
+  globalThis.fetch = (async () =>
+    new Response(
+      JSON.stringify({
+        choices: [
+          {
+            message: {
+              content: "Let me line that up for you."
+            }
+          }
+        ]
+      }),
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json"
+        }
+      }
+    )) as typeof fetch;
+
+  const response = await invokeJsonRoute(middleware, "POST", "/api/chat/turn", {
+    sessionId: DEFAULT_CHAT_SESSION_ID,
+    message: "read this page"
+  });
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.reply, "Let me line that up for you.");
+  assert.equal(response.body.pendingLocalAction.kind, "browser_extract_text");
+  assert.equal(response.body.pendingLocalAction.target, "__current_page__");
+});
+
+test("chat turn auto-executes browser search actions in full-access mode with grounded page feedback", async () => {
+  const middleware = createProviderApiMiddleware();
+
+  saveProviderConfig({
+    provider: "provider-a",
+    baseURL: "https://provider-a.example/v1",
+    apiKey: "key-a",
+    model: "model-a"
+  });
+
+  globalThis.fetch = (async () =>
+    new Response(
+      JSON.stringify({
+        choices: [
+          {
+            message: {
+              content: "I cannot inspect the page directly."
+            }
+          }
+        ]
+      }),
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json"
+        }
+      }
+    )) as typeof fetch;
+
+  setBrowserAutomationOverridesForTests({
+    async searchPageText(query, options) {
+      assert.equal(query, "memory");
+      assert.equal(options?.maxSnippets, 3);
+
+      return {
+        page: {
+          url: "https://example.com/waveary",
+          title: "Waveary"
+        },
+        query,
+        totalMatches: 2,
+        snippets: [
+          "...Memory comes before model...",
+          "...every memory deserves an echo..."
+        ],
+        searchedAt: "2026-06-22T09:10:00.000Z"
+      };
+    }
+  });
+
+  const response = await invokeJsonRoute(middleware, "POST", "/api/chat/turn", {
+    sessionId: DEFAULT_CHAT_SESSION_ID,
+    message: "search this page for memory",
+    localActionPermission: "allow",
+    locale: "en"
+  });
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.pendingLocalAction, null);
+  assert.match(
+    response.body.reply,
+    /I searched "Waveary" for "memory" and found 2 visible matches\./
+  );
+
+  const sessionResponse = await invokeJsonRoute(middleware, "POST", "/api/chat/session", {
+    sessionId: DEFAULT_CHAT_SESSION_ID
+  });
+
+  assert.equal(sessionResponse.statusCode, 200);
+  assert.equal(sessionResponse.body.session.messages.length, 2);
+  assert.match(
+    sessionResponse.body.session.messages[1]?.content,
+    /The clearest ones right now are/
+  );
+});
+
 test("local action execution route blocks denied permissions and succeeds after approval", async () => {
   const middleware = createProviderApiMiddleware();
 
@@ -462,6 +578,93 @@ test("local action execution route blocks denied permissions and succeeds after 
   assert.equal(
     approvedResponse.body.session.messages[2]?.content,
     "I opened GitHub for you. If you want, I can stay with you and help with the next step too."
+  );
+});
+
+test("local action execution route records browser clickable-list notes after approval", async () => {
+  const middleware = createProviderApiMiddleware();
+
+  saveProviderConfig({
+    provider: "provider-a",
+    baseURL: "https://provider-a.example/v1",
+    apiKey: "key-a",
+    model: "model-a"
+  });
+
+  globalThis.fetch = (async () =>
+    new Response(
+      JSON.stringify({
+        choices: [
+          {
+            message: {
+              content: "Action prepared."
+            }
+          }
+        ]
+      }),
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json"
+        }
+      }
+    )) as typeof fetch;
+
+  setBrowserAutomationOverridesForTests({
+    async listClickableElements(options) {
+      assert.equal(options?.maxElements, 8);
+      return {
+        page: {
+          url: "https://example.com/actions",
+          title: "Actions"
+        },
+        elements: [
+          {
+            text: "Start here",
+            tagName: "a",
+            href: "https://example.com/start"
+          },
+          {
+            text: "Continue",
+            tagName: "button",
+            role: "button"
+          }
+        ],
+        scannedAt: "2026-06-22T10:00:00.000Z"
+      };
+    }
+  });
+
+  const turnResponse = await invokeJsonRoute(middleware, "POST", "/api/chat/turn", {
+    sessionId: DEFAULT_CHAT_SESSION_ID,
+    message: "what can i click on this page"
+  });
+
+  assert.equal(turnResponse.statusCode, 200);
+  assert.equal(turnResponse.body.pendingLocalAction.kind, "browser_list_clickable");
+
+  const approvedResponse = await invokeJsonRoute(
+    middleware,
+    "POST",
+    "/api/chat/local-action/execute",
+    {
+      sessionId: DEFAULT_CHAT_SESSION_ID,
+      actionId: turnResponse.body.pendingLocalAction.id,
+      permission: "ask",
+      approved: true,
+      locale: "en"
+    }
+  );
+
+  assert.equal(approvedResponse.statusCode, 200);
+  assert.equal(
+    approvedResponse.body.result.message,
+    "Checked clickable items on the current page."
+  );
+  assert.equal(approvedResponse.body.session.latestInsights.pendingLocalAction, null);
+  assert.match(
+    approvedResponse.body.session.messages[2]?.content,
+    /The clearest clickable options right now are/
   );
 });
 

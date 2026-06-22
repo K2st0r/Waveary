@@ -9,15 +9,47 @@ export function buildLocalActionAuditNote(
 ): string {
   if (locale === "zh") {
     if (resolution === "executed") {
+      if (action.kind === "browser_extract_text") {
+        return "我已经替你读了读当前页面。如果你愿意，我可以继续陪你往下看。";
+      }
+
+      if (action.kind === "browser_search_text") {
+        return `我已经替你在当前页面里找过“${action.targetLabel}”了。如果你愿意，我可以继续往下帮你看。`;
+      }
+
+      if (action.kind === "browser_list_clickable") {
+        return "我已经替你看过当前页面能点什么了。你要是想继续，我就接着陪你往下走。";
+      }
+
+      if (action.kind === "browser_click_text") {
+        return `我已经替你点了“${action.targetLabel}”。如果你想继续下一步，我也可以接着来。`;
+      }
+
       if (action.kind === "open_url") {
-        return `已经帮你打开 ${action.targetLabel} 了。你要是想继续看什么，我也可以陪你一起慢慢挑。`;
+        return `我已经替你打开 ${action.targetLabel} 了。你要是想继续看什么，我也可以陪你一起慢慢找。`;
       }
 
       if (action.kind === "open_folder") {
-        return `已经帮你打开 ${action.targetLabel} 文件夹了。你接下来要找什么，我也可以继续陪着你。`;
+        return `我已经替你打开 ${action.targetLabel} 文件夹了。你接下来要找什么，我也可以继续陪着你。`;
       }
 
-      return `已经帮你启动 ${action.targetLabel} 了。要是你还想继续做下一步，就直接告诉我。`;
+      return `我已经替你启动 ${action.targetLabel} 了。要是你还想继续做下一步，就直接告诉我。`;
+    }
+
+    if (action.kind === "browser_extract_text") {
+      return "这次我先不去读取当前页面。你想继续的时候，再让我来就好。";
+    }
+
+    if (action.kind === "browser_search_text") {
+      return `这次我先不替你在当前页面里找“${action.targetLabel}”。你想继续的时候，再叫我。`;
+    }
+
+    if (action.kind === "browser_list_clickable") {
+      return "这次我先不去看当前页面有哪些可点击项。你想继续的时候，再让我来。";
+    }
+
+    if (action.kind === "browser_click_text") {
+      return `这次我先不替你点“${action.targetLabel}”。等你确定了，我再继续。`;
     }
 
     if (action.kind === "open_url") {
@@ -32,6 +64,22 @@ export function buildLocalActionAuditNote(
   }
 
   if (resolution === "executed") {
+    if (action.kind === "browser_extract_text") {
+      return "I read the current page for you. If you want, I can stay with you and keep going.";
+    }
+
+    if (action.kind === "browser_search_text") {
+      return `I searched the current page for "${action.targetLabel}" for you. If you want, I can keep following that thread.`;
+    }
+
+    if (action.kind === "browser_list_clickable") {
+      return "I checked what can be clicked on the current page for you. Tell me where you want to go next.";
+    }
+
+    if (action.kind === "browser_click_text") {
+      return `I clicked "${action.targetLabel}" for you. If you want, I can keep going from here too.`;
+    }
+
     if (action.kind === "open_url") {
       return `I opened ${action.targetLabel} for you. If you want, I can stay with you and help with the next step too.`;
     }
@@ -41,6 +89,22 @@ export function buildLocalActionAuditNote(
     }
 
     return `I launched ${action.targetLabel} for you. If you want to keep going, just tell me what comes next.`;
+  }
+
+  if (action.kind === "browser_extract_text") {
+    return "I did not read the current page this time. Ask me again when you want me to.";
+  }
+
+  if (action.kind === "browser_search_text") {
+    return `I did not search the current page for "${action.targetLabel}" this time. Ask me again when you want me to.`;
+  }
+
+  if (action.kind === "browser_list_clickable") {
+    return "I did not inspect the clickable items on the current page this time. Ask me again when you want me to.";
+  }
+
+  if (action.kind === "browser_click_text") {
+    return `I did not click "${action.targetLabel}" this time. Ask me again when you want me to.`;
   }
 
   if (action.kind === "open_url") {
@@ -63,23 +127,37 @@ export function buildLocalActionFailureNote(
 
   if (locale === "zh") {
     const prefix =
-      action.kind === "open_folder"
-        ? `我刚刚试着替你打开 ${action.targetLabel} 文件夹`
-        : action.kind === "launch_app"
-          ? `我刚刚试着替你启动 ${action.targetLabel}`
-          : `我刚刚试着替你打开 ${action.targetLabel}`;
+      action.kind === "browser_extract_text"
+        ? "我刚刚试着替你读取当前页面"
+        : action.kind === "browser_search_text"
+          ? `我刚刚试着替你在当前页面里找“${action.targetLabel}”`
+          : action.kind === "browser_list_clickable"
+            ? "我刚刚试着替你看看当前页面能点什么"
+            : action.kind === "browser_click_text"
+              ? `我刚刚试着替你点“${action.targetLabel}”`
+              : action.kind === "open_folder"
+                ? `我刚刚试着替你打开 ${action.targetLabel} 文件夹`
+                : action.kind === "launch_app"
+                  ? `我刚刚试着替你启动 ${action.targetLabel}`
+                  : `我刚刚试着替你打开 ${action.targetLabel}`;
 
-    return detail
-      ? `${prefix}，但这次没能成功：${detail}`
-      : `${prefix}，但这次没能成功。`;
+    return detail ? `${prefix}，但这次没能成功：${detail}` : `${prefix}，但这次没能成功。`;
   }
 
   const prefix =
-    action.kind === "open_folder"
-      ? `I just tried to open the ${action.targetLabel} folder for you`
-      : action.kind === "launch_app"
-        ? `I just tried to launch ${action.targetLabel} for you`
-        : `I just tried to open ${action.targetLabel} for you`;
+    action.kind === "browser_extract_text"
+      ? "I just tried to read the current page for you"
+      : action.kind === "browser_search_text"
+        ? `I just tried to search the current page for "${action.targetLabel}"`
+        : action.kind === "browser_list_clickable"
+          ? "I just tried to inspect the clickable items on the current page for you"
+          : action.kind === "browser_click_text"
+            ? `I just tried to click "${action.targetLabel}" for you`
+            : action.kind === "open_folder"
+              ? `I just tried to open the ${action.targetLabel} folder for you`
+              : action.kind === "launch_app"
+                ? `I just tried to launch ${action.targetLabel} for you`
+                : `I just tried to open ${action.targetLabel} for you`;
 
   return detail
     ? `${prefix}, but it did not work this time: ${detail}`
