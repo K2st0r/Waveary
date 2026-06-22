@@ -2714,8 +2714,24 @@ textarea {
   outline: none;
 }
 
+.chat-voice-select input {
+  min-width: 7rem;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  outline: none;
+}
+
 .chat-voice-select-compact select {
   min-width: 5.6rem;
+}
+
+.chat-voice-select-wide {
+  min-width: 15rem;
+}
+
+.chat-voice-select-wide input {
+  min-width: 10rem;
 }
 
 .chat-voice-toggle {

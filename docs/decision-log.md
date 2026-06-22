@@ -861,3 +861,25 @@ Impact:
 - `waveary-web/src/App.tsx` now logs voice-config init failure as an optional warning and continues loading provider presets, saved provider config, session metadata, and chat state
 - the provider dropdown, saved provider selection, and model setup surface can recover independently from voice-route startup drift
 - a later server/runtime pass can still fix the underlying `/api/voice/config` `404`, but that mismatch no longer breaks core console use
+
+## 2026-06-22 - 真人语音 Must Not Be Forced To Reuse The Chat Provider
+
+Status:
+
+- accepted
+
+Decision:
+
+Add a `shared / dedicated` provider mode to saved voice configuration so Waveary can keep normal chat on one model vendor while routing provider-backed TTS through a different OpenAI-compatible voice endpoint.
+
+Reason:
+
+- many chat-compatible providers do not expose a usable `/audio/speech` route, so forcing TTS to reuse the chat provider causes silent fallback to browser speech and breaks the user's expectation of 真人声音
+- the product already treats voice as a first-class system, so voice transport should be able to diverge from chat transport without rewriting the rest of the runtime
+- this is a bounded architecture extension: it preserves the existing chat provider flow while making the voice layer materially more usable
+
+Impact:
+
+- `.waveary/voice-config.json` now stores `providerMode`, `provider`, `baseURL`, and `apiKey` in addition to voice model, voice name, format, and quality profile
+- `waveary-web/server/voice-runtime.ts` now chooses between the shared chat provider and a dedicated voice provider before attempting `/audio/speech`
+- the chat voice strip now exposes `Source`, plus dedicated provider fields when the user switches into independent真人语音 mode

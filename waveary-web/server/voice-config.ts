@@ -15,6 +15,10 @@ export interface SavedVoiceConfig {
   voice: string;
   format: VoiceOutputFormat;
   qualityProfile: VoiceQualityProfile;
+  providerMode: "shared" | "dedicated";
+  provider: string;
+  baseURL: string;
+  apiKey: string;
 }
 
 const CONFIG_PATH = join(getWavearyDataDir(), "voice-config.json");
@@ -26,7 +30,11 @@ export function getDefaultVoiceConfig(): SavedVoiceConfig {
     model: preset.model,
     voice: preset.voice,
     format: preset.format,
-    qualityProfile: preset.id
+    qualityProfile: preset.id,
+    providerMode: "shared",
+    provider: "",
+    baseURL: "",
+    apiKey: ""
   };
 }
 
@@ -64,12 +72,23 @@ function normalizeVoiceConfig(config: Partial<SavedVoiceConfig>): SavedVoiceConf
   const format = isVoiceFormat(config.format) ? config.format : preset.format;
   const model = config.model?.trim() || preset.model;
   const voice = config.voice?.trim() || preset.voice;
+  const providerMode =
+    config.providerMode === "dedicated" || config.providerMode === "shared"
+      ? config.providerMode
+      : fallback.providerMode;
+  const provider = config.provider?.trim() || "";
+  const baseURL = config.baseURL?.trim() || "";
+  const apiKey = config.apiKey?.trim() || "";
 
   return {
     model,
     voice,
     format,
-    qualityProfile: preset.id
+    qualityProfile: preset.id,
+    providerMode,
+    provider,
+    baseURL,
+    apiKey
   };
 }
 

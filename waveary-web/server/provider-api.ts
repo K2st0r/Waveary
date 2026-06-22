@@ -90,6 +90,10 @@ interface VoiceConfigRequest {
   voice?: string;
   format?: VoiceOutputFormat;
   qualityProfile?: VoiceQualityProfile;
+  providerMode?: "shared" | "dedicated";
+  provider?: string;
+  baseURL?: string;
+  apiKey?: string;
 }
 
 interface ChatSessionRequest {

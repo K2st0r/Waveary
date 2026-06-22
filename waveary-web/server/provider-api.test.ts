@@ -172,6 +172,55 @@ test("voice config route persists a selected preset", async () => {
   assert.equal(response.body.config.model, "gpt-4o-mini-tts");
 });
 
+test("voice speak route prefers dedicated voice provider config when present", async () => {
+  const middleware = createProviderApiMiddleware();
+
+  saveProviderConfig({
+    provider: "deepseek",
+    baseURL: "https://api.deepseek.com/v1",
+    apiKey: "chat-key",
+    model: "deepseek-chat"
+  });
+
+  globalThis.fetch = (async (input) => {
+    if (String(input) === "https://api.openai.com/v1/audio/speech") {
+      return new Response(Buffer.from("dedicated-voice-audio"), {
+        status: 200,
+        headers: {
+          "Content-Type": "audio/mpeg"
+        }
+      });
+    }
+
+    throw new Error(`Unexpected fetch URL: ${String(input)}`);
+  }) as typeof fetch;
+
+  const response = await invokeJsonRoute(middleware, "POST", "/api/voice/config", {
+    providerMode: "dedicated",
+    provider: "openai",
+    baseURL: "https://api.openai.com/v1",
+    apiKey: "voice-key",
+    qualityProfile: "cinematic",
+    model: "gpt-4o-mini-tts",
+    voice: "marin",
+    format: "mp3"
+  });
+
+  assert.equal(response.statusCode, 200);
+
+  const speakResponse = await invokeJsonRoute(middleware, "POST", "/api/voice/speak", {
+    text: "Stay here.",
+    locale: "en-US"
+  });
+
+  assert.equal(speakResponse.statusCode, 200);
+  assert.equal(speakResponse.body.provider, "openai");
+  assert.equal(
+    Buffer.from(speakResponse.body.audio.base64, "base64").toString("utf8"),
+    "dedicated-voice-audio"
+  );
+});
+
 test("browser extract-text route returns bounded page text", async () => {
   const middleware = createProviderApiMiddleware();
 

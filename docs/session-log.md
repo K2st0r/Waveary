@@ -4373,3 +4373,42 @@ Push:
 
 - pending
 
+## 2026-06-22
+
+Objective:
+
+Make真人语音 usable even when the active chat provider does not expose a strong `/audio/speech` path.
+
+Summary:
+
+- extended `waveary-web/server/voice-config.ts` so saved voice config can now choose between `shared` chat-provider mode and a `dedicated` voice-provider mode, with separate `provider`, `baseURL`, and `apiKey` fields for TTS
+- updated `waveary-web/server/voice-runtime.ts` so provider-backed TTS now prefers the dedicated voice provider when configured, instead of always reusing the saved chat provider
+- widened the `/api/voice/config` request shape and the chat-page voice strip so the browser UI can switch between shared and dedicated voice sources without rewriting the rest of the chat flow
+- added route-level regression coverage proving that chat can stay on one provider while真人语音 playback uses a separate OpenAI-compatible `/audio/speech` endpoint successfully
+
+Files changed:
+
+- `waveary-web/server/voice-config.ts`
+- `waveary-web/server/voice-runtime.ts`
+- `waveary-web/server/provider-api.ts`
+- `waveary-web/server/provider-api.test.ts`
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run build:server --workspace @waveary/web`
+- `npm run test --workspace @waveary/web`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
