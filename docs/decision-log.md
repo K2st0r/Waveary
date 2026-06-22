@@ -507,3 +507,25 @@ Impact:
 - `selectContinuityThread()` now downgrades weak timeline guidance during emotional turns instead of always using the stronger timeline-anchoring wording
 - provider prompt guidance now stays more emotionally present when only a low-signal life-event thread is available
 - timeline-led secondary recalled memories continue to be preserved, but their ordering now reflects current-turn relevance rather than raw retrieval order
+
+## 2026-06-22 - Near-Tied Continuity Memories Should Favor Fresher Threads
+
+Status:
+
+- accepted
+
+Decision:
+
+When multiple memory candidates are otherwise similarly relevant to the current turn, apply a small recency bonus so newer remembered threads win the primary continuity slot more often than older ones.
+
+Reason:
+
+- new runtime regression showed that tie-like memory candidates were still decided by retrieval order even after match-based ranking landed
+- companionship continuity should lean slightly toward fresher remembered threads when semantic relevance is effectively equal, because they are usually closer to the user's live conversational arc
+- the bias should stay light so recency does not overpower clearly stronger semantic matches
+
+Impact:
+
+- `selectContinuityThread()` now adds a small age-based ranking bonus for recent memories before selecting the primary thread
+- near-tied memory candidates no longer depend as heavily on recall ordering alone
+- future scoring work can add source-turn or session-local weighting on top of this without replacing the shared helper boundary

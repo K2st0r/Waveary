@@ -14,8 +14,8 @@ Update it when:
 
 1. Continue the `waveary-core` dialogue-quality pass.
    Status: in progress
-   Current state: memory recall is now stricter and updates `lastRecalledAt`, user-emotion detection is broader than `joy/sadness/neutral`, companion emotion transitions carry more relationship-aware tone state, scripted/provider guidance separates `new`, `warming`, and `growing`, primary continuity-thread selection plus current-turn focus summarization now live in one shared runtime helper reused by both scripted and real-provider reply paths, the helper ranks recalled memories by latest-turn match instead of blindly taking the first recalled item, and weak timeline threads are now handled more conservatively during emotional turns.
-   Next cut: expand live-provider regression beyond prompt-body inspection into stronger emotional-stress cases and richer memory-vs-timeline competition, then decide whether continuity scoring now needs lightweight recency or source-turn weighting in addition to lexical overlap.
+   Current state: memory recall is now stricter and updates `lastRecalledAt`, user-emotion detection is broader than `joy/sadness/neutral`, companion emotion transitions carry more relationship-aware tone state, scripted/provider guidance separates `new`, `warming`, and `growing`, primary continuity-thread selection plus current-turn focus summarization now live in one shared runtime helper reused by both scripted and real-provider reply paths, the helper ranks recalled memories by latest-turn match instead of blindly taking the first recalled item, weak timeline threads are now handled more conservatively during emotional turns, and near-tied memory candidates now get a small recency bias toward fresher remembered threads.
+   Next cut: expand live-provider regression beyond prompt-body inspection into stronger emotional-stress cases and richer memory-vs-timeline competition, then decide whether continuity scoring now needs source-turn weighting in addition to the new lightweight recency bias.
 
 2. Keep permissioned local-time awareness bounded and trustworthy.
    Status: in progress

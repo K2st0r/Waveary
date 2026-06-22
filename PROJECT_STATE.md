@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `09ffe0e` - `Harden emotional timeline continuity guidance`
+- `319d9ba` - `Add recency-aware continuity memory ranking`
 
 ## Modules
 
@@ -38,6 +38,7 @@ Brand line:
   - shared continuity-thread selection now also ranks recalled memory candidates by match to the latest user turn instead of always trusting array order, so real-provider prompt guidance can keep the primary thread aligned with the user's most recent concern in multi-turn conversations
   - shared continuity-thread selection now also keeps weak timeline threads restrained during emotionally heavy turns instead of automatically treating a low-signal life event as strong anchoring material, closing the earlier asymmetry between weak-memory and weak-timeline handling
   - when a timeline event becomes the primary continuity thread, the secondary recalled-memory list now reflects current-turn relevance order rather than raw retrieval order, so supporting memories stay aligned with the user's immediate concern
+  - shared continuity-thread selection now also gives a small recency bonus to newer memory candidates, so near-tied relevance cases favor fresher remembered threads instead of being decided by retrieval order alone
   - permissioned local time context can now be injected into normal chat turns so the companion can answer time/date-style questions from the user's device-local clock without claiming it lacks real-time awareness
   - local time context now also resolves a bounded daypart hint so late-night and evening turns can bias toward softer companion tone without expanding into broader desktop-awareness inputs
   - first formal product and architecture draft for companion emotional continuity and proactive care now exists in `docs/emotion-proactive-care.md`, defining `Waveary Emotion Engine (WEE)` and `Waveary Proactive Care Engine (WPCE)` as the next major runtime-facing design targets
@@ -239,7 +240,7 @@ Brand line:
 - continue the dialogue-quality pass by making recalled memory selection more context-sensitive and by surfacing relationship-stage differences more clearly in real provider conversations, not just scripted runtime tests
 - extend the dialogue-quality pass from the new shared continuity-thread helper into broader live-provider regression beyond the current prompt-shaping coverage, especially real provider outputs under stronger emotional stress and mixed memory-vs-timeline competition
 - consider reusing the shared continuity-thread helper in future runtime-facing care or summary surfaces instead of reintroducing prompt-local continuity heuristics elsewhere
-- consider whether continuity-thread scoring should incorporate lightweight recency or source-turn weighting beyond lexical overlap now that multi-turn provider regression is in place
+- consider whether continuity-thread scoring now needs source-turn weighting in addition to the new lightweight recency bias, especially for memories created within the same short time band
 - decide whether to harden `@waveary/core`'s Windows test script so it rebuilds or expands compiled test-file arguments more robustly, since the current `npm run test --workspace @waveary/core` path can misbehave if relied on alone after source edits
 - add focused route-level and browser-facing coverage for any remaining persistence edge cases beyond the current file/sqlite symmetry path
 - continue polishing the split web shell by tightening session-management density below the console fold and improving message rhythm plus mixed-language balance in the dedicated chat page

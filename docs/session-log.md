@@ -4,6 +4,43 @@
 
 Objective:
 
+Add a minimal recency-aware refinement to shared continuity-thread selection so near-tied remembered threads prefer fresher context instead of falling back to retrieval order.
+
+Summary:
+
+- added focused `selectContinuityThread()` regression coverage proving that when two memory candidates are equally relevant to the latest user turn, the newer remembered thread should become the primary continuity thread
+- the new regression exposed a real ranking gap: after moving to match-based ordering, tie-like memory candidates could still be decided by raw retrieval order because no light recency signal existed
+- updated the shared continuity helper to apply a small age-based ranking bonus for recent memories while keeping lexical relevance as the dominant signal
+- kept the recency bonus intentionally small and banded so it only resolves near ties instead of overpowering clearly stronger semantic matches
+- verified the refinement with `@waveary/core` typecheck, fresh build, and compiled-test execution against `dist/**/*.test.js`
+
+Files changed:
+
+- `waveary-core/src/runtime/continuity-thread.ts`
+- `waveary-core/src/runtime/continuity-thread.test.ts`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/core`
+- `npm run build --workspace @waveary/core`
+- PowerShell `Get-ChildItem waveary-core/dist -Recurse -Filter *.test.js | ForEach-Object { $_.FullName }` followed by `node --test <compiled test files>`
+
+Commit:
+
+- `319d9ba` - `Add recency-aware continuity memory ranking`
+
+Push:
+
+- succeeded: `git push origin main` pushed `319d9ba` to the SSH remote `git@github.com:K2st0r/-Waveary-.git`
+
+## 2026-06-22
+
+Objective:
+
 Extend real-provider continuity regression into emotionally heavy and timeline-led cases, then fix any shared continuity-helper gap that the new provider coverage exposes.
 
 Summary:
