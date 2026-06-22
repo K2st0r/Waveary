@@ -151,6 +151,73 @@ test("selectContinuityThread prefers the more recent memory when relevance is ot
   assert.equal(selection.secondaryMemories[0]?.id, "memory-older");
 });
 
+test("selectContinuityThread prefers the memory tied to the more recent source turn when content and age are otherwise tied", () => {
+  const messages: Message[] = [
+    {
+      id: "message-older-source",
+      sessionId: "session-1",
+      role: "user",
+      content: "I want the companion to feel present in my life over time.",
+      timestamp: "2026-06-22T11:40:00.000Z",
+      metadata: {}
+    },
+    {
+      id: "message-assistant-1",
+      sessionId: "session-1",
+      role: "assistant",
+      content: "I hear that and I want to stay continuous with you.",
+      timestamp: "2026-06-22T11:41:00.000Z",
+      metadata: {}
+    },
+    {
+      id: "message-newer-source",
+      sessionId: "session-1",
+      role: "user",
+      content: "What matters most is that relationship growth keeps feeling real.",
+      timestamp: "2026-06-22T11:55:00.000Z",
+      metadata: {}
+    },
+    {
+      id: "message-latest",
+      sessionId: "session-1",
+      role: "user",
+      content: "I still want relationship growth to feel real and emotionally continuous.",
+      timestamp: "2026-06-22T12:00:00.000Z",
+      metadata: {}
+    }
+  ];
+
+  const relevantMemories: MemoryItem[] = [
+    createMemory(
+      "memory-older-source",
+      "fact",
+      "The user wants relationship growth to feel real and emotionally continuous.",
+      "2026-06-22T09:00:00.000Z",
+      ["message-older-source"]
+    ),
+    createMemory(
+      "memory-newer-source",
+      "preference",
+      "The user wants relationship growth to feel real and emotionally continuous.",
+      "2026-06-22T09:00:00.000Z",
+      ["message-newer-source"]
+    )
+  ];
+
+  const selection = selectContinuityThread({
+    latestUserMessage: messages[3],
+    messageHistory: messages,
+    relevantMemories,
+    timeline: []
+  });
+
+  assert.equal(
+    selection.primaryLine,
+    "[memory:preference] The user wants relationship growth to feel real and emotionally continuous."
+  );
+  assert.equal(selection.secondaryMemories[0]?.id, "memory-older-source");
+});
+
 function createMemory(
   id: string,
   type: MemoryItem["type"],
