@@ -2345,6 +2345,27 @@ export function App(): ReactElement {
     }
   }
 
+  useEffect(() => {
+    if (!pendingLocalAction || !activeSessionId) {
+      return;
+    }
+
+    if (permissionProfile.localActions !== "allow") {
+      return;
+    }
+
+    if (localActionResolveState === "loading") {
+      return;
+    }
+
+    void handleExecutePendingLocalAction();
+  }, [
+    activeSessionId,
+    localActionResolveState,
+    pendingLocalAction,
+    permissionProfile.localActions
+  ]);
+
   const isBusy =
     loadState === "loading" ||
     modelsState === "loading" ||
@@ -3991,7 +4012,7 @@ export function App(): ReactElement {
               </div>
 
               <div className="chat-composer">
-                {pendingLocalAction ? (
+                {pendingLocalAction && permissionProfile.localActions !== "allow" ? (
                   <div className="chat-local-action-card">
                     <div className="chat-local-action-copy">
                       <span className="chat-local-action-kicker">
@@ -4008,8 +4029,8 @@ export function App(): ReactElement {
                               ? "这次需要你点一次确认后才会执行。"
                               : "This one needs your explicit approval before it runs."
                             : locale === "zh"
-                              ? "当前策略允许本地动作，但这次仍然会等你确认后再执行。"
-                              : "The current policy allows local actions, but this still waits for your confirmation."}
+                              ? "当前策略会自动执行本地动作。"
+                              : "The current policy auto-runs local actions."}
                       </p>
                     </div>
                     <div className="chat-local-action-meta">
