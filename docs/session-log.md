@@ -1,4 +1,4 @@
-# Session Log
+﻿# Session Log
 
 ## 2026-06-22
 
@@ -42,7 +42,7 @@ Commit:
 
 Push:
 
-- pending
+- succeeded: `git push origin main` pushed `be1b9ed` and continuity follow-up `fb2ae35` to the SSH remote `git@github.com:K2st0r/-Waveary-.git`
 
 ## 2026-06-22
 
@@ -322,7 +322,7 @@ Commit:
 
 Push:
 
-- pending
+- succeeded: `git push origin main` pushed `be1b9ed` and continuity follow-up `fb2ae35` to the SSH remote `git@github.com:K2st0r/-Waveary-.git`
 
 ## 2026-06-22
 
@@ -397,7 +397,7 @@ Commit:
 
 Push:
 
-- pending
+- succeeded: `git push origin main` pushed `be1b9ed` and continuity follow-up `fb2ae35` to the SSH remote `git@github.com:K2st0r/-Waveary-.git`
 
 ## 2026-06-22
 
@@ -1794,7 +1794,7 @@ Commit:
 
 Push:
 
-- pending at time of record; local branch was ahead of origin by one commit before the current burn-vignette refinement pass
+- succeeded: `git push origin main` pushed `be1b9ed` and continuity follow-up `fb2ae35` to the SSH remote `git@github.com:K2st0r/-Waveary-.git` at time of record; local branch was ahead of origin by one commit before the current burn-vignette refinement pass
 
 ## 2026-06-21
 
@@ -1923,7 +1923,7 @@ Add a direct Chinese and English language toggle to the `waveary-web` homepage a
 Summary:
 
 - rebuilt `waveary-web/src/App.tsx` around a single bilingual copy layer so the homepage narrative, provider setup controls, session management UI, runtime panels, and roadmap all switch together
-- added a topbar `中 / EN` language toggle that keeps the current visual paper-and-doodle direction and persists the selected locale locally
+- added a topbar `涓?/ EN` language toggle that keeps the current visual paper-and-doodle direction and persists the selected locale locally
 - kept language switching presentation-only so changing locale does not re-run initial page loading or wipe any in-progress provider form input
 - verified the change through scoped TypeScript checks and a full production web build
 
@@ -3728,3 +3728,4 @@ Commit:
 Push:
 
 - succeeded
+
