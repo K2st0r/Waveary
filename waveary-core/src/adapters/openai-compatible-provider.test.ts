@@ -269,6 +269,153 @@ test("OpenAICompatibleChatProvider tells the model not to force continuity when 
   );
 });
 
+test("OpenAICompatibleChatProvider chooses the primary continuity thread from the latest user turn in a multi-turn request", async () => {
+  const recorded: Array<{ url: string; init: RequestInit | undefined }> = [];
+  const provider = new OpenAICompatibleChatProvider({
+    provider: "test-provider",
+    apiKey: "test-key",
+    baseURL: "https://example.com/v1",
+    model: "test-model",
+    fetchFn: async (url, init) => {
+      recorded.push({ url: String(url), init });
+      return new Response(
+        JSON.stringify({
+          choices: [{ message: { content: "mock reply" } }]
+        }),
+        { status: 200 }
+      );
+    }
+  });
+
+  await provider.generateReply(
+    createRequest({
+      messages: [
+        {
+          id: "m1",
+          sessionId: "session-1",
+          role: "user",
+          content: "Earlier I said I wanted Waveary to feel like a long-term digital life companion framework.",
+          timestamp: new Date(Date.now() - 1000 * 60 * 2).toISOString(),
+          metadata: {}
+        },
+        {
+          id: "m2",
+          sessionId: "session-1",
+          role: "assistant",
+          content: "I remember that thread and I am staying with it.",
+          timestamp: new Date(Date.now() - 1000 * 60).toISOString(),
+          metadata: {}
+        },
+        {
+          id: "m3",
+          sessionId: "session-1",
+          role: "user",
+          content: "Right now I mainly want the relationship growth to feel real over time.",
+          timestamp: new Date().toISOString(),
+          metadata: {}
+        }
+      ],
+      relevantMemories: [
+        {
+          id: "memory-1",
+          userId: "user-1",
+          type: "fact",
+          content: "The user wants Waveary to remain a long-term digital life companion framework.",
+          importance: 0.91,
+          confidence: 0.84,
+          sourceMessageIds: ["m1"],
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: "memory-2",
+          userId: "user-1",
+          type: "preference",
+          content: "The user wants relationship growth to feel real over time.",
+          importance: 0.89,
+          confidence: 0.82,
+          sourceMessageIds: ["m3"],
+          createdAt: new Date().toISOString()
+        }
+      ],
+      timeline: [
+        {
+          id: "timeline-1",
+          userId: "user-1",
+          title: "Discussed long-term framework direction",
+          description: "The user described Waveary as a long-term digital life companion framework.",
+          eventType: "fact",
+          eventTime: new Date().toISOString(),
+          importance: 0.72,
+          linkedMemoryIds: ["memory-1"]
+        },
+        {
+          id: "timeline-2",
+          userId: "user-1",
+          title: "Asked for real relationship growth",
+          description: "The user emphasized that relationship growth should feel real over time.",
+          eventType: "preference",
+          eventTime: new Date().toISOString(),
+          importance: 0.77,
+          linkedMemoryIds: ["memory-2"]
+        }
+      ]
+    })
+  );
+
+  const body = JSON.parse(String(recorded[0]?.init?.body)) as {
+    messages: Array<{ role: string; content: string }>;
+  };
+  const instruction = body.messages[0]?.content ?? "";
+
+  assert.match(
+    instruction,
+    /Current turn focus: Right now I mainly want the relationship growth to feel real over time\./
+  );
+  assert.match(
+    instruction,
+    /Primary continuity thread: \[memory:preference\] The user wants relationship growth to feel real over time\./
+  );
+  assert.match(
+    instruction,
+    /Additional recalled memories after the primary thread:\n1\. \[fact\] The user wants Waveary to remain a long-term digital life companion framework\./
+  );
+});
+
+test("OpenAICompatibleChatProvider changes relationship-distance guidance across new, warming, and growing stages", async () => {
+  const newInstruction = await captureInstruction(
+    createRequest({
+      relationship: createRelationship("new")
+    })
+  );
+  const warmingInstruction = await captureInstruction(
+    createRequest({
+      relationship: createRelationship("warming")
+    })
+  );
+  const growingInstruction = await captureInstruction(
+    createRequest({
+      relationship: createRelationship("growing")
+    })
+  );
+
+  assert.match(
+    newInstruction,
+    /Relationship guidance: Keep the tone warm and attentive, but do not act overly familiar yet\./
+  );
+  assert.match(
+    warmingInstruction,
+    /Relationship guidance: Sound more personally continuous than a first meeting, but do not become overly intimate\./
+  );
+  assert.match(
+    growingInstruction,
+    /Relationship guidance: Speak with steady familiarity\./
+  );
+  assert.match(
+    growingInstruction,
+    /In 'growing', it is okay to sound softly familiar, closer, and more emotionally settled\./
+  );
+});
+
 test("OpenAICompatibleChatProvider falls back to responses when chat completions is unavailable", async () => {
   const recorded: Array<{ url: string; init: RequestInit | undefined }> = [];
   const provider = new OpenAICompatibleChatProvider({
@@ -656,5 +803,41 @@ function createRequest(overrides: Partial<ChatProviderRequest> = {}): ChatProvid
   return {
     ...base,
     ...overrides
+  };
+}
+
+async function captureInstruction(request: ChatProviderRequest): Promise<string> {
+  const recorded: Array<{ url: string; init: RequestInit | undefined }> = [];
+  const provider = new OpenAICompatibleChatProvider({
+    provider: "test-provider",
+    apiKey: "test-key",
+    baseURL: "https://example.com/v1",
+    model: "test-model",
+    fetchFn: async (url, init) => {
+      recorded.push({ url: String(url), init });
+      return new Response(
+        JSON.stringify({
+          choices: [{ message: { content: "mock reply" } }]
+        }),
+        { status: 200 }
+      );
+    }
+  });
+
+  await provider.generateReply(request);
+  const body = JSON.parse(String(recorded[0]?.init?.body)) as {
+    messages: Array<{ role: string; content: string }>;
+  };
+  return body.messages[0]?.content ?? "";
+}
+
+function createRelationship(stage: string): ChatProviderRequest["relationship"] {
+  return {
+    userId: "user-1",
+    stage,
+    affinityScore: stage === "new" ? 0.22 : stage === "warming" ? 0.5 : 0.74,
+    trustScore: stage === "new" ? 0.18 : stage === "warming" ? 0.4 : 0.68,
+    stabilityScore: stage === "new" ? 0.29 : stage === "warming" ? 0.6 : 0.77,
+    lastUpdatedAt: new Date().toISOString()
   };
 }

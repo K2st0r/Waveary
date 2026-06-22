@@ -18,22 +18,38 @@ export function selectContinuityThread(
   input: ContinuityThreadSelectionInput
 ): ContinuityThreadSelection {
   const turnText = input.latestUserMessage?.content ?? "";
-  const memoryCandidate = input.relevantMemories[0];
-  const timelineCandidate = input.timeline[0];
   const emotionalTurn = hasHighEmotionalTurnSignal(turnText);
-  const rawMemoryScore = memoryCandidate
-    ? scoreContinuityMatch(memoryCandidate.content, turnText)
-    : 0;
-  const rawTimelineScore = timelineCandidate
-    ? scoreContinuityMatch(
-        `${timelineCandidate.title} ${timelineCandidate.description ?? ""}`,
+  const sortedMemoryCandidates = [...input.relevantMemories]
+    .map((memory) => ({
+      memory,
+      rawScore: scoreContinuityMatch(memory.content, turnText)
+    }))
+    .sort((left, right) => right.rawScore - left.rawScore);
+  const sortedTimelineCandidates = [...input.timeline]
+    .map((event) => ({
+      event,
+      rawScore: scoreContinuityMatch(
+        `${event.title} ${event.description ?? ""}`,
         turnText
       )
-    : 0;
+    }))
+    .sort((left, right) => right.rawScore - left.rawScore);
+  const topMemoryCandidate = sortedMemoryCandidates[0];
+  const topTimelineCandidate = sortedTimelineCandidates[0];
+  const memoryCandidate = topMemoryCandidate?.memory;
+  const timelineCandidate = topTimelineCandidate?.event;
+  const rawMemoryScore = topMemoryCandidate?.rawScore ?? 0;
+  const rawTimelineScore = topTimelineCandidate?.rawScore ?? 0;
   const memoryScore = memoryCandidate
     ? rawMemoryScore + (emotionalTurn ? 0 : 0.12)
     : 0;
   const timelineScore = timelineCandidate ? rawTimelineScore : 0;
+  const memoryRemainder = sortedMemoryCandidates
+    .slice(1)
+    .map((candidate) => candidate.memory);
+  const timelineBackfill = sortedTimelineCandidates
+    .slice(0, 2)
+    .map((candidate) => candidate.event);
 
   if (
     memoryCandidate &&
@@ -45,7 +61,7 @@ export function selectContinuityThread(
       primaryLine: `[memory:${memoryCandidate.type}] ${memoryCandidate.content}`,
       guidance:
         "This memory is available, but only use it if the current turn clearly connects. Otherwise stay present with the immediate feeling.",
-      secondaryMemories: input.relevantMemories.slice(1, 3)
+      secondaryMemories: memoryRemainder.slice(0, 2)
     };
   }
 
@@ -54,7 +70,7 @@ export function selectContinuityThread(
       primaryLine: `[memory:${memoryCandidate.type}] ${memoryCandidate.content}`,
       guidance:
         "Use at most one natural reference to this remembered thread if it deepens the user's sense of being understood.",
-      secondaryMemories: input.relevantMemories.slice(1, 3)
+      secondaryMemories: memoryRemainder.slice(0, 2)
     };
   }
 
@@ -63,7 +79,9 @@ export function selectContinuityThread(
       primaryLine: `[timeline:${timelineCandidate.eventType}] ${timelineCandidate.title}`,
       guidance:
         "If continuity helps here, anchor the reply around this shared life thread rather than listing multiple remembered details.",
-      secondaryMemories: input.relevantMemories.slice(0, 2)
+      secondaryMemories: sortedMemoryCandidates
+        .map((candidate) => candidate.memory)
+        .slice(0, 2)
     };
   }
 
@@ -72,7 +90,7 @@ export function selectContinuityThread(
       primaryLine: `[memory:${memoryCandidate.type}] ${memoryCandidate.content}`,
       guidance:
         "This memory is available, but only use it if the current turn clearly connects. Otherwise stay present with the immediate feeling.",
-      secondaryMemories: input.relevantMemories.slice(1, 3)
+      secondaryMemories: memoryRemainder.slice(0, 2)
     };
   }
 
@@ -81,7 +99,7 @@ export function selectContinuityThread(
       primaryLine: `[timeline:${timelineCandidate.eventType}] ${timelineCandidate.title}`,
       guidance:
         "This timeline thread is available, but do not force it unless it naturally matches the user's present concern.",
-      secondaryMemories: input.relevantMemories.slice(0, 2)
+      secondaryMemories: timelineBackfill.length > 0 ? input.relevantMemories.slice(0, 2) : []
     };
   }
 
