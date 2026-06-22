@@ -23,6 +23,10 @@ export interface VoiceSpeakPlanRequest {
     voice?: string;
     format?: VoiceOutputFormat;
     qualityProfile?: VoiceQualityProfile;
+    providerMode?: "shared" | "dedicated";
+    provider?: string;
+    baseURL?: string;
+    apiKey?: string;
   };
 }
 
@@ -74,15 +78,51 @@ export async function planChatSpeech(input: VoiceSpeakPlanRequest) {
       requestedVoiceConfig?.format ??
       savedVoiceConfig.format ??
       resolvedPreset.format,
-    qualityProfile: resolvedPreset.id
+    qualityProfile: resolvedPreset.id,
+    providerMode:
+      requestedVoiceConfig?.providerMode === "dedicated" ||
+      requestedVoiceConfig?.providerMode === "shared"
+        ? requestedVoiceConfig.providerMode
+        : savedVoiceConfig.providerMode,
+    provider:
+      requestedVoiceConfig?.provider?.trim() ||
+      savedVoiceConfig.provider ||
+      savedProvider?.provider ||
+      "",
+    baseURL:
+      requestedVoiceConfig?.baseURL?.trim() ||
+      savedVoiceConfig.baseURL ||
+      savedProvider?.baseURL ||
+      "",
+    apiKey:
+      requestedVoiceConfig?.apiKey?.trim() ||
+      savedVoiceConfig.apiKey ||
+      (savedVoiceConfig.providerMode !== "dedicated" ? savedProvider?.apiKey || "" : "")
   };
 
-  if (savedProvider) {
+  const providerBackedVoiceConfig =
+    resolvedVoiceConfig.providerMode === "dedicated"
+      ? resolvedVoiceConfig.provider && resolvedVoiceConfig.baseURL && resolvedVoiceConfig.apiKey
+        ? {
+            provider: resolvedVoiceConfig.provider,
+            baseURL: resolvedVoiceConfig.baseURL,
+            apiKey: resolvedVoiceConfig.apiKey
+          }
+        : null
+      : savedProvider
+        ? {
+            provider: savedProvider.provider,
+            baseURL: savedProvider.baseURL,
+            apiKey: savedProvider.apiKey
+          }
+        : null;
+
+  if (providerBackedVoiceConfig) {
     try {
       const ttsProvider = new OpenAICompatibleTextToSpeechProvider({
-        provider: savedProvider.provider,
-        apiKey: savedProvider.apiKey,
-        baseURL: savedProvider.baseURL,
+        provider: providerBackedVoiceConfig.provider,
+        apiKey: providerBackedVoiceConfig.apiKey,
+        baseURL: providerBackedVoiceConfig.baseURL,
         model: resolvedVoiceConfig.model,
         voice: resolvedVoiceConfig.voice,
         format: resolvedVoiceConfig.format,

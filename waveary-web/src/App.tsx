@@ -28,6 +28,10 @@ interface SavedVoiceConfig {
   voice: string;
   format: "mp3" | "wav" | "opus" | "aac" | "flac" | "pcm";
   qualityProfile: string;
+  providerMode: "shared" | "dedicated";
+  provider: string;
+  baseURL: string;
+  apiKey: string;
 }
 
 interface VoicePresetDescriptor {
@@ -1859,7 +1863,11 @@ export function App(): ReactElement {
           model: patch.model ?? currentVoiceConfig.model,
           voice: patch.voice ?? currentVoiceConfig.voice,
           format: patch.format ?? currentVoiceConfig.format,
-          qualityProfile: patch.qualityProfile ?? currentVoiceConfig.qualityProfile
+          qualityProfile: patch.qualityProfile ?? currentVoiceConfig.qualityProfile,
+          providerMode: patch.providerMode ?? currentVoiceConfig.providerMode,
+          provider: patch.provider ?? currentVoiceConfig.provider,
+          baseURL: patch.baseURL ?? currentVoiceConfig.baseURL,
+          apiKey: patch.apiKey ?? currentVoiceConfig.apiKey
         })
       });
 
@@ -1909,6 +1917,29 @@ export function App(): ReactElement {
     await saveVoiceConfigPatch(
       { voice: nextVoice },
       locale === "zh" ? "声线已更新。" : "Voice name updated."
+    );
+  }
+
+  async function handleVoiceProviderModeChange(nextMode: "shared" | "dedicated"): Promise<void> {
+    await saveVoiceConfigPatch(
+      { providerMode: nextMode },
+      nextMode === "dedicated"
+        ? locale === "zh"
+          ? "语音已切换到独立供应商模式。"
+          : "Voice switched to dedicated provider mode."
+        : locale === "zh"
+          ? "语音已切换到共享聊天供应商模式。"
+          : "Voice switched to shared chat-provider mode."
+    );
+  }
+
+  async function handleVoiceProviderFieldChange(
+    field: "provider" | "baseURL" | "apiKey",
+    value: string
+  ): Promise<void> {
+    await saveVoiceConfigPatch(
+      { [field]: value.trim() } as Partial<SavedVoiceConfig>,
+      locale === "zh" ? "真人语音供应商设置已更新。" : "Voice provider settings updated."
     );
   }
 
@@ -3156,6 +3187,8 @@ export function App(): ReactElement {
       ].filter(Boolean)
     )
   );
+  const voiceProviderMode = voiceConfig?.providerMode ?? "shared";
+  const usesDedicatedVoiceProvider = voiceProviderMode === "dedicated";
   const chatReady = Boolean(savedConfig?.provider && savedConfig.model);
   const activeSession =
     chatSessions.find((session) => session.sessionId === activeSessionId) ??
@@ -5012,6 +5045,25 @@ export function App(): ReactElement {
                           ))}
                         </select>
                       </label>
+                      <label className="chat-voice-select">
+                        <span>{locale === "zh" ? "来源" : "Source"}</span>
+                        <select
+                          value={voiceProviderMode}
+                          onChange={(event) =>
+                            void handleVoiceProviderModeChange(
+                              event.target.value === "dedicated" ? "dedicated" : "shared"
+                            )
+                          }
+                          disabled={!canAdjustVoiceConfig}
+                        >
+                          <option value="shared">
+                            {locale === "zh" ? "跟随聊天模型" : "Use chat provider"}
+                          </option>
+                          <option value="dedicated">
+                            {locale === "zh" ? "独立真人语音" : "Dedicated voice provider"}
+                          </option>
+                        </select>
+                      </label>
                       <label className="chat-voice-select chat-voice-select-compact">
                         <span>{locale === "zh" ? "模型" : "Model"}</span>
                         <select
@@ -5040,6 +5092,61 @@ export function App(): ReactElement {
                           ))}
                         </select>
                       </label>
+                      {usesDedicatedVoiceProvider ? (
+                        <>
+                          <label className="chat-voice-select">
+                            <span>{locale === "zh" ? "供应商" : "Provider"}</span>
+                            <input
+                              type="text"
+                              value={voiceConfig?.provider ?? ""}
+                              onChange={(event) =>
+                                setVoiceConfig((current) =>
+                                  current ? { ...current, provider: event.target.value } : current
+                                )
+                              }
+                              onBlur={(event) =>
+                                void handleVoiceProviderFieldChange("provider", event.target.value)
+                              }
+                              placeholder={locale === "zh" ? "例如 openai" : "e.g. openai"}
+                              disabled={!canAdjustVoiceConfig}
+                            />
+                          </label>
+                          <label className="chat-voice-select chat-voice-select-wide">
+                            <span>Base URL</span>
+                            <input
+                              type="text"
+                              value={voiceConfig?.baseURL ?? ""}
+                              onChange={(event) =>
+                                setVoiceConfig((current) =>
+                                  current ? { ...current, baseURL: event.target.value } : current
+                                )
+                              }
+                              onBlur={(event) =>
+                                void handleVoiceProviderFieldChange("baseURL", event.target.value)
+                              }
+                              placeholder="https://api.openai.com/v1"
+                              disabled={!canAdjustVoiceConfig}
+                            />
+                          </label>
+                          <label className="chat-voice-select chat-voice-select-wide">
+                            <span>{locale === "zh" ? "语音 Key" : "Voice Key"}</span>
+                            <input
+                              type="password"
+                              value={voiceConfig?.apiKey ?? ""}
+                              onChange={(event) =>
+                                setVoiceConfig((current) =>
+                                  current ? { ...current, apiKey: event.target.value } : current
+                                )
+                              }
+                              onBlur={(event) =>
+                                void handleVoiceProviderFieldChange("apiKey", event.target.value)
+                              }
+                              placeholder={locale === "zh" ? "填入真人语音 API Key" : "Enter dedicated voice API key"}
+                              disabled={!canAdjustVoiceConfig}
+                            />
+                          </label>
+                        </>
+                      ) : null}
                       <button
                         className="button button-secondary"
                         onClick={() => void handleSpeakLatestReply()}
@@ -5075,6 +5182,15 @@ export function App(): ReactElement {
                       (locale === "zh"
                         ? "当前会根据回复情绪规划朗读语气。"
                         : "Reply playback will follow the current emotional tone.")}
+                  </span>
+                  <span className="chat-voice-meta">
+                    {usesDedicatedVoiceProvider
+                      ? locale === "zh"
+                        ? `独立真人语音${voiceConfig?.provider ? ` · ${voiceConfig.provider}` : ""}`
+                        : `Dedicated voice${voiceConfig?.provider ? ` · ${voiceConfig.provider}` : ""}`
+                      : locale === "zh"
+                        ? "跟随聊天模型"
+                        : "Using chat provider"}
                   </span>
                   {selectedVoicePreset ? (
                     <span className="chat-voice-meta">
