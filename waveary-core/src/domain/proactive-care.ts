@@ -51,7 +51,7 @@ export interface ProactiveCareContext {
 
 export function createDefaultProactiveCarePolicy(): ProactiveCarePolicy {
   return {
-    enabled: false,
+    enabled: true,
     quietHoursStart: "23:00",
     quietHoursEnd: "08:00",
     maxDailyReachouts: 2,

@@ -222,7 +222,7 @@ test("chat session route returns the requested persisted snapshot", async () => 
   assert.equal(response.body.session.relationship.stage, "new");
   assert.equal(response.body.session.relationship.affinityScore, 0.256);
   assert.equal(response.body.session.relationship.trustScore, 0.25);
-  assert.equal(response.body.session.proactiveCarePolicy.enabled, false);
+  assert.equal(response.body.session.proactiveCarePolicy.enabled, true);
   assert.equal(response.body.session.proactiveCarePolicy.maxDailyReachouts, 2);
   assert.equal(response.body.session.proactiveCareState.dailyReachoutsSent, 0);
   assert.equal(response.body.session.proactiveCareState.unansweredReachoutCount, 0);
@@ -685,7 +685,7 @@ test("chat session export route returns a structured export package for the acti
   assert.equal(response.body.exported.snapshot.messages.length, 2);
   assert.equal(response.body.exported.snapshot.memoryArchive.length, 1);
   assert.equal(response.body.exported.snapshot.timelineEvents.length, 1);
-  assert.equal(response.body.exported.snapshot.proactiveCarePolicy.enabled, false);
+  assert.equal(response.body.exported.snapshot.proactiveCarePolicy.enabled, true);
   assert.equal(response.body.exported.snapshot.proactiveCareState.dailyReachoutsSent, 0);
   assert.equal(
     response.body.exported.snapshot.memoryArchive[0]?.content,

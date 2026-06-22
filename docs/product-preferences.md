@@ -33,6 +33,8 @@ Only write preferences here when they are likely to remain useful over time.
 - Local time awareness is acceptable as a bounded input.
 - Time awareness must not silently expand into broader desktop presence or local action authority.
 - Future desktop reading, local control, or automation should stay clearly separated from ordinary chat behavior.
+- The companion should not feel inert by default; proactive care can start from an enabled baseline as long as quiet hours, unanswered-reachout suppression, and revocable permissions still constrain it.
+- For higher-trust powers, the preferred default is `ask` before action rather than a silent hidden enablement or an architecture that can never graduate beyond `deny`.
 
 ## UX And Presentation
 

@@ -24,8 +24,8 @@ Update it when:
 
 3. Keep permissioned local-time awareness bounded and trustworthy.
    Status: in progress
-   Current state: chat turns, proactive notification lead copy, and proactive console summary all respond to local daypart only when `timeAwareness` is allowed.
-   Next cut: reuse the same bounded daypart logic if proactive message drafting expands, without silently broadening into desktop presence.
+   Current state: chat turns, proactive notification lead copy, and proactive console summary all respond to local daypart only when `timeAwareness` is allowed, and the default local permission baseline now leaves time awareness enabled instead of requiring an extra setup step.
+   Next cut: reuse the same bounded daypart logic if proactive message drafting expands, without silently broadening into desktop presence, and begin turning the current desktop/action permission placeholders into a real ask-first execution layer.
 
 4. Preserve continuity discipline under high-frequency iteration.
    Status: ongoing

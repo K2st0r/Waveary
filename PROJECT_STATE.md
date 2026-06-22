@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `0ed7111` - `Expand homepage doodle object set`
+- pending - `Default proactive care toward autonomous companionship`
 
 ## Modules
 
@@ -105,6 +105,7 @@ Brand line:
   - the current web surface now provides the first permissioned proactive-care delivery path through browser-local notifications triggered from manual `WPCE` evaluation results
   - the console now also includes a first explicit permission center so users can set local consent preferences for notifications, proactive delivery, time awareness, desktop presence, and future local actions
   - normal browser chat turns now send explicit local time context only when `timeAwareness` permission is allowed, reusing the existing permission center instead of adding a separate hidden time toggle
+  - the default companion posture now moves closer to autonomous care: new sessions start with proactive care enabled, browser-local proactive check loops default on until the user changes them, and the default local permission profile now keeps proactive notifications and time awareness open while leaving higher-trust local actions at ask-first instead of deny-by-default
   - proactive browser notifications now also soften their lead sentence by morning / evening / late-night daypart when `timeAwareness` is allowed, without changing `WPCE` policy or outreach frequency
   - the `WPCE` console decision card now mirrors that same daypart-aware tone in its top-level summary copy, so the local console and browser notification surfaces describe the same recommendation style
   - proactive browser notifications and the `WPCE` console summary now both read from one shared presentation-layer proactive message composer instead of duplicating separate tone logic
@@ -267,6 +268,7 @@ Brand line:
 - keep iterating on the compact console shell only after visual verification shows a remaining real usability gap, instead of re-expanding it into explanatory blocks
 - run a focused browser pass for homepage doodle density, fade rhythm, and overall visual balance now that the doodle set includes both the original study objects and the new paper-memory objects
 - visually verify and, only if needed, tighten any remaining console workspace that still forces awkward external page scrolling after the latest compact-shell pass
+- design the next real execution layer for higher-trust capabilities so desktop presence and local actions can move from permission placeholders into auditable ask-first implementations instead of remaining UI-only policy slots
 - continue the homepage portrait system with a more deliberate `4 male / 4 female` hand-drawn polaroid-style set so the visual range feels broader and less clustered around one youth archetype
 - consider replacing the current chroma-keyed lighter cutout with a cleaner native-alpha illustration once a final asset pass is approved
 - consider a follow-up homepage motion pass that adds a slightly stronger heat shimmer or ember flicker only if it stays subtle and does not overcomplicate the hero

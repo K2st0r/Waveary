@@ -4,6 +4,45 @@
 
 Objective:
 
+Shift the default proactive-care posture toward a more companion-like baseline so Waveary does not wait for users to manually enable ordinary care behavior before it can feel present.
+
+Summary:
+
+- changed the core default proactive-care policy so new sessions now start with `enabled: true` instead of inheriting an inert disabled baseline
+- changed the web defaults so browser-local proactive auto-checking and proactive notification intent both start enabled unless the user has already stored a local preference
+- widened the default local permission profile from `ask/ask/allow/ask/deny` to `allow/allow/allow/ask/ask`, keeping higher-trust capabilities revocable while removing extra setup friction from ordinary time-aware companionship
+- updated route-level tests so persisted snapshot and export assertions now match the new autonomous-care default instead of expecting the old disabled baseline
+- re-verified the change with root typecheck/build, `@waveary/core` tests, `@waveary/web` tests, and a full web production build
+
+Files changed:
+
+- `waveary-core/src/domain/proactive-care.ts`
+- `waveary-web/src/App.tsx`
+- `waveary-web/server/provider-api.test.ts`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/product-preferences.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check`
+- `npm run test --workspace @waveary/core`
+- `npm run test --workspace @waveary/web`
+- `npm run web:build`
+
+Commit:
+
+- pending - `Default proactive care toward autonomous companionship`
+
+Push:
+
+- pending
+
+## 2026-06-22
+
+Objective:
+
 Expand the homepage doodle inventory with more correspondence and keepsake objects so the background feels richer without changing homepage structure or runtime logic.
 
 Summary:

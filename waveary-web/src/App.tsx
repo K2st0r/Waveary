@@ -1240,7 +1240,8 @@ export function App(): ReactElement {
       return false;
     }
 
-    return window.localStorage.getItem("waveary-proactive-browser-notify") === "true";
+    const stored = window.localStorage.getItem("waveary-proactive-browser-notify");
+    return stored === null ? true : stored === "true";
   });
   const [permissionProfile, setPermissionProfile] = useState<WavearyPermissionProfile>(() => {
     if (typeof window === "undefined") {
@@ -1252,10 +1253,11 @@ export function App(): ReactElement {
   const [notificationPermissionState, setNotificationPermissionState] = useState<LoadState>("idle");
   const [proactiveAutoCheckEnabled, setProactiveAutoCheckEnabled] = useState<boolean>(() => {
     if (typeof window === "undefined") {
-      return false;
+      return true;
     }
 
-    return window.localStorage.getItem(PROACTIVE_AUTO_CHECK_STORAGE_KEY) === "true";
+    const stored = window.localStorage.getItem(PROACTIVE_AUTO_CHECK_STORAGE_KEY);
+    return stored === null ? true : stored === "true";
   });
   const [proactiveAutoCheckIntervalMinutes, setProactiveAutoCheckIntervalMinutes] = useState<number>(() => {
     if (typeof window === "undefined") {
@@ -4055,11 +4057,11 @@ function getBrowserNotificationPermission(): BrowserNotificationPermissionState 
 
 function createDefaultPermissionProfile(): WavearyPermissionProfile {
   return {
-    browserNotifications: "ask",
-    proactiveNotifications: "ask",
+    browserNotifications: "allow",
+    proactiveNotifications: "allow",
     timeAwareness: "allow",
     desktopPresence: "ask",
-    localActions: "deny"
+    localActions: "ask"
   };
 }
 
