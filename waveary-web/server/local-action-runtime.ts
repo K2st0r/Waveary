@@ -38,13 +38,16 @@ export async function executeChatLocalAction(input: {
     const result = await runPendingLocalAction({
       action: pending,
       permission: input.permission,
+      locale: input.locale ?? "en",
       ...(input.approved !== undefined ? { approved: input.approved } : {})
     });
 
     persistentState.recordLocalActionResolution({
       pendingAction: pending,
       resolution: "executed",
-      note: buildLocalActionAuditNote(pending, "executed", input.locale ?? "en")
+      note:
+        result.assistantNote ??
+        buildLocalActionAuditNote(pending, "executed", input.locale ?? "en")
     });
     resetChatRuntimeSession(input.sessionId);
 

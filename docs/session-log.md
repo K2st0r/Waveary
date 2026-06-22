@@ -4024,3 +4024,42 @@ Commit:
 Push:
 
 - succeeded: `git push origin main` pushed functional commit `a33efc3` and continuity follow-up `eb96a8a` to `origin/main`
+## 2026-06-22
+
+Objective:
+
+Integrate bounded browser read and click actions into the chat page's existing permissioned local-action flow instead of leaving them as standalone browser routes only.
+
+Summary:
+
+- expanded `waveary-web/server/local-actions.ts` so chat-side pending actions can now detect bounded browser intents for reading the current page, searching page text, listing visible clickable items, and clicking a visible target by text
+- kept those browser actions inside the existing `allow / ask / deny` local-action trust boundary instead of creating a second browser-only confirmation model
+- updated `waveary-web/server/chat-runtime.ts` and `waveary-web/server/local-action-runtime.ts` so `full-access` auto-run and explicit ask-first execution both prefer grounded action-returned companion notes for browser actions
+- refreshed `waveary-web/server/local-action-audit.ts` and `waveary-web/src/App.tsx` so the chat card and localized status copy can represent browser read/search/click actions cleanly instead of assuming everything is only open-url / open-folder / launch-app
+- added route-level regression coverage for pending browser read actions, full-access browser page search, and ask-first browser clickable-list execution
+
+Files changed:
+
+- `waveary-web/server/chat-runtime.ts`
+- `waveary-web/server/local-action-audit.ts`
+- `waveary-web/server/local-action-runtime.ts`
+- `waveary-web/server/local-actions.ts`
+- `waveary-web/server/provider-api.test.ts`
+- `waveary-web/src/App.tsx`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run test --workspace @waveary/web`
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+
+Commit:
+
+- `pending` - `Integrate browser actions into chat permission flow`
+
+Push:
+
+- pending

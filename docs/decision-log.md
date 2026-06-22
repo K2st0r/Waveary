@@ -683,3 +683,25 @@ Impact:
 - `waveary-web/server/browser-automation.ts` now owns `listManagedBrowserClickableElements()` and `clickManagedBrowserElementByText()`
 - `waveary-web/server/provider-api.ts` now exposes `/api/browser/clickable-elements` and `/api/browser/click-text`
 - future browser work should continue through bounded actions like explicit link selection or form-field targeting, not by collapsing straight into a broad autonomous browser agent
+
+## 2026-06-22 - Browser Read And Click Intents Now Reuse The Existing Chat Action Boundary
+
+Status:
+
+- accepted
+
+Decision:
+
+Integrate bounded browser read and click intents into the existing chat-side `pendingLocalAction` flow instead of inventing a second permission and confirmation path just for browser control.
+
+Reason:
+
+- the project already has one explicit, revocable, auditable trust boundary for local actions
+- browser reads, page searches, clickable-target listing, and click-by-text are still higher-trust operations that should stay visible in conversation
+- reusing the same action card and `allow / ask / deny` path keeps the permission model legible while still letting `full-access` feel meaningfully stronger
+
+Impact:
+
+- `detectPendingLocalAction()` now recognizes bounded browser intents such as reading the current page, searching page text, listing clickable items, and clicking by visible text
+- `sendChatTurn()` and the execute route now prefer action-returned grounded companion notes for browser actions, so chat replies match what actually happened on the page
+- future browser control should keep graduating through this same permissioned action path unless a deliberately separate higher-trust layer is designed

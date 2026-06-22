@@ -2,10 +2,26 @@ import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
-import { openManagedBrowserPage } from "./browser-automation.js";
+import {
+  clickManagedBrowserElementByText,
+  extractManagedBrowserPageText,
+  listManagedBrowserClickableElements,
+  openManagedBrowserPage,
+  searchManagedBrowserPageText,
+  type BrowserClickableElement,
+  type BrowserPageInfo
+} from "./browser-automation.js";
 
-export type LocalActionKind = "open_url" | "open_folder" | "launch_app";
+export type LocalActionKind =
+  | "open_url"
+  | "open_folder"
+  | "launch_app"
+  | "browser_extract_text"
+  | "browser_search_text"
+  | "browser_list_clickable"
+  | "browser_click_text";
 export type LocalActionPermissionLevel = "allow" | "ask" | "deny";
+export type LocalActionLocale = "zh" | "en";
 
 export interface PendingLocalAction {
   id: string;
@@ -19,9 +35,13 @@ export interface PendingLocalAction {
 export interface ExecutedLocalAction {
   status: "executed";
   message: string;
+  assistantNote?: string;
 }
 
-type LocalActionExecutor = (action: PendingLocalAction) => Promise<ExecutedLocalAction>;
+type LocalActionExecutor = (
+  action: PendingLocalAction,
+  locale?: LocalActionLocale
+) => Promise<ExecutedLocalAction>;
 
 const KNOWN_URLS: Array<{
   pattern: RegExp;
@@ -29,7 +49,7 @@ const KNOWN_URLS: Array<{
   label: string;
 }> = [
   {
-    pattern: /(\bbilibili\b|哔哩哔哩|哔哩|b站|bilibili站|哔站)/i,
+    pattern: /(\bbilibili\b|哔哩哔哩|哔站|b站)/i,
     target: "https://www.bilibili.com/",
     label: "Bilibili"
   },
@@ -77,6 +97,44 @@ export function detectPendingLocalAction(message: string): PendingLocalAction | 
   }
 
   const normalized = trimmed.toLowerCase();
+  const browserSearchQuery = extractBrowserSearchQuery(trimmed);
+
+  if (browserSearchQuery) {
+    return buildPendingLocalAction(
+      "browser_search_text",
+      browserSearchQuery,
+      browserSearchQuery,
+      `Search the current page for ${browserSearchQuery}`
+    );
+  }
+
+  if (looksLikeBrowserClickableListIntent(trimmed)) {
+    return buildPendingLocalAction(
+      "browser_list_clickable",
+      "__current_page__",
+      "current page",
+      "Inspect clickable items on the current page"
+    );
+  }
+
+  const browserClickTarget = extractBrowserClickTarget(trimmed);
+  if (browserClickTarget) {
+    return buildPendingLocalAction(
+      "browser_click_text",
+      browserClickTarget,
+      browserClickTarget,
+      `Click ${browserClickTarget} on the current page`
+    );
+  }
+
+  if (looksLikeBrowserReadIntent(trimmed)) {
+    return buildPendingLocalAction(
+      "browser_extract_text",
+      "__current_page__",
+      "current page",
+      "Read the current page"
+    );
+  }
 
   if (!looksLikeOpenIntent(normalized)) {
     return null;
@@ -123,6 +181,7 @@ export async function runPendingLocalAction(input: {
   action: PendingLocalAction;
   permission: LocalActionPermissionLevel;
   approved?: boolean;
+  locale?: LocalActionLocale;
 }): Promise<ExecutedLocalAction> {
   if (input.permission === "deny") {
     throw new Error("Local action execution is denied by the current permission setting.");
@@ -132,7 +191,7 @@ export async function runPendingLocalAction(input: {
     throw new Error("This local action still requires explicit approval.");
   }
 
-  return localActionExecutor(input.action);
+  return localActionExecutor(input.action, input.locale ?? "en");
 }
 
 export function setLocalActionExecutorForTests(executor: LocalActionExecutor | null): void {
@@ -151,6 +210,73 @@ function looksLikeOpenIntent(normalized: string): boolean {
     normalized.includes("run ") ||
     normalized.includes("start ")
   );
+}
+
+function looksLikeBrowserReadIntent(message: string): boolean {
+  return (
+    /(read|extract|scan|summari[sz]e).*(page|site)|what does (this|the) page say|read (this|the) page/i.test(
+      message
+    ) ||
+    /(读取|提取|看看|读一下).*(当前页面|这个页面|网页).*(文字|内容|写了什么|说了什么)?/.test(message) ||
+    /(当前页面|这个页面|网页).*(写了什么|说了什么|内容|文字)/.test(message)
+  );
+}
+
+function looksLikeBrowserClickableListIntent(message: string): boolean {
+  return (
+    /(what can i click|what can be clicked|clickable elements|clickable things|buttons? on (this|the) page|links? on (this|the) page)/i.test(
+      message
+    ) ||
+    /(当前页面|这个页面|网页).*(能点什么|可以点什么|有哪些.*(按钮|链接)|有什么.*能点)/.test(message) ||
+    /(看看|列出).*(当前页面|这个页面|网页).*(按钮|链接|可点击)/.test(message)
+  );
+}
+
+function extractBrowserSearchQuery(message: string): string | null {
+  const englishPatterns = [
+    /search (?:this|the) page for ["“]?(.+?)["”]?$/i,
+    /find ["“]?(.+?)["”]? on (?:this|the) page$/i,
+    /look for ["“]?(.+?)["”]? on (?:this|the) page$/i
+  ];
+  const chinesePatterns = [
+    /(?:在|帮我在)?(?:当前页面|这个页面|网页)(?:里|中|上)?(?:搜索|查找)["“]?(.+?)["”]?$/,
+    /(?:搜索|查找)(?:当前页面|这个页面|网页)(?:里|中|上)?的["“]?(.+?)["”]?$/,
+    /(?:搜索|查找)["“]?(.+?)["”]?(?:在|于)(?:当前页面|这个页面|网页)(?:里|中|上)?$/
+  ];
+
+  for (const pattern of [...englishPatterns, ...chinesePatterns]) {
+    const match = message.match(pattern);
+    const query = match?.[1]?.trim();
+
+    if (query) {
+      return stripTrailingPunctuation(query);
+    }
+  }
+
+  return null;
+}
+
+function extractBrowserClickTarget(message: string): string | null {
+  const englishPatterns = [
+    /^click(?: on)? ["“]?(.+?)["”]?(?: button| link)?$/i,
+    /^press ["“]?(.+?)["”]?$/i
+  ];
+  const chinesePatterns = [
+    /^点击["“]?(.+?)["”]?(?:按钮|链接)?$/,
+    /^帮我点击["“]?(.+?)["”]?(?:按钮|链接)?$/,
+    /^点一下["“]?(.+?)["”]?(?:按钮|链接)?$/
+  ];
+
+  for (const pattern of [...englishPatterns, ...chinesePatterns]) {
+    const match = message.match(pattern);
+    const target = match?.[1]?.trim();
+
+    if (target) {
+      return stripTrailingPunctuation(target);
+    }
+  }
+
+  return null;
 }
 
 function buildPendingLocalAction(
@@ -178,16 +304,35 @@ function summarizeKind(kind: LocalActionKind): string {
     return "Open folder";
   }
 
-  return "Launch app";
+  if (kind === "launch_app") {
+    return "Launch app";
+  }
+
+  if (kind === "browser_extract_text") {
+    return "Read page";
+  }
+
+  if (kind === "browser_search_text") {
+    return "Search page";
+  }
+
+  if (kind === "browser_list_clickable") {
+    return "Inspect clickable items";
+  }
+
+  return "Click page item";
 }
 
-async function executeLocalAction(action: PendingLocalAction): Promise<ExecutedLocalAction> {
+async function executeLocalAction(
+  action: PendingLocalAction,
+  locale: LocalActionLocale = "en"
+): Promise<ExecutedLocalAction> {
   if (action.kind === "open_url") {
     await openManagedBrowserPage(action.target);
 
     return {
       status: "executed",
-      message: `Opened ${action.targetLabel}.`
+      message: locale === "zh" ? `已打开 ${action.targetLabel}。` : `Opened ${action.targetLabel}.`
     };
   }
 
@@ -204,7 +349,7 @@ async function executeLocalAction(action: PendingLocalAction): Promise<ExecutedL
 
     return {
       status: "executed",
-      message: `Opened ${action.targetLabel}.`
+      message: locale === "zh" ? `已打开 ${action.targetLabel}。` : `Opened ${action.targetLabel}.`
     };
   }
 
@@ -217,9 +362,175 @@ async function executeLocalAction(action: PendingLocalAction): Promise<ExecutedL
 
     return {
       status: "executed",
-      message: `Launched ${action.targetLabel}.`
+      message: locale === "zh" ? `已启动 ${action.targetLabel}。` : `Launched ${action.targetLabel}.`
+    };
+  }
+
+  if (action.kind === "browser_extract_text") {
+    const result = await extractManagedBrowserPageText({
+      maxChars: 1200
+    });
+
+    return {
+      status: "executed",
+      message: locale === "zh" ? "已读取当前页面。" : "Read the current page.",
+      assistantNote: buildBrowserExtractAssistantNote(result.page, result.text, locale)
+    };
+  }
+
+  if (action.kind === "browser_search_text") {
+    const result = await searchManagedBrowserPageText(action.target, {
+      maxSnippets: 3,
+      snippetRadius: 48
+    });
+
+    return {
+      status: "executed",
+      message:
+        locale === "zh"
+          ? `已在当前页面搜索“${action.targetLabel}”。`
+          : `Searched the current page for "${action.targetLabel}".`,
+      assistantNote: buildBrowserSearchAssistantNote(
+        result.page,
+        action.targetLabel,
+        result.totalMatches,
+        result.snippets,
+        locale
+      )
+    };
+  }
+
+  if (action.kind === "browser_list_clickable") {
+    const result = await listManagedBrowserClickableElements({
+      maxElements: 8
+    });
+
+    return {
+      status: "executed",
+      message:
+        locale === "zh" ? "已查看当前页面可点击项。" : "Checked clickable items on the current page.",
+      assistantNote: buildBrowserClickableListAssistantNote(result.page, result.elements, locale)
+    };
+  }
+
+  if (action.kind === "browser_click_text") {
+    const result = await clickManagedBrowserElementByText(action.target, {
+      timeoutMs: 4000
+    });
+
+    return {
+      status: "executed",
+      message:
+        locale === "zh"
+          ? `已点击“${result.matchedText}”。`
+          : `Clicked "${result.matchedText}".`,
+      assistantNote: buildBrowserClickAssistantNote(result.page, result.matchedText, locale)
     };
   }
 
   throw new Error("Unsupported local action kind.");
+}
+
+function stripTrailingPunctuation(value: string): string {
+  return value.replace(/[。！!？?,，.]+$/u, "").trim();
+}
+
+function buildBrowserExtractAssistantNote(
+  page: BrowserPageInfo,
+  text: string,
+  locale: LocalActionLocale
+): string {
+  const pageRef = describePage(page, locale);
+  const excerpt = clipText(text, 140);
+
+  if (!excerpt) {
+    return locale === "zh"
+      ? `我看了一下${pageRef}，但这一屏还没有特别清晰的可读文字。`
+      : `I checked ${pageRef} for you, but there is not much clearly readable text visible right now.`;
+  }
+
+  return locale === "zh"
+    ? `我已经替你看了看${pageRef}。现在最显眼的内容大致是：“${excerpt}” 如果你愿意，我也可以继续帮你找某一句。`
+    : `I read ${pageRef} for you. The most visible part right now begins like: "${excerpt}" If you want, I can keep looking for a specific line too.`;
+}
+
+function buildBrowserSearchAssistantNote(
+  page: BrowserPageInfo,
+  query: string,
+  totalMatches: number,
+  snippets: string[],
+  locale: LocalActionLocale
+): string {
+  const pageRef = describePage(page, locale);
+
+  if (totalMatches <= 0 || snippets.length === 0) {
+    return locale === "zh"
+      ? `我替你在${pageRef}里找过“${query}”了，但目前没有看到明显匹配的内容。`
+      : `I searched ${pageRef} for "${query}", but I could not see a clear match right now.`;
+  }
+
+  const snippetPreview = snippets
+    .slice(0, 2)
+    .map((snippet) => `“${clipText(snippet, 80)}”`)
+    .join(locale === "zh" ? "、" : "; ");
+
+  return locale === "zh"
+    ? `我替你在${pageRef}里找了“${query}”。现在能看到 ${totalMatches} 处匹配，比较靠前的是 ${snippetPreview}。如果你愿意，我也可以继续替你点进去。`
+    : `I searched ${pageRef} for "${query}" and found ${totalMatches} visible match${totalMatches === 1 ? "" : "es"}. The clearest ones right now are ${snippetPreview}. If you want, I can keep going from there too.`;
+}
+
+function buildBrowserClickableListAssistantNote(
+  page: BrowserPageInfo,
+  elements: BrowserClickableElement[],
+  locale: LocalActionLocale
+): string {
+  const pageRef = describePage(page, locale);
+
+  if (elements.length === 0) {
+    return locale === "zh"
+      ? `我看了一下${pageRef}，但这一屏暂时没有特别明确的可点击项。`
+      : `I checked ${pageRef} for you, but I cannot clearly see any clickable items on this view yet.`;
+  }
+
+  const visibleItems = elements.slice(0, 5).map((element) => `“${clipText(element.text, 36)}”`);
+  const extraCount = Math.max(0, elements.length - visibleItems.length);
+  const itemText = visibleItems.join(locale === "zh" ? "、" : ", ");
+
+  return locale === "zh"
+    ? `我替你看了看${pageRef}。现在比较清楚能点的有 ${itemText}${extraCount > 0 ? `，另外还有 ${extraCount} 个` : ""}。你告诉我想点哪一个，我就继续。`
+    : `I checked ${pageRef} for you. The clearest clickable options right now are ${itemText}${extraCount > 0 ? `, plus ${extraCount} more` : ""}. Tell me which one you want next, and I will keep going.`;
+}
+
+function buildBrowserClickAssistantNote(
+  page: BrowserPageInfo,
+  matchedText: string,
+  locale: LocalActionLocale
+): string {
+  const pageRef = describePage(page, locale);
+
+  return locale === "zh"
+    ? `我已经替你点了“${matchedText}”。现在页面来到了${pageRef}，如果你想，我可以继续陪你往下走。`
+    : `I clicked "${matchedText}" for you. The page is now at ${pageRef}, and I can keep going with you if you want.`;
+}
+
+function describePage(page: BrowserPageInfo, locale: LocalActionLocale): string {
+  if (page.title?.trim()) {
+    return locale === "zh" ? `「${page.title.trim()}」` : `"${page.title.trim()}"`;
+  }
+
+  if (page.url?.trim()) {
+    return page.url.trim();
+  }
+
+  return locale === "zh" ? "当前页面" : "the current page";
+}
+
+function clipText(value: string, maxLength: number): string {
+  const normalized = value.replace(/\s+/g, " ").trim();
+
+  if (normalized.length <= maxLength) {
+    return normalized;
+  }
+
+  return `${normalized.slice(0, Math.max(0, maxLength - 3)).trimEnd()}...`;
 }
