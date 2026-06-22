@@ -2594,6 +2594,88 @@ textarea {
   margin-top: 1rem;
 }
 
+.chat-composer-toolbar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+}
+
+.chat-permission-tray {
+  position: relative;
+}
+
+.chat-permission-trigger {
+  min-height: 3rem;
+}
+
+.chat-permission-trigger-active {
+  border-color: rgba(21, 18, 15, 0.34);
+  background: rgba(255, 252, 247, 0.98);
+}
+
+.chat-permission-popover {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 0.7rem);
+  z-index: 20;
+  width: min(34rem, calc(100vw - 2rem));
+  display: grid;
+  gap: 0.9rem;
+  padding: 1rem;
+  border: 1.5px solid rgba(21, 18, 15, 0.12);
+  border-radius: 1.35rem;
+  background:
+    linear-gradient(180deg, rgba(255, 252, 247, 0.98), rgba(248, 243, 235, 0.96));
+  box-shadow: 0 24px 44px rgba(33, 25, 17, 0.12);
+}
+
+.chat-permission-popover-header {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.chat-permission-popover-header strong {
+  color: var(--text-strong);
+}
+
+.chat-permission-popover-header span {
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.chat-permission-inline-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.chat-permission-inline-card {
+  display: grid;
+  gap: 0.55rem;
+  padding: 0.85rem 0.9rem;
+  border: 1px solid rgba(21, 18, 15, 0.1);
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.62);
+}
+
+.chat-permission-inline-card strong {
+  color: var(--text-strong);
+  font-size: 0.95rem;
+}
+
+.chat-permission-level-group {
+  gap: 0.45rem;
+}
+
+.chat-permission-choice {
+  min-height: 2rem;
+  padding: 0.15rem 0.2rem;
+  font-size: 0.88rem;
+}
+
 .chat-composer textarea {
   min-height: 8rem;
   resize: vertical;
@@ -2916,6 +2998,19 @@ textarea {
 
   .chat-page-actions {
     justify-items: stretch;
+  }
+
+  .chat-composer-toolbar {
+    align-items: stretch;
+  }
+
+  .chat-permission-popover {
+    position: static;
+    width: 100%;
+  }
+
+  .chat-permission-inline-grid {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .chat-panel-focused {
