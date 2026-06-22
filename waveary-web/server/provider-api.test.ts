@@ -146,6 +146,96 @@ test("browser search-text route returns snippets from the current page", async (
   assert.equal(response.body.searchedAt, "2026-06-22T08:10:00.000Z");
 });
 
+test("browser clickable-elements route returns visible click targets", async () => {
+  const middleware = createProviderApiMiddleware();
+
+  setBrowserAutomationOverridesForTests({
+    async listClickableElements(options) {
+      assert.equal(options?.maxElements, 6);
+      return {
+        page: {
+          url: "https://example.com/actions",
+          title: "Actions"
+        },
+        elements: [
+          {
+            text: "Start here",
+            tagName: "a",
+            href: "https://example.com/start"
+          },
+          {
+            text: "Continue",
+            tagName: "button",
+            role: "button"
+          }
+        ],
+        scannedAt: "2026-06-22T08:20:00.000Z"
+      };
+    }
+  });
+
+  const response = await invokeJsonRoute(
+    middleware,
+    "POST",
+    "/api/browser/clickable-elements",
+    { maxElements: 6 }
+  );
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.page.url, "https://example.com/actions");
+  assert.equal(response.body.elements.length, 2);
+  assert.deepEqual(response.body.elements[0], {
+    text: "Start here",
+    tagName: "a",
+    href: "https://example.com/start"
+  });
+  assert.deepEqual(response.body.elements[1], {
+    text: "Continue",
+    tagName: "button",
+    role: "button"
+  });
+  assert.equal(response.body.scannedAt, "2026-06-22T08:20:00.000Z");
+});
+
+test("browser click-text route clicks a matching visible element by text", async () => {
+  const middleware = createProviderApiMiddleware();
+
+  setBrowserAutomationOverridesForTests({
+    async clickByText(text, options) {
+      assert.equal(text, "Continue");
+      assert.equal(options?.exact, true);
+      assert.equal(options?.timeoutMs, 2000);
+
+      return {
+        page: {
+          url: "https://example.com/after-click",
+          title: "After Click"
+        },
+        matchedText: "Continue",
+        exact: true,
+        clickedAt: "2026-06-22T08:25:00.000Z"
+      };
+    }
+  });
+
+  const response = await invokeJsonRoute(
+    middleware,
+    "POST",
+    "/api/browser/click-text",
+    {
+      text: "Continue",
+      exact: true,
+      timeoutMs: 2000
+    }
+  );
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.page.url, "https://example.com/after-click");
+  assert.equal(response.body.matchedText, "Continue");
+  assert.equal(response.body.exact, true);
+  assert.equal(response.body.clickedAt, "2026-06-22T08:25:00.000Z");
+});
+
 test("chat turn proposes a pending local action for explicit open requests", async () => {
   const middleware = createProviderApiMiddleware();
 

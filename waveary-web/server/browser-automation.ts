@@ -26,6 +26,13 @@ type BrowserAutomationOverrides = {
     query: string,
     options?: BrowserPageSearchOptions
   ) => Promise<BrowserPageSearchResult>;
+  listClickableElements?: (
+    options?: BrowserClickableElementListOptions
+  ) => Promise<BrowserClickableElementListResult>;
+  clickByText?: (
+    text: string,
+    options?: BrowserClickByTextOptions
+  ) => Promise<BrowserClickByTextResult>;
   close?: () => Promise<void>;
 };
 
@@ -66,6 +73,36 @@ export interface BrowserPageSearchResult {
   totalMatches: number;
   snippets: string[];
   searchedAt: string;
+}
+
+export interface BrowserClickableElement {
+  text: string;
+  tagName: string;
+  role?: string;
+  href?: string;
+  ariaLabel?: string;
+}
+
+export interface BrowserClickableElementListOptions {
+  maxElements?: number;
+}
+
+export interface BrowserClickableElementListResult {
+  page: BrowserPageInfo;
+  elements: BrowserClickableElement[];
+  scannedAt: string;
+}
+
+export interface BrowserClickByTextOptions {
+  exact?: boolean;
+  timeoutMs?: number;
+}
+
+export interface BrowserClickByTextResult {
+  page: BrowserPageInfo;
+  matchedText: string;
+  exact: boolean;
+  clickedAt: string;
 }
 
 export async function openManagedBrowserPage(url: string): Promise<BrowserOpenResult> {
@@ -160,6 +197,193 @@ export async function searchManagedBrowserPageText(
       normalizePositiveInteger(options.snippetRadius, 90)
     ),
     searchedAt: new Date().toISOString()
+  };
+}
+
+export async function listManagedBrowserClickableElements(
+  options: BrowserClickableElementListOptions = {}
+): Promise<BrowserClickableElementListResult> {
+  if (browserAutomationOverrides?.listClickableElements) {
+    return browserAutomationOverrides.listClickableElements(options);
+  }
+
+  const page = await requireManagedPage();
+  const pageInfo = await describePage(page);
+  const maxElements = normalizePositiveInteger(options.maxElements, 20);
+  const elements = await page.evaluate((limit) => {
+    const candidates = Array.from(
+      document.querySelectorAll<HTMLElement>(
+        "a, button, [role='button'], [role='link'], input[type='button'], input[type='submit'], summary"
+      )
+    );
+
+    const results: Array<{
+      text: string;
+      tagName: string;
+      role?: string;
+      href?: string;
+      ariaLabel?: string;
+    }> = [];
+
+    for (const element of candidates) {
+      if (results.length >= limit) {
+        break;
+      }
+
+      const rect = element.getBoundingClientRect();
+      const style = window.getComputedStyle(element);
+      const text = (
+        element.innerText ||
+        element.textContent ||
+        element.getAttribute("aria-label") ||
+        ""
+      )
+        .replace(/\s+/g, " ")
+        .trim();
+
+      if (!text) {
+        continue;
+      }
+
+      if (
+        rect.width <= 0 ||
+        rect.height <= 0 ||
+        style.visibility === "hidden" ||
+        style.display === "none"
+      ) {
+        continue;
+      }
+
+      const role = element.getAttribute("role") || undefined;
+      const href =
+        element instanceof HTMLAnchorElement ? element.href || undefined : undefined;
+      const ariaLabel = element.getAttribute("aria-label") || undefined;
+      const entry = {
+        text,
+        tagName: element.tagName.toLowerCase(),
+        ...(role ? { role } : {}),
+        ...(href ? { href } : {}),
+        ...(ariaLabel ? { ariaLabel } : {})
+      };
+
+      if (
+        !results.some(
+          (existing) =>
+            existing.text === entry.text &&
+            existing.tagName === entry.tagName &&
+            existing.href === entry.href
+        )
+      ) {
+        results.push(entry);
+      }
+    }
+
+    return results;
+  }, maxElements);
+
+  return {
+    page: pageInfo,
+    elements,
+    scannedAt: new Date().toISOString()
+  };
+}
+
+export async function clickManagedBrowserElementByText(
+  text: string,
+  options: BrowserClickByTextOptions = {}
+): Promise<BrowserClickByTextResult> {
+  if (browserAutomationOverrides?.clickByText) {
+    return browserAutomationOverrides.clickByText(text, options);
+  }
+
+  const normalizedText = text.trim();
+  if (!normalizedText) {
+    throw new Error("A non-empty click target text is required.");
+  }
+
+  const page = await requireManagedPage();
+  const exact = options.exact ?? false;
+  const timeoutMs = normalizePositiveInteger(options.timeoutMs, 5000);
+
+  const clicked = await page.evaluate(
+    async ({ targetText, exactMatch, timeout }) => {
+      const candidates = Array.from(
+        document.querySelectorAll<HTMLElement>(
+          "a, button, [role='button'], [role='link'], input[type='button'], input[type='submit'], summary"
+        )
+      );
+
+      const normalize = (value: string) => value.replace(/\s+/g, " ").trim();
+      const wanted = normalize(targetText).toLowerCase();
+
+      const matches = candidates.filter((element) => {
+        const style = window.getComputedStyle(element);
+        const rect = element.getBoundingClientRect();
+        const textValue = normalize(
+          element.innerText ||
+            element.textContent ||
+            element.getAttribute("aria-label") ||
+            ""
+        ).toLowerCase();
+
+        if (!textValue) {
+          return false;
+        }
+
+        if (
+          rect.width <= 0 ||
+          rect.height <= 0 ||
+          style.visibility === "hidden" ||
+          style.display === "none"
+        ) {
+          return false;
+        }
+
+        return exactMatch ? textValue === wanted : textValue.includes(wanted);
+      });
+
+      const target = matches[0];
+      if (!target) {
+        return null;
+      }
+
+      target.scrollIntoView({
+        behavior: "instant",
+        block: "center",
+        inline: "center"
+      });
+
+      await new Promise((resolve) => window.setTimeout(resolve, 60));
+      target.click();
+
+      await new Promise((resolve) => window.setTimeout(resolve, Math.min(timeout, 300)));
+
+      return normalize(
+        target.innerText ||
+          target.textContent ||
+          target.getAttribute("aria-label") ||
+          target.tagName
+      );
+    },
+    {
+      targetText: normalizedText,
+      exactMatch: exact,
+      timeout: timeoutMs
+    }
+  );
+
+  if (!clicked) {
+    throw new Error(`No clickable element matched "${normalizedText}".`);
+  }
+
+  markPageActive(page);
+  const pageInfo = await describePage(page);
+
+  return {
+    page: pageInfo,
+    matchedText: clicked,
+    exact,
+    clickedAt: new Date().toISOString()
   };
 }
 
@@ -258,20 +482,6 @@ function markPageActive(page: Page): void {
     openedAt: now,
     lastActiveAt: now
   });
-}
-
-async function resolveManagedPage(options: { allowMissing?: boolean } = {}): Promise<Page | null> {
-  const page = await resolveManagedPageOrNull();
-
-  if (page) {
-    return page;
-  }
-
-  if (options.allowMissing) {
-    return null;
-  }
-
-  throw new Error("No managed browser page is currently open.");
 }
 
 async function requireManagedPage(): Promise<Page> {
