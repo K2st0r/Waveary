@@ -14,8 +14,8 @@ Update it when:
 
 1. Keep polishing the `waveary-web` home / console shell.
    Status: in progress
-   Current state: the homepage first screen has been compressed further, the hero now fits more comfortably on common desktop heights, the homepage doodle layer now uses real generated black-and-white PNG objects instead of CSS shapes or placeholder files, and the console now uses a tighter toolbar + workspace strip + compact status strip with denser viewport-based panel heights.
-   Next cut: run another browser pass focused specifically on homepage doodle density / fade balance and whether any remaining console workspace still forces awkward external scrolling.
+   Current state: the homepage first screen has been compressed further, the hero now fits more comfortably on common desktop heights, the homepage doodle layer now uses a broader generated black-and-white PNG set including study objects plus stamp / envelope / train-ticket / postcard paper keepsakes, and the console now uses a tighter toolbar + workspace strip + compact status strip with denser viewport-based panel heights.
+   Next cut: run another browser pass focused specifically on homepage doodle density / fade balance now that the background set is denser, and then check whether any remaining console workspace still forces awkward external scrolling.
 
 2. Continue the `waveary-core` dialogue-quality pass.
    Status: in progress

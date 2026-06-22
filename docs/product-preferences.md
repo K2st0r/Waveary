@@ -43,6 +43,7 @@ Only write preferences here when they are likely to remain useful over time.
 - The console should behave like a compact real control desk: no marketing-style intro cards at the top, no long explanatory blocks, and no avoidable full-page scrolling for routine controls.
 - The homepage background objects should ultimately come from transparent PNG doodle assets generated through `C:\Users\13571\Desktop\micu-image-20260608.html`, not from long-term CSS-only fake doodle shapes.
 - Those doodle assets should be black-and-white, hand-drawn, memory-laden everyday objects with slightly denser distribution across the milk-white homepage background.
+- The doodle mix should not stay limited to stationery basics; it should also include memory-carrier paper objects such as stamps, envelopes, tickets, postcards, and similar keepsakes.
 - When refreshing those doodle assets through the local image tool or compatible API, prefer `gpt-image-2`, `1024x1024`, transparent background, one-image serial requests, and short low-complexity prompts because heavier requests have repeatedly timed out on the current network path with `524`.
 - If multiple image keys are available, use them only to distribute throughput across separate requests; they do not materially reduce single-request timeout risk.
 

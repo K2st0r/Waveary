@@ -4,6 +4,45 @@
 
 Objective:
 
+Expand the homepage doodle inventory with more correspondence and keepsake objects so the background feels richer without changing homepage structure or runtime logic.
+
+Summary:
+
+- generated four new transparent black-and-white doodle assets under `waveary-web/public/images/doodles/`: stamp, envelope, train ticket, and postcard
+- kept the same working image-generation strategy as the previous doodle pass: `gpt-image-2`, `1024x1024`, transparent background, short prompts, and one-image serial requests
+- observed that the train-ticket request still hit `524` timeout twice before succeeding, which reinforced that the low-complexity prompt strategy helps but does not eliminate current network-path instability
+- extended the `homeDoodles` array in `waveary-web/src/App.tsx` so the new paper-memory assets actually render in the homepage background layer instead of remaining unused files
+- re-verified the frontend with TypeScript and full web production build after wiring the new assets into the homepage
+
+Files changed:
+
+- `waveary-web/public/images/doodles/stamp.png`
+- `waveary-web/public/images/doodles/envelope.png`
+- `waveary-web/public/images/doodles/train-ticket.png`
+- `waveary-web/public/images/doodles/postcard.png`
+- `waveary-web/src/App.tsx`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/product-preferences.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run web:build`
+
+Commit:
+
+- pending - `Expand homepage doodle object set`
+
+Push:
+
+- pending
+
+## 2026-06-22
+
+Objective:
+
 Replace the homepage doodle placeholder PNGs with real generated assets and preserve the working generation constraints so future sessions do not regress into timeout-prone image requests.
 
 Summary:
