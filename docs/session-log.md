@@ -3838,6 +3838,47 @@ Push:
 
 Objective:
 
+Make browser-opening local actions feel more reliable and more human by moving `open_url` into a Waveary-managed browser context and tightening the companion-side reply wording around those actions.
+
+Summary:
+
+- added a new `waveary-web/server/browser-automation.ts` service backed by `playwright`, using one persistent browser profile under `.waveary/` so Waveary now has its own managed browser execution context for web opens
+- updated `waveary-web/server/local-actions.ts` so `open_url` actions no longer delegate straight to `explorer.exe`, and instead open inside the managed Playwright browser while folder/app actions keep their previous local paths
+- widened local open-intent and site matching so Chinese phrasing like `打开哔哩哔哩` is detected reliably as the same Bilibili action path
+- rewrote `waveary-web/server/local-action-audit.ts` so successful and dismissed local-action replies stay factually grounded but sound more companion-like, avoiding both hollow “virtual homepage” improvisation and overly sterile audit-log phrasing
+- extended route-level tests to cover the new Chinese Bilibili alias detection and the warmer post-action response wording
+
+Files changed:
+
+- `package-lock.json`
+- `waveary-web/package.json`
+- `waveary-web/server/browser-automation.ts`
+- `waveary-web/server/local-actions.ts`
+- `waveary-web/server/local-action-audit.ts`
+- `waveary-web/server/provider-api.test.ts`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run test --workspace @waveary/web`
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run web:build`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-22
+
+Objective:
+
 Keep `full-access` local actions trustworthy by making same-turn assistant replies match the action that actually ran, instead of claiming it cannot open apps after already opening them.
 
 Summary:

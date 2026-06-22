@@ -617,3 +617,25 @@ Impact:
 - `waveary-web` now sends `localActionPermission` and locale with `/api/chat/turn`
 - `sendChatTurn()` now detects supported local actions before persisting the turn and, when permission is `allow`, executes them server-side in the same request, replacing the visible reply with an audited execution note
 - ask-first and deny behavior remain unchanged, while `full-access` no longer depends on a later frontend-only auto-execution step to reconcile the turn
+
+## 2026-06-22 - Browser Automation Should Start Under The Existing Local-Action Boundary
+
+Status:
+
+- accepted
+
+Decision:
+
+Start Waveary browser automation by routing `open_url` local actions through a Waveary-managed Playwright persistent browser context, instead of trying to import OpenClaw whole or jumping straight to a broad free-form browser agent layer.
+
+Reason:
+
+- the user wants stronger browser control that feels closer to OpenClaw, but the current product still needs explicit permission, audit, and bounded action categories
+- Playwright provides a stable browser execution base we can reuse without rewriting browser primitives from scratch
+- keeping browser automation inside the current local-action boundary lets Waveary graduate from “shell open” to “managed browser context” without collapsing trust boundaries or overcommitting to a brittle universal web-agent path
+
+Impact:
+
+- `waveary-web` now depends on `playwright` for server-side browser execution
+- `open_url` actions can evolve into later bounded browser actions such as search, click, and extract text within one managed browser profile
+- future browser automation work should extend this explicit permissioned layer before considering higher-level natural-language web-agent tooling
