@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- pending - `Add chat-side permission tray`
+- `6897423` - `Add chat-side permission tray`
 
 ## Modules
 
