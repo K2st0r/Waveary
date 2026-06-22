@@ -16,7 +16,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `aa0a2ef` - `Refine homepage hero and console workspace layout`
+- `75b8064` - `Tighten console workspace and image doodle pipeline`
 
 ## Modules
 
