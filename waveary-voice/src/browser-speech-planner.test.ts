@@ -16,6 +16,8 @@ test("browser speech planner returns a softer slower plan for concerned Chinese 
   });
 
   assert.equal(result.provider, "waveary-browser-speech-planner");
+  assert.equal(result.mode, "browser-speech");
+  assert.ok("plan" in result);
   assert.equal(result.plan.mode, "browser-speech");
   assert.equal(result.plan.lang, "zh-CN");
   assert.equal(result.plan.styleLabel, "concerned");

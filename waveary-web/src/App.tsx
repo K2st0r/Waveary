@@ -54,7 +54,8 @@ interface ChatTurnResponse {
 
 interface VoiceSpeakPlanResponse {
   provider: string;
-  plan: {
+  mode: "browser-speech" | "audio";
+  plan?: {
     mode: "browser-speech";
     lang: string;
     voiceLabel: string;
@@ -65,6 +66,15 @@ interface VoiceSpeakPlanResponse {
     preDelayMs: number;
     postDelayMs: number;
     preferredVoiceKeywords: string[];
+  };
+  audio?: {
+    mimeType: string;
+    base64: string;
+  };
+  metadata?: {
+    model: string;
+    voice: string;
+    instructions?: string;
   };
 }
 
@@ -1347,6 +1357,7 @@ export function App(): ReactElement {
     return parsePageLocation(window.location.hash).page;
   });
   const activeUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const activeAudioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     window.localStorage.setItem("waveary-locale", locale);
@@ -2321,18 +2332,7 @@ export function App(): ReactElement {
     text: string,
     insights?: ChatTurnResponse
   ): Promise<void> {
-    if (typeof window === "undefined" || !("speechSynthesis" in window)) {
-      setVoicePlaybackState("error");
-      setVoiceStatusMessage(
-        locale === "zh"
-          ? "当前浏览器不支持语音朗读。"
-          : "This browser does not support speech synthesis."
-      );
-      return;
-    }
-
-    window.speechSynthesis.cancel();
-    activeUtteranceRef.current = null;
+    stopVoicePlayback();
     setVoicePlaybackState("planning");
     setVoiceStatusMessage(locale === "zh" ? "正在准备语音…" : "Preparing voice…");
 
@@ -2349,6 +2349,25 @@ export function App(): ReactElement {
           }
         })
       });
+
+      if (planResponse.mode === "audio" && planResponse.audio) {
+        await playProviderAudio(planResponse);
+        return;
+      }
+
+      if (
+        typeof window === "undefined" ||
+        !("speechSynthesis" in window) ||
+        !planResponse.plan
+      ) {
+        setVoicePlaybackState("error");
+        setVoiceStatusMessage(
+          locale === "zh"
+            ? "当前浏览器不支持语音朗读。"
+            : "This browser does not support speech synthesis."
+        );
+        return;
+      }
 
       const utterance = new SpeechSynthesisUtterance(text);
       const plan = planResponse.plan;
@@ -2395,14 +2414,67 @@ export function App(): ReactElement {
   }
 
   function handleStopSpeaking(): void {
-    if (typeof window === "undefined" || !("speechSynthesis" in window)) {
-      return;
-    }
-
-    window.speechSynthesis.cancel();
-    activeUtteranceRef.current = null;
+    stopVoicePlayback();
     setVoicePlaybackState("idle");
     setVoiceStatusMessage(locale === "zh" ? "已停止朗读。" : "Speech stopped.");
+  }
+
+  async function playProviderAudio(planResponse: VoiceSpeakPlanResponse): Promise<void> {
+    if (typeof window === "undefined" || !planResponse.audio) {
+      throw new Error("Provider audio playback is not available in this environment.");
+    }
+
+    const byteCharacters = window.atob(planResponse.audio.base64);
+    const byteNumbers = Array.from(byteCharacters, (character) => character.charCodeAt(0));
+    const audioBlob = new Blob([new Uint8Array(byteNumbers)], {
+      type: planResponse.audio.mimeType
+    });
+    const audioUrl = URL.createObjectURL(audioBlob);
+    const audio = new Audio(audioUrl);
+    activeAudioRef.current = audio;
+
+    audio.onplay = () => {
+      setVoicePlaybackState("speaking");
+      setVoiceStatusMessage(
+        locale === "zh"
+          ? "正在播放真实语音。"
+          : "Playing provider voice audio."
+      );
+    };
+    audio.onended = () => {
+      if (activeAudioRef.current === audio) {
+        activeAudioRef.current = null;
+      }
+      URL.revokeObjectURL(audioUrl);
+      setVoicePlaybackState("idle");
+      setVoiceStatusMessage(locale === "zh" ? "语音播放完成。" : "Voice playback finished.");
+    };
+    audio.onerror = () => {
+      if (activeAudioRef.current === audio) {
+        activeAudioRef.current = null;
+      }
+      URL.revokeObjectURL(audioUrl);
+      setVoicePlaybackState("error");
+      setVoiceStatusMessage(
+        locale === "zh" ? "真实语音播放失败了。" : "Provider voice playback failed."
+      );
+    };
+
+    await audio.play();
+  }
+
+  function stopVoicePlayback(): void {
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
+
+    activeUtteranceRef.current = null;
+
+    if (activeAudioRef.current) {
+      activeAudioRef.current.pause();
+      activeAudioRef.current.currentTime = 0;
+      activeAudioRef.current = null;
+    }
   }
 
   async function handleExecutePendingLocalAction(): Promise<void> {
@@ -4653,7 +4725,7 @@ function formatProactiveAutoCheckOutcome(
 
 function pickSpeechVoice(
   voices: SpeechSynthesisVoice[],
-  plan: VoiceSpeakPlanResponse["plan"]
+  plan: NonNullable<VoiceSpeakPlanResponse["plan"]>
 ): SpeechSynthesisVoice | null {
   if (voices.length === 0) {
     return null;

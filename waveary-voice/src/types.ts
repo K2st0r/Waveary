@@ -26,10 +26,27 @@ export interface BrowserSpeechPlan {
   preferredVoiceKeywords: string[];
 }
 
-export interface TextToSpeechResult {
+export interface AudioSpeechResult {
+  provider: string;
+  mode: "audio";
+  audio: {
+    mimeType: string;
+    base64: string;
+  };
+  metadata: {
+    model: string;
+    voice: string;
+    instructions?: string;
+  };
+}
+
+export interface BrowserSpeechResult {
   provider: "waveary-browser-speech-planner";
+  mode: "browser-speech";
   plan: BrowserSpeechPlan;
 }
+
+export type TextToSpeechResult = AudioSpeechResult | BrowserSpeechResult;
 
 export interface TextToSpeechProvider {
   synthesize(request: TextToSpeechRequest): Promise<TextToSpeechResult>;

@@ -100,6 +100,44 @@ test("voice speak route returns an emotion-aware browser speech plan", async () 
   assert.ok(response.body.plan.preferredVoiceKeywords.includes("Mandarin"));
 });
 
+test("voice speak route returns provider audio when a compatible provider tts path succeeds", async () => {
+  const middleware = createProviderApiMiddleware();
+
+  saveProviderConfig({
+    provider: "openai",
+    baseURL: "https://api.openai.com/v1",
+    apiKey: "test-key",
+    model: "gpt-4o-mini"
+  });
+
+  globalThis.fetch = (async (input) => {
+    if (String(input) === "https://api.openai.com/v1/audio/speech") {
+      return new Response(Buffer.from("voice-audio"), {
+        status: 200,
+        headers: {
+          "Content-Type": "audio/mpeg"
+        }
+      });
+    }
+
+    throw new Error(`Unexpected fetch URL: ${String(input)}`);
+  }) as typeof fetch;
+
+  const response = await invokeJsonRoute(middleware, "POST", "/api/voice/speak", {
+    text: "Stay with me for a bit.",
+    locale: "en-US"
+  });
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.provider, "openai");
+  assert.equal(response.body.mode, "audio");
+  assert.equal(response.body.audio.mimeType, "audio/mpeg");
+  assert.equal(
+    Buffer.from(response.body.audio.base64, "base64").toString("utf8"),
+    "voice-audio"
+  );
+});
+
 test("browser extract-text route returns bounded page text", async () => {
   const middleware = createProviderApiMiddleware();
 
