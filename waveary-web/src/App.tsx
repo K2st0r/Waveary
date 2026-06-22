@@ -272,6 +272,7 @@ type PermissionLevel = WavearyPermissionProfile["browserNotifications"];
 type PermissionPresetMode = "limited" | "elevated" | "full";
 type VoicePlaybackState = "idle" | "planning" | "speaking" | "error";
 type SpeechInputState = "idle" | "listening" | "processing" | "unsupported" | "error";
+type VoiceConversationResumeReason = "reply-finished" | "retry-listening";
 
 interface BrowserSpeechRecognitionAlternative {
   transcript: string;
@@ -1397,6 +1398,7 @@ export function App(): ReactElement {
   const [chatPermissionTrayOpen, setChatPermissionTrayOpen] = useState(false);
   const [localActionResolveState, setLocalActionResolveState] = useState<LoadState>("idle");
   const [autoSpeakReplies, setAutoSpeakReplies] = useState(false);
+  const [voiceConversationMode, setVoiceConversationMode] = useState(false);
   const [voicePlaybackState, setVoicePlaybackState] = useState<VoicePlaybackState>("idle");
   const [voiceStatusMessage, setVoiceStatusMessage] = useState("");
   const [speechInputState, setSpeechInputState] = useState<SpeechInputState>(() =>
@@ -1430,11 +1432,18 @@ export function App(): ReactElement {
   });
   const activeUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const activeAudioRef = useRef<HTMLAudioElement | null>(null);
+  const activeAudioUrlRef = useRef<string | null>(null);
   const speechRecognitionRef = useRef<BrowserSpeechRecognitionInstance | null>(null);
   const speechInputBaseRef = useRef("");
   const speechInputFinalRef = useRef("");
   const speechInputManualStopRef = useRef(false);
   const speechInputErrorRef = useRef(false);
+  const voiceConversationModeRef = useRef(false);
+  const voiceConversationResumeTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    voiceConversationModeRef.current = voiceConversationMode;
+  }, [voiceConversationMode]);
 
   useEffect(() => {
     window.localStorage.setItem("waveary-locale", locale);
@@ -1442,6 +1451,9 @@ export function App(): ReactElement {
 
   useEffect(() => {
     return () => {
+      voiceConversationModeRef.current = false;
+      clearVoiceConversationResumeTimer();
+
       const recognition = speechRecognitionRef.current;
       speechRecognitionRef.current = null;
 
@@ -2481,7 +2493,7 @@ export function App(): ReactElement {
           locale === "zh" ? "语音消息已发出。" : "Your voice message was sent."
         );
       }
-      if (autoSpeakReplies) {
+      if (autoSpeakReplies || voiceConversationModeRef.current) {
         void speakAssistantReply(response.reply, response).catch(() => {
           // Keep chat flow successful even if voice playback fails.
         });
@@ -2527,6 +2539,7 @@ export function App(): ReactElement {
     text: string,
     insights?: ChatTurnResponse
   ): Promise<void> {
+    clearVoiceConversationResumeTimer();
     stopVoicePlayback();
     setVoicePlaybackState("planning");
     setVoiceStatusMessage(locale === "zh" ? "正在准备语音…" : "Preparing voice…");
@@ -2589,7 +2602,18 @@ export function App(): ReactElement {
       utterance.onend = () => {
         activeUtteranceRef.current = null;
         setVoicePlaybackState("idle");
-        setVoiceStatusMessage(locale === "zh" ? "朗读完成。" : "Finished speaking.");
+        setVoiceStatusMessage(
+          voiceConversationModeRef.current
+            ? locale === "zh"
+              ? "我说完了，继续听你。"
+              : "I have finished speaking. I am listening again."
+            : locale === "zh"
+              ? "朗读完成。"
+              : "Finished speaking."
+        );
+        if (voiceConversationModeRef.current) {
+          scheduleVoiceConversationResume("reply-finished");
+        }
       };
       utterance.onerror = () => {
         activeUtteranceRef.current = null;
@@ -2597,6 +2621,9 @@ export function App(): ReactElement {
         setVoiceStatusMessage(
           locale === "zh" ? "语音朗读失败了。" : "Speech playback failed."
         );
+        if (voiceConversationModeRef.current) {
+          scheduleVoiceConversationResume("reply-finished");
+        }
       };
 
       activeUtteranceRef.current = utterance;
@@ -2609,6 +2636,82 @@ export function App(): ReactElement {
     }
   }
 
+  async function startVoiceConversation(): Promise<void> {
+    const SpeechRecognition = getSpeechRecognitionConstructor();
+
+    if (!SpeechRecognition) {
+      setVoiceConversationMode(false);
+      setSpeechInputState("unsupported");
+      setSpeechInputStatusMessage(
+        locale === "zh"
+          ? "\u5f53\u524d\u6d4f\u89c8\u5668\u4e0d\u652f\u6301\u5b9e\u65f6\u8bed\u97f3\u5bf9\u8bdd\u3002"
+          : "This browser does not support live voice conversation."
+      );
+      return;
+    }
+
+    clearVoiceConversationResumeTimer();
+    setVoiceConversationMode(true);
+    voiceConversationModeRef.current = true;
+    setVoiceStatusMessage(
+      locale === "zh"
+        ? "\u5b9e\u65f6\u5bf9\u8bdd\u5df2\u5f00\u542f\uff0c\u6211\u4f1a\u542c\u5b8c\u4f60\u7684\u8bdd\u5c31\u56de\u5e94\u3002"
+        : "Live conversation is on. I will listen, reply, and keep the flow going."
+    );
+    setSpeechInputStatusMessage(
+      locale === "zh"
+        ? "\u5b9e\u65f6\u5bf9\u8bdd\u5df2\u5f00\u542f\uff0c\u4f60\u8bf4\u5b8c\u4e00\u53e5\u6211\u5c31\u4f1a\u63a5\u4e0a\u3002"
+        : "Live conversation is on. Finish one thought and I will answer right away."
+    );
+    await startSpeechInput({ fromVoiceConversation: true });
+  }
+
+  function stopVoiceConversation(): void {
+    clearVoiceConversationResumeTimer();
+    setVoiceConversationMode(false);
+    voiceConversationModeRef.current = false;
+    stopSpeechRecognition({ markManualStop: true });
+    stopVoicePlayback();
+    setVoicePlaybackState("idle");
+    setVoiceStatusMessage(
+      locale === "zh" ? "\u5b9e\u65f6\u5bf9\u8bdd\u5df2\u7ed3\u675f\u3002" : "Live conversation ended."
+    );
+    setSpeechInputState(getSpeechRecognitionConstructor() ? "idle" : "unsupported");
+    setSpeechInputStatusMessage(
+      locale === "zh"
+        ? "\u5df2\u7ed3\u675f\u5b9e\u65f6\u8bed\u97f3\u5bf9\u8bdd\u3002"
+        : "Live voice conversation ended."
+    );
+  }
+
+  function clearVoiceConversationResumeTimer(): void {
+    if (typeof window === "undefined" || voiceConversationResumeTimerRef.current === null) {
+      return;
+    }
+
+    window.clearTimeout(voiceConversationResumeTimerRef.current);
+    voiceConversationResumeTimerRef.current = null;
+  }
+
+  function scheduleVoiceConversationResume(reason: VoiceConversationResumeReason): void {
+    if (typeof window === "undefined" || !voiceConversationModeRef.current) {
+      return;
+    }
+
+    clearVoiceConversationResumeTimer();
+    const delayMs = reason === "retry-listening" ? 420 : 220;
+
+    voiceConversationResumeTimerRef.current = window.setTimeout(() => {
+      voiceConversationResumeTimerRef.current = null;
+
+      if (!voiceConversationModeRef.current) {
+        return;
+      }
+
+      void startSpeechInput({ fromVoiceConversation: true });
+    }, delayMs);
+  }
+
   function handleStopSpeaking(): void {
     stopVoicePlayback();
     setVoicePlaybackState("idle");
@@ -2616,6 +2719,11 @@ export function App(): ReactElement {
   }
 
   function handleToggleSpeechInput(): void {
+    if (voiceConversationMode) {
+      stopVoiceConversation();
+      return;
+    }
+
     if (speechInputState === "listening") {
       stopSpeechRecognition({ markManualStop: true });
       setSpeechInputState("idle");
@@ -2627,10 +2735,10 @@ export function App(): ReactElement {
       return;
     }
 
-    void startSpeechInput();
+    void startVoiceConversation();
   }
 
-  async function startSpeechInput(): Promise<void> {
+  async function startSpeechInput(options?: { fromVoiceConversation?: boolean }): Promise<void> {
     const SpeechRecognition = getSpeechRecognitionConstructor();
 
     if (!SpeechRecognition) {
@@ -2647,6 +2755,7 @@ export function App(): ReactElement {
       return;
     }
 
+    clearVoiceConversationResumeTimer();
     stopVoicePlayback();
     stopSpeechRecognition({ markManualStop: true });
 
@@ -2665,9 +2774,13 @@ export function App(): ReactElement {
     recognition.onstart = () => {
       setSpeechInputState("listening");
       setSpeechInputStatusMessage(
-        locale === "zh"
-          ? "正在听你说话…说完后我会直接发出去。"
-          : "Listening… I will send it as soon as you finish."
+        options?.fromVoiceConversation
+          ? locale === "zh"
+            ? "我在听，你慢慢说，说完我就接你。"
+            : "I am listening. Take your time and I will answer as soon as you finish."
+          : locale === "zh"
+            ? "正在听你说话…说完后我会直接发出去。"
+            : "Listening… I will send it as soon as you finish."
       );
     };
 
@@ -2704,8 +2817,20 @@ export function App(): ReactElement {
     };
 
     recognition.onerror = (event) => {
-      speechInputErrorRef.current = true;
       speechRecognitionRef.current = null;
+
+      if (voiceConversationModeRef.current && event.error === "no-speech") {
+        speechInputErrorRef.current = false;
+        setSpeechInputState("idle");
+        setSpeechInputStatusMessage(
+          locale === "zh"
+            ? "刚刚没听清，我继续听着你。"
+            : "I did not quite catch that. I will keep listening."
+        );
+        return;
+      }
+
+      speechInputErrorRef.current = true;
       setSpeechInputState("error");
       setSpeechInputStatusMessage(localizeSpeechInputError(event.error, locale));
     };
@@ -2741,14 +2866,29 @@ export function App(): ReactElement {
       if (!recognizedDraft) {
         setSpeechInputState("idle");
         setSpeechInputStatusMessage(
-          locale === "zh" ? "这次没有听清，我们再试一次。" : "I did not catch that. Try again."
+          voiceConversationModeRef.current
+            ? locale === "zh"
+              ? "这次没听清，我再听你一次。"
+              : "I did not catch that. I will listen again."
+            : locale === "zh"
+              ? "这次没有听清，我们再试一次。"
+              : "I did not catch that. Try again."
         );
+        if (voiceConversationModeRef.current) {
+          scheduleVoiceConversationResume("retry-listening");
+        }
         return;
       }
 
       setSpeechInputState("processing");
       setSpeechInputStatusMessage(
-        locale === "zh" ? "听到了，正在替你发出去…" : "Got it. Sending it now…"
+        voiceConversationModeRef.current
+          ? locale === "zh"
+            ? "听到了，我这就回你。"
+            : "I heard you. Let me answer you now."
+          : locale === "zh"
+            ? "听到了，正在替你发出去…"
+            : "Got it. Sending it now…"
       );
       void sendChatMessage(recognizedDraft, { fromSpeechInput: true });
     };
@@ -2775,6 +2915,7 @@ export function App(): ReactElement {
     const audioUrl = URL.createObjectURL(audioBlob);
     const audio = new Audio(audioUrl);
     activeAudioRef.current = audio;
+    activeAudioUrlRef.current = audioUrl;
 
     audio.onplay = () => {
       setVoicePlaybackState("speaking");
@@ -2788,25 +2929,53 @@ export function App(): ReactElement {
       if (activeAudioRef.current === audio) {
         activeAudioRef.current = null;
       }
-      URL.revokeObjectURL(audioUrl);
+      if (activeAudioUrlRef.current === audioUrl) {
+        URL.revokeObjectURL(audioUrl);
+        activeAudioUrlRef.current = null;
+      }
       setVoicePlaybackState("idle");
-      setVoiceStatusMessage(locale === "zh" ? "语音播放完成。" : "Voice playback finished.");
+      setVoiceStatusMessage(
+        voiceConversationModeRef.current
+          ? locale === "zh"
+            ? "我说完了，继续听你。"
+            : "I have finished speaking. I am listening again."
+          : locale === "zh"
+            ? "语音播放完成。"
+            : "Voice playback finished."
+      );
+      if (voiceConversationModeRef.current) {
+        scheduleVoiceConversationResume("reply-finished");
+      }
     };
     audio.onerror = () => {
       if (activeAudioRef.current === audio) {
         activeAudioRef.current = null;
       }
-      URL.revokeObjectURL(audioUrl);
+      if (activeAudioUrlRef.current === audioUrl) {
+        URL.revokeObjectURL(audioUrl);
+        activeAudioUrlRef.current = null;
+      }
       setVoicePlaybackState("error");
       setVoiceStatusMessage(
         locale === "zh" ? "真实语音播放失败了。" : "Provider voice playback failed."
       );
+      if (voiceConversationModeRef.current) {
+        scheduleVoiceConversationResume("reply-finished");
+      }
     };
 
     await audio.play();
   }
 
   function stopVoicePlayback(): void {
+    clearVoiceConversationResumeTimer();
+
+    if (activeUtteranceRef.current) {
+      activeUtteranceRef.current.onstart = null;
+      activeUtteranceRef.current.onend = null;
+      activeUtteranceRef.current.onerror = null;
+    }
+
     if (typeof window !== "undefined" && "speechSynthesis" in window) {
       window.speechSynthesis.cancel();
     }
@@ -2814,9 +2983,17 @@ export function App(): ReactElement {
     activeUtteranceRef.current = null;
 
     if (activeAudioRef.current) {
+      activeAudioRef.current.onplay = null;
+      activeAudioRef.current.onended = null;
+      activeAudioRef.current.onerror = null;
       activeAudioRef.current.pause();
       activeAudioRef.current.currentTime = 0;
       activeAudioRef.current = null;
+    }
+
+    if (activeAudioUrlRef.current) {
+      URL.revokeObjectURL(activeAudioUrlRef.current);
+      activeAudioUrlRef.current = null;
     }
   }
 
@@ -4748,7 +4925,7 @@ export function App(): ReactElement {
                   <div className="console-actions">
                     <div className="chat-voice-controls">
                       <button
-                        className={`button button-secondary ${speechInputState === "listening" ? "chat-voice-button-active" : ""}`}
+                        className={`button button-secondary ${voiceConversationMode ? "chat-voice-button-active" : ""}`}
                         onClick={() => handleToggleSpeechInput()}
                         disabled={
                           !chatReady ||
@@ -4758,13 +4935,13 @@ export function App(): ReactElement {
                         }
                         type="button"
                       >
-                        {speechInputState === "listening"
+                        {voiceConversationMode
                           ? locale === "zh"
-                            ? "结束收听"
-                            : "Stop listening"
+                            ? "结束实时对话"
+                            : "End live chat"
                           : locale === "zh"
-                            ? "开始说话"
-                            : "Start talking"}
+                            ? "开始实时对话"
+                            : "Start live chat"}
                       </button>
                       <label className="chat-voice-toggle">
                         <input
@@ -4869,9 +5046,13 @@ export function App(): ReactElement {
                         ? locale === "zh"
                           ? "当前浏览器暂不支持语音输入。"
                           : "Speech input is not supported in this browser."
-                        : locale === "zh"
-                          ? "点开始说话后，我会把听到的内容直接送进对话。"
-                          : "Start talking and I will turn it into the next chat turn.")}
+                        : voiceConversationMode
+                          ? locale === "zh"
+                            ? "我会持续听你说、回答你、再继续听你。"
+                            : "I will keep listening, answering, and listening again."
+                          : locale === "zh"
+                            ? "点开始实时对话后，我会把听到的内容直接送进对话。"
+                            : "Start live chat and I will turn what I hear into the next turn.")}
                   </span>
                 </div>
               </div>
