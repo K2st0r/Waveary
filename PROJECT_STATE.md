@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `eb96a8a` - `Record local-time detection fix progress`
+- `37e1b33` - `Record local-time detection push result`
 
 ## Modules
 
@@ -122,6 +122,7 @@ Brand line:
   - the chat page now also surfaces a compact permission tray beside the composer, so time awareness, proactive notifications, desktop presence, and local-action intent can be adjusted in conversation without sending users back to the console
   - the chat composer now also exposes direct `limited / high-permission / full-access` mode switches beside send controls, mapping the live conversation surface onto the existing permission model without removing the lower-level detail popover
   - `localActions` has now graduated from a UI-only preference slot into the first real ask-first execution path: chat turns can propose a pending local action card for simple open-url / open-folder / launch-app intents, and the user must explicitly confirm before any local execution happens
+  - the chat page now also auto-executes detected local actions immediately when the active conversation permission is `full-access`, while `high-permission` and lower modes still preserve the explicit confirmation card
   - the first local-action execution surface stays intentionally narrow and auditable inside `waveary-web`: proposal detection is rule-based, execution is permission-gated, denied policy blocks execution, ask-first requires one explicit approval click, and dismissing the card clears the pending action from persisted session state`r`n  - executed and dismissed local actions now also append a small assistant-side audit note into persisted chat history, so trust-visible action outcomes survive reloads and restored sessions instead of living only in transient UI state
   - the visible persisted-session archive panel has been removed from the runtime rail so the console reads less like a raw internal debug dump
   - the split home / console / chat shell now has a stronger page-by-page hierarchy: the homepage reads more like a formal project front page, the console reads more like a system desk, and the chat page is more tightly focused on the active conversation surface
@@ -246,7 +247,7 @@ Brand line:
 
 - define the first delivery path for proactive care in the web surface, likely browser or local notifications before any broader desktop action layer
 - extend the browser notification path from manual console evaluation into a bounded scheduled or reminder-style delivery loop without introducing hidden background behavior
-- continue refining the new three-step chat permission presets so the difference between `high-permission` and `full-access` stays legible without weakening the lower-level ask-first trust boundary
+- continue refining the new three-step chat permission presets so the difference between `high-permission` and `full-access` stays legible now that `full-access` also auto-runs local actions instead of stopping at the same confirmation card
 - consider showing a user-facing indicator in the console or chat flow when a proactive care wait-state has been cleared by a real reply, so the permissioned care loop is more legible
 - consider distinguishing affirmative proactive recommendations from blocked evaluations more visually in the console card now that their text is user-facing
 - consider exposing a smaller single-line status echo near the evaluate button so the latest `WPCE` conclusion remains visible even when the full decision card scrolls out of view

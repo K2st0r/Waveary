@@ -4,6 +4,40 @@
 
 Objective:
 
+Make `full-access` on the chat page actually feel different from `high-permission` by auto-running local actions immediately instead of still waiting on the same approval card.
+
+Summary:
+
+- updated `waveary-web/src/App.tsx` so detected pending local actions now auto-execute as soon as the active conversation permission is `allow`, which is what the `full-access` preset maps to
+- kept the existing trust boundary intact for lower-trust modes: `deny` still blocks, while `ask` still leaves the approval card visible and requires one explicit confirmation click
+- hid the local-action confirmation card entirely when the active permission is already `allow`, so the chat page no longer shows a redundant confirmation step under `full-access`
+- verified the change with frontend typecheck, full web production build, and a real browser pass confirming that switching the chat shell to `完全访问` and sending `打开Bilibili` no longer leaves the confirmation card on screen
+
+Files changed:
+
+- `waveary-web/src/App.tsx`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run web:build`
+- Playwright browser check on `http://127.0.0.1:4173/#chat` confirming no confirmation card remains after `完全访问` + `打开Bilibili`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-22
+
+Objective:
+
 Move the most important trust control in the chat shell closer to the send action by exposing a direct `limited / high-permission` mode switch beside the composer.
 
 Summary:
