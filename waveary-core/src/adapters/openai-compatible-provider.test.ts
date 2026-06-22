@@ -416,6 +416,117 @@ test("OpenAICompatibleChatProvider changes relationship-distance guidance across
   );
 });
 
+test("OpenAICompatibleChatProvider keeps emotional-turn continuity guidance restrained when only a weak timeline thread is available", async () => {
+  const instruction = await captureInstruction(
+    createRequest({
+      messages: [
+        {
+          id: "m1",
+          sessionId: "session-1",
+          role: "user",
+          content: "I feel anxious tonight and I do not want to sit in this alone.",
+          timestamp: new Date().toISOString(),
+          metadata: {}
+        }
+      ],
+      relevantMemories: [],
+      timeline: [
+        {
+          id: "timeline-1",
+          userId: "user-1",
+          title: "Went sketching in the park",
+          description: "The user spent a quiet afternoon sketching in the park last month.",
+          eventType: "memory",
+          eventTime: new Date().toISOString(),
+          importance: 0.71,
+          linkedMemoryIds: []
+        }
+      ]
+    })
+  );
+
+  assert.match(
+    instruction,
+    /Primary continuity thread: \[timeline:memory\] Went sketching in the park/
+  );
+  assert.match(
+    instruction,
+    /This timeline thread is available, but do not force it unless it naturally matches the user's present concern\./
+  );
+  assert.match(
+    instruction,
+    /If the primary continuity thread does not fit the current emotional moment, do not force it into the reply just to prove memory\./
+  );
+});
+
+test("OpenAICompatibleChatProvider prefers a stronger timeline thread over weak recalled memories when the current turn matches the life event more directly", async () => {
+  const instruction = await captureInstruction(
+    createRequest({
+      messages: [
+        {
+          id: "m1",
+          sessionId: "session-1",
+          role: "user",
+          content: "I keep thinking about the interview tomorrow and I want to feel steadier before it.",
+          timestamp: new Date().toISOString(),
+          metadata: {}
+        }
+      ],
+      relevantMemories: [
+        {
+          id: "memory-1",
+          userId: "user-1",
+          type: "preference",
+          content: "The user likes cloudy afternoons and soft music.",
+          importance: 0.88,
+          confidence: 0.77,
+          sourceMessageIds: ["older-message"],
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: "memory-2",
+          userId: "user-1",
+          type: "fact",
+          content: "The user once mentioned wanting more relationship continuity.",
+          importance: 0.81,
+          confidence: 0.72,
+          sourceMessageIds: ["older-message-2"],
+          createdAt: new Date().toISOString()
+        }
+      ],
+      timeline: [
+        {
+          id: "timeline-1",
+          userId: "user-1",
+          title: "Upcoming interview tomorrow",
+          description: "The user has an interview tomorrow and wants emotional steadiness before it.",
+          eventType: "milestone",
+          eventTime: new Date().toISOString(),
+          importance: 0.93,
+          linkedMemoryIds: []
+        }
+      ]
+    })
+  );
+
+  assert.match(
+    instruction,
+    /Current turn focus: I keep thinking about the interview tomorrow and I want to feel steadier before it\./
+  );
+  assert.match(
+    instruction,
+    /Primary continuity thread: \[timeline:milestone\] Upcoming interview tomorrow/
+  );
+  assert.match(
+    instruction,
+    /If continuity helps here, anchor the reply around this shared life thread rather than listing multiple remembered details\./
+  );
+  assert.match(
+    instruction,
+    /Additional recalled memories after the primary thread:\n1\. \[fact\] The user once mentioned wanting more relationship continuity\.\n2\. \[preference\] The user likes cloudy afternoons and soft music\./
+  );
+});
+
 test("OpenAICompatibleChatProvider falls back to responses when chat completions is unavailable", async () => {
   const recorded: Array<{ url: string; init: RequestInit | undefined }> = [];
   const provider = new OpenAICompatibleChatProvider({
