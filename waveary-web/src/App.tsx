@@ -2217,6 +2217,8 @@ export function App(): ReactElement {
         body: JSON.stringify({
           sessionId: activeSessionId || defaultSessionId,
           message: trimmed,
+          localActionPermission: permissionProfile.localActions,
+          locale,
           ...(timeContext ? { timeContext } : {})
         })
       });

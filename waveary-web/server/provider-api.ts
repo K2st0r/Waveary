@@ -48,6 +48,8 @@ interface ProviderConfigRequest extends ProviderModelsRequest {
 interface ChatTurnRequest {
   sessionId?: string;
   message?: string;
+  localActionPermission?: LocalActionPermissionLevel;
+  locale?: string;
   timeContext?: {
     localTimeIso?: string;
     timeZone?: string;
@@ -160,6 +162,14 @@ export function createProviderApiMiddleware() {
           requireNonEmpty(payload.sessionId, "Session ID is required."),
           requireNonEmpty(payload.message, "Message is required."),
           {
+            ...(payload.localActionPermission
+              ? {
+                  localActionPermission: requireLocalActionPermission(
+                    payload.localActionPermission
+                  )
+                }
+              : {}),
+            ...(payload.locale ? { locale: normalizeLocalActionLocale(payload.locale) } : {}),
             ...(payload.timeContext?.localTimeIso
               ? {
                   localTime: {
