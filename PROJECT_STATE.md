@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `e5a68af` - `Add first voice module and chat speech playback`
+- `edb9ceb` - `Add provider-backed TTS fallback path`
 
 ## Modules
 
