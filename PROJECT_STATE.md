@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `6466594` - `Follow Bilibili watch requests in chat`
+- `e5a68af` - `Add first voice module and chat speech playback`
 
 ## Modules
 
