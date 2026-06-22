@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `ed4ae3b` - `Record full-access local action behavior`
+- `f0e7da6` - `Keep full-access action replies consistent`
 
 ## Modules
 
@@ -123,6 +123,7 @@ Brand line:
   - the chat composer now also exposes direct `limited / high-permission / full-access` mode switches beside send controls, mapping the live conversation surface onto the existing permission model without removing the lower-level detail popover
   - `localActions` has now graduated from a UI-only preference slot into the first real ask-first execution path: chat turns can propose a pending local action card for simple open-url / open-folder / launch-app intents, and the user must explicitly confirm before any local execution happens
   - the chat page now also auto-executes detected local actions immediately when the active conversation permission is `full-access`, while `high-permission` and lower modes still preserve the explicit confirmation card
+  - same-turn local action handling is now reply-consistent under `full-access`: `/api/chat/turn` receives the current local-action permission, auto-runs supported actions server-side when permission is `allow`, and returns an execution-consistent assistant reply instead of leaving a contradictory model disclaimer beside a successful local action
   - the first local-action execution surface stays intentionally narrow and auditable inside `waveary-web`: proposal detection is rule-based, execution is permission-gated, denied policy blocks execution, ask-first requires one explicit approval click, and dismissing the card clears the pending action from persisted session state`r`n  - executed and dismissed local actions now also append a small assistant-side audit note into persisted chat history, so trust-visible action outcomes survive reloads and restored sessions instead of living only in transient UI state
   - the visible persisted-session archive panel has been removed from the runtime rail so the console reads less like a raw internal debug dump
   - the split home / console / chat shell now has a stronger page-by-page hierarchy: the homepage reads more like a formal project front page, the console reads more like a system desk, and the chat page is more tightly focused on the active conversation surface
@@ -247,7 +248,8 @@ Brand line:
 
 - define the first delivery path for proactive care in the web surface, likely browser or local notifications before any broader desktop action layer
 - extend the browser notification path from manual console evaluation into a bounded scheduled or reminder-style delivery loop without introducing hidden background behavior
-- continue refining the new three-step chat permission presets so the difference between `high-permission` and `full-access` stays legible now that `full-access` also auto-runs local actions instead of stopping at the same confirmation card
+- continue refining the new three-step chat permission presets so the difference between `high-permission` and `full-access` stays legible now that `full-access` also returns same-turn execution-consistent replies instead of showing a contradiction between model text and local action outcome
+- add a focused browser pass for `full-access` local actions so the live chat page is re-verified end-to-end against the now server-driven same-turn execution path, not only route-level tests
 - consider showing a user-facing indicator in the console or chat flow when a proactive care wait-state has been cleared by a real reply, so the permissioned care loop is more legible
 - consider distinguishing affirmative proactive recommendations from blocked evaluations more visually in the console card now that their text is user-facing
 - consider exposing a smaller single-line status echo near the evaluate button so the latest `WPCE` conclusion remains visible even when the full decision card scrolls out of view

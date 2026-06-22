@@ -595,3 +595,25 @@ Impact:
 - `waveary-web` now appends a compact assistant note for executed and dismissed local actions
 - pending local-action state is cleared in both persisted session storage and runtime cache as part of the same resolution flow
 - future local-action work can build richer summaries or approval history on top of this persisted conversational trace instead of reintroducing purely ephemeral status handling
+
+## 2026-06-22 - Full-Access Local Actions Must Return Same-Turn Reply Consistency
+
+Status:
+
+- accepted
+
+Decision:
+
+When chat-side local action permission is `allow` (`full-access`), `/api/chat/turn` must know that permission during the same request, execute the supported local action inside the server turn path, and return an execution-consistent assistant reply instead of leaving the provider's contradictory "I cannot open apps" text in the conversation.
+
+Reason:
+
+- auto-running a local action on the frontend after a normal model reply created a trust-breaking contradiction: the browser really opened the target while the assistant text still claimed it could not
+- this inconsistency was architectural, not cosmetic, because local-action detection previously happened only after `WavearyRuntime.handleTurn()` finished
+- the trust boundary should stay narrow and explicit, but once `full-access` is chosen the result shown to the user still has to match what the system actually did
+
+Impact:
+
+- `waveary-web` now sends `localActionPermission` and locale with `/api/chat/turn`
+- `sendChatTurn()` now detects supported local actions before persisting the turn and, when permission is `allow`, executes them server-side in the same request, replacing the visible reply with an audited execution note
+- ask-first and deny behavior remain unchanged, while `full-access` no longer depends on a later frontend-only auto-execution step to reconcile the turn

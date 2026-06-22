@@ -3838,6 +3838,47 @@ Push:
 
 Objective:
 
+Keep `full-access` local actions trustworthy by making same-turn assistant replies match the action that actually ran, instead of claiming it cannot open apps after already opening them.
+
+Summary:
+
+- added a shared `waveary-web/server/local-action-audit.ts` helper so local-action audit wording can be reused consistently by both same-turn auto-execution and the existing execute / dismiss routes
+- updated `waveary-web/server/chat-runtime.ts` so `/api/chat/turn` now detects pending local actions before persistence, receives the current local-action permission, and auto-runs supported actions server-side when that permission is `allow`
+- changed the same-turn `full-access` path to replace the visible assistant reply with an execution-consistent audit note, while preserving the narrower ask-first and deny trust boundary for lower permission modes
+- extended `/api/chat/turn` request payloads through `waveary-web/server/provider-api.ts` and `waveary-web/src/App.tsx` so the backend receives the active local-action permission and locale from the chat page
+- added route-level regression coverage proving that a provider can say "I cannot open apps" while the same `full-access` turn still returns `I opened Bilibili for you.` and persists only the consistent audited reply in session history
+
+Files changed:
+
+- `waveary-web/server/chat-runtime.ts`
+- `waveary-web/server/local-action-audit.ts`
+- `waveary-web/server/local-action-runtime.ts`
+- `waveary-web/server/provider-api.ts`
+- `waveary-web/server/provider-api.test.ts`
+- `waveary-web/src/App.tsx`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run test --workspace @waveary/web`
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run web:build`
+
+Commit:
+
+- `f0e7da6` - `Keep full-access action replies consistent`
+
+Push:
+
+- succeeded: `git push origin main` pushed functional commit `f0e7da6` to `origin/main`
+
+## 2026-06-22
+
+Objective:
+
 Keep deterministic local-time replies trustworthy for natural Chinese conversation by catching indirect complaint-style time questions before they fall back to provider-generated disclaimers.
 
 Summary:
