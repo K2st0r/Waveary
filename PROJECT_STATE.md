@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `pending` - `Add Gemini dedicated voice provider`
+- `8aa7056` - `Add Gemini dedicated voice provider`
 
 ## Modules
 
