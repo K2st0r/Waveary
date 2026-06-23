@@ -214,6 +214,9 @@ test("voice provider presets route returns selectable voice vendors", async () =
   assert.equal(response.statusCode, 200);
   assert.ok(Array.isArray(response.body.presets));
   assert.ok(response.body.presets.some((preset: { id: string }) => preset.id === "openai"));
+  assert.ok(response.body.presets.some((preset: { id: string }) => preset.id === "siliconflow"));
+  assert.ok(response.body.presets.some((preset: { id: string }) => preset.id === "dashscope"));
+  assert.ok(response.body.presets.some((preset: { id: string }) => preset.id === "ark"));
   assert.ok(response.body.presets.some((preset: { id: string }) => preset.id === "doubao"));
   assert.ok(response.body.presets.some((preset: { id: string }) => preset.id === "local"));
 });
@@ -274,6 +277,39 @@ test("voice catalog route returns input-mode catalogs for doubao and local provi
   assert.equal(localResponse.body.providerType, "local");
   assert.equal(localResponse.body.voiceFieldMode, "input");
   assert.equal(localResponse.body.defaultModel, "local-bridge");
+});
+
+test("voice catalog route keeps manual voice entry for compatible vendors without shared voice directories", async () => {
+  const middleware = createProviderApiMiddleware();
+
+  globalThis.fetch = (async (input) => {
+    if (String(input) === "https://api.siliconflow.cn/v1/models") {
+      return new Response(
+        JSON.stringify({
+          data: [{ id: "FunAudioLLM/CosyVoice2-0.5B" }]
+        }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json" }
+        }
+      );
+    }
+
+    throw new Error(`Unexpected fetch URL: ${String(input)}`);
+  }) as typeof fetch;
+
+  const response = await invokeJsonRoute(middleware, "POST", "/api/voice/catalog", {
+    provider: "siliconflow",
+    baseURL: "https://api.siliconflow.cn/v1",
+    apiKey: "voice-key"
+  });
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.providerType, "openai-compatible");
+  assert.equal(response.body.voiceFieldMode, "input");
+  assert.ok(Array.isArray(response.body.models));
+  assert.ok(response.body.models.some((model: { id: string }) => model.id === "FunAudioLLM/CosyVoice2-0.5B"));
+  assert.equal(response.body.voices.length, 0);
 });
 
 test("voice config route persists a selected preset", async () => {

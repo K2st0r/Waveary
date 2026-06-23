@@ -1,4 +1,4 @@
-﻿# Project State
+# Project State
 
 If a new Codex session starts in this repository, use `waveary-continuity-guard` immediately and rebuild context from this file plus `docs/session-log.md` and `docs/decision-log.md`.
 
@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `1cf326c` - `Tighten voice console onboarding flow`
+- `00fd262` - `Sync continuity after voice console update`
 
 ## Modules
 
@@ -186,6 +186,7 @@ Brand line:
   - the chat page voice surface is now compact again: it keeps only the live-voice entry, a small current-voice summary, and a direct jump back to the console voice workspace instead of exposing the full provider form inline
   - the voice workspace now also starts moving toward provider-style onboarding: it can list dedicated voice-provider presets, fetch real voice-model catalogs for OpenAI-compatible vendors through `/api/voice/catalog`, and fall back to provider-mapped or manual voice entry where no shared cross-vendor voice-list API exists
   - the voice workspace onboarding is now tighter on the frontend too: provider presets reset stale catalog state, discovered voice models render with normalized labels, and dedicated vendors such as Doubao or local bridges now switch the voice field into explicit manual input instead of pretending a universal selectable voice list exists
+  - the voice workspace now also exposes a broader preset roster for domestic and compatible voice vendors, switches the dedicated provider form by vendor type instead of showing one fixed block, and uses the right-side console area as a live guidance panel so users can see what the current provider path expects
 
 ## Provider Flow
 
@@ -299,7 +300,7 @@ Brand line:
 
 ## Next Steps
 
-- run a focused browser pass for the new console voice workspace together with the compact chat-page voice entry so provider audio playback, browser fallback playback, continuous live voice mode, microphone capture, loop resume behavior, and the new voice-provider preset/catalog flow are verified across both surfaces together
+- restart or refresh the local `waveary-web` dev server/browser session and run a focused browser pass for the refreshed voice console so the newly added provider-specific form switching, expanded vendor presets, and right-side guidance panel are verified visually against the live page
 - browser-verify the tightened manual-input branch more completely for Doubao and local voice vendors now that API-level `voiceFieldMode = input` and the first DOM-level input rendering check have both passed
 - run a focused browser pass for the local self-hosted voice path specifically against a real bridge endpoint, now that the chat voice strip field expansion and persistence for `provider = local` have been browser-verified already
 - test the dedicated voice-provider path end-to-end in the browser by saving a separate真人语音 provider under the chat voice strip and confirming the delivery hint still shapes playback when chat stays on a different vendor
