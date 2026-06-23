@@ -2000,6 +2000,11 @@ export function App(): ReactElement {
   }
 
   async function handleVoiceProviderModeChange(nextMode: "shared" | "dedicated"): Promise<void> {
+    if (nextMode === "shared") {
+      setVoiceCatalog(null);
+      setVoiceCatalogState("idle");
+    }
+
     await saveVoiceConfigPatch(
       { providerMode: nextMode },
       nextMode === "dedicated"
@@ -2043,6 +2048,7 @@ export function App(): ReactElement {
     }
 
     setVoiceCatalog(null);
+    setVoiceCatalogState("idle");
     await saveVoiceConfigPatch(
       {
         providerMode: "dedicated",
@@ -3378,15 +3384,55 @@ export function App(): ReactElement {
   const usesDoubaoVoiceProvider =
     usesDedicatedVoiceProvider && (voiceConfig?.provider ?? "").trim().toLowerCase() === "doubao";
   const selectedVoiceProviderPreset =
-    voiceProviderPresets.find((preset) => preset.provider === (voiceConfig?.provider ?? "")) ?? null;
-  const visibleVoiceModels =
-    voiceCatalog?.models.length && activeConsoleWorkspace === "voice"
-      ? voiceCatalog.models.map((model) => model.id)
-      : availableVoiceModels;
-  const visibleVoiceOptions =
-    voiceCatalog?.voices.length && activeConsoleWorkspace === "voice"
-      ? voiceCatalog.voices.map((voice) => voice.id)
-      : availableVoices;
+    voiceProviderPresets.find(
+      (preset) =>
+        preset.provider === (voiceConfig?.provider ?? "") &&
+        preset.baseURL === (voiceConfig?.baseURL ?? "")
+    ) ??
+    voiceProviderPresets.find((preset) => preset.provider === (voiceConfig?.provider ?? "")) ??
+    null;
+  const usesLiveVoiceCatalog = activeConsoleWorkspace === "voice" && voiceCatalog !== null;
+  const visibleVoiceModelDescriptors = usesLiveVoiceCatalog
+    ? voiceCatalog.models
+    : availableVoiceModels.map((model) => ({
+        id: model,
+        provider: voiceConfig?.provider ?? "voice",
+        label: model
+      }));
+  const visibleVoiceOptionDescriptors = usesLiveVoiceCatalog
+    ? voiceCatalog.voices
+    : availableVoices.map((voice) => ({
+        id: voice,
+        label: voice
+      }));
+  const voiceFieldMode =
+    usesDedicatedVoiceProvider && usesLiveVoiceCatalog
+      ? voiceCatalog.voiceFieldMode
+      : usesDoubaoVoiceProvider || usesLocalVoiceProvider
+        ? "input"
+        : "select";
+  const voiceFieldLabel =
+    usesDedicatedVoiceProvider && usesDoubaoVoiceProvider
+      ? locale === "zh"
+        ? "音色 / voice_type"
+        : "Voice / voice_type"
+      : usesDedicatedVoiceProvider && usesLocalVoiceProvider
+        ? locale === "zh"
+          ? "音色 / Speaker"
+          : "Voice / Speaker"
+        : locale === "zh"
+          ? "声线"
+          : "Voice";
+  const voiceFieldPlaceholder =
+    usesDedicatedVoiceProvider && usesDoubaoVoiceProvider
+      ? "BV001_streaming"
+      : usesDedicatedVoiceProvider && usesLocalVoiceProvider
+        ? locale === "zh"
+          ? "输入 speaker 或 voice id"
+          : "Enter speaker or voice id"
+        : locale === "zh"
+          ? "输入音色名称"
+          : "Enter a voice name";
   const chatReady = Boolean(savedConfig?.provider && savedConfig.model);
   const activeSession =
     chatSessions.find((session) => session.sessionId === activeSessionId) ??
@@ -3585,26 +3631,39 @@ export function App(): ReactElement {
             onChange={(event) => void handleVoiceModelChange(event.target.value)}
             disabled={!canAdjustVoiceConfig}
           >
-            {visibleVoiceModels.map((model) => (
-              <option key={model} value={model}>
-                {model}
+            {visibleVoiceModelDescriptors.map((model) => (
+              <option key={model.id} value={model.id}>
+                {formatModelOptionLabel(model)}
               </option>
             ))}
           </select>
         </label>
         <label className="chat-voice-select chat-voice-select-compact">
           <span>{locale === "zh" ? "声线" : "Voice"}</span>
-          <select
-            value={voiceConfig?.voice ?? ""}
-            onChange={(event) => void handleVoiceNameChange(event.target.value)}
-            disabled={!canAdjustVoiceConfig}
-          >
-            {visibleVoiceOptions.map((voice) => (
-              <option key={voice} value={voice}>
-                {voice}
-              </option>
-            ))}
-          </select>
+          {voiceFieldMode === "select" && visibleVoiceOptionDescriptors.length > 0 ? (
+            <select
+              value={voiceConfig?.voice ?? ""}
+              onChange={(event) => void handleVoiceNameChange(event.target.value)}
+              disabled={!canAdjustVoiceConfig}
+            >
+              {visibleVoiceOptionDescriptors.map((voice) => (
+                <option key={voice.id} value={voice.id}>
+                  {voice.label}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <input
+              type="text"
+              value={voiceConfig?.voice ?? ""}
+              onChange={(event) =>
+                setVoiceConfig((current) => (current ? { ...current, voice: event.target.value } : current))
+              }
+              onBlur={(event) => void handleVoiceNameChange(event.target.value)}
+              placeholder={voiceFieldPlaceholder}
+              disabled={!canAdjustVoiceConfig}
+            />
+          )}
         </label>
         {usesDedicatedVoiceProvider ? (
           <>
