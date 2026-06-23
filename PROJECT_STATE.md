@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `22bb6c7` - `Add searchable Doubao voice picker`
+- `ed863e8` - `Sync searchable voice picker continuity`
 
 ## Modules
 
@@ -192,6 +192,7 @@ Brand line:
   - the voice workspace now also starts moving toward provider-style onboarding: it can list dedicated voice-provider presets, fetch real voice-model catalogs for OpenAI-compatible vendors through `/api/voice/catalog`, and fall back to provider-mapped or manual voice entry where no shared cross-vendor voice-list API exists
   - the voice workspace onboarding is now tighter on the frontend too: provider presets reset stale catalog state, discovered voice models render with normalized labels, and dedicated vendors such as Doubao or local bridges now switch the voice field into explicit manual input instead of pretending a universal selectable voice list exists
   - the voice workspace now also upgrades select-mode voice vendors into a searchable picker, and the dedicated Doubao preset auto-loads its curated supported speaker catalog on selection so users can search voices immediately instead of first seeing the old generic fallback list
+  - the voice workspace output-selection section now renders its searchable voice picker as a full-width vertical control inside the panel instead of a narrow inline pill plus floating popover, preventing the earlier “13 voices loaded but nothing visible in the dropdown” confusion and removing the rightward layout pressure from the voice card
   - the voice workspace now also exposes a broader preset roster for domestic and compatible voice vendors, switches the dedicated provider form by vendor type instead of showing one fixed block, and uses the right-side console area as a live guidance panel so users can see what the current provider path expects
   - the dedicated voice-provider form now keeps `Voice Key` in a fixed visible credential slot inside the console instead of hiding that field behind non-local-only branching, and the local bridge path now shows the same slot as an optional auth field rather than making it disappear entirely
   - the latest visible mojibake in that dedicated voice credential block has now been repaired with encoding-safe literals, while the surrounding voice-provider logic remains unchanged
@@ -328,7 +329,7 @@ Brand line:
 
 ## Next Steps
 
-- finish one focused browser pass for dedicated Doubao preset switching inside the live console, specifically moving between `Doubao TTS` and `Doubao TTS (Legacy App)` and confirming the visible config block flips cleanly between `Resource ID` plus the searchable curated speaker picker and `App ID`
+- finish the remaining browser half of the split-Doubao console pass by switching from the now-verified v3 `Doubao TTS` in-panel searchable speaker picker over to `Doubao TTS (Legacy App)` and confirming the visible config block flips cleanly to the legacy `App ID` credential path
 - verify chat-page reply playback behavior end to end while dedicated voice stays on a different vendor path from chat, so the browser UI proves it is still using provider audio instead of silently falling back
 - decide whether the next voice implementation cut should prioritize wider provider-specific STT coverage such as Doubao/local or a truer realtime duplex / interruption pass
 - replace the current fixed short capture window in provider-backed STT with a more truthful turn-end detector or streaming transport before claiming realtime voice is close to done

@@ -4519,7 +4519,7 @@ export function App(): ReactElement {
                   ))}
                 </select>
               </label>
-              <label className="chat-voice-select chat-voice-select-compact">
+              <label className="chat-voice-select chat-voice-select-block voice-picker-field">
                 <span>{voiceFieldLabel}</span>
                 {showSearchableVoicePicker ? (
                   <div className="voice-search-picker" ref={voicePickerRef}>
@@ -4534,7 +4534,7 @@ export function App(): ReactElement {
                       <span>{voiceConfig?.voice ?? voiceFieldPlaceholder}</span>
                     </button>
                     {voicePickerOpen ? (
-                      <div className="voice-search-picker-popover">
+                      <div className="voice-search-picker-panel">
                         <input
                           type="text"
                           value={voiceSearchQuery}

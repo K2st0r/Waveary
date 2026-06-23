@@ -1284,3 +1284,25 @@ Impact:
 - `waveary-web/src/App.tsx` now upgrades select-mode voice vendors to a searchable picker surface instead of the older native dropdown-plus-datalist mix
 - the dedicated Doubao preset now auto-fetches its current curated voice catalog into frontend state as soon as the preset is active and no catalog is loaded yet
 - future voice-console work should preserve this invariant: a provider with a known curated select catalog should open directly into searchable supported options, not regress to the old generic fallback list
+
+## 2026-06-23 - Searchable Voice Pickers Must Expand Inside The Console Panel
+
+Status:
+
+- accepted
+
+Decision:
+
+When a voice vendor uses a searchable picker in the Waveary console, the picker must expand as a full-width vertical control inside the current panel instead of opening as a narrow floating popover that pressures the layout sideways.
+
+Reason:
+
+- the first searchable Doubao picker technically loaded the correct 13 curated speakers, but the UI still felt broken because the trigger stayed too narrow and the floating panel made the control look empty or hidden
+- the user explicitly rejected rightward card pressure and horizontal-feeling control flows inside the console workspaces
+- the current console direction is a compact control desk with consistent panel rhythm, so voice selection should grow downward within that stage instead of acting like an external overlay
+
+Impact:
+
+- `waveary-web/src/App.tsx` now renders the searchable voice control as a block-level `voice-picker-field` and keeps the active panel inline
+- `waveary-web/src/styles.css` now forces the voice output-selection area into a single-column layout for the searchable picker path, removes the earlier width pressure, and keeps the loaded voice list visible inside the panel
+- future console voice refinements should preserve the invariant that searchable supported voice lists remain visibly in-panel and do not reintroduce awkward sideways overflow

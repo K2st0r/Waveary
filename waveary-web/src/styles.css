@@ -2765,6 +2765,10 @@ textarea {
   gap: 0.8rem;
 }
 
+.voice-config-section:nth-of-type(2) .voice-config-fields {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .voice-console-sidepanel .signal-metrics {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
@@ -2831,6 +2835,7 @@ textarea {
   background: rgba(255, 252, 247, 0.92);
   color: var(--text);
   font-size: 0.84rem;
+  min-width: 0;
 }
 
 .chat-voice-select span {
@@ -2842,7 +2847,8 @@ textarea {
 }
 
 .chat-voice-select select {
-  min-width: 7rem;
+  min-width: 0;
+  width: 100%;
   border: 0;
   background: transparent;
   color: var(--text);
@@ -2850,7 +2856,8 @@ textarea {
 }
 
 .chat-voice-select input {
-  min-width: 7rem;
+  min-width: 0;
+  width: 100%;
   border: 0;
   background: transparent;
   color: var(--text);
@@ -2858,7 +2865,8 @@ textarea {
 }
 
 .chat-voice-select textarea {
-  min-width: 10rem;
+  min-width: 0;
+  width: 100%;
   border: 0;
   background: transparent;
   color: var(--text);
@@ -2870,16 +2878,16 @@ textarea {
 
 .chat-voice-select-block {
   align-items: flex-start;
-  min-width: 16rem;
+  min-width: 0;
   border-radius: 1.15rem;
 }
 
 .chat-voice-select-compact select {
-  min-width: 5.6rem;
+  min-width: 0;
 }
 
 .chat-voice-select-wide {
-  min-width: 15rem;
+  min-width: 0;
 }
 
 .voice-config-fields .chat-voice-select-wide,
@@ -2888,12 +2896,23 @@ textarea {
 }
 
 .chat-voice-select-wide input {
-  min-width: 10rem;
+  min-width: 0;
+}
+
+.voice-picker-field {
+  display: grid;
+  gap: 0.55rem;
+  align-items: start;
+  border-radius: 1.15rem;
+}
+
+.voice-picker-field > span {
+  letter-spacing: 0.05em;
 }
 
 .voice-search-picker {
   position: relative;
-  min-width: 16rem;
+  min-width: 0;
   width: 100%;
 }
 
@@ -2901,7 +2920,7 @@ textarea {
   width: 100%;
   display: grid;
   gap: 0.18rem;
-  padding: 0;
+  padding: 0.2rem 0;
   border: 0;
   background: transparent;
   text-align: left;
@@ -2927,22 +2946,19 @@ textarea {
   opacity: 0.7;
 }
 
-.voice-search-picker-popover {
-  position: absolute;
-  top: calc(100% + 0.6rem);
-  left: 0;
-  z-index: 20;
-  width: min(28rem, 100vw - 4rem);
+.voice-search-picker-panel {
+  position: relative;
+  width: 100%;
   display: grid;
   gap: 0.6rem;
   padding: 0.8rem;
   border: 1.5px solid rgba(21, 18, 15, 0.14);
   border-radius: 1rem;
   background: rgba(255, 252, 247, 0.98);
-  box-shadow: 0 18px 40px rgba(32, 24, 18, 0.12);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 
-.voice-search-picker-popover input {
+.voice-search-picker-panel input {
   min-width: 0;
   width: 100%;
   padding: 0.66rem 0.8rem;
@@ -2954,7 +2970,7 @@ textarea {
 .voice-search-picker-list {
   display: grid;
   gap: 0.45rem;
-  max-height: 16rem;
+  max-height: 13.5rem;
   overflow-y: auto;
   padding-right: 0.1rem;
 }
@@ -3008,6 +3024,8 @@ textarea {
   grid-column: 1 / -1;
   justify-content: flex-start;
   border-radius: 1.15rem;
+  min-width: 0;
+  flex-wrap: wrap;
 }
 
 .voice-save-warning {

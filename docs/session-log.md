@@ -3,6 +3,44 @@
 
 Objective:
 
+Refine the visible Doubao voice-picker layout so the loaded curated speakers are clearly visible inside the console panel instead of feeling hidden or pushing the card sideways.
+
+Summary:
+
+- kept the change narrow and frontend-only in `waveary-web/src/App.tsx` and `waveary-web/src/styles.css`, without touching the already-working dedicated Doubao routing or voice catalog truth
+- changed the searchable Doubao picker from a compact inline trigger plus floating popover into a full-width in-panel vertical control, so the voice area now expands downward within the current control card
+- removed the width pressure that previously made the voice card feel cramped and visually suggested that the dropdown was empty even when the curated speakers had already loaded
+- browser-verified the live console on `http://127.0.0.1:4173/#console`: after switching to the voice workspace, selecting the `doubao` preset, and opening the picker, the page no longer overflowed horizontally and the visible in-panel list contained 13 curated speaker options
+
+Files changed:
+
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `curl.exe -I http://127.0.0.1:4173/`
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run test --workspace @waveary/web`
+- `npm run check:mojibake`
+- local Playwright DOM verification on `http://127.0.0.1:4173/#console`, confirming `bodyScrollWidth === bodyClientWidth`, in-panel searchable picker rendering, and 13 visible curated Doubao speakers after selecting the `doubao` preset
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-23
+
+Objective:
+
 Make the dedicated Doubao voice console behave the way the user expects: as soon as Doubao is selected, show all supported curated speakers in a searchable picker instead of the old generic fallback list plus awkward dropdown/datalist mix.
 
 Summary:
