@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `ed863e8` - `Sync searchable voice picker continuity`
+- `b1c4014` - `Refine in-panel Doubao voice picker layout`
 
 ## Modules
 

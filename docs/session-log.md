@@ -31,11 +31,11 @@ Verification:
 
 Commit:
 
-- pending
+- `b1c4014` - `Refine in-panel Doubao voice picker layout`
 
 Push:
 
-- pending
+- succeeded: `git push origin main` pushed functional commit `b1c4014` to `origin/main`
 
 ## 2026-06-23
 
