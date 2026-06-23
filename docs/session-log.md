@@ -4,6 +4,40 @@
 
 Objective:
 
+Investigate the new Chinese mojibake issue, preserve the finding in the continuity skill, and avoid repeating the same encoding mistake in later sessions.
+
+Summary:
+
+- confirmed that the immediate trigger was Windows / PowerShell encoding ambiguity during Chinese-copy editing, where raw terminal rendering was not reliable enough to prove whether text was correct
+- confirmed separately that the repository already contains older historical mojibake in multiple files, so Chinese-copy cleanup must be treated as its own explicit pass instead of being mixed casually into unrelated feature work
+- updated the local `waveary-continuity-guard` skill with hard rules for Chinese-text edits: do not trust raw PowerShell rendering, verify with `git diff`, prefer ASCII-safe insertion paths such as `\\uXXXX` when encoding looks unstable, and restore immediately if a shell write causes broad mojibake
+- recorded the same workflow constraint in repository continuity files so later Waveary sessions will avoid repeating the mistake even before the skill is loaded
+
+Files changed:
+
+- `C:\\Users\\13571\\.codex\\skills\\waveary-continuity-guard\\SKILL.md`
+- `PROJECT_STATE.md`
+- `docs/product-preferences.md`
+- `docs/session-log.md`
+
+Verification:
+
+- repository search confirming historical mojibake exists outside the newest voice-console edit too
+- `git show HEAD:waveary-web/src/App.tsx` and `git diff` comparison showing that raw PowerShell rendering is not a trustworthy source of truth for Chinese-copy validation on this machine
+- `git status --short -b`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-23
+
+Objective:
+
 Fix the dedicated voice console so the provider credential area visibly includes a `Voice Key` input instead of making the field disappear on some provider branches.
 
 Summary:
