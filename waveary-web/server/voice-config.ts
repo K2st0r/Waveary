@@ -66,6 +66,9 @@ export interface VoiceCatalogResponse {
 const CONFIG_PATH = join(getWavearyDataDir(), "voice-config.json");
 const OPENAI_COMPATIBLE_TTS_DEFAULT_MODEL = "gpt-4o-mini-tts";
 const OPENAI_COMPATIBLE_STT_DEFAULT_MODEL = "gpt-4o-mini-transcribe";
+const DOUBAO_DEFAULT_BASE_URL = "https://openspeech.bytedance.com";
+const DOUBAO_DEFAULT_RESOURCE_ID = "volc.service_type.10029";
+const DOUBAO_DEFAULT_VOICE = "zh_male_beijingxiaoye_emo_v2_mars_bigtts";
 const OPENAI_COMPATIBLE_VOICE_OPTIONS: readonly VoiceOptionDescriptor[] = [
   { id: "alloy", label: "alloy" },
   { id: "ash", label: "ash" },
@@ -172,10 +175,10 @@ const VOICE_PROVIDER_PRESETS: readonly VoiceProviderPreset[] = [
     label: "Doubao TTS",
     provider: "doubao",
     providerType: "doubao",
-    baseURL: "https://openspeech.bytedance.com",
+    baseURL: DOUBAO_DEFAULT_BASE_URL,
     voiceFieldMode: "input",
     defaultModel: "doubao-tts",
-    defaultVoice: "zh_male_beijingxiaoye_emo_v2_mars_bigtts",
+    defaultVoice: DOUBAO_DEFAULT_VOICE,
     notes:
       "Doubao uses the OpenSpeech v3 route with an API key plus resource ID. Voice selection stays manual because this route does not expose one shared public speaker directory."
   },
@@ -205,7 +208,7 @@ export function getDefaultVoiceConfig(): SavedVoiceConfig {
     provider: "",
     baseURL: "",
     apiKey: "",
-    resourceId: "volc.service_type.10029",
+    resourceId: DOUBAO_DEFAULT_RESOURCE_ID,
     cluster: "",
     endpointPath: "/tts",
     engine: "generic",
@@ -255,7 +258,7 @@ export function buildStaticVoiceCatalog(providerOrPreset: string): VoiceCatalogR
       voices: [],
       voiceFieldMode: "input",
       defaultModel: "doubao-tts",
-      defaultVoice: "zh_male_beijingxiaoye_emo_v2_mars_bigtts",
+      defaultVoice: DOUBAO_DEFAULT_VOICE,
       notes:
         matchedPreset?.notes ??
         "Doubao does not currently use a shared OpenAI-style voice-list route here. Enter the speaker ID you want after testing it."
@@ -408,6 +411,7 @@ function normalizeVoiceConfig(config: Partial<SavedVoiceConfig>): SavedVoiceConf
   const hasExplicitModel = Object.prototype.hasOwnProperty.call(config, "model");
   const hasExplicitVoice = Object.prototype.hasOwnProperty.call(config, "voice");
   const hasExplicitResourceId = Object.prototype.hasOwnProperty.call(config, "resourceId");
+  const hasExplicitLegacyAppId = Object.prototype.hasOwnProperty.call(config, "appId");
   const model = hasExplicitModel ? (config.model?.trim() ?? "") : preset.model;
   const voice = hasExplicitVoice ? (config.voice?.trim() ?? "") : preset.voice;
   const providerMode =
@@ -424,7 +428,9 @@ function normalizeVoiceConfig(config: Partial<SavedVoiceConfig>): SavedVoiceConf
   const resourceId =
     hasExplicitResourceId
       ? (config.resourceId?.trim() ?? "")
-      : legacyAppId || "volc.service_type.10029";
+      : hasExplicitLegacyAppId
+        ? legacyAppId
+        : DOUBAO_DEFAULT_RESOURCE_ID;
   const cluster = config.cluster?.trim() || "";
   const endpointPath = normalizeEndpointPath(config.endpointPath);
   const engine = config.engine?.trim() || "generic";
@@ -438,17 +444,26 @@ function normalizeVoiceConfig(config: Partial<SavedVoiceConfig>): SavedVoiceConf
   const temperature = normalizeOptionalNumber(config.temperature);
   const topP = normalizeOptionalNumber(config.topP);
 
+  const normalizedBaseURL =
+    provider === "doubao" ? normalizeDoubaoBaseURL(baseURL) : baseURL;
+  const normalizedResourceId =
+    provider === "doubao"
+      ? normalizeDoubaoResourceId(resourceId, apiKey)
+      : resourceId;
+  const normalizedVoice =
+    provider === "doubao" ? normalizeDoubaoVoice(voice) : voice;
+
   return {
     model,
-    voice,
+    voice: normalizedVoice,
     format,
     qualityProfile: preset.id,
     sttModel,
     providerMode,
     provider,
-    baseURL,
+    baseURL: normalizedBaseURL,
     apiKey,
-    resourceId,
+    resourceId: normalizedResourceId,
     cluster,
     endpointPath,
     engine,
@@ -462,6 +477,34 @@ function normalizeVoiceConfig(config: Partial<SavedVoiceConfig>): SavedVoiceConf
     temperature,
     topP
   };
+}
+
+function normalizeDoubaoBaseURL(value: string): string {
+  if (!value) {
+    return DOUBAO_DEFAULT_BASE_URL;
+  }
+
+  return value.replace(/\/api\/v1\/?$/i, "").replace(/\/+$/, "") || DOUBAO_DEFAULT_BASE_URL;
+}
+
+function normalizeDoubaoResourceId(resourceId: string, apiKey: string): string {
+  if (!resourceId) {
+    return "";
+  }
+
+  if (apiKey && resourceId === apiKey) {
+    return DOUBAO_DEFAULT_RESOURCE_ID;
+  }
+
+  return resourceId;
+}
+
+function normalizeDoubaoVoice(value: string): string {
+  if (!value || value === "BV001_streaming") {
+    return DOUBAO_DEFAULT_VOICE;
+  }
+
+  return value;
 }
 
 function isVoiceFormat(value: unknown): value is VoiceOutputFormat {
