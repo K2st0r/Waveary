@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `pending` - `Add legacy Doubao voice route`
+- `0713ba0` - `Add legacy Doubao voice route`
 
 ## Modules
 

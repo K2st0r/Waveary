@@ -5719,8 +5719,8 @@ Verification:
 
 Commit:
 
-- pending
+- `0713ba0` - `Add legacy Doubao voice route`
 
 Push:
 
-- pending
+- succeeded: `git push origin main` pushed functional commit `0713ba0` to `origin/main`
