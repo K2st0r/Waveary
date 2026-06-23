@@ -137,6 +137,7 @@ Brand line:
   - provider-backed TTS now also supports explicit saved voice configuration and quality-oriented presets through `/api/voice/config`, `.waveary/voice-config.json`, and a compact chat-page voice control strip for profile / model / voice selection
   - provider-backed TTS now also supports an explicit `shared chat provider / dedicated voice provider` split, so真人语音 can run on a stronger OpenAI-compatible TTS endpoint even when normal chat stays on a different model vendor
   - the dedicated真人语音 path now also supports a first non-OpenAI-compatible domestic adapter through Doubao TTS, now migrated onto OpenSpeech v3 `x-api-key + resourceId + voice` routing instead of the older `appId / cluster` contract
+  - legacy local Doubao voice config values now auto-normalize on load and save, correcting older saved `/api/v1` base URLs, mistaken `resourceId = apiKey` carryover, and the legacy `BV001_streaming` default before the browser console or voice route reuses them
   - the dedicated真人语音 path now also supports a first generic local/self-hosted HTTP bridge for GPT-SoVITS / CosyVoice style engines, with dedicated `engine / endpointPath / speaker / referenceVoiceId` settings layered into the same saved voice config flow
   - the chat-page voice strip now also exposes the richer local/self-hosted tuning fields already supported by the backend bridge, including `textLanguage`, `promptLanguage`, `referenceTranscript`, `stylePrompt`, `styleStrength`, `temperature`, and `topP`, while keeping those controls local-provider-only instead of spilling them across the whole voice UI
   - the chat page now includes a first voice strip with `auto speak`, `speak reply`, and `stop` controls, and voice playback now supports both provider-returned audio and browser speech fallback while still following reply emotion and relationship stage
@@ -302,6 +303,7 @@ Brand line:
 - `npm run test --workspace @waveary/web`
 - `npx tsc --noEmit -p waveary-web/tsconfig.json`
 - direct Node `fetch` probes against `https://openspeech.bytedance.com/api/v3/tts/unidirectional`
+- live browser verification on `http://127.0.0.1:4173/#console` for the dedicated Doubao voice workspace after restarting the local dev server
 - `npm run check:mojibake`
 - `npx tsc --noEmit -p waveary-web/tsconfig.server.json`
 - `npm run test --workspace @waveary/web`
@@ -329,6 +331,7 @@ Brand line:
 - add focused browser-side or component-level regression coverage for the new silence-based provider STT stop logic so later realtime voice work does not regress it silently
 - decide whether the next voice implementation cut after this first STT slice should be interruption/full duplex first, or wider provider-specific STT support such as Doubao/local
 - run a focused browser pass for the migrated dedicated Doubao voice route, especially `Resource ID` persistence, provider-backed playback, and fallback copy when the upstream account still returns semantic request errors
+- once Doubao account-side request semantics are clarified, re-test the dedicated Doubao route end to end until `/api/voice/speak` returns provider audio instead of browser fallback
 - re-run the dedicated Fish Audio browser verification pass once the current machine can actually reach `https://api.fish.audio`, then verify catalog fetch, saved voice-model ID entry, provider-backed playback, and provider-backed microphone transcription end to end
 - run one focused browser pass for the Gemini dedicated voice route with both the official preset and the new `Gemini TTS (Micu Relay)` preset, especially preset selection, static model/voice switching, config save, and provider-backed playback with a real key that actually has access to the selected Micu relay model
 - decide whether Gemini should stay TTS-only for now or later receive a separate audio-understanding / transcription adapter instead of being forced into the current provider-backed STT contract
@@ -408,3 +411,4 @@ Brand line:
 - live Fish Audio verification is currently blocked by upstream reachability from this machine: direct requests to `api.fish.audio:443` time out before any HTTP response, so current failures reflect network access rather than a known Waveary route bug
 - Micu relay does not currently expose `gemini-3.1-flash-tts-preview` on the tested key path; direct probes returned `503 model_not_found`, while `gemini-2.5-flash-tts-preview` and `gemini-2.5-pro-tts-preview` were recognized by Micu but returned `403` on the provided key because that token does not currently have access to those models
 - the Doubao route mismatch has now been corrected locally by migrating Waveary from `/api/v1/tts` plus `appId / cluster` to OpenSpeech v3 `/api/v3/tts/unidirectional` with `x-api-key` and `X-Api-Resource-Id`, but direct real-key probes still return upstream code `45002001` / `No readable text!`, so the remaining blocker appears to be upstream request semantics or account-side expectations rather than the old Waveary transport shape
+- stale local `web:dev` processes can still serve older voice-runtime code and produce misleading browser fallback reasons; restart the local dev server before trusting a browser-side Doubao voice conclusion after backend changes

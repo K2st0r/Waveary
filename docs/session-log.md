@@ -4,6 +4,45 @@
 
 Objective:
 
+Browser-verify the migrated dedicated Doubao voice route, then harden any remaining legacy local-config drift that still prevents the browser console from reflecting the real v3 path.
+
+Summary:
+
+- used the live `http://127.0.0.1:4173/#console` voice workspace to verify that the current Doubao UI now renders `Resource ID`, the v3 base URL, and the newer manual speaker default instead of the obsolete `App ID / Cluster` fields
+- found a real local-environment regression during that pass: the saved `.waveary/voice-config.json` still carried legacy Doubao values (`/api/v1` base URL, `appId` copied from the API key, and `BV001_streaming`), which made the running browser console look partially stale even though the repository code had already moved to v3
+- added config auto-normalization so known legacy Doubao leftovers are corrected on load and save before the browser reuses them
+- confirmed after restarting the local dev server that `/api/voice/config` now reports the corrected dedicated Doubao state (`https://openspeech.bytedance.com`, `resourceId = volc.service_type.10029`, `voice = zh_male_beijingxiaoye_emo_v2_mars_bigtts`)
+- re-ran `/api/voice/speak` through the live local server and confirmed the browser path now reaches the real upstream Doubao error directly: provider-backed audio is attempted, then falls back with `Doubao TTS returned code 45002001. No readable text!`
+
+Files changed:
+
+- `waveary-web/server/voice-config.ts`
+- `waveary-web/server/provider-api.test.ts`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run test --workspace @waveary/web`
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- live browser snapshot pass on `http://127.0.0.1:4173/#console`
+- `Invoke-RestMethod http://127.0.0.1:4173/api/voice/config`
+- direct local `fetch` to `http://127.0.0.1:4173/api/voice/speak`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-23
+
+Objective:
+
 Migrate the dedicated Doubao voice path from the obsolete `appId / cluster` contract to OpenSpeech v3 `resourceId` routing without regressing the rest of the Waveary voice console.
 
 Summary:

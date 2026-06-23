@@ -1128,3 +1128,25 @@ Impact:
 - saved voice config now carries `resourceId`, while compatibility normalization still reads legacy local `appId` values from older configs
 - the voice console, routing diagnostics, and dedicated Doubao guidance now surface `Resource ID` instead of `App ID / Cluster`
 - the remaining blocker on the provided real key is now upstream code `45002001` / `No readable text!`, which should be treated as request-semantics or account-side expectation work rather than a reason to revert Waveary back to the obsolete transport
+
+## 2026-06-23 - Legacy Local Doubao Voice Config Should Auto-Normalize On Load
+
+Status:
+
+- accepted
+
+Decision:
+
+When Waveary loads a saved dedicated Doubao voice profile from `.waveary/voice-config.json`, it should automatically normalize obvious pre-v3 leftovers such as `/api/v1` base URLs, `resourceId` accidentally copied from the old `appId = apiKey` value, and the legacy `BV001_streaming` default voice.
+
+Reason:
+
+- live browser verification showed that the repository code could be correct while the local saved config still kept enough stale Doubao fields to make the running console appear misconfigured
+- that stale config drift is likely to recur across sessions because the user is iterating on one long-lived local CE workspace, not creating fresh profiles every time
+- auto-normalizing the known bad legacy combinations is safer than asking future sessions to manually rediscover and edit every stale local value before browser verification
+
+Impact:
+
+- `waveary-web/server/voice-config.ts` now upgrades older saved dedicated Doubao base URLs to `https://openspeech.bytedance.com`
+- if a saved dedicated Doubao `resourceId` matches the API key exactly, Waveary now treats that as an obsolete migration carryover and restores the default `volc.service_type.10029`
+- the legacy `BV001_streaming` default now normalizes to `zh_male_beijingxiaoye_emo_v2_mars_bigtts` before the browser voice console or voice runtime reuses it

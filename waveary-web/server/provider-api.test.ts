@@ -453,6 +453,30 @@ test("voice config route persists a selected preset", async () => {
   assert.equal(response.body.routing.mode, "shared");
 });
 
+test("voice config route auto-normalizes legacy saved doubao fields to the v3 contract", async () => {
+  const middleware = createProviderApiMiddleware();
+  const response = await invokeJsonRoute(middleware, "POST", "/api/voice/config", {
+    providerMode: "dedicated",
+    provider: "doubao",
+    baseURL: "https://openspeech.bytedance.com/api/v1",
+    apiKey: "doubao-key",
+    voice: "BV001_streaming",
+    appId: "doubao-key",
+    model: "doubao-tts",
+    qualityProfile: "gentle",
+    format: "mp3"
+  });
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.config.baseURL, "https://openspeech.bytedance.com");
+  assert.equal(response.body.config.resourceId, "volc.service_type.10029");
+  assert.equal(
+    response.body.config.voice,
+    "zh_male_beijingxiaoye_emo_v2_mars_bigtts"
+  );
+  assert.equal(response.body.routing.reasonCode, "dedicated-doubao-ready");
+});
+
 test("voice transcribe route returns transcript text for compatible providers", async () => {
   const middleware = createProviderApiMiddleware();
 
