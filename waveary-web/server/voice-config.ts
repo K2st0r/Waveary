@@ -21,6 +21,7 @@ export interface SavedVoiceConfig {
   provider: string;
   baseURL: string;
   apiKey: string;
+  appId: string;
   accessKeyId: string;
   secretAccessKey: string;
   resourceId: string;
@@ -42,7 +43,13 @@ export interface VoiceProviderPreset {
   id: string;
   label: string;
   provider: string;
-  providerType: "openai-compatible" | "gemini" | "fish-audio" | "doubao" | "local";
+  providerType:
+    | "openai-compatible"
+    | "gemini"
+    | "fish-audio"
+    | "doubao"
+    | "doubao-legacy"
+    | "local";
   baseURL: string;
   voiceFieldMode?: "select" | "input";
   defaultModel?: string;
@@ -240,6 +247,18 @@ const VOICE_PROVIDER_PRESETS: readonly VoiceProviderPreset[] = [
       "Doubao uses the OpenSpeech v3 route with an API key plus resource ID for TTS. If you also provide Volcengine AccessKey ID and Secret Access Key, Waveary can fetch the live speaker catalog through ListSpeakers; otherwise it falls back to a curated built-in list."
   },
   {
+    id: "doubao-legacy",
+    label: "Doubao TTS (Legacy App)",
+    provider: "doubao-legacy",
+    providerType: "doubao-legacy",
+    baseURL: DOUBAO_DEFAULT_BASE_URL,
+    voiceFieldMode: "select",
+    defaultModel: "doubao-legacy-tts",
+    defaultVoice: "multi_female_shuangkuaisisi_moon_bigtts",
+    notes:
+      "Legacy Doubao app-style synthesis uses App ID plus Access Token on /api/v1/tts. Use this route for older voice grants that do not belong to the seed-tts-2.0 resource family."
+  },
+  {
     id: "local",
     label: "Local Voice Bridge",
     provider: "local",
@@ -265,6 +284,7 @@ export function getDefaultVoiceConfig(): SavedVoiceConfig {
     provider: "",
     baseURL: "",
     apiKey: "",
+    appId: "",
     accessKeyId: "",
     secretAccessKey: "",
     resourceId: DOUBAO_DEFAULT_RESOURCE_ID,
@@ -322,6 +342,27 @@ export function buildStaticVoiceCatalog(providerOrPreset: string): VoiceCatalogR
       notes:
         matchedPreset?.notes ??
         "Doubao does not expose a generic OpenAI-style voice-list route here. Add Volcengine AccessKey ID and Secret Access Key to fetch the live ListSpeakers catalog; otherwise Waveary uses a curated local speaker set."
+    };
+  }
+
+  if (providerType === "doubao-legacy") {
+    return {
+      providerType: "doubao-legacy",
+      models: [
+        {
+          id: "doubao-legacy-tts",
+          provider: "doubao-legacy",
+          label: "Doubao Legacy TTS"
+        }
+      ],
+      voices: DOUBAO_VOICE_OPTIONS.map((voice) => ({ ...voice })),
+      voiceFieldMode: "select",
+      defaultModel: "doubao-legacy-tts",
+      defaultVoice: "multi_female_shuangkuaisisi_moon_bigtts",
+      source: "static",
+      notes:
+        matchedPreset?.notes ??
+        "Legacy Doubao app-style synthesis uses App ID plus Access Token. Voice selection stays on the curated built-in list here."
     };
   }
 
@@ -485,6 +526,7 @@ function normalizeVoiceConfig(config: Partial<SavedVoiceConfig>): SavedVoiceConf
     typeof (config as Partial<SavedVoiceConfig> & { appId?: unknown }).appId === "string"
       ? (config as Partial<SavedVoiceConfig> & { appId?: string }).appId?.trim() || ""
       : "";
+  const appId = config.appId?.trim() || legacyAppId;
   const resourceId =
     hasExplicitResourceId
       ? (config.resourceId?.trim() ?? "")
@@ -511,7 +553,16 @@ function normalizeVoiceConfig(config: Partial<SavedVoiceConfig>): SavedVoiceConf
       ? normalizeDoubaoResourceId(resourceId, apiKey)
       : resourceId;
   const normalizedVoice =
-    provider === "doubao" ? normalizeDoubaoVoice(voice) : voice;
+    provider === "doubao"
+      ? normalizeDoubaoVoice(voice)
+      : provider === "doubao-legacy"
+        ? normalizeDoubaoLegacyVoice(voice)
+        : voice;
+  const normalizedAccessKeyId = normalizeDoubaoCatalogAccessKeyId(
+    config.accessKeyId?.trim() || "",
+    normalizedVoice,
+    config.secretAccessKey?.trim() || ""
+  );
 
   return {
     model,
@@ -523,7 +574,8 @@ function normalizeVoiceConfig(config: Partial<SavedVoiceConfig>): SavedVoiceConf
     provider,
     baseURL: normalizedBaseURL,
     apiKey,
-    accessKeyId: config.accessKeyId?.trim() || "",
+    appId,
+    accessKeyId: normalizedAccessKeyId,
     secretAccessKey: config.secretAccessKey?.trim() || "",
     resourceId: normalizedResourceId,
     cluster,
@@ -575,6 +627,30 @@ function normalizeDoubaoVoice(value: string): string {
   }
 
   return value;
+}
+
+function normalizeDoubaoLegacyVoice(value: string): string {
+  if (!value) {
+    return "multi_female_shuangkuaisisi_moon_bigtts";
+  }
+
+  return value;
+}
+
+function normalizeDoubaoCatalogAccessKeyId(
+  accessKeyId: string,
+  normalizedVoice: string,
+  secretAccessKey: string
+): string {
+  if (!accessKeyId) {
+    return "";
+  }
+
+  if (!secretAccessKey && accessKeyId === normalizedVoice) {
+    return "";
+  }
+
+  return accessKeyId;
 }
 
 function isVoiceFormat(value: unknown): value is VoiceOutputFormat {

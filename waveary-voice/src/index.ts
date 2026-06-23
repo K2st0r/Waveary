@@ -6,5 +6,6 @@ export * from "./gemini-tts-provider.js";
 export * from "./fish-audio-tts-provider.js";
 export * from "./fish-audio-stt-provider.js";
 export * from "./doubao-tts-provider.js";
+export * from "./doubao-legacy-tts-provider.js";
 export * from "./local-http-tts-provider.js";
 export * from "./voice-presets.js";
