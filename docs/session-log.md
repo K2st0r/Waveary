@@ -4,6 +4,40 @@
 
 Objective:
 
+Fix the dedicated voice console so the provider credential area visibly includes a `Voice Key` input instead of making the field disappear on some provider branches.
+
+Summary:
+
+- updated `waveary-web/src/App.tsx` so the dedicated voice-provider form now places `Voice Key` in a fixed credential slot near `Provider` and `Base URL` instead of leaving it buried in a later conditional branch
+- kept the local-bridge path aligned with the same console layout by showing that `Voice Key` slot there as optional auth input, instead of removing it completely and making the credential area look incomplete
+- browser-verified on the live local console that switching `控制台 -> 语音设置 -> 来源 = 独立真人语音` now reveals the `Voice Key` input in the provider setup block for the current Doubao preset
+
+Files changed:
+
+- `waveary-web/src/App.tsx`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run web:build`
+- `curl.exe -I http://127.0.0.1:4173/`
+- Playwright browser verification on `http://127.0.0.1:4173/#console` confirming `语音设置 -> 来源 = 独立真人语音` renders `Voice Key` inside the dedicated provider setup block
+
+Commit:
+
+- `1548477` - `Expose voice key field in console`
+
+Push:
+
+- pending
+
+## 2026-06-23
+
+Objective:
+
 Undo the mistaken top-tab height increase and instead make the lower console workspace panels taller, which is what the user actually meant by the settings modules below.
 
 Summary:

@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `b09f139` - `Increase console workspace panel height`
+- `1548477` - `Expose voice key field in console`
 
 ## Modules
 
@@ -187,6 +187,7 @@ Brand line:
   - the voice workspace now also starts moving toward provider-style onboarding: it can list dedicated voice-provider presets, fetch real voice-model catalogs for OpenAI-compatible vendors through `/api/voice/catalog`, and fall back to provider-mapped or manual voice entry where no shared cross-vendor voice-list API exists
   - the voice workspace onboarding is now tighter on the frontend too: provider presets reset stale catalog state, discovered voice models render with normalized labels, and dedicated vendors such as Doubao or local bridges now switch the voice field into explicit manual input instead of pretending a universal selectable voice list exists
   - the voice workspace now also exposes a broader preset roster for domestic and compatible voice vendors, switches the dedicated provider form by vendor type instead of showing one fixed block, and uses the right-side console area as a live guidance panel so users can see what the current provider path expects
+  - the dedicated voice-provider form now keeps `Voice Key` in a fixed visible credential slot inside the console instead of hiding that field behind non-local-only branching, and the local bridge path now shows the same slot as an optional auth field rather than making it disappear entirely
   - the console workspaces now share one unified stage shell across provider, voice, sessions, care, and runtime views, with matched panel heights and internal scroll regions so workspace switching no longer feels like jumping between mismatched page layouts
   - the top workspace tabs have been restored to the tighter compact height, while the lower console workspace panels themselves are now taller so the operational surface has more room without inflating the navigation strip
 
@@ -305,6 +306,7 @@ Brand line:
 - run a focused browser pass for the refreshed voice workspace against real provider endpoints, now that the shared console shell is stable and no longer obscures workspace-specific layout regressions
 - keep future shell polish focused on the lower workspace stage and inner panel density; do not bloat the top workspace-tab strip when the real complaint is about the operational panels below
 - browser-verify the dedicated OpenAI-compatible, Doubao, and local self-hosted voice branches end-to-end from the console, including provider-specific form switching, manual voice-entry paths, and live guidance copy
+- confirm the dedicated local-bridge voice path in-browser now that its optional auth slot stays visible in the same credential area instead of disappearing with the old conditional rendering
 - test the dedicated voice-provider path end-to-end in the browser by saving a separate真人语音 provider and confirming the delivery hint still shapes playback when chat stays on a different vendor
 - decide the next voice cut after this shell-stability pass: provider-backed STT, or a truer realtime duplex / interruption pass first
 - verify the restored provider console end-to-end in the browser against the currently running local dev server, then decide whether to also harden the underlying voice route startup path so `/api/voice/config` stops returning `404`
