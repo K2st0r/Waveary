@@ -1872,7 +1872,7 @@ textarea {
 
 .console-workspace-bar {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 0.62rem;
 }
 
@@ -2676,6 +2676,32 @@ textarea {
   align-items: center;
   gap: 0.55rem;
   flex-wrap: wrap;
+}
+
+.chat-voice-controls-compact {
+  width: 100%;
+  justify-content: space-between;
+}
+
+.chat-voice-controls-legacy {
+  display: none;
+}
+
+.chat-voice-compact-summary {
+  display: grid;
+  gap: 0.12rem;
+  min-width: 11rem;
+  padding: 0.1rem 0.2rem;
+}
+
+.chat-voice-compact-summary strong {
+  color: var(--text-strong);
+  font-size: 0.9rem;
+}
+
+.chat-voice-compact-summary span {
+  color: var(--muted);
+  font-size: 0.8rem;
 }
 
 .chat-voice-button-active {

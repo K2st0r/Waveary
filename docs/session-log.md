@@ -4672,3 +4672,39 @@ Commit:
 Push:
 
 - pending
+
+## 2026-06-23
+
+Objective:
+
+Move voice configuration into its own console workspace and shrink the chat-page voice surface back to a compact live-entry strip.
+
+Summary:
+
+- added a fifth console workspace dedicated to voice so realtime voice routing, preset selection, dedicated provider settings, and local bridge tuning no longer have to live inline inside the chat page
+- reused the existing saved voice config state and handlers instead of introducing a second voice settings flow, keeping provider-backed, Doubao, and local self-hosted fields aligned with the existing `/api/voice/config` path
+- restored the chat page to a more companion-first shape by replacing the long inline voice provider form with a compact live-voice entry summary plus a direct jump back to the console voice workspace
+- browser-verified that the console now renders five workspace tabs, the new voice workspace opens correctly, the compact chat-page voice summary appears, and the legacy inline form is hidden from the conversation surface
+
+Files changed:
+
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run test --workspace @waveary/web`
+- `curl.exe -I http://127.0.0.1:4173/`
+- Playwright DOM verification for `http://127.0.0.1:4173/#console` and `http://127.0.0.1:4173/#chat` confirming `tabCount = 5`, `voiceHeading = ”Ô“Ùøÿ÷∆Ã®`, `consoleVoiceSelects = 18`, `compactSummary = 1`, and hidden legacy inline voice controls
+
+Commit:
+
+- pending
+
+Push:
+
+- pending

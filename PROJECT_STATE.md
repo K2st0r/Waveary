@@ -182,6 +182,8 @@ Brand line:
   - homepage hero and top doodle layer are now compressed further so the opening screen fits more comfortably on common desktop heights without immediately feeling below-the-fold
   - the console shell is now tighter again through denser workspace tabs, a compact status strip, reduced shell padding, and shorter viewport-based panel heights so the operational surface stays closer to one-screen use
   - the console now also keeps provider/model setup explicitly reachable through a fixed toolbar shortcut back to `模型接入 / Model setup`, separate provider/model status pills, and an automatic return to the provider workspace whenever the runtime is not fully configured, so the model selector can no longer feel like it disappeared behind another workspace
+  - the console now also has a dedicated voice workspace, so realtime voice controls, provider routing, local bridge tuning, and current voice state no longer have to live inside the chat page
+  - the chat page voice surface is now compact again: it keeps only the live-voice entry, a small current-voice summary, and a direct jump back to the console voice workspace instead of exposing the full provider form inline
 
 ## Provider Flow
 
@@ -295,7 +297,7 @@ Brand line:
 
 ## Next Steps
 
-- run a focused browser pass for the chat-page voice surface so the new structured companion delivery hint is visually verified through provider audio playback, browser fallback playback, continuous live voice mode, microphone capture, and loop resume behavior together
+- run a focused browser pass for the new console voice workspace together with the compact chat-page voice entry so provider audio playback, browser fallback playback, continuous live voice mode, microphone capture, and loop resume behavior are verified across both surfaces together
 - run a focused browser pass for the local self-hosted voice path specifically against a real bridge endpoint, now that the chat voice strip field expansion and persistence for `provider = local` have been browser-verified already
 - test the dedicated voice-provider path end-to-end in the browser by saving a separate真人语音 provider under the chat voice strip and confirming the delivery hint still shapes playback when chat stays on a different vendor
 - decide the next voice cut after this delivery-hint pass: provider-backed STT, or a truer realtime duplex / interruption pass first
