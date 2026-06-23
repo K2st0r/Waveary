@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `8aa7056` - `Add Gemini dedicated voice provider`
+- `a16a365` - `Add Micu Gemini voice relay preset`
 
 ## Modules
 
@@ -160,6 +160,7 @@ Brand line:
   - Fish Audio now also exists as a dedicated provider family through `FishAudioTextToSpeechProvider` and `FishAudioSpeechToTextProvider`, so Waveary can test a non-OpenAI-compatible commercial voice stack without pushing vendor-specific transport details into the wider chat-provider layer
   - Fish Audio catalog, TTS, and STT failures now surface explicit upstream connectivity diagnostics such as `UND_ERR_CONNECT_TIMEOUT` instead of collapsing into a generic `fetch failed`, so live console testing can distinguish network reachability issues from route or config regressions
   - Gemini TTS now also exists as a dedicated voice-provider family through `GeminiTextToSpeechProvider`, with official prebuilt voice-name selection, dedicated routing diagnostics, and console preset support kept separate from the OpenAI-compatible speech path
+  - Gemini voice onboarding now also includes a dedicated `Gemini TTS (Micu Relay)` preset, and static Gemini model selection can now branch by preset so Micu relay uses the Micu-recognized `gemini-2.5-flash-tts-preview` and `gemini-2.5-pro-tts-preview` names instead of defaulting users back onto the unsupported `gemini-3.1-flash-tts-preview` alias
   - the first local-action execution surface stays intentionally narrow and auditable inside `waveary-web`: proposal detection is rule-based, execution is permission-gated, denied policy blocks execution, ask-first requires one explicit approval click, and dismissing the card clears the pending action from persisted session state`r`n  - executed and dismissed local actions now also append a small assistant-side audit note into persisted chat history, so trust-visible action outcomes survive reloads and restored sessions instead of living only in transient UI state
   - the visible persisted-session archive panel has been removed from the runtime rail so the console reads less like a raw internal debug dump
   - the split home / console / chat shell now has a stronger page-by-page hierarchy: the homepage reads more like a formal project front page, the console reads more like a system desk, and the chat page is more tightly focused on the active conversation surface
@@ -327,7 +328,7 @@ Brand line:
 - add focused browser-side or component-level regression coverage for the new silence-based provider STT stop logic so later realtime voice work does not regress it silently
 - decide whether the next voice implementation cut after this first STT slice should be interruption/full duplex first, or wider provider-specific STT support such as Doubao/local
 - re-run the dedicated Fish Audio browser verification pass once the current machine can actually reach `https://api.fish.audio`, then verify catalog fetch, saved voice-model ID entry, provider-backed playback, and provider-backed microphone transcription end to end
-- run one focused browser pass for the new Gemini dedicated voice route, especially preset selection, static model and voice selection, config save, and provider-backed playback with a real Gemini key
+- run one focused browser pass for the Gemini dedicated voice route with both the official preset and the new `Gemini TTS (Micu Relay)` preset, especially preset selection, static model/voice switching, config save, and provider-backed playback with a real key that actually has access to the selected Micu relay model
 - decide whether Gemini should stay TTS-only for now or later receive a separate audio-understanding / transcription adapter instead of being forced into the current provider-backed STT contract
 - use the new repo-side mojibake guard whenever a future Waveary work block edits Chinese-facing copy, and keep broad historical Chinese cleanup isolated from unrelated feature work
 - keep future shell polish focused on the lower workspace stage and inner panel density; do not bloat the top workspace-tab strip when the real complaint is about the operational panels below
@@ -403,3 +404,4 @@ Brand line:
 - `waveary-web/src/App.tsx` no longer has the newest visible mojibake in the dedicated voice credential block, but broader document-level cleanup is still outstanding and should stay isolated from active feature work
 - the first provider-backed STT browser path now uses browser-side speech-activity heuristics rather than a fixed short timer, but it is still not a server-grounded VAD, interruption-capable loop, or full duplex transport
 - live Fish Audio verification is currently blocked by upstream reachability from this machine: direct requests to `api.fish.audio:443` time out before any HTTP response, so current failures reflect network access rather than a known Waveary route bug
+- Micu relay does not currently expose `gemini-3.1-flash-tts-preview` on the tested key path; direct probes returned `503 model_not_found`, while `gemini-2.5-flash-tts-preview` and `gemini-2.5-pro-tts-preview` were recognized by Micu but returned `403` on the provided key because that token does not currently have access to those models

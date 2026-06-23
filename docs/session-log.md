@@ -4,6 +4,46 @@
 
 Objective:
 
+Make Gemini TTS usable through Micu relay without regressing the existing dedicated Gemini voice flow.
+
+Summary:
+
+- live-tested the provided Micu key directly against the Gemini-style `v1beta/models/{model}:generateContent` audio route instead of guessing at compatibility
+- confirmed that Micu currently returns `503 model_not_found` for `gemini-3.1-flash-tts-preview`, while `gemini-2.5-flash-tts-preview` and `gemini-2.5-pro-tts-preview` are recognized by the relay but the provided token currently lacks access and therefore returns `403`
+- added a dedicated `Gemini TTS (Micu Relay)` preset in the Waveary voice console so Micu users no longer default onto the unsupported `3.1` alias
+- changed static Gemini voice-catalog resolution to branch by preset ID, so the Micu relay preset now uses Micu-recognized `2.5` TTS model names while the official Gemini preset keeps the existing official-family list
+- kept the code change intentionally narrow to voice preset selection and catalog routing, without touching the wider chat, STT, or console-shell behavior
+
+Files changed:
+
+- `waveary-web/server/voice-config.ts`
+- `waveary-web/server/provider-api.ts`
+- `waveary-web/server/provider-api.test.ts`
+- `waveary-web/src/App.tsx`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- direct Node `fetch` probes against `https://www.micuapi.ai/v1beta/models/{model}:generateContent` using both `x-goog-api-key` and `Authorization: Bearer` header styles
+- `npm run test --workspace @waveary/web`
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run check:mojibake`
+
+Commit:
+
+- `a16a365` - `Add Micu Gemini voice relay preset`
+
+Push:
+
+- pending
+
+## 2026-06-23
+
+Objective:
+
 Add Fish Audio as a dedicated voice-provider family for TTS and STT without disturbing the current chat-provider architecture.
 
 Summary:

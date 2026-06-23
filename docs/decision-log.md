@@ -1083,3 +1083,25 @@ Impact:
 - the voice console now includes a `Gemini TTS` preset with supported Gemini TTS models and official prebuilt voice names
 - routing diagnostics now distinguish Gemini from OpenAI-compatible, Fish, Doubao, and local voice families
 - microphone transcription remains explicitly outside Gemini for now until a separate audio-understanding / STT design is chosen deliberately
+
+## 2026-06-23 - Micu Relay Needs Its Own Gemini TTS Preset
+
+Status:
+
+- accepted
+
+Decision:
+
+Treat `Micu relay Gemini TTS` as a separate voice-provider preset under the Gemini family, with its own default model names and catalog behavior, instead of reusing the official Gemini preset unchanged.
+
+Reason:
+
+- live Micu probes with the provided key showed that `gemini-3.1-flash-tts-preview` currently returns `503 model_not_found` on the Micu relay path
+- the same Micu relay path does recognize `gemini-2.5-flash-tts-preview` and `gemini-2.5-pro-tts-preview`, even though the tested key currently lacks access and therefore returns `403`
+- keeping one shared Gemini preset would keep defaulting Micu users back onto a model alias that the upstream relay does not currently expose
+
+Impact:
+
+- the voice console now includes a `Gemini TTS (Micu Relay)` preset with base URL `https://www.micuapi.ai/v1beta`
+- static Gemini model catalogs now branch by preset so Micu uses Micu-recognized `2.5` TTS preview names while the official Gemini preset keeps the earlier official-family list
+- future Gemini browser verification should explicitly test both the official route and the Micu relay route instead of assuming one static Gemini model list fits both
