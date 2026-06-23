@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `e19b20c` - `Add companion delivery hints for voice`
+- `591557e` - `Expose richer local self-hosted voice controls`
 
 ## Modules
 
@@ -138,6 +138,7 @@ Brand line:
   - provider-backed TTS now also supports an explicit `shared chat provider / dedicated voice provider` split, so真人语音 can run on a stronger OpenAI-compatible TTS endpoint even when normal chat stays on a different model vendor
   - the dedicated真人语音 path now also supports a first non-OpenAI-compatible domestic adapter through Doubao TTS, with dedicated `appId / cluster / voice` settings layered into the existing voice config flow
   - the dedicated真人语音 path now also supports a first generic local/self-hosted HTTP bridge for GPT-SoVITS / CosyVoice style engines, with dedicated `engine / endpointPath / speaker / referenceVoiceId` settings layered into the same saved voice config flow
+  - the chat-page voice strip now also exposes the richer local/self-hosted tuning fields already supported by the backend bridge, including `textLanguage`, `promptLanguage`, `referenceTranscript`, `stylePrompt`, `styleStrength`, `temperature`, and `topP`, while keeping those controls local-provider-only instead of spilling them across the whole voice UI
   - the chat page now includes a first voice strip with `auto speak`, `speak reply`, and `stop` controls, and voice playback now supports both provider-returned audio and browser speech fallback while still following reply emotion and relationship stage
   - normal chat turns now also emit a structured companion delivery hint covering style, pace, closeness, and expressiveness, so reply speech no longer depends only on raw text plus generic emotion inference
   - the chat page now also supports first-cut browser microphone capture and speech-to-text input through the Web Speech API, drafting live transcript text into the composer and sending the final recognized turn through the normal chat flow
@@ -155,6 +156,7 @@ Brand line:
   - first OpenAI-compatible provider-backed TTS adapter is now implemented through `OpenAICompatibleTextToSpeechProvider`, returning base64 audio plus playback metadata while preserving the shared voice contract boundary
   - first provider-specific domestic adapter is now implemented through `DoubaoTextToSpeechProvider`
   - first generic local HTTP TTS bridge is now implemented through `LocalHttpTextToSpeechProvider`, accepting either raw audio responses or normalized JSON base64 audio payloads from self-hosted engines
+  - that generic local bridge now also forwards richer realism-oriented engine parameters plus the shared companion delivery hint, so self-hosted voice no longer drops either local engine tuning context or relationship-aware spoken-delivery intent
   - the first local-action execution surface stays intentionally narrow and auditable inside `waveary-web`: proposal detection is rule-based, execution is permission-gated, denied policy blocks execution, ask-first requires one explicit approval click, and dismissing the card clears the pending action from persisted session state`r`n  - executed and dismissed local actions now also append a small assistant-side audit note into persisted chat history, so trust-visible action outcomes survive reloads and restored sessions instead of living only in transient UI state
   - the visible persisted-session archive panel has been removed from the runtime rail so the console reads less like a raw internal debug dump
   - the split home / console / chat shell now has a stronger page-by-page hierarchy: the homepage reads more like a formal project front page, the console reads more like a system desk, and the chat page is more tightly focused on the active conversation surface
@@ -294,6 +296,7 @@ Brand line:
 ## Next Steps
 
 - run a focused browser pass for the chat-page voice surface so the new structured companion delivery hint is visually verified through provider audio playback, browser fallback playback, continuous live voice mode, microphone capture, and loop resume behavior together
+- run a focused browser pass for the local self-hosted voice path specifically, confirming the new local-only tuning controls in the chat voice strip persist correctly and shape actual playback against a real bridge
 - test the dedicated voice-provider path end-to-end in the browser by saving a separate真人语音 provider under the chat voice strip and confirming the delivery hint still shapes playback when chat stays on a different vendor
 - decide the next voice cut after this delivery-hint pass: provider-backed STT, or a truer realtime duplex / interruption pass first
 - verify the restored provider console end-to-end in the browser against the currently running local dev server, then decide whether to also harden the underlying voice route startup path so `/api/voice/config` stops returning `404`

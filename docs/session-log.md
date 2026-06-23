@@ -4595,3 +4595,45 @@ Commit:
 Push:
 
 - succeeded: `git push origin main` pushed functional commit `e19b20c` to `origin/main`
+
+## 2026-06-23
+
+Objective:
+
+Expose the richer local/self-hosted voice tuning controls in the chat voice strip and complete the previously verified backend bridge enhancement as a fully resumable voice step.
+
+Summary:
+
+- extended the local self-hosted voice config shape end-to-end so the generic HTTP bridge persists and forwards `textLanguage`, `promptLanguage`, `referenceTranscript`, `stylePrompt`, `styleStrength`, `temperature`, and `topP` in addition to the earlier local bridge fields
+- kept the architecture generic by preserving the normalized local HTTP boundary instead of binding the web layer to one self-hosted engine family, while also forwarding the shared `delivery` hint into the local bridge payload
+- updated `waveary-web/src/App.tsx` so the existing chat voice strip now exposes those richer local-only controls only when `provider = local`, without reworking the broader provider, chat, or permission surfaces
+- added minimal styling support for multiline local prompt/reference fields in the existing voice control strip and cleaned the accidental BOM-only diff in `App.tsx` before verification
+
+Files changed:
+
+- `waveary-voice/src/local-http-tts-provider.ts`
+- `waveary-voice/src/local-http-tts-provider.test.ts`
+- `waveary-web/server/voice-config.ts`
+- `waveary-web/server/voice-runtime.ts`
+- `waveary-web/server/provider-api.ts`
+- `waveary-web/server/provider-api.test.ts`
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run test --workspace @waveary/voice`
+- `npm run build:server --workspace @waveary/web`
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run test --workspace @waveary/web`
+
+Commit:
+
+- `591557e` - `Expose richer local self-hosted voice controls`
+
+Push:
+
+- succeeded: `git push origin main` pushed functional commit `591557e` to `origin/main`
