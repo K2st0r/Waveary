@@ -2899,6 +2899,18 @@ textarea {
   white-space: nowrap;
 }
 
+.voice-save-row {
+  grid-column: 1 / -1;
+  justify-content: flex-start;
+  border-radius: 1.15rem;
+}
+
+.voice-save-warning {
+  color: #8a4b18;
+  font-size: 0.76rem;
+  line-height: 1.35;
+}
+
 .chat-voice-toggle {
   display: inline-flex;
   align-items: center;
