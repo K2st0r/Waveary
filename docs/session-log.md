@@ -31,11 +31,11 @@ Verification:
 
 Commit:
 
-- pending
+- `22bb6c7` - `Add searchable Doubao voice picker`
 
 Push:
 
-- pending
+- succeeded: `git push origin main` pushed functional commit `22bb6c7` to `origin/main`
 
 ## 2026-06-23
 

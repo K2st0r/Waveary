@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `1e82b4c` - `Sync Doubao verification session log`
+- `22bb6c7` - `Add searchable Doubao voice picker`
 
 ## Modules
 
