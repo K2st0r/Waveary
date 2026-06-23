@@ -1452,6 +1452,8 @@ export function App(): ReactElement {
   const [voiceCatalog, setVoiceCatalog] = useState<VoiceCatalogResponse | null>(null);
   const [voiceRoutingStatus, setVoiceRoutingStatus] = useState<VoiceRoutingStatus | null>(null);
   const [voiceDraftInput, setVoiceDraftInput] = useState("");
+  const [voiceSearchQuery, setVoiceSearchQuery] = useState("");
+  const [voicePickerOpen, setVoicePickerOpen] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState("");
   const [baseURL, setBaseURL] = useState("");
   const [apiKey, setApiKey] = useState("");
@@ -1552,6 +1554,7 @@ export function App(): ReactElement {
   const activeUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const activeAudioRef = useRef<HTMLAudioElement | null>(null);
   const activeAudioUrlRef = useRef<string | null>(null);
+  const voicePickerRef = useRef<HTMLDivElement | null>(null);
   const speechRecognitionRef = useRef<BrowserSpeechRecognitionInstance | null>(null);
   const mediaRecorderRef = useRef<BrowserMediaRecorder | null>(null);
   const mediaRecorderStreamRef = useRef<MediaStream | null>(null);
@@ -2107,6 +2110,8 @@ export function App(): ReactElement {
       setVoiceCatalog(null);
       setVoiceCatalogState("idle");
     }
+    setVoicePickerOpen(false);
+    setVoiceSearchQuery("");
 
     await saveVoiceConfigPatch(
       { providerMode: nextMode },
@@ -2155,6 +2160,8 @@ export function App(): ReactElement {
 
     setVoiceCatalog(null);
     setVoiceCatalogState("idle");
+    setVoicePickerOpen(false);
+    setVoiceSearchQuery("");
     await saveVoiceConfigPatch(
       {
         providerMode: "dedicated",
@@ -4120,6 +4127,14 @@ export function App(): ReactElement {
         id: voice,
         label: voice
       }));
+  const normalizedVoiceSearchQuery = voiceSearchQuery.trim().toLowerCase();
+  const filteredVoiceOptionDescriptors =
+    normalizedVoiceSearchQuery.length > 0
+      ? visibleVoiceOptionDescriptors.filter((voice) => {
+          const haystack = `${voice.label} ${voice.id}`.toLowerCase();
+          return haystack.includes(normalizedVoiceSearchQuery);
+        })
+      : visibleVoiceOptionDescriptors;
   const voiceFieldMode =
     usesDedicatedVoiceProvider && usesLiveVoiceCatalog
       ? voiceCatalog.voiceFieldMode
@@ -4185,6 +4200,15 @@ export function App(): ReactElement {
       : locale === "zh"
         ? "获取模型目录"
         : "Fetch model catalog";
+  const showSearchableVoicePicker = voiceFieldMode === "select" && visibleVoiceOptionDescriptors.length > 0;
+  const selectedVoiceDescriptor =
+    visibleVoiceOptionDescriptors.find((voice) => voice.id === (voiceConfig?.voice ?? "")) ?? null;
+  const activeVoicePickerLabel =
+    selectedVoiceDescriptor?.label ?? (voiceDraftInput.trim() || voiceFieldPlaceholder);
+  const voiceSearchEmptyLabel =
+    locale === "zh" ? "没有匹配的音色，换个关键词试试。" : "No matching voices. Try another keyword.";
+  const voiceSearchPlaceholder =
+    locale === "zh" ? "搜索音色名或 ID" : "Search voices or IDs";
   const voiceRoutingTargetLabel =
     voiceRoutingStatus?.target === "provider-audio"
       ? locale === "zh"
@@ -4333,6 +4357,61 @@ export function App(): ReactElement {
     setVoiceDraftInput(voiceConfig?.voice ?? "");
   }, [voiceConfig?.voice]);
 
+  useEffect(() => {
+    setVoiceSearchQuery(voiceConfig?.voice ?? "");
+  }, [voiceConfig?.voice]);
+
+  useEffect(() => {
+    if (!usesDedicatedVoiceProvider || !selectedVoiceProviderPresetId) {
+      return;
+    }
+
+    if (voiceCatalog !== null) {
+      return;
+    }
+
+    if (
+      selectedVoiceProviderPresetId !== "doubao" &&
+      selectedVoiceProviderPresetId !== "doubao-legacy" &&
+      selectedVoiceProviderPresetId !== "gemini" &&
+      selectedVoiceProviderPresetId !== "gemini-micu"
+    ) {
+      return;
+    }
+
+    void handleFetchVoiceCatalog();
+  }, [
+    selectedVoiceProviderPresetId,
+    usesDedicatedVoiceProvider,
+    voiceCatalog,
+    voiceConfig?.provider,
+    voiceConfig?.baseURL,
+    voiceConfig?.apiKey,
+    voiceConfig?.accessKeyId,
+    voiceConfig?.secretAccessKey
+  ]);
+
+  useEffect(() => {
+    if (!voicePickerOpen || typeof window === "undefined") {
+      return undefined;
+    }
+
+    const handlePointerDown = (event: MouseEvent) => {
+      if (!voicePickerRef.current) {
+        return;
+      }
+
+      if (voicePickerRef.current.contains(event.target as Node)) {
+        return;
+      }
+
+      setVoicePickerOpen(false);
+    };
+
+    window.addEventListener("mousedown", handlePointerDown);
+    return () => window.removeEventListener("mousedown", handlePointerDown);
+  }, [voicePickerOpen]);
+
   function renderVoiceConfigControls(mode: "chat" | "console"): ReactElement {
     const isConsole = mode === "console";
 
@@ -4442,43 +4521,65 @@ export function App(): ReactElement {
               </label>
               <label className="chat-voice-select chat-voice-select-compact">
                 <span>{voiceFieldLabel}</span>
-                {voiceFieldMode === "select" && visibleVoiceOptionDescriptors.length > 0 ? (
-                  <>
-                    <select
-                      value={voiceConfig?.voice ?? ""}
-                      onChange={(event) => {
-                        setVoiceDraftInput(event.target.value);
-                        void handleVoiceNameChange(event.target.value);
-                      }}
+                {showSearchableVoicePicker ? (
+                  <div className="voice-search-picker" ref={voicePickerRef}>
+                    <button
+                      className="voice-search-picker-trigger"
+                      type="button"
+                      onClick={() => setVoicePickerOpen((current) => !current)}
                       disabled={!canAdjustVoiceConfig}
+                      aria-expanded={voicePickerOpen}
                     >
-                      {visibleVoiceOptionDescriptors.map((voice) => (
-                        <option key={voice.id} value={voice.id}>
-                          {voice.label}
-                        </option>
-                      ))}
-                    </select>
-                    <input
-                      type="text"
-                      list="waveary-voice-options"
-                      value={voiceDraftInput}
-                      onChange={(event) => setVoiceDraftInput(event.target.value)}
-                      placeholder={voiceFieldPlaceholder}
-                      disabled={!canAdjustVoiceConfig}
-                    />
-                    <datalist id="waveary-voice-options">
-                      {visibleVoiceOptionDescriptors.map((voice) => (
-                        <option key={voice.id} value={voice.id}>
-                          {voice.label}
-                        </option>
-                      ))}
-                    </datalist>
-                  </>
+                      <strong>{activeVoicePickerLabel}</strong>
+                      <span>{voiceConfig?.voice ?? voiceFieldPlaceholder}</span>
+                    </button>
+                    {voicePickerOpen ? (
+                      <div className="voice-search-picker-popover">
+                        <input
+                          type="text"
+                          value={voiceSearchQuery}
+                          onChange={(event) => setVoiceSearchQuery(event.target.value)}
+                          placeholder={voiceSearchPlaceholder}
+                          disabled={!canAdjustVoiceConfig}
+                          autoFocus
+                        />
+                        <div className="voice-search-picker-list" role="listbox">
+                          {filteredVoiceOptionDescriptors.length > 0 ? (
+                            filteredVoiceOptionDescriptors.map((voice) => {
+                              const isActive = voice.id === (voiceConfig?.voice ?? "");
+                              return (
+                                <button
+                                  key={voice.id}
+                                  className={`voice-search-picker-option${isActive ? " voice-search-picker-option-active" : ""}`}
+                                  type="button"
+                                  onClick={() => {
+                                    setVoiceDraftInput(voice.id);
+                                    setVoiceSearchQuery(voice.id);
+                                    setVoicePickerOpen(false);
+                                    void handleVoiceNameChange(voice.id);
+                                  }}
+                                  disabled={!canAdjustVoiceConfig}
+                                >
+                                  <strong>{voice.label}</strong>
+                                  <span>{voice.id}</span>
+                                </button>
+                              );
+                            })
+                          ) : (
+                            <div className="voice-search-picker-empty">{voiceSearchEmptyLabel}</div>
+                          )}
+                        </div>
+                      </div>
+                    ) : null}
+                  </div>
                 ) : (
                   <input
                     type="text"
                     value={voiceDraftInput}
-                    onChange={(event) => setVoiceDraftInput(event.target.value)}
+                    onChange={(event) => {
+                      setVoiceDraftInput(event.target.value);
+                      setVoiceSearchQuery(event.target.value);
+                    }}
                     placeholder={voiceFieldPlaceholder}
                     disabled={!canAdjustVoiceConfig}
                   />
