@@ -4,6 +4,39 @@
 
 Objective:
 
+Make the top console workspace modules taller so the control-desk navigation feels less cramped without changing any underlying console logic or reopening long-page scrolling.
+
+Summary:
+
+- adjusted `waveary-web/src/styles.css` so the top workspace tabs now use a taller minimum height, slightly looser vertical gap, and slightly deeper padding
+- kept the change intentionally local to the workspace-tab card shell rather than changing panel heights, page routing, or workspace content structure
+- verified that the tabs now render at roughly `91px` height on the live local console while the top control region still fits cleanly before the main workspace stage
+
+Files changed:
+
+- `waveary-web/src/styles.css`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run web:build`
+- browser DOM measurement on `http://127.0.0.1:4173/#console` confirming all five `.console-workspace-tab` cards render at `91px` height
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-23
+
+Objective:
+
 Unify the Waveary console workspaces so provider, voice, sessions, care, and runtime all share the same stage footprint, panel rhythm, and inner-scroll behavior instead of switching between mismatched page layouts.
 
 Summary:
