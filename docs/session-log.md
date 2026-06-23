@@ -4745,3 +4745,42 @@ Commit:
 Push:
 
 - pending
+
+[waveary-session-log-write-probe]
+
+## 2026-06-23
+
+Objective:
+
+Tighten the console voice onboarding flow so it behaves more like model setup while staying honest about vendor-specific voice discovery limits.
+
+Summary:
+
+- updated `waveary-web/src/App.tsx` so switching voice provider mode or applying a voice-provider preset clears stale voice-catalog state instead of leaving the previous vendor's catalog visible
+- changed the voice-console model selector to use normalized discovered model descriptors, matching the earlier provider-model setup behavior more closely
+- changed the dedicated voice field so OpenAI-compatible vendors still use mapped selectable voices, while Doubao and local bridges now switch to explicit manual input instead of pretending there is one universal selectable voice list
+- ran API-level verification proving `/api/voice/catalog` still returns `voiceFieldMode: input` for both Doubao and local, and a focused DOM-level browser check confirming those vendors now render input fields rather than only dropdown selection
+
+Files changed:
+
+- `waveary-web/src/App.tsx`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run test --workspace @waveary/web`
+- `curl.exe -s http://127.0.0.1:4173/api/voice/presets`
+- `Invoke-RestMethod http://127.0.0.1:4173/api/voice/catalog` with `provider = doubao`
+- `Invoke-RestMethod http://127.0.0.1:4173/api/voice/catalog` with `provider = local`
+- Playwright-backed DOM check on `http://127.0.0.1:4173/#console` confirming Doubao and local voice vendors render manual input fields after catalog fetch
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
