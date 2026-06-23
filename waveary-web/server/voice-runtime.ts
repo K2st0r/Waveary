@@ -2,6 +2,7 @@ import type { EmotionState, RelationshipProfile } from "@waveary/core";
 import {
   BrowserSpeechPlanner,
   DoubaoTextToSpeechProvider,
+  FishAudioTextToSpeechProvider,
   LocalHttpTextToSpeechProvider,
   OpenAICompatibleTextToSpeechProvider,
   resolveVoicePreset,
@@ -207,6 +208,26 @@ export async function planChatSpeech(input: VoiceSpeakPlanRequest) {
           ...(providerBackedVoiceConfig.cluster
             ? { cluster: providerBackedVoiceConfig.cluster }
             : {})
+        });
+
+        const result = await ttsProvider.synthesize(request);
+        return {
+          ...result,
+          routing: {
+            ...routingDiagnostic,
+            attemptedProviderAudio: true
+          }
+        } satisfies VoiceSpeakResultWithDiagnostics;
+      }
+
+      if (providerBackedVoiceConfig.provider === "fish-audio") {
+        const ttsProvider = new FishAudioTextToSpeechProvider({
+          apiKey: providerBackedVoiceConfig.apiKey,
+          baseURL: providerBackedVoiceConfig.baseURL,
+          model: resolvedVoiceConfig.model,
+          referenceId: resolvedVoiceConfig.voice,
+          format: resolvedVoiceConfig.format,
+          qualityProfile: resolvedVoiceConfig.qualityProfile
         });
 
         const result = await ttsProvider.synthesize(request);

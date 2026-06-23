@@ -28,7 +28,7 @@ export interface ResolvedVoiceRoutingConfig {
 export interface VoiceRoutingDiagnostic {
   mode: "shared" | "dedicated";
   target: "provider-audio" | "browser-fallback";
-  providerType: "shared-chat-provider" | "openai-compatible" | "doubao" | "local" | "unknown";
+  providerType: "shared-chat-provider" | "openai-compatible" | "fish-audio" | "doubao" | "local" | "unknown";
   providerLabel: string;
   ready: boolean;
   reasonCode:
@@ -37,6 +37,9 @@ export interface VoiceRoutingDiagnostic {
     | "dedicated-compatible-ready"
     | "dedicated-compatible-missing-base-url"
     | "dedicated-compatible-missing-api-key"
+    | "dedicated-fish-audio-ready"
+    | "dedicated-fish-audio-missing-base-url"
+    | "dedicated-fish-audio-missing-api-key"
     | "dedicated-doubao-ready"
     | "dedicated-doubao-missing-api-key"
     | "dedicated-doubao-missing-app-id"
@@ -171,6 +174,54 @@ export function buildVoiceRoutingDiagnostic(
         missingFields.includes("appId")
           ? "Dedicated Doubao voice is missing app ID, so it cannot reach provider-backed audio and will fall back to browser speech."
           : "Dedicated Doubao voice is missing API key, so it cannot reach provider-backed audio and will fall back to browser speech.",
+      missingFields,
+      providerBackedConfig: null
+    };
+  }
+
+  if (provider === "fish-audio") {
+    const missingFields: Array<"provider" | "baseURL" | "apiKey" | "appId"> = [];
+
+    if (!resolvedVoiceConfig.baseURL) {
+      missingFields.push("baseURL");
+    }
+
+    if (!resolvedVoiceConfig.apiKey) {
+      missingFields.push("apiKey");
+    }
+
+    if (missingFields.length === 0) {
+      return {
+        mode: "dedicated",
+        target: "provider-audio",
+        providerType: "fish-audio",
+        providerLabel: "fish-audio",
+        ready: true,
+        reasonCode: "dedicated-fish-audio-ready",
+        summary:
+          "Dedicated Fish Audio voice has base URL and API key, so Waveary can attempt Fish-backed TTS and STT directly.",
+        missingFields: [],
+        providerBackedConfig: {
+          provider,
+          baseURL: resolvedVoiceConfig.baseURL,
+          apiKey: resolvedVoiceConfig.apiKey
+        }
+      };
+    }
+
+    return {
+      mode: "dedicated",
+      target: "browser-fallback",
+      providerType: "fish-audio",
+      providerLabel: "fish-audio",
+      ready: false,
+      reasonCode: missingFields.includes("baseURL")
+        ? "dedicated-fish-audio-missing-base-url"
+        : "dedicated-fish-audio-missing-api-key",
+      summary:
+        missingFields.includes("baseURL")
+          ? "Dedicated Fish Audio voice is missing base URL, so Waveary cannot call Fish voice routes and will fall back to browser speech."
+          : "Dedicated Fish Audio voice is missing API key, so Waveary cannot call Fish voice routes and will fall back to browser speech.",
       missingFields,
       providerBackedConfig: null
     };
