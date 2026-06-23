@@ -4399,17 +4399,25 @@ export function App(): ReactElement {
               <label className="chat-voice-select chat-voice-select-compact">
                 <span>{voiceFieldLabel}</span>
                 {voiceFieldMode === "select" && visibleVoiceOptionDescriptors.length > 0 ? (
-                  <select
+                  <>
+                  <input
+                    list="waveary-voice-options"
                     value={voiceConfig?.voice ?? ""}
-                    onChange={(event) => void handleVoiceNameChange(event.target.value)}
+                    onChange={(event) =>
+                      setVoiceConfig((current) => (current ? { ...current, voice: event.target.value } : current))
+                    }
+                    onBlur={(event) => void handleVoiceNameChange(event.target.value)}
+                    placeholder={voiceFieldPlaceholder}
                     disabled={!canAdjustVoiceConfig}
-                  >
+                  />
+                  <datalist id="waveary-voice-options">
                     {visibleVoiceOptionDescriptors.map((voice) => (
                       <option key={voice.id} value={voice.id}>
                         {voice.label}
                       </option>
                     ))}
-                  </select>
+                  </datalist>
+                  </>
                 ) : (
                   <input
                     type="text"
