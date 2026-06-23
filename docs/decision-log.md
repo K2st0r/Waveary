@@ -1038,3 +1038,25 @@ Impact:
 - `waveary-web/server/voice-routing-diagnostics.ts` now recognizes `fish-audio` as a dedicated-ready provider family
 - `waveary-web/server/provider-api.ts` now supports Fish Audio voice-model catalog fetches through `/model` plus dedicated Fish STT routing through `/api/voice/transcribe`
 - the existing browser-side provider STT gate now also treats `fish-audio` as a real provider-backed speech path instead of falling back unnecessarily
+
+## 2026-06-23 - Fish Network Failures Must Surface As Explicit Diagnostics
+
+Status:
+
+- accepted
+
+Decision:
+
+When Fish Audio upstream requests fail before any HTTP response is received, Waveary should surface the concrete connectivity cause instead of returning a generic `fetch failed` error.
+
+Reason:
+
+- live testing on this machine showed that `api.fish.audio:443` can time out even when the Waveary routes and Fish adapters are wired correctly
+- a generic fetch failure hides the difference between network reachability problems and local integration bugs
+- the voice console and local route layer need actionable failure text before further Fish UI polishing is meaningful
+
+Impact:
+
+- Fish Audio catalog, TTS, and STT fetch failures now preserve upstream details such as `UND_ERR_CONNECT_TIMEOUT`
+- live verification can now distinguish "Fish is unreachable from this machine" from "Waveary routed the request incorrectly"
+- the next Fish browser pass should be retried only after network reachability is restored

@@ -51,6 +51,51 @@ Push:
 
 Objective:
 
+Run a real Fish Audio live verification pass with the provided key, then make upstream-connectivity failures visible enough to diagnose from the Waveary voice routes.
+
+Summary:
+
+- restarted the local `web:dev` server first, because the running `127.0.0.1:4173` process was initially serving an older build that did not yet expose the `fish-audio` voice preset
+- verified that the current repository code does expose the Fish preset and dedicated Fish routes once the local dev server is restarted on the latest workspace state
+- attempted live Fish catalog access through both direct machine-level requests and the local `/api/voice/catalog` route using the provided key, and confirmed the current machine cannot reach `https://api.fish.audio:443` before any HTTP response arrives
+- confirmed the failure is network reachability rather than an obvious Waveary route bug by reproducing the same upstream timeout through direct Node `fetch` and `curl.exe` calls outside the local web server
+- improved Fish catalog, TTS, and STT error handling so upstream failures now surface concrete diagnostics such as `UND_ERR_CONNECT_TIMEOUT` and attempted endpoint addresses instead of collapsing into a generic `fetch failed`
+
+Files changed:
+
+- `waveary-voice/src/fish-audio-tts-provider.ts`
+- `waveary-voice/src/fish-audio-stt-provider.ts`
+- `waveary-voice/src/fish-audio-tts-provider.test.ts`
+- `waveary-voice/src/fish-audio-stt-provider.test.ts`
+- `waveary-web/server/provider-api.ts`
+- `waveary-web/server/provider-api.test.ts`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run test --workspace @waveary/voice`
+- `npm run test --workspace @waveary/web`
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `Invoke-RestMethod http://127.0.0.1:4173/api/voice/presets`
+- direct Node `fetch` against `https://api.fish.audio/model?self=false&page_size=1&page_number=1`, confirming `UND_ERR_CONNECT_TIMEOUT`
+- `curl.exe -i -H "Authorization: Bearer …" "https://api.fish.audio/model?self=false&page_size=5&page_number=1"`, confirming no upstream HTTP response was reachable from this machine
+- `curl.exe -i -X POST http://127.0.0.1:4173/api/voice/catalog --data-binary @<temp-json-file>`, confirming the local route now returns explicit Fish timeout diagnostics
+
+Commit:
+
+- `794ddad` - `Surface Fish Audio network diagnostics`
+
+Push:
+
+- succeeded: `git push origin main` pushed functional commit `794ddad` to `origin/main`
+
+## 2026-06-23
+
+Objective:
+
 Replace the fixed short provider-STT recording window with a more truthful silence-based stop path without widening the current voice scope.
 
 Summary:

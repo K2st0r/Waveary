@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `94d2694` - `Add Fish Audio dedicated voice support`
+- `794ddad` - `Surface Fish Audio network diagnostics`
 
 ## Modules
 
@@ -158,6 +158,7 @@ Brand line:
   - first generic local HTTP TTS bridge is now implemented through `LocalHttpTextToSpeechProvider`, accepting either raw audio responses or normalized JSON base64 audio payloads from self-hosted engines
   - that generic local bridge now also forwards richer realism-oriented engine parameters plus the shared companion delivery hint, so self-hosted voice no longer drops either local engine tuning context or relationship-aware spoken-delivery intent
   - Fish Audio now also exists as a dedicated provider family through `FishAudioTextToSpeechProvider` and `FishAudioSpeechToTextProvider`, so Waveary can test a non-OpenAI-compatible commercial voice stack without pushing vendor-specific transport details into the wider chat-provider layer
+  - Fish Audio catalog, TTS, and STT failures now surface explicit upstream connectivity diagnostics such as `UND_ERR_CONNECT_TIMEOUT` instead of collapsing into a generic `fetch failed`, so live console testing can distinguish network reachability issues from route or config regressions
   - the first local-action execution surface stays intentionally narrow and auditable inside `waveary-web`: proposal detection is rule-based, execution is permission-gated, denied policy blocks execution, ask-first requires one explicit approval click, and dismissing the card clears the pending action from persisted session state`r`n  - executed and dismissed local actions now also append a small assistant-side audit note into persisted chat history, so trust-visible action outcomes survive reloads and restored sessions instead of living only in transient UI state
   - the visible persisted-session archive panel has been removed from the runtime rail so the console reads less like a raw internal debug dump
   - the split home / console / chat shell now has a stronger page-by-page hierarchy: the homepage reads more like a formal project front page, the console reads more like a system desk, and the chat page is more tightly focused on the active conversation surface
@@ -324,7 +325,7 @@ Brand line:
 - replace the current fixed short capture window in provider-backed STT with a more truthful turn-end detector or streaming transport before claiming realtime voice is close to done
 - add focused browser-side or component-level regression coverage for the new silence-based provider STT stop logic so later realtime voice work does not regress it silently
 - decide whether the next voice implementation cut after this first STT slice should be interruption/full duplex first, or wider provider-specific STT support such as Doubao/local
-- run a focused browser verification pass for the new dedicated Fish Audio route in the voice console, especially model catalog fetch, saved voice-model ID entry, and provider-backed microphone transcription behavior
+- re-run the dedicated Fish Audio browser verification pass once the current machine can actually reach `https://api.fish.audio`, then verify catalog fetch, saved voice-model ID entry, provider-backed playback, and provider-backed microphone transcription end to end
 - use the new repo-side mojibake guard whenever a future Waveary work block edits Chinese-facing copy, and keep broad historical Chinese cleanup isolated from unrelated feature work
 - keep future shell polish focused on the lower workspace stage and inner panel density; do not bloat the top workspace-tab strip when the real complaint is about the operational panels below
 - keep future voice-shell checks focused on true UI regressions now that shared, dedicated OpenAI-compatible, Doubao, and local branches have all been browser-verified against the routing card
@@ -398,3 +399,4 @@ Brand line:
 - `npx tsc --noEmit -p waveary-web/tsconfig.server.json` is not a trustworthy verification command in this workspace right now because its standalone resolution still reports broader historical workspace-type issues even when the package build/test flow passes; prefer `npm run test --workspace @waveary/web` or `npm run build:server --workspace @waveary/web` for server-side voice verification until that separate tsconfig issue is deliberately cleaned up
 - `waveary-web/src/App.tsx` no longer has the newest visible mojibake in the dedicated voice credential block, but broader document-level cleanup is still outstanding and should stay isolated from active feature work
 - the first provider-backed STT browser path now uses browser-side speech-activity heuristics rather than a fixed short timer, but it is still not a server-grounded VAD, interruption-capable loop, or full duplex transport
+- live Fish Audio verification is currently blocked by upstream reachability from this machine: direct requests to `api.fish.audio:443` time out before any HTTP response, so current failures reflect network access rather than a known Waveary route bug
