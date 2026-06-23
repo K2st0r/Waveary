@@ -79,3 +79,25 @@ test("fish audio tts provider surfaces upstream errors", async () => {
     /Fish Audio TTS request failed with status 402/
   );
 });
+
+test("fish audio tts provider surfaces network timeout details", async () => {
+  const provider = new FishAudioTextToSpeechProvider({
+    apiKey: "fish-key",
+    baseURL: "https://api.fish.audio",
+    referenceId: "voice-model-123",
+    fetchFn: (async () => {
+      throw new TypeError("fetch failed", {
+        cause: Object.assign(new Error("Connect Timeout Error"), {
+          code: "UND_ERR_CONNECT_TIMEOUT"
+        })
+      });
+    }) as typeof fetch
+  });
+
+  await assert.rejects(
+    provider.synthesize({
+      text: "test"
+    }),
+    /Fish Audio TTS request could not reach the upstream service\. Code: UND_ERR_CONNECT_TIMEOUT\. Cause: Connect Timeout Error/
+  );
+});

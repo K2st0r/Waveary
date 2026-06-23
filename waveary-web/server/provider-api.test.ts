@@ -322,6 +322,30 @@ test("voice catalog route returns fish audio voice models from fish model api", 
   assert.ok(response.body.models.some((model: { label: string }) => model.label === "Soft Companion"));
 });
 
+test("voice catalog route surfaces fish audio network timeout details", async () => {
+  const middleware = createProviderApiMiddleware();
+
+  globalThis.fetch = (async () => {
+    throw new TypeError("fetch failed", {
+      cause: Object.assign(new Error("Connect Timeout Error"), {
+        code: "UND_ERR_CONNECT_TIMEOUT"
+      })
+    });
+  }) as typeof fetch;
+
+  const response = await invokeJsonRoute(middleware, "POST", "/api/voice/catalog", {
+    provider: "fish-audio",
+    baseURL: "https://api.fish.audio",
+    apiKey: "fish-key"
+  });
+
+  assert.equal(response.statusCode, 400);
+  assert.match(
+    response.body.error,
+    /Fish Audio catalog request could not reach the upstream service\. Code: UND_ERR_CONNECT_TIMEOUT\. Cause: Connect Timeout Error/
+  );
+});
+
 test("voice catalog route keeps manual voice entry for compatible vendors without shared voice directories", async () => {
   const middleware = createProviderApiMiddleware();
 

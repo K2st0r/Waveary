@@ -76,3 +76,27 @@ test("fish audio stt provider surfaces upstream errors", async () => {
     /Fish Audio STT request failed with status 401/
   );
 });
+
+test("fish audio stt provider surfaces network timeout details", async () => {
+  const provider = new FishAudioSpeechToTextProvider({
+    apiKey: "fish-key",
+    baseURL: "https://api.fish.audio",
+    fetchFn: (async () => {
+      throw new TypeError("fetch failed", {
+        cause: Object.assign(new Error("Connect Timeout Error"), {
+          code: "UND_ERR_CONNECT_TIMEOUT"
+        })
+      });
+    }) as typeof fetch
+  });
+
+  await assert.rejects(
+    provider.transcribe({
+      audio: {
+        base64: Buffer.from("fake-audio").toString("base64"),
+        mimeType: "audio/webm"
+      }
+    }),
+    /Fish Audio STT request could not reach the upstream service\. Code: UND_ERR_CONNECT_TIMEOUT\. Cause: Connect Timeout Error/
+  );
+});
