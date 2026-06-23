@@ -105,7 +105,7 @@ interface VoiceConfigRequest {
   provider?: string;
   baseURL?: string;
   apiKey?: string;
-  appId?: string;
+  resourceId?: string;
   cluster?: string;
   endpointPath?: string;
   engine?: string;

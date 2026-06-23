@@ -38,7 +38,7 @@ export interface VoiceSpeakPlanRequest {
     provider?: string;
     baseURL?: string;
     apiKey?: string;
-    appId?: string;
+    resourceId?: string;
     cluster?: string;
     endpointPath?: string;
     engine?: string;
@@ -154,8 +154,9 @@ export async function planChatSpeech(input: VoiceSpeakPlanRequest) {
       requestedVoiceConfig?.apiKey?.trim() ||
       savedVoiceConfig.apiKey ||
       (savedVoiceConfig.providerMode !== "dedicated" ? savedProvider?.apiKey || "" : ""),
-    appId: requestedVoiceConfig?.appId?.trim() || savedVoiceConfig.appId || "",
-    cluster: requestedVoiceConfig?.cluster?.trim() || savedVoiceConfig.cluster || "volcano_tts",
+    resourceId:
+      requestedVoiceConfig?.resourceId?.trim() || savedVoiceConfig.resourceId || "",
+    cluster: requestedVoiceConfig?.cluster?.trim() || savedVoiceConfig.cluster || "",
     endpointPath:
       requestedVoiceConfig?.endpointPath?.trim() ||
       savedVoiceConfig.endpointPath ||
@@ -196,19 +197,16 @@ export async function planChatSpeech(input: VoiceSpeakPlanRequest) {
   if (providerBackedVoiceConfig) {
     try {
       if (providerBackedVoiceConfig.provider === "doubao") {
-        const appId = providerBackedVoiceConfig.appId;
+        const resourceId = providerBackedVoiceConfig.resourceId;
 
-        if (!appId) {
-          throw new Error("Doubao voice config requires an appId.");
+        if (!resourceId) {
+          throw new Error("Doubao voice config requires a resourceId.");
         }
 
         const ttsProvider = new DoubaoTextToSpeechProvider({
           apiKey: providerBackedVoiceConfig.apiKey,
-          appId,
-          voiceType: resolvedVoiceConfig.voice,
-          ...(providerBackedVoiceConfig.cluster
-            ? { cluster: providerBackedVoiceConfig.cluster }
-            : {})
+          resourceId,
+          voiceType: resolvedVoiceConfig.voice
         });
 
         const result = await ttsProvider.synthesize(request);

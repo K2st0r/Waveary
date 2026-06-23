@@ -278,7 +278,10 @@ test("voice catalog route returns input-mode catalogs for doubao and local provi
   assert.equal(doubaoResponse.statusCode, 200);
   assert.equal(doubaoResponse.body.providerType, "doubao");
   assert.equal(doubaoResponse.body.voiceFieldMode, "input");
-  assert.equal(doubaoResponse.body.defaultVoice, "BV001_streaming");
+  assert.equal(
+    doubaoResponse.body.defaultVoice,
+    "zh_male_beijingxiaoye_emo_v2_mars_bigtts"
+  );
 
   assert.equal(localResponse.statusCode, 200);
   assert.equal(localResponse.body.providerType, "local");
@@ -510,9 +513,8 @@ test("voice transcribe route rejects unsupported provider-backed stt families fo
     providerMode: "dedicated",
     provider: "doubao",
     apiKey: "doubao-key",
-    appId: "doubao-app",
-    cluster: "volcano_tts",
-    voice: "BV001_streaming",
+    resourceId: "volc.service_type.10029",
+    voice: "zh_male_beijingxiaoye_emo_v2_mars_bigtts",
     model: "doubao-tts",
     qualityProfile: "cinematic",
     format: "mp3"
@@ -803,19 +805,32 @@ test("voice speak route supports dedicated doubao tts config", async () => {
   const middleware = createProviderApiMiddleware();
 
   globalThis.fetch = (async (input, init) => {
-    if (String(input) === "https://openspeech.bytedance.com/api/v1/tts") {
-      const body = init?.body ? (JSON.parse(String(init.body)) as {
-        app: { appid: string; cluster: string };
-        audio: { voice_type: string };
-      }) : null;
+    if (String(input) === "https://openspeech.bytedance.com/api/v3/tts/unidirectional") {
+      const headers = init?.headers as Record<string, string>;
+      const body = init?.body
+        ? (JSON.parse(String(init.body)) as {
+            req_params: {
+              text: string;
+              speaker: string;
+              additions: string;
+              audio_params: { format: string; sample_rate: number };
+            };
+          })
+        : null;
 
-      assert.equal(body?.app.appid, "doubao-app");
-      assert.equal(body?.app.cluster, "volcano_tts");
-      assert.equal(body?.audio.voice_type, "BV001_streaming");
+      assert.equal(headers["x-api-key"], "doubao-key");
+      assert.equal(headers["X-Api-Resource-Id"], "volc.service_type.10029");
+      assert.equal(body?.req_params.text, "你好，我在。");
+      assert.equal(
+        body?.req_params.speaker,
+        "zh_male_beijingxiaoye_emo_v2_mars_bigtts"
+      );
+      assert.equal(body?.req_params.audio_params.format, "mp3");
+      assert.equal(body?.req_params.audio_params.sample_rate, 24000);
 
       return new Response(
         JSON.stringify({
-          code: 3000,
+          code: 0,
           message: "Success",
           data: Buffer.from("doubao-voice-audio").toString("base64")
         }),
@@ -835,9 +850,8 @@ test("voice speak route supports dedicated doubao tts config", async () => {
     providerMode: "dedicated",
     provider: "doubao",
     apiKey: "doubao-key",
-    appId: "doubao-app",
-    cluster: "volcano_tts",
-    voice: "BV001_streaming",
+    resourceId: "volc.service_type.10029",
+    voice: "zh_male_beijingxiaoye_emo_v2_mars_bigtts",
     model: "doubao-tts",
     qualityProfile: "cinematic",
     format: "mp3"
@@ -979,16 +993,15 @@ test("voice speak route supports dedicated local self-hosted tts config", async 
   assert.equal(speakResponse.body.metadata.voice, "speaker-a");
 });
 
-test("voice config route reports missing doubao app id before playback", async () => {
+test("voice config route reports missing doubao resource id before playback", async () => {
   const middleware = createProviderApiMiddleware();
 
   const response = await invokeJsonRoute(middleware, "POST", "/api/voice/config", {
     providerMode: "dedicated",
     provider: "doubao",
     apiKey: "doubao-key",
-    appId: "",
-    cluster: "volcano_tts",
-    voice: "BV001_streaming",
+    resourceId: "",
+    voice: "zh_male_beijingxiaoye_emo_v2_mars_bigtts",
     model: "doubao-tts",
     qualityProfile: "cinematic",
     format: "mp3"
@@ -996,8 +1009,8 @@ test("voice config route reports missing doubao app id before playback", async (
 
   assert.equal(response.statusCode, 200);
   assert.equal(response.body.routing.target, "browser-fallback");
-  assert.equal(response.body.routing.reasonCode, "dedicated-doubao-missing-app-id");
-  assert.deepEqual(response.body.routing.missingFields, ["appId"]);
+  assert.equal(response.body.routing.reasonCode, "dedicated-doubao-missing-resource-id");
+  assert.deepEqual(response.body.routing.missingFields, ["resourceId"]);
 });
 
 test("voice speak route surfaces fallback reason when dedicated provider request fails", async () => {

@@ -33,7 +33,7 @@ interface SavedVoiceConfig {
   provider: string;
   baseURL: string;
   apiKey: string;
-  appId: string;
+  resourceId: string;
   cluster: string;
   endpointPath: string;
   engine: string;
@@ -174,7 +174,7 @@ interface VoiceRoutingStatus {
   ready: boolean;
   reasonCode: string;
   summary: string;
-  missingFields: Array<"provider" | "baseURL" | "apiKey" | "appId">;
+  missingFields: Array<"provider" | "baseURL" | "apiKey" | "resourceId">;
   attemptedProviderAudio?: boolean;
   fallbackReason?: string;
 }
@@ -1994,7 +1994,7 @@ export function App(): ReactElement {
           provider: patch.provider ?? currentVoiceConfig.provider,
           baseURL: patch.baseURL ?? currentVoiceConfig.baseURL,
           apiKey: patch.apiKey ?? currentVoiceConfig.apiKey,
-          appId: patch.appId ?? currentVoiceConfig.appId,
+          resourceId: patch.resourceId ?? currentVoiceConfig.resourceId,
           cluster: patch.cluster ?? currentVoiceConfig.cluster,
           endpointPath: patch.endpointPath ?? currentVoiceConfig.endpointPath,
           engine: patch.engine ?? currentVoiceConfig.engine,
@@ -2090,7 +2090,7 @@ export function App(): ReactElement {
       | "provider"
       | "baseURL"
       | "apiKey"
-      | "appId"
+      | "resourceId"
       | "cluster"
       | "endpointPath"
       | "engine"
@@ -4092,7 +4092,7 @@ export function App(): ReactElement {
           : "Voice";
   const voiceFieldPlaceholder =
     usesDedicatedVoiceProvider && activeVoiceProviderType === "doubao"
-      ? "BV001_streaming"
+      ? "zh_male_beijingxiaoye_emo_v2_mars_bigtts"
       : usesDedicatedVoiceProvider && activeVoiceProviderType === "local"
         ? locale === "zh"
           ? "输入 speaker 或 voice id"
@@ -4140,8 +4140,8 @@ export function App(): ReactElement {
           .map((field) =>
             field === "apiKey"
               ? "API Key"
-              : field === "appId"
-                ? "App ID"
+              : field === "resourceId"
+                ? "Resource ID"
                 : field === "baseURL"
                   ? "Base URL"
                   : locale === "zh"
@@ -4406,8 +4406,8 @@ export function App(): ReactElement {
                 <span>
                   {activeVoiceProviderType === "doubao"
                     ? locale === "zh"
-                      ? "豆包需要独立凭据与 cluster。"
-                      : "Doubao needs its own credentials and cluster."
+                      ? "豆包需要独立 API Key 与 Resource ID。"
+                      : "Doubao needs its own API key and resource ID."
                     : activeVoiceProviderType === "local"
                       ? locale === "zh"
                         ? "本地桥接按你的引擎字段精确填写。"
@@ -4472,28 +4472,19 @@ export function App(): ReactElement {
                 {activeVoiceProviderType === "doubao" ? (
                   <>
                     <label className="chat-voice-select">
-                      <span>App ID</span>
+                      <span>Resource ID</span>
                       <input
                         type="text"
-                        value={voiceConfig?.appId ?? ""}
+                        value={voiceConfig?.resourceId ?? ""}
                         onChange={(event) =>
-                          setVoiceConfig((current) => (current ? { ...current, appId: event.target.value } : current))
+                          setVoiceConfig((current) =>
+                            current ? { ...current, resourceId: event.target.value } : current
+                          )
                         }
-                        onBlur={(event) => void handleVoiceProviderFieldChange("appId", event.target.value)}
-                        placeholder="Doubao appid"
-                        disabled={!canAdjustVoiceConfig}
-                      />
-                    </label>
-                    <label className="chat-voice-select">
-                      <span>Cluster</span>
-                      <input
-                        type="text"
-                        value={voiceConfig?.cluster ?? ""}
-                        onChange={(event) =>
-                          setVoiceConfig((current) => (current ? { ...current, cluster: event.target.value } : current))
+                        onBlur={(event) =>
+                          void handleVoiceProviderFieldChange("resourceId", event.target.value)
                         }
-                        onBlur={(event) => void handleVoiceProviderFieldChange("cluster", event.target.value)}
-                        placeholder="volcano_tts"
+                        placeholder="volc.service_type.10029"
                         disabled={!canAdjustVoiceConfig}
                       />
                     </label>
@@ -5527,8 +5518,8 @@ export function App(): ReactElement {
                               : "Gemini TTS uses official prebuilt voice names and Gemini TTS models. Microphone transcription does not route through Gemini yet."
                         : voiceStatusProviderType === "doubao"
                           ? locale === "zh"
-                            ? "豆包还需要 App ID 和 Cluster，缺一项都跑不通。"
-                            : "Doubao also needs App ID and cluster; missing either will break the route."
+                            ? "豆包还需要 API Key 和 Resource ID，缺一项都跑不通。"
+                            : "Doubao also needs API key and resource ID; missing either will break the route."
                           : locale === "zh"
                             ? "兼容供应商通常可以发现模型，但音色是否共享目录取决于这家服务本身。"
                             : "Compatible vendors can often discover models, but shared voice directories depend on the vendor."}
@@ -6814,36 +6805,19 @@ export function App(): ReactElement {
                           {usesDoubaoVoiceProvider ? (
                             <>
                               <label className="chat-voice-select">
-                                <span>App ID</span>
+                                <span>Resource ID</span>
                                 <input
                                   type="text"
-                                  value={voiceConfig?.appId ?? ""}
+                                  value={voiceConfig?.resourceId ?? ""}
                                   onChange={(event) =>
                                     setVoiceConfig((current) =>
-                                      current ? { ...current, appId: event.target.value } : current
+                                      current ? { ...current, resourceId: event.target.value } : current
                                     )
                                   }
                                   onBlur={(event) =>
-                                    void handleVoiceProviderFieldChange("appId", event.target.value)
+                                    void handleVoiceProviderFieldChange("resourceId", event.target.value)
                                   }
-                                  placeholder="Doubao appid"
-                                  disabled={!canAdjustVoiceConfig}
-                                />
-                              </label>
-                              <label className="chat-voice-select">
-                                <span>Cluster</span>
-                                <input
-                                  type="text"
-                                  value={voiceConfig?.cluster ?? ""}
-                                  onChange={(event) =>
-                                    setVoiceConfig((current) =>
-                                      current ? { ...current, cluster: event.target.value } : current
-                                    )
-                                  }
-                                  onBlur={(event) =>
-                                    void handleVoiceProviderFieldChange("cluster", event.target.value)
-                                  }
-                                  placeholder="volcano_tts"
+                                  placeholder="volc.service_type.10029"
                                   disabled={!canAdjustVoiceConfig}
                                 />
                               </label>
