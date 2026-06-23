@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- pending - latest verified functional change in this work block updates the Doubao default route to `seed-tts-2.0`, normalizes older saved Doubao configs onto that route, and parses the real chunked multi-event success stream so local `/api/voice/speak` now returns provider audio
+- `a632b89` - `Fix Doubao chunked TTS playback`
 
 ## Modules
 

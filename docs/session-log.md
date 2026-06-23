@@ -38,11 +38,11 @@ Verification:
 
 Commit:
 
-- pending
+- `a632b89` - `Fix Doubao chunked TTS playback`
 
 Push:
 
-- pending
+- succeeded: `git push origin main` pushed functional commit `a632b89` to `origin/main`
 
 ## 2026-06-23
 
