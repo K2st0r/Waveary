@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `pending` - `Stabilize voice provider preset switching`
+- `8483d9a` - `Stabilize voice provider preset switching`
 
 ## Modules
 
