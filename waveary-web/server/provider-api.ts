@@ -102,6 +102,13 @@ interface VoiceConfigRequest {
   engine?: string;
   speaker?: string;
   referenceVoiceId?: string;
+  textLanguage?: string;
+  promptLanguage?: string;
+  referenceTranscript?: string;
+  stylePrompt?: string;
+  styleStrength?: number | null;
+  temperature?: number | null;
+  topP?: number | null;
 }
 
 interface ChatSessionRequest {
