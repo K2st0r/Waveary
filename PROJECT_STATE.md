@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `591557e` - `Expose richer local self-hosted voice controls`
+- `1cf326c` - `Tighten voice console onboarding flow`
 
 ## Modules
 
