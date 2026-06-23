@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `a2d207e` - `Record live dedicated voice verification`
+- `a2471ac` - `Sync dedicated voice verification continuity`
 
 ## Modules
 
