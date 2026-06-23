@@ -1217,3 +1217,27 @@ Impact:
 - `waveary-web/server/provider-api.ts` now supports a Doubao-specific live catalog branch using signed Volcengine `ListSpeakers` requests when `AccessKey ID` and `Secret Access Key` are present
 - `waveary-web/server/voice-config.ts` now persists optional Doubao `accessKeyId` and `secretAccessKey` fields separately from the existing TTS `apiKey`
 - the voice console keeps the current curated Doubao fallback when those signing keys are absent, but can now show provider-fetched voices when they are supplied
+
+## 2026-06-23 - Legacy Doubao App TTS Must Stay A Separate Voice Route
+
+Status:
+
+- accepted
+
+Decision:
+
+Keep the current OpenSpeech v3 Doubao route for `seed-tts-2.0` voices, but add a separate `doubao-legacy` dedicated voice family for older app-style grants that still require `App ID + Access Token` on `/api/v1/tts`.
+
+Reason:
+
+- live verification proved that `multi_female_shuangkuaisisi_moon_bigtts` does not belong to the current `seed-tts-2.0` resource family and correctly fails there with `resource ID is mismatched with speaker related resource`
+- the user also supplied a separate older Doubao credential set, and direct upstream probes confirmed that this older app-style route can still synthesize successfully when called with `Authorization: Bearer;{AccessToken}` plus `app.appid` and `app.token`
+- forcing both credential families into one route keeps causing false conclusions such as "save failed" or "still using browser voice" when the real issue is simply that the selected voice belongs to the legacy app contract instead of the v3 resource-ID contract
+
+Impact:
+
+- `@waveary/voice` now exports `DoubaoLegacyTextToSpeechProvider`
+- `waveary-web/server/voice-config.ts` now includes a dedicated `doubao-legacy` preset plus persisted `appId`
+- `waveary-web/server/voice-routing-diagnostics.ts` now distinguishes `doubao` from `doubao-legacy`
+- the voice console can now save and route older Doubao app credentials without regressing the current v3 Doubao path
+- future sessions should not try to "fix" `multi_female_shuangkuaisisi_moon_bigtts` inside `seed-tts-2.0`; it belongs on the legacy route unless the upstream resource family changes

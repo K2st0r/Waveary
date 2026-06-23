@@ -549,6 +549,26 @@ test("voice config route auto-normalizes legacy saved doubao fields to the v3 co
   assert.equal(response.body.routing.reasonCode, "dedicated-doubao-ready");
 });
 
+test("voice config route clears polluted doubao catalog access key when it matches the saved voice id", async () => {
+  const middleware = createProviderApiMiddleware();
+  const response = await invokeJsonRoute(middleware, "POST", "/api/voice/config", {
+    providerMode: "dedicated",
+    provider: "doubao",
+    baseURL: "https://openspeech.bytedance.com",
+    apiKey: "doubao-key",
+    voice: "multi_female_shuangkuaisisi_moon_bigtts",
+    accessKeyId: "multi_female_shuangkuaisisi_moon_bigtts",
+    secretAccessKey: "",
+    resourceId: "seed-tts-2.0",
+    model: "doubao-tts",
+    qualityProfile: "gentle",
+    format: "mp3"
+  });
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.config.accessKeyId, "");
+});
+
 test("voice transcribe route returns transcript text for compatible providers", async () => {
   const middleware = createProviderApiMiddleware();
 
@@ -970,6 +990,87 @@ test("voice speak route supports dedicated doubao tts config", async () => {
   );
 });
 
+test("voice speak route supports dedicated doubao legacy tts config", async () => {
+  const middleware = createProviderApiMiddleware();
+
+  globalThis.fetch = (async (input, init) => {
+    if (String(input) === "https://openspeech.bytedance.com/api/v1/tts") {
+      const headers = init?.headers as Record<string, string>;
+      const body = init?.body
+        ? (JSON.parse(String(init.body)) as {
+            app: {
+              appid: string;
+              token: string;
+              cluster: string;
+            };
+            audio: {
+              voice_type: string;
+              encoding: string;
+            };
+            request: {
+              text: string;
+              operation: string;
+            };
+          })
+        : null;
+
+      assert.equal(headers.Authorization, "Bearer;legacy-token");
+      assert.equal(body?.app.appid, "3086540171");
+      assert.equal(body?.app.token, "legacy-token");
+      assert.equal(body?.app.cluster, "volcano_tts");
+      assert.equal(body?.audio.voice_type, "multi_female_shuangkuaisisi_moon_bigtts");
+      assert.equal(body?.audio.encoding, "mp3");
+      assert.equal(body?.request.text, "你好，我在。");
+      assert.equal(body?.request.operation, "query");
+
+      return new Response(
+        JSON.stringify({
+          code: 3000,
+          message: "Success",
+          data: Buffer.from("doubao-legacy-voice-audio").toString("base64")
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json"
+          }
+        }
+      );
+    }
+
+    throw new Error(`Unexpected fetch URL: ${String(input)}`);
+  }) as typeof fetch;
+
+  const response = await invokeJsonRoute(middleware, "POST", "/api/voice/config", {
+    providerMode: "dedicated",
+    provider: "doubao-legacy",
+    apiKey: "legacy-token",
+    appId: "3086540171",
+    cluster: "volcano_tts",
+    voice: "multi_female_shuangkuaisisi_moon_bigtts",
+    model: "doubao-legacy-tts",
+    qualityProfile: "cinematic",
+    format: "mp3"
+  });
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.routing.reasonCode, "dedicated-doubao-legacy-ready");
+
+  const speakResponse = await invokeJsonRoute(middleware, "POST", "/api/voice/speak", {
+    text: "你好，我在。",
+    locale: "zh-CN"
+  });
+
+  assert.equal(speakResponse.statusCode, 200);
+  assert.equal(speakResponse.body.provider, "doubao-legacy");
+  assert.equal(speakResponse.body.routing.target, "provider-audio");
+  assert.equal(speakResponse.body.routing.reasonCode, "dedicated-doubao-legacy-ready");
+  assert.equal(
+    Buffer.from(speakResponse.body.audio.base64, "base64").toString("utf8"),
+    "doubao-legacy-voice-audio"
+  );
+});
+
 test("voice speak route supports dedicated local self-hosted tts config", async () => {
   const middleware = createProviderApiMiddleware();
 
@@ -1107,6 +1208,26 @@ test("voice config route reports missing doubao resource id before playback", as
   assert.equal(response.body.routing.target, "browser-fallback");
   assert.equal(response.body.routing.reasonCode, "dedicated-doubao-missing-resource-id");
   assert.deepEqual(response.body.routing.missingFields, ["resourceId"]);
+});
+
+test("voice config route reports missing doubao legacy app id before playback", async () => {
+  const middleware = createProviderApiMiddleware();
+
+  const response = await invokeJsonRoute(middleware, "POST", "/api/voice/config", {
+    providerMode: "dedicated",
+    provider: "doubao-legacy",
+    apiKey: "legacy-token",
+    appId: "",
+    voice: "multi_female_shuangkuaisisi_moon_bigtts",
+    model: "doubao-legacy-tts",
+    qualityProfile: "cinematic",
+    format: "mp3"
+  });
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.routing.target, "browser-fallback");
+  assert.equal(response.body.routing.reasonCode, "dedicated-doubao-legacy-missing-app-id");
+  assert.deepEqual(response.body.routing.missingFields, ["appId"]);
 });
 
 test("voice speak route surfaces fallback reason when dedicated provider request fails", async () => {

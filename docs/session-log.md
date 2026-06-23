@@ -5676,3 +5676,51 @@ Commit:
 Push:
 
 - succeeded: `git push origin main` pushed functional commit `614e6a0` to `origin/main`
+## 2026-06-23
+
+Objective:
+
+Split legacy Doubao app-style voices from the newer OpenSpeech v3 route, clean the polluted voice-catalog access-key state, and verify that `multi_female_shuangkuaisisi_moon_bigtts` can reach real provider audio through the correct legacy route.
+
+Summary:
+
+- confirmed by direct upstream probes that the current v3 Doubao path with `X-Api-Resource-Id: seed-tts-2.0` works for current 2.0 speakers such as `zh_female_gaolengyujie_uranus_bigtts`, but correctly rejects `multi_female_shuangkuaisisi_moon_bigtts` with `resource ID is mismatched with speaker related resource`
+- confirmed by direct upstream probes that the user-provided older Doubao `App ID + Access Token` path on `POST /api/v1/tts` can still synthesize successfully for `multi_female_shuangkuaisisi_moon_bigtts`, so that voice must stay on a separate legacy route instead of being forced into the v3 resource family
+- added `DoubaoLegacyTextToSpeechProvider`, a `doubao-legacy` dedicated voice preset, route diagnostics for `appId`, and voice-console support for saving the legacy app credential shape without disturbing the current v3 Doubao route
+- added config normalization that clears a polluted saved `accessKeyId` when it was accidentally overwritten with the same string as the selected voice ID and no secret key exists, preventing future sessions from confusing live speaker-discovery keys with normal voice selection state
+- verified with UTF-8-safe escaped Chinese text that both the direct provider call and the live local `/api/voice/speak` route now return `provider = doubao-legacy`, `mode = audio`, and real provider audio bytes for the legacy route
+
+Files changed:
+
+- `waveary-voice/src/doubao-legacy-tts-provider.ts`
+- `waveary-voice/src/doubao-legacy-tts-provider.test.ts`
+- `waveary-voice/src/index.ts`
+- `waveary-web/server/voice-config.ts`
+- `waveary-web/server/voice-routing-diagnostics.ts`
+- `waveary-web/server/voice-runtime.ts`
+- `waveary-web/server/provider-api.ts`
+- `waveary-web/server/provider-api.test.ts`
+- `waveary-web/src/App.tsx`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run test --workspace @waveary/voice`
+- `npm run test --workspace @waveary/web`
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run check:mojibake`
+- direct Node `fetch` probes against `https://openspeech.bytedance.com/api/v3/tts/unidirectional`, confirming that `multi_female_shuangkuaisisi_moon_bigtts` mismatches `seed-tts-2.0` while current 2.0 speakers succeed
+- direct Node `fetch` probes against `https://openspeech.bytedance.com/api/v1/tts`, confirming the user-provided legacy `App ID + Access Token` path succeeds for `multi_female_shuangkuaisisi_moon_bigtts`
+- direct module-level verification with UTF-8-safe escaped Chinese text through `DoubaoLegacyTextToSpeechProvider`
+- live local `POST http://127.0.0.1:4173/api/voice/speak` with UTF-8-safe escaped Chinese text, confirming `provider = doubao-legacy`, `mode = audio`, `routing.reasonCode = dedicated-doubao-legacy-ready`, and non-zero provider audio bytes
+
+Commit:
+
+- pending
+
+Push:
+
+- pending

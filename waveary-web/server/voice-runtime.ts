@@ -1,6 +1,7 @@
 import type { EmotionState, RelationshipProfile } from "@waveary/core";
 import {
   BrowserSpeechPlanner,
+  DoubaoLegacyTextToSpeechProvider,
   DoubaoTextToSpeechProvider,
   FishAudioTextToSpeechProvider,
   GeminiTextToSpeechProvider,
@@ -38,6 +39,7 @@ export interface VoiceSpeakPlanRequest {
     provider?: string;
     baseURL?: string;
     apiKey?: string;
+    appId?: string;
     resourceId?: string;
     cluster?: string;
     endpointPath?: string;
@@ -154,6 +156,7 @@ export async function planChatSpeech(input: VoiceSpeakPlanRequest) {
       requestedVoiceConfig?.apiKey?.trim() ||
       savedVoiceConfig.apiKey ||
       (savedVoiceConfig.providerMode !== "dedicated" ? savedProvider?.apiKey || "" : ""),
+    appId: requestedVoiceConfig?.appId?.trim() || savedVoiceConfig.appId || "",
     resourceId:
       requestedVoiceConfig?.resourceId?.trim() || savedVoiceConfig.resourceId || "",
     cluster: requestedVoiceConfig?.cluster?.trim() || savedVoiceConfig.cluster || "",
@@ -206,6 +209,32 @@ export async function planChatSpeech(input: VoiceSpeakPlanRequest) {
         const ttsProvider = new DoubaoTextToSpeechProvider({
           apiKey: providerBackedVoiceConfig.apiKey,
           resourceId,
+          voiceType: resolvedVoiceConfig.voice
+        });
+
+        const result = await ttsProvider.synthesize(request);
+        return {
+          ...result,
+          routing: {
+            ...routingDiagnostic,
+            attemptedProviderAudio: true
+          }
+        } satisfies VoiceSpeakResultWithDiagnostics;
+      }
+
+      if (providerBackedVoiceConfig.provider === "doubao-legacy") {
+        const appId = providerBackedVoiceConfig.appId;
+
+        if (!appId) {
+          throw new Error("Doubao legacy voice config requires an appId.");
+        }
+
+        const ttsProvider = new DoubaoLegacyTextToSpeechProvider({
+          accessToken: providerBackedVoiceConfig.apiKey,
+          appId,
+          ...(providerBackedVoiceConfig.cluster
+            ? { cluster: providerBackedVoiceConfig.cluster }
+            : {}),
           voiceType: resolvedVoiceConfig.voice
         });
 

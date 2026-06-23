@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `9445ca6` - `Add live Doubao speaker catalog fetch`
+- `pending` - `Add legacy Doubao voice route`
 
 ## Modules
 

@@ -33,6 +33,7 @@ interface SavedVoiceConfig {
   provider: string;
   baseURL: string;
   apiKey: string;
+  appId: string;
   accessKeyId: string;
   secretAccessKey: string;
   resourceId: string;
@@ -63,7 +64,13 @@ interface VoiceProviderPreset {
   id: string;
   label: string;
   provider: string;
-  providerType: "openai-compatible" | "gemini" | "fish-audio" | "doubao" | "local";
+  providerType:
+    | "openai-compatible"
+    | "gemini"
+    | "fish-audio"
+    | "doubao"
+    | "doubao-legacy"
+    | "local";
   baseURL: string;
   voiceFieldMode?: "select" | "input";
   defaultModel?: string;
@@ -77,7 +84,13 @@ interface VoiceOptionDescriptor {
 }
 
 interface VoiceCatalogResponse {
-  providerType: "openai-compatible" | "gemini" | "fish-audio" | "doubao" | "local";
+  providerType:
+    | "openai-compatible"
+    | "gemini"
+    | "fish-audio"
+    | "doubao"
+    | "doubao-legacy"
+    | "local";
   models: ModelDescriptor[];
   voices: VoiceOptionDescriptor[];
   voiceFieldMode: "select" | "input";
@@ -177,7 +190,7 @@ interface VoiceRoutingStatus {
   ready: boolean;
   reasonCode: string;
   summary: string;
-  missingFields: Array<"provider" | "baseURL" | "apiKey" | "resourceId">;
+  missingFields: Array<"provider" | "baseURL" | "apiKey" | "appId" | "resourceId">;
   attemptedProviderAudio?: boolean;
   fallbackReason?: string;
 }
@@ -1998,6 +2011,7 @@ export function App(): ReactElement {
           provider: patch.provider ?? currentVoiceConfig.provider,
           baseURL: patch.baseURL ?? currentVoiceConfig.baseURL,
           apiKey: patch.apiKey ?? currentVoiceConfig.apiKey,
+          appId: patch.appId ?? currentVoiceConfig.appId,
           accessKeyId: patch.accessKeyId ?? currentVoiceConfig.accessKeyId,
           secretAccessKey:
             patch.secretAccessKey ?? currentVoiceConfig.secretAccessKey,
@@ -2111,6 +2125,7 @@ export function App(): ReactElement {
       | "provider"
       | "baseURL"
       | "apiKey"
+      | "appId"
       | "accessKeyId"
       | "secretAccessKey"
       | "resourceId"
@@ -4057,6 +4072,9 @@ export function App(): ReactElement {
     usesDedicatedVoiceProvider && (voiceConfig?.provider ?? "").trim().toLowerCase() === "local";
   const usesDoubaoVoiceProvider =
     usesDedicatedVoiceProvider && (voiceConfig?.provider ?? "").trim().toLowerCase() === "doubao";
+  const usesDoubaoLegacyVoiceProvider =
+    usesDedicatedVoiceProvider &&
+    (voiceConfig?.provider ?? "").trim().toLowerCase() === "doubao-legacy";
   const selectedVoiceProviderPreset =
     voiceProviderPresets.find(
       (preset) =>
@@ -4072,6 +4090,8 @@ export function App(): ReactElement {
       ? "gemini"
       : usesDoubaoVoiceProvider
         ? "doubao"
+        : usesDoubaoLegacyVoiceProvider
+          ? "doubao-legacy"
         : usesLocalVoiceProvider
           ? "local"
           : "openai-compatible");
@@ -4084,7 +4104,9 @@ export function App(): ReactElement {
   const supportsProviderPresetSelection = usesDedicatedVoiceProvider;
   const preferredVoiceFieldMode =
     selectedVoiceProviderPreset?.voiceFieldMode ??
-    (usesDoubaoVoiceProvider || usesLocalVoiceProvider ? "input" : "select");
+    (usesDoubaoVoiceProvider || usesDoubaoLegacyVoiceProvider || usesLocalVoiceProvider
+      ? "input"
+      : "select");
   const visibleVoiceModelDescriptors = usesLiveVoiceCatalog
     ? voiceCatalog.models
     : availableVoiceModels.map((model) => ({
@@ -4123,6 +4145,8 @@ export function App(): ReactElement {
   const voiceFieldPlaceholder =
     usesDedicatedVoiceProvider && activeVoiceProviderType === "doubao"
       ? "zh_female_gaolengyujie_uranus_bigtts"
+      : usesDedicatedVoiceProvider && activeVoiceProviderType === "doubao-legacy"
+        ? "multi_female_shuangkuaisisi_moon_bigtts"
       : usesDedicatedVoiceProvider && activeVoiceProviderType === "local"
         ? locale === "zh"
           ? "输入 speaker 或 voice id"
@@ -4151,6 +4175,7 @@ export function App(): ReactElement {
   const showVoiceCatalogAction =
     supportsProviderPresetSelection &&
     activeVoiceProviderType !== "local" &&
+    activeVoiceProviderType !== "doubao-legacy" &&
     activeVoiceProviderType !== "gemini";
   const voiceCatalogActionLabel =
     activeVoiceProviderType === "fish-audio"
@@ -4597,6 +4622,27 @@ export function App(): ReactElement {
                           void handleVoiceProviderFieldChange("secretAccessKey", event.target.value)
                         }
                         placeholder="Optional: for live ListSpeakers"
+                        disabled={!canAdjustVoiceConfig}
+                      />
+                    </label>
+                  </>
+                ) : null}
+                {activeVoiceProviderType === "doubao-legacy" ? (
+                  <>
+                    <label className="chat-voice-select">
+                      <span>App ID</span>
+                      <input
+                        type="text"
+                        value={voiceConfig?.appId ?? ""}
+                        onChange={(event) =>
+                          setVoiceConfig((current) =>
+                            current ? { ...current, appId: event.target.value } : current
+                          )
+                        }
+                        onBlur={(event) =>
+                          void handleVoiceProviderFieldChange("appId", event.target.value)
+                        }
+                        placeholder="3086540171"
                         disabled={!canAdjustVoiceConfig}
                       />
                     </label>
