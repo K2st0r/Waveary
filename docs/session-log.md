@@ -44,6 +44,39 @@ Push:
 
 Objective:
 
+Make the Micu Gemini voice console tell the truth more clearly when upstream model naming or key permissions block real audio.
+
+Summary:
+
+- kept the change frontend-only inside `waveary-web/src/App.tsx` so the already-verified Micu routing path stayed untouched
+- added Micu-specific English guidance in the voice workspace so the `Gemini TTS (Micu Relay)` preset now explicitly warns that Micu recognizes `gemini-2.5-flash-tts-preview` and `gemini-2.5-pro-tts-preview`, not the official `*-preview-tts` aliases
+- added a small fallback-reason formatter so Gemini voice failures now surface more truthful explanations when the upstream route returns `model_not_found` or `This token has no access to model`, instead of only echoing the raw provider string everywhere
+- preserved the wider console and voice runtime behavior; this cut only makes the control desk and fallback copy more legible after the real Micu tests
+
+Files changed:
+
+- `waveary-web/src/App.tsx`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run test --workspace @waveary/web`
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run check:mojibake`
+- `git diff -- waveary-web/src/App.tsx`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-23
+
+Objective:
+
 Add Fish Audio as a dedicated voice-provider family for TTS and STT without disturbing the current chat-provider architecture.
 
 Summary:
