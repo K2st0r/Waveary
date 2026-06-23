@@ -5,7 +5,10 @@ import { fileURLToPath } from "node:url";
 
 import { OpenAICompatibleChatProvider, PROVIDER_PRESETS } from "@waveary/core";
 import type { EmotionState, RelationshipProfile } from "@waveary/core";
-import { OpenAICompatibleSpeechToTextProvider } from "@waveary/voice";
+import {
+  FishAudioSpeechToTextProvider,
+  OpenAICompatibleSpeechToTextProvider
+} from "@waveary/voice";
 import {
   clickManagedBrowserElementByText,
   extractManagedBrowserPageText,
@@ -327,19 +330,23 @@ export function createProviderApiMiddleware() {
           throw new Error("Provider-backed STT is not ready for the current voice route.");
         }
 
-        if (
-          providerBackedConfig.provider === "doubao" ||
-          providerBackedConfig.provider === "local"
-        ) {
+        if (providerBackedConfig.provider === "doubao" || providerBackedConfig.provider === "local") {
           throw new Error("Provider-backed STT is not implemented for this voice provider yet.");
         }
 
-        const provider = new OpenAICompatibleSpeechToTextProvider({
-          provider: providerBackedConfig.provider,
-          apiKey: providerBackedConfig.apiKey,
-          baseURL: providerBackedConfig.baseURL,
-          model: mergedVoiceConfig.sttModel
-        });
+        const provider =
+          providerBackedConfig.provider === "fish-audio"
+            ? new FishAudioSpeechToTextProvider({
+                apiKey: providerBackedConfig.apiKey,
+                baseURL: providerBackedConfig.baseURL,
+                model: mergedVoiceConfig.sttModel
+              })
+            : new OpenAICompatibleSpeechToTextProvider({
+                provider: providerBackedConfig.provider,
+                apiKey: providerBackedConfig.apiKey,
+                baseURL: providerBackedConfig.baseURL,
+                model: mergedVoiceConfig.sttModel
+              });
 
         const result = await provider.transcribe({
           audio: {
@@ -405,6 +412,60 @@ export function createProviderApiMiddleware() {
 
         if (!staticCatalog) {
           throw new Error("Voice provider catalog is not available.");
+        }
+
+        if (staticCatalog.providerType === "fish-audio") {
+          const baseURL = requireNonEmpty(
+            payload.baseURL ?? preset?.baseURL,
+            "Voice base URL is required."
+          );
+          const apiKey = requireNonEmpty(payload.apiKey, "Voice API key is required.");
+          const catalogResponse = await fetch(
+            `${baseURL.replace(/\/+$/, "")}/model?self=false&page_size=20&page_number=1`,
+            {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${apiKey}`
+            }
+            }
+          );
+
+          if (!catalogResponse.ok) {
+            const errorBody = await catalogResponse.text();
+            const suffix = errorBody ? ` Body: ${errorBody}` : "";
+            throw new Error(
+              `Fish Audio voice catalog request failed with status ${catalogResponse.status}.${suffix}`
+            );
+          }
+
+          const fishCatalogPayload = (await catalogResponse.json()) as {
+            items?: Array<{
+              _id?: string;
+              title?: string;
+            }>;
+          };
+          const models =
+            fishCatalogPayload.items?.flatMap((item) => {
+              const id = item._id?.trim();
+
+              if (!id) {
+                return [];
+              }
+
+              return [
+                {
+                  id,
+                  provider: "fish-audio",
+                  ...(item.title?.trim() ? { label: item.title.trim() } : {})
+                }
+              ];
+            }) ?? [];
+
+          sendJson(response, 200, {
+            ...staticCatalog,
+            models
+          });
+          return;
         }
 
         if (staticCatalog.providerType === "openai-compatible") {

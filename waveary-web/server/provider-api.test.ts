@@ -221,6 +221,7 @@ test("voice provider presets route returns selectable voice vendors", async () =
   assert.ok(response.body.presets.some((preset: { id: string }) => preset.id === "siliconflow"));
   assert.ok(response.body.presets.some((preset: { id: string }) => preset.id === "dashscope"));
   assert.ok(response.body.presets.some((preset: { id: string }) => preset.id === "ark"));
+  assert.ok(response.body.presets.some((preset: { id: string }) => preset.id === "fish-audio"));
   assert.ok(response.body.presets.some((preset: { id: string }) => preset.id === "doubao"));
   assert.ok(response.body.presets.some((preset: { id: string }) => preset.id === "local"));
 });
@@ -281,6 +282,44 @@ test("voice catalog route returns input-mode catalogs for doubao and local provi
   assert.equal(localResponse.body.providerType, "local");
   assert.equal(localResponse.body.voiceFieldMode, "input");
   assert.equal(localResponse.body.defaultModel, "local-bridge");
+});
+
+test("voice catalog route returns fish audio voice models from fish model api", async () => {
+  const middleware = createProviderApiMiddleware();
+
+  globalThis.fetch = (async (input, init) => {
+    if (String(input) === "https://api.fish.audio/model?self=false&page_size=20&page_number=1") {
+      assert.equal(String((init?.headers as Record<string, string>).Authorization), "Bearer fish-key");
+      return new Response(
+        JSON.stringify({
+          total: 2,
+          items: [
+            { _id: "fish-voice-1", title: "Warm Narrator" },
+            { _id: "fish-voice-2", title: "Soft Companion" }
+          ]
+        }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json" }
+        }
+      );
+    }
+
+    throw new Error(`Unexpected fetch URL: ${String(input)}`);
+  }) as typeof fetch;
+
+  const response = await invokeJsonRoute(middleware, "POST", "/api/voice/catalog", {
+    provider: "fish-audio",
+    baseURL: "https://api.fish.audio",
+    apiKey: "fish-key"
+  });
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.providerType, "fish-audio");
+  assert.equal(response.body.voiceFieldMode, "input");
+  assert.ok(Array.isArray(response.body.models));
+  assert.ok(response.body.models.some((model: { id: string }) => model.id === "fish-voice-1"));
+  assert.ok(response.body.models.some((model: { label: string }) => model.label === "Soft Companion"));
 });
 
 test("voice catalog route keeps manual voice entry for compatible vendors without shared voice directories", async () => {
@@ -413,6 +452,118 @@ test("voice transcribe route rejects unsupported provider-backed stt families fo
   assert.equal(
     response.body.error,
     "Provider-backed STT is not implemented for this voice provider yet."
+  );
+});
+
+test("voice transcribe route supports dedicated fish audio stt config", async () => {
+  const middleware = createProviderApiMiddleware();
+
+  await invokeJsonRoute(middleware, "POST", "/api/voice/config", {
+    providerMode: "dedicated",
+    provider: "fish-audio",
+    baseURL: "https://api.fish.audio",
+    apiKey: "fish-key",
+    model: "s2-pro",
+    sttModel: "fish-sense-1",
+    voice: "fish-voice-1",
+    qualityProfile: "cinematic",
+    format: "mp3"
+  });
+
+  globalThis.fetch = (async (input, init) => {
+    if (String(input) === "https://api.fish.audio/v1/asr") {
+      const headers = init?.headers as Record<string, string>;
+      assert.equal(headers.Authorization, "Bearer fish-key");
+      const body = JSON.parse(String(init?.body)) as {
+        audio: string;
+        language: string;
+        ignore_timestamps: boolean;
+      };
+      assert.equal(body.language, "zh");
+      assert.equal(body.ignore_timestamps, true);
+      assert.equal(body.audio, Buffer.from("fake-audio").toString("base64"));
+
+      return new Response(
+        JSON.stringify({
+          text: "我在，继续说。",
+          duration: 1.6,
+          segments: []
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json"
+          }
+        }
+      );
+    }
+
+    throw new Error(`Unexpected fetch URL: ${String(input)}`);
+  }) as typeof fetch;
+
+  const response = await invokeJsonRoute(middleware, "POST", "/api/voice/transcribe", {
+    locale: "zh-CN",
+    audio: {
+      base64: Buffer.from("fake-audio").toString("base64"),
+      mimeType: "audio/webm"
+    }
+  });
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.provider, "fish-audio");
+  assert.equal(response.body.text, "我在，继续说。");
+  assert.equal(response.body.metadata.model, "fish-sense-1");
+  assert.equal(response.body.routing.reasonCode, "dedicated-fish-audio-ready");
+});
+
+test("voice speak route supports dedicated fish audio tts config", async () => {
+  const middleware = createProviderApiMiddleware();
+
+  await invokeJsonRoute(middleware, "POST", "/api/voice/config", {
+    providerMode: "dedicated",
+    provider: "fish-audio",
+    baseURL: "https://api.fish.audio",
+    apiKey: "fish-key",
+    model: "s2-pro",
+    voice: "fish-voice-1",
+    qualityProfile: "gentle",
+    format: "mp3"
+  });
+
+  globalThis.fetch = (async (input, init) => {
+    if (String(input) === "https://api.fish.audio/v1/tts") {
+      const headers = init?.headers as Record<string, string>;
+      assert.equal(headers.Authorization, "Bearer fish-key");
+      assert.equal(headers.model, "s2-pro");
+      const body = JSON.parse(String(init?.body)) as {
+        text: string;
+        reference_id: string;
+      };
+      assert.equal(body.text, "Stay with me.");
+      assert.equal(body.reference_id, "fish-voice-1");
+
+      return new Response(Buffer.from("fish-voice-audio"), {
+        status: 200,
+        headers: {
+          "Content-Type": "audio/mpeg"
+        }
+      });
+    }
+
+    throw new Error(`Unexpected fetch URL: ${String(input)}`);
+  }) as typeof fetch;
+
+  const response = await invokeJsonRoute(middleware, "POST", "/api/voice/speak", {
+    text: "Stay with me.",
+    locale: "en-US"
+  });
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.provider, "fish-audio");
+  assert.equal(response.body.routing.reasonCode, "dedicated-fish-audio-ready");
+  assert.equal(
+    Buffer.from(response.body.audio.base64, "base64").toString("utf8"),
+    "fish-voice-audio"
   );
 });
 

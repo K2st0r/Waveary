@@ -1015,3 +1015,26 @@ Impact:
 - chat reply payloads now include a `delivery` hint with style, pace, closeness, expressiveness, and a provider-usable instruction summary
 - `/api/voice/speak` now accepts and forwards that delivery hint through the voice runtime
 - browser speech planning and provider-backed instruction construction now both use the same delivery contract rather than re-deriving tone independently from text
+
+## 2026-06-23 - Fish Audio Stays A Dedicated Voice Family, Not An OpenAI-Compatible Shortcut
+
+Status:
+
+- accepted
+
+Decision:
+
+Integrate Fish Audio as its own dedicated voice-provider family for Waveary voice routing, instead of forcing it through the existing OpenAI-compatible speech path.
+
+Reason:
+
+- the user explicitly wants Fish Audio tested at the voice layer first, not mixed into the chat-model provider layer
+- Fish Audio uses different route shapes from the current OpenAI-compatible `/audio/speech` and `/audio/transcriptions` flow, including `POST /v1/tts`, `POST /v1/asr`, a required TTS `model` header, and `/model` for voice-model discovery
+- keeping Fish separate preserves honest provider behavior and avoids pretending that all voice vendors share one universal speech contract
+
+Impact:
+
+- `@waveary/voice` now exports `FishAudioTextToSpeechProvider` and `FishAudioSpeechToTextProvider`
+- `waveary-web/server/voice-routing-diagnostics.ts` now recognizes `fish-audio` as a dedicated-ready provider family
+- `waveary-web/server/provider-api.ts` now supports Fish Audio voice-model catalog fetches through `/model` plus dedicated Fish STT routing through `/api/voice/transcribe`
+- the existing browser-side provider STT gate now also treats `fish-audio` as a real provider-backed speech path instead of falling back unnecessarily

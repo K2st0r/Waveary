@@ -4,6 +4,53 @@
 
 Objective:
 
+Add Fish Audio as a dedicated voice-provider family for TTS and STT without disturbing the current chat-provider architecture.
+
+Summary:
+
+- added `FishAudioTextToSpeechProvider` and `FishAudioSpeechToTextProvider` inside `@waveary/voice`, using Fish's own `POST /v1/tts` and `POST /v1/asr` routes instead of pretending the vendor fits the OpenAI-compatible speech contract
+- extended `waveary-web` voice routing, diagnostics, and provider API so dedicated voice mode can now recognize `fish-audio`, synthesize speech through Fish, transcribe microphone uploads through Fish, and fetch reusable Fish voice-model IDs from `/model`
+- kept the frontend scope intentionally small: the existing voice console and chat provider-STT gate now accept `fish-audio` as a real provider-backed voice family without reworking the broader console shell
+- verified the new Fish path with direct package tests plus web route tests, while also re-checking that the existing web voice routes still build and pass after the new provider family landed
+
+Files changed:
+
+- `waveary-voice/src/index.ts`
+- `waveary-voice/src/fish-audio-tts-provider.ts`
+- `waveary-voice/src/fish-audio-tts-provider.test.ts`
+- `waveary-voice/src/fish-audio-stt-provider.ts`
+- `waveary-voice/src/fish-audio-stt-provider.test.ts`
+- `waveary-web/server/voice-config.ts`
+- `waveary-web/server/voice-routing-diagnostics.ts`
+- `waveary-web/server/voice-runtime.ts`
+- `waveary-web/server/provider-api.ts`
+- `waveary-web/server/provider-api.test.ts`
+- `waveary-web/src/App.tsx`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/voice`
+- `npm run test --workspace @waveary/voice`
+- `npm run build:server --workspace @waveary/web`
+- `npm run test --workspace @waveary/web`
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-23
+
+Objective:
+
 Replace the fixed short provider-STT recording window with a more truthful silence-based stop path without widening the current voice scope.
 
 Summary:

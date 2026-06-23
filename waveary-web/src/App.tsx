@@ -61,7 +61,7 @@ interface VoiceProviderPreset {
   id: string;
   label: string;
   provider: string;
-  providerType: "openai-compatible" | "doubao" | "local";
+  providerType: "openai-compatible" | "fish-audio" | "doubao" | "local";
   baseURL: string;
   voiceFieldMode?: "select" | "input";
   defaultModel?: string;
@@ -75,7 +75,7 @@ interface VoiceOptionDescriptor {
 }
 
 interface VoiceCatalogResponse {
-  providerType: "openai-compatible" | "doubao" | "local";
+  providerType: "openai-compatible" | "fish-audio" | "doubao" | "local";
   models: ModelDescriptor[];
   voices: VoiceOptionDescriptor[];
   voiceFieldMode: "select" | "input";
@@ -169,7 +169,7 @@ interface VoiceTranscribeResponse {
 interface VoiceRoutingStatus {
   mode: "shared" | "dedicated";
   target: "provider-audio" | "browser-fallback";
-  providerType: "shared-chat-provider" | "openai-compatible" | "doubao" | "local" | "unknown";
+  providerType: "shared-chat-provider" | "openai-compatible" | "fish-audio" | "doubao" | "local" | "unknown";
   providerLabel: string;
   ready: boolean;
   reasonCode: string;
@@ -7535,7 +7535,10 @@ function canUseProviderSpeechToText(
     return true;
   }
 
-  return voiceRoutingStatus.providerType === "openai-compatible";
+  return (
+    voiceRoutingStatus.providerType === "openai-compatible" ||
+    voiceRoutingStatus.providerType === "fish-audio"
+  );
 }
 
 async function blobToBase64(blob: Blob): Promise<string> {

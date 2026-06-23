@@ -40,7 +40,7 @@ export interface VoiceProviderPreset {
   id: string;
   label: string;
   provider: string;
-  providerType: "openai-compatible" | "doubao" | "local";
+  providerType: "openai-compatible" | "fish-audio" | "doubao" | "local";
   baseURL: string;
   voiceFieldMode?: "select" | "input";
   defaultModel?: string;
@@ -131,6 +131,17 @@ const VOICE_PROVIDER_PRESETS: readonly VoiceProviderPreset[] = [
     voiceFieldMode: "input",
     notes:
       "Ark-style compatible speech routes can share the model-discovery flow, but voice naming differs by vendor and should be entered manually."
+  },
+  {
+    id: "fish-audio",
+    label: "Fish Audio",
+    provider: "fish-audio",
+    providerType: "fish-audio",
+    baseURL: "https://api.fish.audio",
+    voiceFieldMode: "input",
+    defaultModel: "s2-pro",
+    notes:
+      "Fish Audio uses /model for voice-model discovery and expects the selected voice model ID in the voice field. TTS and STT stay on Fish's own voice routes instead of the OpenAI-compatible speech path."
   },
   {
     id: "doubao",
@@ -224,6 +235,19 @@ export function buildStaticVoiceCatalog(providerOrPreset: string): VoiceCatalogR
       notes:
         matchedPreset?.notes ??
         "Doubao does not currently use a single OpenAI-style voice-list route here. Enter the voice_type you want after testing it."
+    };
+  }
+
+  if (providerType === "fish-audio") {
+    return {
+      providerType: "fish-audio",
+      models: [],
+      voices: [],
+      voiceFieldMode: "input",
+      defaultModel: "s2-pro",
+      notes:
+        matchedPreset?.notes ??
+        "Fish Audio discovers reusable voice models through /model. Fetch the catalog, then enter the chosen Fish voice model ID in the voice field."
     };
   }
 
