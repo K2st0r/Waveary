@@ -3726,7 +3726,7 @@ export function App(): ReactElement {
                   />
                 </label>
                 <label className="chat-voice-select">
-                  <span>{locale === "zh" ? "璇煶 Key" : "Voice Key"}</span>
+                  <span>{locale === "zh" ? "\u8bed\u97f3 Key" : "Voice Key"}</span>
                   <input
                     type="password"
                     value={voiceConfig?.apiKey ?? ""}
@@ -3737,10 +3737,10 @@ export function App(): ReactElement {
                     placeholder={
                       activeVoiceProviderType === "local"
                         ? locale === "zh"
-                          ? "鍙€夛細濡傛灉鏈湴妗ユ帴闇€瑕侀壌鏉冿紝鍦ㄨ繖閲屽～鍏?"
+                          ? "\u53ef\u9009\uff1a\u5982\u679c\u672c\u5730\u6865\u63a5\u9700\u8981\u9274\u6743\uff0c\u5728\u8fd9\u91cc\u586b\u5165"
                           : "Optional: enter it if your local bridge requires auth"
                         : locale === "zh"
-                          ? "濉叆鐪熶汉璇煶 API Key"
+                          ? "\u586b\u5165\u771f\u4eba\u8bed\u97f3 API Key"
                           : "Enter dedicated voice API key"
                     }
                     disabled={!canAdjustVoiceConfig}
