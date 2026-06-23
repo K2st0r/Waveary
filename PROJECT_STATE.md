@@ -233,6 +233,7 @@ Brand line:
 - `docs/product-preferences.md` now records durable product, tone, trust-boundary, and workflow preferences that should survive heavy context compression
 - `docs/session-log.md` and `docs/decision-log.md` continue to serve as chronological execution and architecture records
 - the repository now also has a changed-files mojibake guard at `tools/check-mojibake.mjs`, exposed through `npm run check:mojibake`, so Chinese-copy edits can be validated mechanically instead of relying only on terminal rendering
+- the voice routes now also expose explicit routing diagnostics, so the console and playback layer can tell whether Waveary is ready for provider-backed audio, which required fields are still missing, and why the last playback fell back to browser speech
 
 ## Verified Commands
 
@@ -243,6 +244,8 @@ Brand line:
 - `npm run demo`
 - `npm run web:dev`
 - `npm run web:build`
+- `Invoke-RestMethod http://127.0.0.1:4173/api/voice/config`
+- `Invoke-RestMethod -Method Post http://127.0.0.1:4173/api/voice/speak`
 - `GET /api/browser/page` route-level coverage via `npm run test --workspace @waveary/web`
 - `POST /api/browser/extract-text` route-level coverage via `npm run test --workspace @waveary/web`
 - `POST /api/browser/search-text` route-level coverage via `npm run test --workspace @waveary/web`
@@ -308,6 +311,7 @@ Brand line:
 ## Next Steps
 
 - continue the focused browser pass for the refreshed voice workspace against real provider endpoints, now that the stale preset-switch carryover bug has been removed and the local dev server has been re-verified on the updated server code
+- browser-verify the new voice routing diagnostics in the live console so missing Doubao `appId`, compatible-provider credential gaps, shared-mode fallback, and local-bridge readiness all read clearly before the next voice feature cut
 - use the new repo-side mojibake guard whenever a future Waveary work block edits Chinese-facing copy, and keep broad historical Chinese cleanup isolated from unrelated feature work
 - keep future shell polish focused on the lower workspace stage and inner panel density; do not bloat the top workspace-tab strip when the real complaint is about the operational panels below
 - browser-verify the dedicated OpenAI-compatible, Doubao, and local self-hosted voice branches end-to-end from the console, including provider-specific form switching, manual voice-entry paths, live guidance copy, and post-switch persistence behavior after the new stale-field reset fix
@@ -378,4 +382,5 @@ Brand line:
 - a stale local dev server can still make browser verification lie about already-fixed voice-config behavior, because the browser may keep talking to older server code until the local `web:dev` process is restarted; recheck live voice-route conclusions against the running server version before assuming the repository fix failed
 - several repository files already contain historical mojibake in Chinese copy, and fresh PowerShell / Windows shell edits can make diagnosis misleading because console rendering is not byte-faithful; treat Chinese-text cleanup as a separate deliberate pass, and verify future Chinese copy edits with `git diff` instead of trusting raw terminal output alone
 - the new `npm run check:mojibake` guard only scans changed added lines for obvious corruption patterns; it reduces repeat mistakes but does not replace a dedicated full-document Chinese cleanup pass
+- `npx tsc --noEmit -p waveary-web/tsconfig.server.json` is not a trustworthy verification command in this workspace right now because its standalone resolution still reports broader historical workspace-type issues even when the package build/test flow passes; prefer `npm run test --workspace @waveary/web` or `npm run build:server --workspace @waveary/web` for server-side voice verification until that separate tsconfig issue is deliberately cleaned up
 - `waveary-web/src/App.tsx` no longer has the newest visible mojibake in the dedicated voice credential block, but broader document-level cleanup is still outstanding and should stay isolated from active feature work

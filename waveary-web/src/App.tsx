@@ -146,11 +146,26 @@ interface VoiceSpeakPlanResponse {
     qualityProfile?: string;
     instructions?: string;
   };
+  routing: VoiceRoutingStatus;
 }
 
 interface VoiceConfigResponse {
   config: SavedVoiceConfig;
   presets: VoicePresetDescriptor[];
+  routing: VoiceRoutingStatus;
+}
+
+interface VoiceRoutingStatus {
+  mode: "shared" | "dedicated";
+  target: "provider-audio" | "browser-fallback";
+  providerType: "shared-chat-provider" | "openai-compatible" | "doubao" | "local" | "unknown";
+  providerLabel: string;
+  ready: boolean;
+  reasonCode: string;
+  summary: string;
+  missingFields: Array<"provider" | "baseURL" | "apiKey" | "appId">;
+  attemptedProviderAudio?: boolean;
+  fallbackReason?: string;
 }
 
 interface PendingLocalAction {
@@ -1388,6 +1403,7 @@ export function App(): ReactElement {
   const [voicePresets, setVoicePresets] = useState<VoicePresetDescriptor[]>([]);
   const [voiceProviderPresets, setVoiceProviderPresets] = useState<VoiceProviderPreset[]>([]);
   const [voiceCatalog, setVoiceCatalog] = useState<VoiceCatalogResponse | null>(null);
+  const [voiceRoutingStatus, setVoiceRoutingStatus] = useState<VoiceRoutingStatus | null>(null);
   const [selectedProvider, setSelectedProvider] = useState("");
   const [baseURL, setBaseURL] = useState("");
   const [apiKey, setApiKey] = useState("");
@@ -1753,6 +1769,7 @@ export function App(): ReactElement {
       if (voiceConfigResponse) {
         setVoiceConfig(voiceConfigResponse.config);
         setVoicePresets(voiceConfigResponse.presets);
+        setVoiceRoutingStatus(voiceConfigResponse.routing);
       }
       if (voiceProviderPresetResponse) {
         setVoiceProviderPresets(voiceProviderPresetResponse.presets);
@@ -1954,6 +1971,7 @@ export function App(): ReactElement {
 
       setVoiceConfig(response.config);
       setVoicePresets(response.presets);
+      setVoiceRoutingStatus(response.routing);
       setVoiceConfigState("success");
       setVoiceStatusMessage(
         successMessage ??
@@ -2802,6 +2820,8 @@ export function App(): ReactElement {
         })
       });
 
+      setVoiceRoutingStatus(planResponse.routing);
+
       if (planResponse.mode === "audio" && planResponse.audio) {
         await playProviderAudio(planResponse);
         return;
@@ -2838,8 +2858,8 @@ export function App(): ReactElement {
         setVoicePlaybackState("speaking");
         setVoiceStatusMessage(
           locale === "zh"
-            ? `正在朗读，语气：${localizeVoiceStyle(plan.styleLabel, locale)}`
-            : `Speaking in a ${localizeVoiceStyle(plan.styleLabel, locale)} tone.`
+            ? `当前使用浏览器兜底朗读，语气：${localizeVoiceStyle(plan.styleLabel, locale)}`
+            : `Using browser fallback speech in a ${localizeVoiceStyle(plan.styleLabel, locale)} tone.`
         );
       };
       utterance.onend = () => {
@@ -3158,8 +3178,8 @@ export function App(): ReactElement {
       setVoicePlaybackState("speaking");
       setVoiceStatusMessage(
         locale === "zh"
-          ? "正在播放真实语音。"
-          : "Playing provider voice audio."
+          ? `当前正在播放真人语音：${planResponse.provider}`
+          : `Playing provider voice audio via ${planResponse.provider}.`
       );
     };
     audio.onended = () => {
@@ -3459,6 +3479,46 @@ export function App(): ReactElement {
       : locale === "zh"
         ? "共享模式会继续使用聊天模型的内容路径，但依然可单独调整语音风格。"
         : "Shared mode keeps the chat provider path, while still letting you tune the delivery profile separately.");
+  const voiceRoutingTargetLabel =
+    voiceRoutingStatus?.target === "provider-audio"
+      ? locale === "zh"
+        ? "真人语音"
+        : "Provider audio"
+      : locale === "zh"
+        ? "浏览器兜底"
+        : "Browser fallback";
+  const voiceRoutingReadyLabel =
+    voiceRoutingStatus?.ready === true
+      ? locale === "zh"
+        ? "已就绪"
+        : "Ready"
+      : locale === "zh"
+        ? "未就绪"
+        : "Not ready";
+  const voiceRoutingMissingFieldsLabel =
+    voiceRoutingStatus && voiceRoutingStatus.missingFields.length > 0
+      ? voiceRoutingStatus.missingFields
+          .map((field) =>
+            field === "apiKey"
+              ? "API Key"
+              : field === "appId"
+                ? "App ID"
+                : field === "baseURL"
+                  ? "Base URL"
+                  : locale === "zh"
+                    ? "供应商"
+                    : "Provider"
+          )
+          .join(" / ")
+      : locale === "zh"
+        ? "无"
+        : "None";
+  const voiceRoutingDetailMessage =
+    voiceRoutingStatus?.fallbackReason?.trim() ||
+    voiceRoutingStatus?.summary ||
+    (locale === "zh"
+      ? "当前会根据回复情绪规划语气，实时对话打开后会直接进入说与听的循环。"
+      : "Reply playback follows emotional delivery hints, and realtime mode moves directly into a speak-and-listen loop.");
   const chatReady = Boolean(savedConfig?.provider && savedConfig.model);
   const activeSession =
     chatSessions.find((session) => session.sessionId === activeSessionId) ??
@@ -4743,11 +4803,28 @@ export function App(): ReactElement {
                 <div className="insight-card">
                   <div className="mini-heading">{locale === "zh" ? "状态说明" : "Status"}</div>
                   <p>
-                    {voiceStatusMessage ||
-                      (locale === "zh"
-                        ? "当前会根据回复情绪规划语气，实时对话打开后会直接进入说与听的循环。"
-                        : "Reply playback follows emotional delivery hints, and realtime mode moves directly into a speak-and-listen loop.")}
+                    {voiceStatusMessage || voiceRoutingDetailMessage}
                   </p>
+                </div>
+                <div className="insight-card">
+                  <div className="mini-heading">{locale === "zh" ? "路由诊断" : "Routing"}</div>
+                  <p>
+                    {locale === "zh"
+                      ? `当前目标：${voiceRoutingTargetLabel} · ${voiceRoutingReadyLabel}`
+                      : `Current target: ${voiceRoutingTargetLabel} · ${voiceRoutingReadyLabel}`}
+                  </p>
+                  <p>
+                    {locale === "zh"
+                      ? `缺失字段：${voiceRoutingMissingFieldsLabel}`
+                      : `Missing fields: ${voiceRoutingMissingFieldsLabel}`}
+                  </p>
+                  {voiceRoutingStatus?.attemptedProviderAudio && voiceRoutingStatus.fallbackReason ? (
+                    <p>
+                      {locale === "zh"
+                        ? `本次 fallback 原因：${voiceRoutingStatus.fallbackReason}`
+                        : `Last fallback reason: ${voiceRoutingStatus.fallbackReason}`}
+                    </p>
+                  ) : null}
                 </div>
                 <div className="insight-card">
                   <div className="mini-heading">{locale === "zh" ? "麦克风说明" : "Microphone"}</div>

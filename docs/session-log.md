@@ -4,6 +4,47 @@
 
 Objective:
 
+Make the voice console and voice route tell the truth about provider-backed playback readiness instead of silently falling back to browser speech.
+
+Summary:
+
+- added `waveary-web/server/voice-routing-diagnostics.ts` as a shared server-side routing evaluator that determines whether the current voice setup is actually ready for provider-backed audio, which required fields are still missing, and which provider family the route belongs to
+- updated `/api/voice/config` and `/api/voice/speak` so both now return explicit routing diagnostics; `/api/voice/speak` also records whether provider audio was attempted and, when it falls back, the last fallback reason
+- updated `waveary-web/src/App.tsx` so the voice console shows a concrete routing card with current target, readiness, missing fields, and last fallback reason, while live playback status now distinguishes browser-fallback speech from real provider audio instead of using ambiguous wording
+- verified live against the running dev server that the current saved Doubao setup with empty `appId` now reports `dedicated-doubao-missing-app-id` both in `/api/voice/config` and `/api/voice/speak`, which matches the real reason that playback currently falls back to browser speech
+- observed one separate verification caveat: `npx tsc --noEmit -p waveary-web/tsconfig.server.json` still reports older workspace-resolution issues unrelated to this voice-routing change, while the package build and `@waveary/web` test flow both pass
+
+Files changed:
+
+- `waveary-web/server/voice-routing-diagnostics.ts`
+- `waveary-web/server/voice-runtime.ts`
+- `waveary-web/server/provider-api.ts`
+- `waveary-web/server/provider-api.test.ts`
+- `waveary-web/src/App.tsx`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run test --workspace @waveary/web`
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run check:mojibake`
+- `Invoke-RestMethod http://127.0.0.1:4173/api/voice/config`
+- `Invoke-RestMethod -Method Post http://127.0.0.1:4173/api/voice/speak`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-23
+
+Objective:
+
 Add a repository-side mojibake guard so future Chinese-copy edits can be verified mechanically instead of relying only on Windows / PowerShell terminal rendering.
 
 Summary:
