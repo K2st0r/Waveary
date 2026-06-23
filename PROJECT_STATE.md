@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `8483d9a` - `Stabilize voice provider preset switching`
+- `18d8dec` - `Add repo-side mojibake guard`
 
 ## Modules
 
