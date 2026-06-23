@@ -29,11 +29,11 @@ Verification:
 
 Commit:
 
-- pending
+- `0232156` - `Record Doubao voice verification`
 
 Push:
 
-- pending
+- succeeded: `git push origin main` pushed continuity commit `0232156` to `origin/main`
 
 ## 2026-06-23
 
