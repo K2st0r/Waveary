@@ -4441,14 +4441,6 @@ export function App(): ReactElement {
                       placeholder={voiceFieldPlaceholder}
                       disabled={!canAdjustVoiceConfig}
                     />
-                    <button
-                      className="button button-secondary button-compact"
-                      type="button"
-                      onClick={() => void handleSaveVoiceDraft()}
-                      disabled={!canAdjustVoiceConfig}
-                    >
-                      {locale === "zh" ? "保存" : "Save"}
-                    </button>
                     <datalist id="waveary-voice-options">
                       {visibleVoiceOptionDescriptors.map((voice) => (
                         <option key={voice.id} value={voice.id}>
@@ -4467,6 +4459,21 @@ export function App(): ReactElement {
                   />
                 )}
               </label>
+              <div className="chat-voice-select chat-voice-select-block voice-save-row">
+                <button
+                  className="button button-secondary button-compact"
+                  type="button"
+                  onClick={() => void handleSaveVoiceDraft()}
+                  disabled={!canAdjustVoiceConfig}
+                >
+                  {locale === "zh" ? "保存当前音色" : "Save current voice"}
+                </button>
+                {voiceRoutingStatus?.attemptedProviderAudio && voiceRoutingStatus.fallbackReason ? (
+                  <span className="voice-save-warning">
+                    {formattedVoiceFallbackReason ?? voiceRoutingStatus.fallbackReason}
+                  </span>
+                ) : null}
+              </div>
             </div>
           </section>
 
