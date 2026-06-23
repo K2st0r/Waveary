@@ -67,8 +67,8 @@ const CONFIG_PATH = join(getWavearyDataDir(), "voice-config.json");
 const OPENAI_COMPATIBLE_TTS_DEFAULT_MODEL = "gpt-4o-mini-tts";
 const OPENAI_COMPATIBLE_STT_DEFAULT_MODEL = "gpt-4o-mini-transcribe";
 const DOUBAO_DEFAULT_BASE_URL = "https://openspeech.bytedance.com";
-const DOUBAO_DEFAULT_RESOURCE_ID = "volc.service_type.10029";
-const DOUBAO_DEFAULT_VOICE = "zh_male_beijingxiaoye_emo_v2_mars_bigtts";
+const DOUBAO_DEFAULT_RESOURCE_ID = "seed-tts-2.0";
+const DOUBAO_DEFAULT_VOICE = "zh_female_gaolengyujie_uranus_bigtts";
 const OPENAI_COMPATIBLE_VOICE_OPTIONS: readonly VoiceOptionDescriptor[] = [
   { id: "alloy", label: "alloy" },
   { id: "ash", label: "ash" },
@@ -496,11 +496,19 @@ function normalizeDoubaoResourceId(resourceId: string, apiKey: string): string {
     return DOUBAO_DEFAULT_RESOURCE_ID;
   }
 
+  if (resourceId === "volc.service_type.10029") {
+    return DOUBAO_DEFAULT_RESOURCE_ID;
+  }
+
   return resourceId;
 }
 
 function normalizeDoubaoVoice(value: string): string {
-  if (!value || value === "BV001_streaming") {
+  if (
+    !value ||
+    value === "BV001_streaming" ||
+    value === "zh_male_beijingxiaoye_emo_v2_mars_bigtts"
+  ) {
     return DOUBAO_DEFAULT_VOICE;
   }
 

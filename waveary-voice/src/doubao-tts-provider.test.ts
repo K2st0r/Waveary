@@ -9,10 +9,11 @@ test("doubao tts provider posts api v3 unidirectional request and returns base64
   let capturedResourceId = "";
   let capturedRequestId = "";
   let capturedBody = "";
+  const fullAudioBase64 = Buffer.from("doubao-audio").toString("base64");
 
   const provider = new DoubaoTextToSpeechProvider({
     apiKey: "doubao-key",
-    voiceType: "zh_male_beijingxiaoye_emo_v2_mars_bigtts",
+    voiceType: "zh_female_gaolengyujie_uranus_bigtts",
     fetchFn: (async (input, init) => {
       capturedUrl = String(input);
       const headers = init?.headers as Record<string, string>;
@@ -22,11 +23,23 @@ test("doubao tts provider posts api v3 unidirectional request and returns base64
       capturedBody = String(init?.body);
 
       return new Response(
-        JSON.stringify({
-          code: 0,
-          message: "Success",
-          data: Buffer.from("doubao-audio").toString("base64")
-        }),
+        [
+          JSON.stringify({
+            code: 0,
+            message: "",
+            data: fullAudioBase64.slice(0, 8)
+          }),
+          JSON.stringify({
+            code: 0,
+            message: "",
+            data: fullAudioBase64.slice(8)
+          }),
+          JSON.stringify({
+            code: 20000000,
+            message: "OK",
+            data: null
+          })
+        ].join("\n"),
         {
           status: 200,
           headers: {
@@ -44,11 +57,11 @@ test("doubao tts provider posts api v3 unidirectional request and returns base64
 
   assert.equal(capturedUrl, "https://openspeech.bytedance.com/api/v3/tts/unidirectional");
   assert.equal(capturedApiKey, "doubao-key");
-  assert.equal(capturedResourceId, "volc.service_type.10029");
+  assert.equal(capturedResourceId, "seed-tts-2.0");
   assert.match(capturedRequestId, /^[0-9a-f-]{36}$/i);
   assert.equal(result.provider, "doubao");
   assert.equal(result.mode, "audio");
-  assert.equal(result.metadata.voice, "zh_male_beijingxiaoye_emo_v2_mars_bigtts");
+  assert.equal(result.metadata.voice, "zh_female_gaolengyujie_uranus_bigtts");
   assert.equal(Buffer.from(result.audio.base64, "base64").toString("utf8"), "doubao-audio");
 
   const parsedBody = JSON.parse(capturedBody) as {
@@ -68,7 +81,7 @@ test("doubao tts provider posts api v3 unidirectional request and returns base64
 
   assert.equal(parsedBody.req_params.text, "hello doubao");
   assert.equal(parsedBody.user.uid, "waveary-local-user");
-  assert.equal(parsedBody.req_params.speaker, "zh_male_beijingxiaoye_emo_v2_mars_bigtts");
+  assert.equal(parsedBody.req_params.speaker, "zh_female_gaolengyujie_uranus_bigtts");
   assert.equal(parsedBody.req_params.audio_params.format, "mp3");
   assert.equal(parsedBody.req_params.audio_params.sample_rate, 24000);
 

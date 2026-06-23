@@ -4,6 +4,50 @@
 
 Objective:
 
+Finish the dedicated Doubao voice route end to end by aligning the current resource ID and default speaker with the latest docs, then parse the real chunked success stream so live local playback stops falling back.
+
+Summary:
+
+- queried the official Volcengine doc JSON endpoints directly instead of trusting the JS-rendered page, which confirmed that current Doubao / Ark voice synthesis 2.0 uses `X-Api-Resource-Id: seed-tts-2.0`
+- found that the earlier `45002001 / No readable text!` conclusion was partly polluted by Windows / PowerShell direct-shell Chinese text encoding during ad hoc probes; upstream success returned once the request body used UTF-8-safe text
+- narrowed the remaining live local bug to Waveary's Doubao adapter response parsing: the upstream HTTP unidirectional route was already succeeding, but it returned multiple newline-delimited JSON events with repeated audio `data` chunks instead of one JSON object
+- updated the dedicated Doubao defaults and auto-normalization to prefer `seed-tts-2.0` plus `zh_female_gaolengyujie_uranus_bigtts`, and taught the adapter to concatenate chunked success-stream audio while tolerating the final `20000000 OK` completion event
+- restarted the local `web:dev` server and verified that live local `POST /api/voice/speak` now returns `provider = doubao`, `mode = audio`, `routingTarget = provider-audio`, and real MPEG audio without browser fallback
+
+Files changed:
+
+- `waveary-voice/src/doubao-tts-provider.ts`
+- `waveary-voice/src/doubao-tts-provider.test.ts`
+- `waveary-web/server/voice-config.ts`
+- `waveary-web/server/provider-api.test.ts`
+- `waveary-web/src/App.tsx`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run test --workspace @waveary/voice`
+- `npm run test --workspace @waveary/web`
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run check:mojibake`
+- direct Node `fetch` probe against `https://openspeech.bytedance.com/api/v3/tts/unidirectional` with `X-Api-Resource-Id: seed-tts-2.0`, confirming upstream `code: 0` and audio data on UTF-8-safe Chinese input
+- `Invoke-RestMethod http://127.0.0.1:4173/api/voice/config`, confirming the running local server now reports dedicated Doubao `resourceId = seed-tts-2.0` and `voice = zh_female_gaolengyujie_uranus_bigtts`
+- live local `POST http://127.0.0.1:4173/api/voice/speak`, confirming `provider = doubao`, `mode = audio`, `routingTarget = provider-audio`, and no fallback reason
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-23
+
+Objective:
+
 Browser-verify the migrated dedicated Doubao voice route, then harden any remaining legacy local-config drift that still prevents the browser console from reflecting the real v3 path.
 
 Summary:

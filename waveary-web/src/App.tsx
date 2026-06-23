@@ -4092,7 +4092,7 @@ export function App(): ReactElement {
           : "Voice";
   const voiceFieldPlaceholder =
     usesDedicatedVoiceProvider && activeVoiceProviderType === "doubao"
-      ? "zh_male_beijingxiaoye_emo_v2_mars_bigtts"
+      ? "zh_female_gaolengyujie_uranus_bigtts"
       : usesDedicatedVoiceProvider && activeVoiceProviderType === "local"
         ? locale === "zh"
           ? "输入 speaker 或 voice id"
@@ -4484,7 +4484,7 @@ export function App(): ReactElement {
                         onBlur={(event) =>
                           void handleVoiceProviderFieldChange("resourceId", event.target.value)
                         }
-                        placeholder="volc.service_type.10029"
+                        placeholder="seed-tts-2.0"
                         disabled={!canAdjustVoiceConfig}
                       />
                     </label>
@@ -6817,7 +6817,7 @@ export function App(): ReactElement {
                                   onBlur={(event) =>
                                     void handleVoiceProviderFieldChange("resourceId", event.target.value)
                                   }
-                                  placeholder="volc.service_type.10029"
+                                  placeholder="seed-tts-2.0"
                                   disabled={!canAdjustVoiceConfig}
                                 />
                               </label>

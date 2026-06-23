@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `15af25b` - `Migrate Doubao voice to OpenSpeech v3`
+- pending - latest verified functional change in this work block updates the Doubao default route to `seed-tts-2.0`, normalizes older saved Doubao configs onto that route, and parses the real chunked multi-event success stream so local `/api/voice/speak` now returns provider audio
 
 ## Modules
 
@@ -327,11 +327,11 @@ Brand line:
 
 ## Next Steps
 
+- run one focused browser pass for the now-working dedicated Doubao voice route, especially the voice workspace saved values, real playback, and chat-page output behavior
+- decide whether the next voice implementation cut should prioritize wider provider-specific STT coverage such as Doubao/local or a truer realtime duplex / interruption pass
 - replace the current fixed short capture window in provider-backed STT with a more truthful turn-end detector or streaming transport before claiming realtime voice is close to done
 - add focused browser-side or component-level regression coverage for the new silence-based provider STT stop logic so later realtime voice work does not regress it silently
 - decide whether the next voice implementation cut after this first STT slice should be interruption/full duplex first, or wider provider-specific STT support such as Doubao/local
-- run a focused browser pass for the migrated dedicated Doubao voice route, especially `Resource ID` persistence, provider-backed playback, and fallback copy when the upstream account still returns semantic request errors
-- once Doubao account-side request semantics are clarified, re-test the dedicated Doubao route end to end until `/api/voice/speak` returns provider audio instead of browser fallback
 - re-run the dedicated Fish Audio browser verification pass once the current machine can actually reach `https://api.fish.audio`, then verify catalog fetch, saved voice-model ID entry, provider-backed playback, and provider-backed microphone transcription end to end
 - run one focused browser pass for the Gemini dedicated voice route with both the official preset and the new `Gemini TTS (Micu Relay)` preset, especially preset selection, static model/voice switching, config save, and provider-backed playback with a real key that actually has access to the selected Micu relay model
 - decide whether Gemini should stay TTS-only for now or later receive a separate audio-understanding / transcription adapter instead of being forced into the current provider-backed STT contract
@@ -410,5 +410,6 @@ Brand line:
 - the first provider-backed STT browser path now uses browser-side speech-activity heuristics rather than a fixed short timer, but it is still not a server-grounded VAD, interruption-capable loop, or full duplex transport
 - live Fish Audio verification is currently blocked by upstream reachability from this machine: direct requests to `api.fish.audio:443` time out before any HTTP response, so current failures reflect network access rather than a known Waveary route bug
 - Micu relay does not currently expose `gemini-3.1-flash-tts-preview` on the tested key path; direct probes returned `503 model_not_found`, while `gemini-2.5-flash-tts-preview` and `gemini-2.5-pro-tts-preview` were recognized by Micu but returned `403` on the provided key because that token does not currently have access to those models
-- the Doubao route mismatch has now been corrected locally by migrating Waveary from `/api/v1/tts` plus `appId / cluster` to OpenSpeech v3 `/api/v3/tts/unidirectional` with `x-api-key` and `X-Api-Resource-Id`, but direct real-key probes still return upstream code `45002001` / `No readable text!`, so the remaining blocker appears to be upstream request semantics or account-side expectations rather than the old Waveary transport shape
+- the dedicated Doubao route now succeeds end to end on the provided real key when it uses the current documented `seed-tts-2.0` resource ID, a current 2.0 speaker such as `zh_female_gaolengyujie_uranus_bigtts`, and a parser that accepts the real newline-delimited chunked success stream instead of assuming one JSON object
+- ad hoc direct-shell Doubao probes on this Windows / PowerShell setup can still mislead if Chinese text is sent through a non-UTF-8-safe path; use UTF-8-safe payload construction or the repo/runtime verification path before concluding that upstream returned `No readable text!`
 - stale local `web:dev` processes can still serve older voice-runtime code and produce misleading browser fallback reasons; restart the local dev server before trusting a browser-side Doubao voice conclusion after backend changes

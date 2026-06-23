@@ -36,7 +36,7 @@ interface DoubaoUnidirectionalResponse {
 }
 
 const DEFAULT_HOST = "https://openspeech.bytedance.com";
-const DEFAULT_RESOURCE_ID = "volc.service_type.10029";
+const DEFAULT_RESOURCE_ID = "seed-tts-2.0";
 const DEFAULT_SAMPLE_RATE = 24000;
 
 export class DoubaoTextToSpeechProvider implements TextToSpeechProvider {
@@ -82,15 +82,9 @@ export class DoubaoTextToSpeechProvider implements TextToSpeechProvider {
       throw new Error(`Doubao TTS request failed with status ${response.status}. Body: ${rawText}`);
     }
 
-    const parsed = JSON.parse(rawText) as DoubaoUnidirectionalResponse;
+    const audioBase64 = parseAudioBase64FromChunkedResponse(rawText);
 
-    if (parsed.code !== undefined && parsed.code !== 0) {
-      throw new Error(
-        `Doubao TTS returned code ${String(parsed.code)}.${parsed.message ? ` ${parsed.message}` : ""}`
-      );
-    }
-
-    if (!parsed.data) {
+    if (!audioBase64) {
       throw new Error("Doubao TTS response did not include audio data.");
     }
 
@@ -99,7 +93,7 @@ export class DoubaoTextToSpeechProvider implements TextToSpeechProvider {
       mode: "audio",
       audio: {
         mimeType: "audio/mpeg",
-        base64: parsed.data
+        base64: audioBase64
       },
       metadata: {
         model: "doubao-tts",
@@ -137,4 +131,28 @@ function buildRequestBody(
       }
     }
   };
+}
+
+function parseAudioBase64FromChunkedResponse(rawText: string): string {
+  const segments = rawText
+    .split(/\r?\n+/)
+    .map((segment) => segment.trim())
+    .filter(Boolean);
+  const audioChunks: string[] = [];
+
+  for (const segment of segments) {
+    const parsed = JSON.parse(segment) as DoubaoUnidirectionalResponse;
+
+    if (parsed.code !== undefined && parsed.code !== 0 && parsed.code !== 20000000) {
+      throw new Error(
+        `Doubao TTS returned code ${String(parsed.code)}.${parsed.message ? ` ${parsed.message}` : ""}`
+      );
+    }
+
+    if (parsed.data) {
+      audioChunks.push(parsed.data);
+    }
+  }
+
+  return audioChunks.join("");
 }

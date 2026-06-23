@@ -1148,5 +1148,27 @@ Reason:
 Impact:
 
 - `waveary-web/server/voice-config.ts` now upgrades older saved dedicated Doubao base URLs to `https://openspeech.bytedance.com`
-- if a saved dedicated Doubao `resourceId` matches the API key exactly, Waveary now treats that as an obsolete migration carryover and restores the default `volc.service_type.10029`
-- the legacy `BV001_streaming` default now normalizes to `zh_male_beijingxiaoye_emo_v2_mars_bigtts` before the browser voice console or voice runtime reuses it
+- if a saved dedicated Doubao `resourceId` matches the API key exactly, Waveary now treats that as an obsolete migration carryover and restores the current default route
+- the legacy `BV001_streaming` default now normalizes to the current documented manual 2.0 speaker before the browser voice console or voice runtime reuses it
+
+## 2026-06-23 - Doubao 2.0 Should Follow The Current `seed-tts-2.0` Route And Chunked Success Stream
+
+Status:
+
+- accepted
+
+Decision:
+
+For the current Waveary CE Doubao TTS path, use `X-Api-Resource-Id: seed-tts-2.0`, default the manual speaker to `zh_female_gaolengyujie_uranus_bigtts`, and parse the HTTP unidirectional success response as a newline-delimited chunked event stream instead of assuming one JSON object.
+
+Reason:
+
+- the current official Volcengine / Ark docs now describe Doubao voice synthesis 2.0 with `seed-tts-2.0` as the resource ID, not the older `volc.service_type.10029` default that had remained in Waveary
+- live upstream verification with the provided real key succeeded once the request used UTF-8-safe text and the current route values, which proved the remaining local failure was response parsing rather than upstream semantics
+- the real success response arrives as multiple JSON events separated by newlines, with audio chunks in repeated `data` fields and a final `code: 20000000` completion event, so single-JSON parsing necessarily falls back even after the upstream call succeeds
+
+Impact:
+
+- `waveary-web/server/voice-config.ts` now defaults and normalizes dedicated Doubao config toward `seed-tts-2.0` plus `zh_female_gaolengyujie_uranus_bigtts`
+- `waveary-voice/src/doubao-tts-provider.ts` now concatenates chunked `data` payloads across multiple JSON events and tolerates the final `20000000 OK` completion marker
+- live local `/api/voice/speak` verification for dedicated Doubao now returns provider audio instead of browser fallback when the saved voice route uses the provided real key
