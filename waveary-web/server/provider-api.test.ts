@@ -205,6 +205,9 @@ test("voice config route returns saved config plus presets", async () => {
   assert.equal(response.body.config.qualityProfile, "cinematic");
   assert.ok(Array.isArray(response.body.presets));
   assert.ok(response.body.presets.length >= 4);
+  assert.equal(response.body.routing.mode, "shared");
+  assert.equal(response.body.routing.target, "browser-fallback");
+  assert.equal(response.body.routing.reasonCode, "shared-provider-missing");
 });
 
 test("voice provider presets route returns selectable voice vendors", async () => {
@@ -325,6 +328,7 @@ test("voice config route persists a selected preset", async () => {
   assert.equal(response.body.config.qualityProfile, "gentle");
   assert.equal(response.body.config.voice, "cedar");
   assert.equal(response.body.config.model, "gpt-4o-mini-tts");
+  assert.equal(response.body.routing.mode, "shared");
 });
 
 test("voice config route preserves explicit empty model and voice when switching dedicated provider presets", async () => {
@@ -390,6 +394,9 @@ test("voice speak route prefers dedicated voice provider config when present", a
 
   assert.equal(speakResponse.statusCode, 200);
   assert.equal(speakResponse.body.provider, "openai");
+  assert.equal(speakResponse.body.routing.target, "provider-audio");
+  assert.equal(speakResponse.body.routing.reasonCode, "dedicated-compatible-ready");
+  assert.equal(speakResponse.body.routing.attemptedProviderAudio, true);
   assert.equal(
     Buffer.from(speakResponse.body.audio.base64, "base64").toString("utf8"),
     "dedicated-voice-audio"
@@ -449,6 +456,8 @@ test("voice speak route supports dedicated doubao tts config", async () => {
 
   assert.equal(speakResponse.statusCode, 200);
   assert.equal(speakResponse.body.provider, "doubao");
+  assert.equal(speakResponse.body.routing.target, "provider-audio");
+  assert.equal(speakResponse.body.routing.reasonCode, "dedicated-doubao-ready");
   assert.equal(
     Buffer.from(speakResponse.body.audio.base64, "base64").toString("utf8"),
     "doubao-voice-audio"
@@ -564,12 +573,76 @@ test("voice speak route supports dedicated local self-hosted tts config", async 
 
   assert.equal(speakResponse.statusCode, 200);
   assert.equal(speakResponse.body.provider, "local-gpt-sovits");
+  assert.equal(speakResponse.body.routing.target, "provider-audio");
+  assert.equal(speakResponse.body.routing.reasonCode, "dedicated-local-ready");
   assert.equal(
     Buffer.from(speakResponse.body.audio.base64, "base64").toString("utf8"),
     "local-self-hosted-audio"
   );
   assert.equal(speakResponse.body.metadata.model, "gpt-sovits-v2");
   assert.equal(speakResponse.body.metadata.voice, "speaker-a");
+});
+
+test("voice config route reports missing doubao app id before playback", async () => {
+  const middleware = createProviderApiMiddleware();
+
+  const response = await invokeJsonRoute(middleware, "POST", "/api/voice/config", {
+    providerMode: "dedicated",
+    provider: "doubao",
+    apiKey: "doubao-key",
+    appId: "",
+    cluster: "volcano_tts",
+    voice: "BV001_streaming",
+    model: "doubao-tts",
+    qualityProfile: "cinematic",
+    format: "mp3"
+  });
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.routing.target, "browser-fallback");
+  assert.equal(response.body.routing.reasonCode, "dedicated-doubao-missing-app-id");
+  assert.deepEqual(response.body.routing.missingFields, ["appId"]);
+});
+
+test("voice speak route surfaces fallback reason when dedicated provider request fails", async () => {
+  const middleware = createProviderApiMiddleware();
+
+  await invokeJsonRoute(middleware, "POST", "/api/voice/config", {
+    providerMode: "dedicated",
+    provider: "openai",
+    baseURL: "https://api.openai.com/v1",
+    apiKey: "voice-key",
+    qualityProfile: "cinematic",
+    model: "gpt-4o-mini-tts",
+    voice: "marin",
+    format: "mp3"
+  });
+
+  globalThis.fetch = (async (input) => {
+    if (String(input) === "https://api.openai.com/v1/audio/speech") {
+      return new Response("forbidden", {
+        status: 403,
+        headers: {
+          "Content-Type": "text/plain"
+        }
+      });
+    }
+
+    throw new Error(`Unexpected fetch URL: ${String(input)}`);
+  }) as typeof fetch;
+
+  const response = await invokeJsonRoute(middleware, "POST", "/api/voice/speak", {
+    text: "Stay with me.",
+    locale: "en-US"
+  });
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.provider, "waveary-browser-speech-planner");
+  assert.equal(response.body.mode, "browser-speech");
+  assert.equal(response.body.routing.target, "browser-fallback");
+  assert.equal(response.body.routing.reasonCode, "dedicated-compatible-ready");
+  assert.equal(response.body.routing.attemptedProviderAudio, true);
+  assert.match(String(response.body.routing.fallbackReason), /status 403/i);
 });
 
 test("browser extract-text route returns bounded page text", async () => {

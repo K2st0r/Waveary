@@ -11,6 +11,11 @@ import {
 import type { CompanionDeliveryHint } from "./companion-delivery.js";
 import { loadSavedProviderConfig } from "./provider-config.js";
 import { loadSavedVoiceConfig } from "./voice-config.js";
+import {
+  buildVoiceRoutingDiagnostic,
+  type ResolvedVoiceRoutingConfig,
+  type VoiceRoutingDiagnostic
+} from "./voice-routing-diagnostics.js";
 
 export interface VoiceSpeakPlanRequest {
   text: string;
@@ -49,6 +54,37 @@ export interface VoiceSpeakPlanRequest {
 
 const planner = new BrowserSpeechPlanner();
 
+export interface VoiceSpeakResultWithDiagnostics {
+  provider: string;
+  mode: "browser-speech" | "audio";
+  plan?: {
+    mode: "browser-speech";
+    lang: string;
+    voiceLabel: string;
+    styleLabel: string;
+    rate: number;
+    pitch: number;
+    volume: number;
+    preDelayMs: number;
+    postDelayMs: number;
+    preferredVoiceKeywords: string[];
+  };
+  audio?: {
+    mimeType: string;
+    base64: string;
+  };
+  metadata?: {
+    model: string;
+    voice: string;
+    qualityProfile?: string;
+    instructions?: string;
+  };
+  routing: VoiceRoutingDiagnostic & {
+    attemptedProviderAudio: boolean;
+    fallbackReason?: string;
+  };
+}
+
 export async function planChatSpeech(input: VoiceSpeakPlanRequest) {
   const trimmed = input.text.trim();
 
@@ -83,7 +119,7 @@ export async function planChatSpeech(input: VoiceSpeakPlanRequest) {
   const resolvedPreset = resolveVoicePreset(
     requestedVoiceConfig?.qualityProfile ?? savedVoiceConfig.qualityProfile
   );
-  const resolvedVoiceConfig = {
+  const resolvedVoiceConfig: ResolvedVoiceRoutingConfig = {
     model:
       requestedVoiceConfig?.model?.trim() ||
       savedVoiceConfig.model ||
@@ -152,40 +188,8 @@ export async function planChatSpeech(input: VoiceSpeakPlanRequest) {
         : savedVoiceConfig.topP
   };
 
-  const providerBackedVoiceConfig =
-    resolvedVoiceConfig.providerMode === "dedicated"
-      ? resolvedVoiceConfig.provider &&
-        (resolvedVoiceConfig.provider === "doubao"
-          ? resolvedVoiceConfig.apiKey && resolvedVoiceConfig.appId
-          : resolvedVoiceConfig.provider === "local"
-            ? resolvedVoiceConfig.baseURL
-            : resolvedVoiceConfig.baseURL && resolvedVoiceConfig.apiKey)
-        ? {
-            provider: resolvedVoiceConfig.provider,
-            baseURL: resolvedVoiceConfig.baseURL,
-            apiKey: resolvedVoiceConfig.apiKey,
-            appId: resolvedVoiceConfig.appId,
-            cluster: resolvedVoiceConfig.cluster,
-            endpointPath: resolvedVoiceConfig.endpointPath,
-            engine: resolvedVoiceConfig.engine,
-            speaker: resolvedVoiceConfig.speaker,
-            referenceVoiceId: resolvedVoiceConfig.referenceVoiceId,
-            textLanguage: resolvedVoiceConfig.textLanguage,
-            promptLanguage: resolvedVoiceConfig.promptLanguage,
-            referenceTranscript: resolvedVoiceConfig.referenceTranscript,
-            stylePrompt: resolvedVoiceConfig.stylePrompt,
-            styleStrength: resolvedVoiceConfig.styleStrength,
-            temperature: resolvedVoiceConfig.temperature,
-            topP: resolvedVoiceConfig.topP
-          }
-        : null
-      : savedProvider
-        ? {
-            provider: savedProvider.provider,
-            baseURL: savedProvider.baseURL,
-            apiKey: savedProvider.apiKey
-          }
-        : null;
+  const routingDiagnostic = buildVoiceRoutingDiagnostic(resolvedVoiceConfig, savedProvider);
+  const providerBackedVoiceConfig = routingDiagnostic.providerBackedConfig;
 
   if (providerBackedVoiceConfig) {
     try {
@@ -200,10 +204,19 @@ export async function planChatSpeech(input: VoiceSpeakPlanRequest) {
           apiKey: providerBackedVoiceConfig.apiKey,
           appId,
           voiceType: resolvedVoiceConfig.voice,
-          cluster: providerBackedVoiceConfig.cluster
+          ...(providerBackedVoiceConfig.cluster
+            ? { cluster: providerBackedVoiceConfig.cluster }
+            : {})
         });
 
-        return await ttsProvider.synthesize(request);
+        const result = await ttsProvider.synthesize(request);
+        return {
+          ...result,
+          routing: {
+            ...routingDiagnostic,
+            attemptedProviderAudio: true
+          }
+        } satisfies VoiceSpeakResultWithDiagnostics;
       }
 
       if (providerBackedVoiceConfig.provider === "local") {
@@ -252,7 +265,14 @@ export async function planChatSpeech(input: VoiceSpeakPlanRequest) {
             : {})
         });
 
-        return await ttsProvider.synthesize(request);
+        const result = await ttsProvider.synthesize(request);
+        return {
+          ...result,
+          routing: {
+            ...routingDiagnostic,
+            attemptedProviderAudio: true
+          }
+        } satisfies VoiceSpeakResultWithDiagnostics;
       }
 
       const ttsProvider = new OpenAICompatibleTextToSpeechProvider({
@@ -265,12 +285,37 @@ export async function planChatSpeech(input: VoiceSpeakPlanRequest) {
         qualityProfile: resolvedVoiceConfig.qualityProfile
       });
 
-      return await ttsProvider.synthesize(request);
-    } catch {
+      const result = await ttsProvider.synthesize(request);
+      return {
+        ...result,
+        routing: {
+          ...routingDiagnostic,
+          attemptedProviderAudio: true
+        }
+      } satisfies VoiceSpeakResultWithDiagnostics;
+    } catch (error) {
       // Keep voice usable by falling back to browser speech planning if the provider
       // does not expose a compatible TTS endpoint or the current key lacks access.
+      const planResult = await planner.synthesize(request);
+      return {
+        ...planResult,
+        routing: {
+          ...routingDiagnostic,
+          target: "browser-fallback",
+          attemptedProviderAudio: true,
+          fallbackReason:
+            error instanceof Error ? error.message : "Provider-backed voice request failed."
+        }
+      } satisfies VoiceSpeakResultWithDiagnostics;
     }
   }
 
-  return planner.synthesize(request);
+  const planResult = await planner.synthesize(request);
+  return {
+    ...planResult,
+    routing: {
+      ...routingDiagnostic,
+      attemptedProviderAudio: false
+    }
+  } satisfies VoiceSpeakResultWithDiagnostics;
 }

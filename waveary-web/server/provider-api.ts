@@ -54,6 +54,7 @@ import {
 } from "./voice-config.js";
 import type { VoiceOutputFormat, VoiceQualityProfile } from "@waveary/voice";
 import type { CompanionDeliveryHint } from "./companion-delivery.js";
+import { buildVoiceRoutingDiagnostic } from "./voice-routing-diagnostics.js";
 
 interface ProviderModelsRequest {
   provider?: string;
@@ -298,9 +299,11 @@ export function createProviderApiMiddleware() {
       }
 
       if (request.method === "GET" && request.url === "/api/voice/config") {
+        const config = loadSavedVoiceConfig();
         sendJson(response, 200, {
-          config: loadSavedVoiceConfig(),
-          presets: listVoicePresets()
+          config,
+          presets: listVoicePresets(),
+          routing: buildVoiceRoutingDiagnostic(config, loadSavedProviderConfig())
         });
         return;
       }
@@ -318,7 +321,8 @@ export function createProviderApiMiddleware() {
 
         sendJson(response, 200, {
           config,
-          presets: listVoicePresets()
+          presets: listVoicePresets(),
+          routing: buildVoiceRoutingDiagnostic(config, loadSavedProviderConfig())
         });
         return;
       }
