@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `bad9d85` - `Refine Doubao voice selection and chat controls`
+- `pending` - `Add live Doubao speaker catalog fetch`
 
 ## Modules
 
@@ -327,7 +327,7 @@ Brand line:
 
 ## Next Steps
 
-- run one focused browser pass for the now-working dedicated Doubao voice route, especially the curated speaker selector, saved values, real playback, and chat-page output behavior
+- run one focused browser pass for the dedicated Doubao voice route covering both curated fallback and live `ListSpeakers` fetch, then verify saved values, real playback, and chat-page output behavior
 - decide whether the next voice implementation cut should prioritize wider provider-specific STT coverage such as Doubao/local or a truer realtime duplex / interruption pass
 - replace the current fixed short capture window in provider-backed STT with a more truthful turn-end detector or streaming transport before claiming realtime voice is close to done
 - add focused browser-side or component-level regression coverage for the new silence-based provider STT stop logic so later realtime voice work does not regress it silently
@@ -413,3 +413,4 @@ Brand line:
 - the dedicated Doubao route now succeeds end to end on the provided real key when it uses the current documented `seed-tts-2.0` resource ID, a current 2.0 speaker such as `zh_female_gaolengyujie_uranus_bigtts`, and a parser that accepts the real newline-delimited chunked success stream instead of assuming one JSON object
 - ad hoc direct-shell Doubao probes on this Windows / PowerShell setup can still mislead if Chinese text is sent through a non-UTF-8-safe path; use UTF-8-safe payload construction or the repo/runtime verification path before concluding that upstream returned `No readable text!`
 - stale local `web:dev` processes can still serve older voice-runtime code and produce misleading browser fallback reasons; restart the local dev server before trusting a browser-side Doubao voice conclusion after backend changes
+- live Doubao speaker discovery is now intentionally separate from the working OpenSpeech TTS route: TTS still uses `x-api-key + resourceId`, while full `ListSpeakers` discovery needs Volcengine `AccessKey ID + Secret Access Key`

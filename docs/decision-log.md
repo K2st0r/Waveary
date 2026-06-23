@@ -1195,3 +1195,25 @@ Impact:
 - `waveary-web/server/voice-config.ts` now returns a curated Doubao speaker catalog with `voiceFieldMode = select`
 - the dedicated Doubao console path can switch among multiple current 2.0 speakers without changing the underlying `resourceId + speaker` route contract
 - future Doubao browser verification should treat this as curated local product data, not as provider-side discovery
+
+## 2026-06-23 - Doubao Live Speaker Discovery Must Use Separate Volcengine Access Keys
+
+Status:
+
+- accepted
+
+Decision:
+
+Keep Doubao TTS synthesis on the current OpenSpeech v3 `x-api-key + X-Api-Resource-Id` route, but treat live speaker-catalog discovery as a separate Volcengine OpenAPI flow that requires `AccessKey ID + SecretAccessKey` signing for `ListSpeakers`.
+
+Reason:
+
+- public code and current docs point to `Action=ListSpeakers&Version=2025-05-20` on `open.volcengineapi.com` under service `speech_saas_prod`, not to an OpenSpeech `/models`-style endpoint
+- this means the user's working Doubao TTS `API Key` is not the same credential shape as the catalog-discovery path
+- trying to force full voice discovery through the TTS API-key route would keep Waveary stuck between fake local lists and broken fetches
+
+Impact:
+
+- `waveary-web/server/provider-api.ts` now supports a Doubao-specific live catalog branch using signed Volcengine `ListSpeakers` requests when `AccessKey ID` and `Secret Access Key` are present
+- `waveary-web/server/voice-config.ts` now persists optional Doubao `accessKeyId` and `secretAccessKey` fields separately from the existing TTS `apiKey`
+- the voice console keeps the current curated Doubao fallback when those signing keys are absent, but can now show provider-fetched voices when they are supplied

@@ -278,6 +278,7 @@ test("voice catalog route returns curated doubao speakers and local input-mode c
   assert.equal(doubaoResponse.statusCode, 200);
   assert.equal(doubaoResponse.body.providerType, "doubao");
   assert.equal(doubaoResponse.body.voiceFieldMode, "select");
+  assert.equal(doubaoResponse.body.source, "static");
   assert.equal(
     doubaoResponse.body.defaultVoice,
     "zh_female_gaolengyujie_uranus_bigtts"
@@ -297,6 +298,67 @@ test("voice catalog route returns curated doubao speakers and local input-mode c
   assert.equal(localResponse.body.providerType, "local");
   assert.equal(localResponse.body.voiceFieldMode, "input");
   assert.equal(localResponse.body.defaultModel, "local-bridge");
+});
+
+test("voice catalog route can fetch live doubao speakers through ListSpeakers when access keys are provided", async () => {
+  const middleware = createProviderApiMiddleware();
+
+  globalThis.fetch = (async (input, init) => {
+    if (String(input) === "https://open.volcengineapi.com/?Action=ListSpeakers&Version=2025-05-20") {
+      const headers = init?.headers as Record<string, string>;
+      assert.match(String(headers.Authorization), /^HMAC-SHA256 Credential=ak-test\//);
+      assert.equal(String(headers["Content-Type"]), "application/json; charset=UTF-8");
+      assert.ok(typeof headers["X-Date"] === "string" && headers["X-Date"].length > 0);
+      assert.ok(typeof headers["X-Content-Sha256"] === "string" && headers["X-Content-Sha256"].length === 64);
+
+      return new Response(
+        JSON.stringify({
+          Result: {
+            Speakers: [
+              {
+                ID: "zh_female_story_reader",
+                Name: "Story Reader"
+              },
+              {
+                ID: "zh_male_city_poet",
+                Name: "City Poet"
+              }
+            ]
+          }
+        }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json" }
+        }
+      );
+    }
+
+    throw new Error(`Unexpected fetch URL: ${String(input)}`);
+  }) as typeof fetch;
+
+  const response = await invokeJsonRoute(middleware, "POST", "/api/voice/catalog", {
+    provider: "doubao",
+    accessKeyId: "ak-test",
+    secretAccessKey: "sk-test"
+  });
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.providerType, "doubao");
+  assert.equal(response.body.voiceFieldMode, "select");
+  assert.equal(response.body.source, "provider");
+  assert.equal(response.body.defaultVoice, "zh_female_story_reader");
+  assert.ok(
+    response.body.voices.some(
+      (voice: { id: string; label: string }) =>
+        voice.id === "zh_female_story_reader" && voice.label === "Story Reader"
+    )
+  );
+  assert.ok(
+    response.body.voices.some(
+      (voice: { id: string; label: string }) =>
+        voice.id === "zh_male_city_poet" && voice.label === "City Poet"
+    )
+  );
 });
 
 test("voice catalog route returns static Gemini TTS models and voices", async () => {

@@ -33,6 +33,8 @@ interface SavedVoiceConfig {
   provider: string;
   baseURL: string;
   apiKey: string;
+  accessKeyId: string;
+  secretAccessKey: string;
   resourceId: string;
   cluster: string;
   endpointPath: string;
@@ -82,6 +84,7 @@ interface VoiceCatalogResponse {
   defaultModel?: string;
   defaultVoice?: string;
   notes?: string;
+  source?: "static" | "provider";
 }
 
 interface ModelDescriptor {
@@ -1994,6 +1997,9 @@ export function App(): ReactElement {
           provider: patch.provider ?? currentVoiceConfig.provider,
           baseURL: patch.baseURL ?? currentVoiceConfig.baseURL,
           apiKey: patch.apiKey ?? currentVoiceConfig.apiKey,
+          accessKeyId: patch.accessKeyId ?? currentVoiceConfig.accessKeyId,
+          secretAccessKey:
+            patch.secretAccessKey ?? currentVoiceConfig.secretAccessKey,
           resourceId: patch.resourceId ?? currentVoiceConfig.resourceId,
           cluster: patch.cluster ?? currentVoiceConfig.cluster,
           endpointPath: patch.endpointPath ?? currentVoiceConfig.endpointPath,
@@ -2090,6 +2096,8 @@ export function App(): ReactElement {
       | "provider"
       | "baseURL"
       | "apiKey"
+      | "accessKeyId"
+      | "secretAccessKey"
       | "resourceId"
       | "cluster"
       | "endpointPath"
@@ -2139,6 +2147,10 @@ export function App(): ReactElement {
     const normalizedProvider = voiceConfig.provider.trim().toLowerCase();
     const requiresApiKey = normalizedProvider !== "local";
     const requiresBaseURL = normalizedProvider !== "doubao";
+    const usesDoubaoCatalogKeys =
+      normalizedProvider === "doubao" &&
+      voiceConfig.accessKeyId.trim().length > 0 &&
+      voiceConfig.secretAccessKey.trim().length > 0;
 
     if (requiresBaseURL && !voiceConfig.baseURL.trim()) {
       setVoiceCatalogState("error");
@@ -2146,7 +2158,7 @@ export function App(): ReactElement {
       return;
     }
 
-    if (requiresApiKey && !voiceConfig.apiKey.trim()) {
+    if (requiresApiKey && !voiceConfig.apiKey.trim() && !usesDoubaoCatalogKeys) {
       setVoiceCatalogState("error");
       setVoiceStatusMessage(locale === "zh" ? "请先填写语音 API Key。" : "Enter the voice API key first.");
       return;
@@ -2160,7 +2172,9 @@ export function App(): ReactElement {
         body: JSON.stringify({
           provider: selectedVoiceProviderPreset?.id ?? voiceConfig.provider,
           baseURL: voiceConfig.baseURL,
-          apiKey: voiceConfig.apiKey
+          apiKey: voiceConfig.apiKey,
+          accessKeyId: voiceConfig.accessKeyId,
+          secretAccessKey: voiceConfig.secretAccessKey
         })
       });
 
@@ -4121,7 +4135,6 @@ export function App(): ReactElement {
         : "Shared mode keeps the chat provider path, while still letting you tune the delivery profile separately.");
   const showVoiceCatalogAction =
     supportsProviderPresetSelection &&
-    activeVoiceProviderType !== "doubao" &&
     activeVoiceProviderType !== "local" &&
     activeVoiceProviderType !== "gemini";
   const voiceCatalogActionLabel =
@@ -4499,6 +4512,40 @@ export function App(): ReactElement {
                           void handleVoiceProviderFieldChange("resourceId", event.target.value)
                         }
                         placeholder="seed-tts-2.0"
+                        disabled={!canAdjustVoiceConfig}
+                      />
+                    </label>
+                    <label className="chat-voice-select">
+                      <span>Access Key ID</span>
+                      <input
+                        type="text"
+                        value={voiceConfig?.accessKeyId ?? ""}
+                        onChange={(event) =>
+                          setVoiceConfig((current) =>
+                            current ? { ...current, accessKeyId: event.target.value } : current
+                          )
+                        }
+                        onBlur={(event) =>
+                          void handleVoiceProviderFieldChange("accessKeyId", event.target.value)
+                        }
+                        placeholder="Optional: for live ListSpeakers"
+                        disabled={!canAdjustVoiceConfig}
+                      />
+                    </label>
+                    <label className="chat-voice-select">
+                      <span>Secret Access Key</span>
+                      <input
+                        type="password"
+                        value={voiceConfig?.secretAccessKey ?? ""}
+                        onChange={(event) =>
+                          setVoiceConfig((current) =>
+                            current ? { ...current, secretAccessKey: event.target.value } : current
+                          )
+                        }
+                        onBlur={(event) =>
+                          void handleVoiceProviderFieldChange("secretAccessKey", event.target.value)
+                        }
+                        placeholder="Optional: for live ListSpeakers"
                         disabled={!canAdjustVoiceConfig}
                       />
                     </label>

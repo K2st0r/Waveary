@@ -37,6 +37,45 @@ Commit:
 Push:
 
 - pending
+
+## 2026-06-23
+
+Objective:
+
+Separate Doubao TTS from Doubao live speaker discovery so the console can optionally fetch the real `ListSpeakers` catalog without regressing the already-working OpenSpeech v3 playback path.
+
+Summary:
+
+- confirmed from public implementations that Doubao live speaker discovery is not part of the current OpenSpeech `x-api-key` TTS route and instead uses signed Volcengine OpenAPI `Action=ListSpeakers&Version=2025-05-20` under service `speech_saas_prod`
+- kept the working dedicated Doubao TTS path unchanged while extending `waveary-web` voice config with optional `accessKeyId` and `secretAccessKey` fields reserved for live catalog fetch only
+- updated `/api/voice/catalog` so Doubao now falls back to the existing curated local speaker list by default, but can return provider-fetched voices when those separate Volcengine keys are supplied
+- updated the voice console so Doubao can store those optional access keys in the same provider workspace and send them only to the catalog route instead of confusing them with the TTS API key
+- added route coverage proving that Doubao still returns the static fallback list without access keys and that the live catalog branch returns provider-sourced voices when a signed `ListSpeakers` response succeeds
+
+Files changed:
+
+- `waveary-web/server/voice-config.ts`
+- `waveary-web/server/provider-api.ts`
+- `waveary-web/server/provider-api.test.ts`
+- `waveary-web/src/App.tsx`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run test --workspace @waveary/web`
+- `npm run check:mojibake`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
 # Session Log
 
 ## 2026-06-23
