@@ -3,6 +3,44 @@
 
 Objective:
 
+Make the dedicated Doubao voice console behave the way the user expects: as soon as Doubao is selected, show all supported curated speakers in a searchable picker instead of the old generic fallback list plus awkward dropdown/datalist mix.
+
+Summary:
+
+- replaced the old select-mode voice control in `waveary-web/src/App.tsx` with a searchable picker UI that shows the current voice label plus ID, opens an inline search popover, and lets users filter and choose supported voices directly
+- kept the change frontend-only and narrow: no backend route contract changed, and manual-input vendors still stay on the existing text-entry path
+- fixed the remaining Doubao-specific UX gap by auto-loading the curated Doubao voice catalog into frontend state when the `Doubao TTS` preset becomes active, so the picker no longer falls back to the older shared generic voice list before the user presses any extra button
+- browser-verified the result with a local Playwright DOM pass on `http://127.0.0.1:4173/#console`: after switching to the voice workspace and selecting `doubao`, the picker existed immediately, the search input was present, and the rendered Doubao option list contained 13 curated supported voices; searching `zh_` narrowed the visible list while keeping current Doubao speaker IDs
+
+Files changed:
+
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run test --workspace @waveary/web`
+- `npm run check:mojibake`
+- `curl.exe -I http://127.0.0.1:4173/`
+- local Node + Playwright DOM verification on `http://127.0.0.1:4173/#console`, confirming immediate Doubao searchable picker presence and 13 curated speaker options after selecting the `doubao` preset
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-23
+
+Objective:
+
 Close the split Doubao verification loop by proving that both the current v3 route and the legacy app route still return real provider audio on the running local server, then write the remaining browser-verification gap back into continuity records instead of reopening backend work.
 
 Summary:

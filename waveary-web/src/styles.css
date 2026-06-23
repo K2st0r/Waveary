@@ -2891,6 +2891,111 @@ textarea {
   min-width: 10rem;
 }
 
+.voice-search-picker {
+  position: relative;
+  min-width: 16rem;
+  width: 100%;
+}
+
+.voice-search-picker-trigger {
+  width: 100%;
+  display: grid;
+  gap: 0.18rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.voice-search-picker-trigger strong {
+  font-size: 0.9rem;
+  color: var(--text-strong);
+  font-weight: 700;
+}
+
+.voice-search-picker-trigger span {
+  font-size: 0.76rem;
+  color: var(--muted);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.voice-search-picker-trigger:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.voice-search-picker-popover {
+  position: absolute;
+  top: calc(100% + 0.6rem);
+  left: 0;
+  z-index: 20;
+  width: min(28rem, 100vw - 4rem);
+  display: grid;
+  gap: 0.6rem;
+  padding: 0.8rem;
+  border: 1.5px solid rgba(21, 18, 15, 0.14);
+  border-radius: 1rem;
+  background: rgba(255, 252, 247, 0.98);
+  box-shadow: 0 18px 40px rgba(32, 24, 18, 0.12);
+}
+
+.voice-search-picker-popover input {
+  min-width: 0;
+  width: 100%;
+  padding: 0.66rem 0.8rem;
+  border: 1.5px solid rgba(21, 18, 15, 0.14);
+  border-radius: 0.85rem;
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.voice-search-picker-list {
+  display: grid;
+  gap: 0.45rem;
+  max-height: 16rem;
+  overflow-y: auto;
+  padding-right: 0.1rem;
+}
+
+.voice-search-picker-option {
+  display: grid;
+  gap: 0.12rem;
+  padding: 0.72rem 0.8rem;
+  border: 1.5px solid rgba(21, 18, 15, 0.1);
+  border-radius: 0.9rem;
+  background: rgba(255, 255, 255, 0.92);
+  text-align: left;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.voice-search-picker-option strong {
+  color: var(--text-strong);
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.voice-search-picker-option span {
+  color: var(--muted);
+  font-size: 0.75rem;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.voice-search-picker-option:hover,
+.voice-search-picker-option-active {
+  border-color: rgba(21, 18, 15, 0.26);
+  background: rgba(245, 239, 229, 0.96);
+}
+
+.voice-search-picker-empty {
+  padding: 0.9rem 0.2rem 0.3rem;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
 .button-compact {
   min-height: 2rem;
   padding: 0.36rem 0.72rem;

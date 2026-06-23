@@ -1262,3 +1262,25 @@ Impact:
 
 - future Doubao verification should start with the live `POST /api/voice/speak` route and only then inspect the browser console for preset and field correctness
 - browser verification for the split Doubao path now focuses on whether `Doubao TTS` exposes the v3 `Resource ID` route and whether `Doubao TTS (Legacy App)` exposes the legacy `App ID` route cleanly
+
+## 2026-06-23 - Doubao Curated Speakers Should Auto-Load Into A Searchable Picker
+
+Status:
+
+- accepted
+
+Decision:
+
+When the dedicated `Doubao TTS` preset is selected in the Waveary CE voice console, the curated supported speaker list should auto-load into the frontend state and render through a searchable picker immediately, instead of waiting for the user to press the catalog-fetch button or falling back to the older generic shared voice list first.
+
+Reason:
+
+- the previous frontend state shape left `voiceFieldMode = select` vendors on an awkward hybrid `select + datalist` control that did not scale to the growing Doubao speaker list
+- Doubao already has a truthful curated speaker directory in `waveary-web/server/voice-config.ts`, so showing the generic fallback list first is a frontend-state bug, not a missing backend capability
+- the user explicitly wants "连上了豆包就有下拉栏可以选所有支持的，然后里面带一个搜索框", which means the preset itself must feel complete without an extra hidden discovery step
+
+Impact:
+
+- `waveary-web/src/App.tsx` now upgrades select-mode voice vendors to a searchable picker surface instead of the older native dropdown-plus-datalist mix
+- the dedicated Doubao preset now auto-fetches its current curated voice catalog into frontend state as soon as the preset is active and no catalog is loaded yet
+- future voice-console work should preserve this invariant: a provider with a known curated select catalog should open directly into searchable supported options, not regress to the old generic fallback list
