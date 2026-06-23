@@ -3,6 +3,41 @@
 
 Objective:
 
+Make the live chat voice loop interruption-safe so pressing the live-chat control during assistant playback stops the current reply and returns to listening immediately instead of ending the whole realtime session.
+
+Summary:
+
+- kept the change narrow inside `waveary-web/src/App.tsx` and left the already-working provider/model console plus dedicated voice routing untouched
+- added a dedicated live-conversation interruption path that stops active browser or provider playback, keeps realtime mode on, and immediately re-enters microphone listening when the user presses the live-chat button during assistant planning or speaking
+- added request-id guarding around voice playback callbacks so stale browser-speech or provider-audio events cannot race back in and overwrite the newer listening state after an interruption
+- tightened the automatic resume delays after reply completion and retry-listening so the browser loop feels less sluggish between turns
+- browser-verified the new path on `http://127.0.0.1:4173/#chat` with a controlled stubbed voice flow: while the assistant was in `Using browser fallback speech in a warm tone.`, pressing the main live-chat button changed the status to `Okay. I will stop here and listen to you first.` while the mic status returned to `I am listening. Take your time and I will answer as soon as you finish.` and the button stayed on `End live chat`
+- confirmed the current `npm run test --workspace @waveary/web` baseline still contains one pre-existing server-side failure unrelated to this frontend voice interruption cut: `chat turn clears unanswered proactive reachouts after the user replies`
+
+Files changed:
+
+- `waveary-web/src/App.tsx`
+
+Verification:
+
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run test --workspace @waveary/web` (current baseline still has the pre-existing failing test `chat turn clears unanswered proactive reachouts after the user replies`)
+- `npm run check:mojibake`
+- `curl.exe -I http://127.0.0.1:4173/`
+- local Playwright-backed browser verification on `http://127.0.0.1:4173/#chat`, confirming live playback can be interrupted into immediate listening without leaving realtime mode
+
+Commit:
+
+- `09ff921` - `Handle live voice interruption resume`
+
+Push:
+
+- pending
+
+## 2026-06-24
+
+Objective:
+
 Close the remaining live-browser verification gap for the split Doubao voice path and confirm that the chat page still uses dedicated provider audio when the chat model stays on a different vendor.
 
 Summary:

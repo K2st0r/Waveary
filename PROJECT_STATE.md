@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `a2471ac` - `Sync dedicated voice verification continuity`
+- `09ff921` - `Handle live voice interruption resume`
 
 ## Modules
 

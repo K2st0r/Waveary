@@ -4,6 +4,29 @@ This file records important product, architecture, and workflow decisions for Pr
 
 Use it to preserve the reason behind major choices so future Codex sessions do not repeat or undo settled work.
 
+## 2026-06-24 - Re-Pressing Live Chat During Playback Should Interrupt, Not End The Session
+
+Status:
+
+- accepted
+
+Decision:
+
+When realtime voice conversation is already active, pressing the main live-chat button while the assistant is planning or speaking should interrupt the current reply and return to listening immediately, instead of treating that same button press as a request to end the whole live conversation.
+
+Reason:
+
+- the previous one-button toggle made the interruption path feel wrong: the user had no quick way to cut in and speak again without collapsing the entire live session first
+- the current voice target is companionship, not push-to-talk tooling, so a natural human interruption path matters more than a rigid start/stop interpretation of the button label
+- the browser loop already had the right primitives for stopping playback and restarting listening; the gap was explicit orchestration when the user cut in during assistant playback
+
+Impact:
+
+- `waveary-web/src/App.tsx` now routes live-chat button presses through an interruption helper whenever `voiceConversationMode` is active and `voicePlaybackState` is `planning` or `speaking`
+- that helper stops current playback, keeps realtime mode enabled, resets microphone state, and immediately starts listening again
+- playback callbacks are now guarded by a request id so stale browser-speech or provider-audio events cannot overwrite the fresh listening state after an interruption
+- future realtime voice work should preserve this invariant: interruption inside an active live session is a first-class conversational action, not just a disguised session shutdown
+
 ## 2026-06-20 - Product Repositioning
 
 Status:
