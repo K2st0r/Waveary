@@ -1060,3 +1060,26 @@ Impact:
 - Fish Audio catalog, TTS, and STT fetch failures now preserve upstream details such as `UND_ERR_CONNECT_TIMEOUT`
 - live verification can now distinguish "Fish is unreachable from this machine" from "Waveary routed the request incorrectly"
 - the next Fish browser pass should be retried only after network reachability is restored
+
+## 2026-06-23 - Gemini Should Enter As Its Own Dedicated Voice Family
+
+Status:
+
+- accepted
+
+Decision:
+
+Integrate Gemini TTS as its own dedicated voice-provider family instead of forcing it into the current OpenAI-compatible speech path or pretending it already fits the existing provider-backed STT contract.
+
+Reason:
+
+- Gemini speech generation uses its own `models/{model}:generateContent` audio route and official prebuilt voice names rather than the OpenAI-style `/audio/speech` contract
+- keeping Gemini dedicated preserves honest routing, provider-specific model and voice selection, and future evolution toward richer Google audio features without polluting the compatible-vendor layer
+- the current user request is specifically to add Gemini as another voice vendor, and the smallest truthful cut is dedicated TTS first
+
+Impact:
+
+- `@waveary/voice` now exports `GeminiTextToSpeechProvider`
+- the voice console now includes a `Gemini TTS` preset with supported Gemini TTS models and official prebuilt voice names
+- routing diagnostics now distinguish Gemini from OpenAI-compatible, Fish, Doubao, and local voice families
+- microphone transcription remains explicitly outside Gemini for now until a separate audio-understanding / STT design is chosen deliberately

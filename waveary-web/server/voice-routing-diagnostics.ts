@@ -28,7 +28,14 @@ export interface ResolvedVoiceRoutingConfig {
 export interface VoiceRoutingDiagnostic {
   mode: "shared" | "dedicated";
   target: "provider-audio" | "browser-fallback";
-  providerType: "shared-chat-provider" | "openai-compatible" | "fish-audio" | "doubao" | "local" | "unknown";
+  providerType:
+    | "shared-chat-provider"
+    | "openai-compatible"
+    | "gemini"
+    | "fish-audio"
+    | "doubao"
+    | "local"
+    | "unknown";
   providerLabel: string;
   ready: boolean;
   reasonCode:
@@ -37,6 +44,9 @@ export interface VoiceRoutingDiagnostic {
     | "dedicated-compatible-ready"
     | "dedicated-compatible-missing-base-url"
     | "dedicated-compatible-missing-api-key"
+    | "dedicated-gemini-ready"
+    | "dedicated-gemini-missing-base-url"
+    | "dedicated-gemini-missing-api-key"
     | "dedicated-fish-audio-ready"
     | "dedicated-fish-audio-missing-base-url"
     | "dedicated-fish-audio-missing-api-key"
@@ -174,6 +184,54 @@ export function buildVoiceRoutingDiagnostic(
         missingFields.includes("appId")
           ? "Dedicated Doubao voice is missing app ID, so it cannot reach provider-backed audio and will fall back to browser speech."
           : "Dedicated Doubao voice is missing API key, so it cannot reach provider-backed audio and will fall back to browser speech.",
+      missingFields,
+      providerBackedConfig: null
+    };
+  }
+
+  if (provider === "gemini") {
+    const missingFields: Array<"provider" | "baseURL" | "apiKey" | "appId"> = [];
+
+    if (!resolvedVoiceConfig.baseURL) {
+      missingFields.push("baseURL");
+    }
+
+    if (!resolvedVoiceConfig.apiKey) {
+      missingFields.push("apiKey");
+    }
+
+    if (missingFields.length === 0) {
+      return {
+        mode: "dedicated",
+        target: "provider-audio",
+        providerType: "gemini",
+        providerLabel: "gemini",
+        ready: true,
+        reasonCode: "dedicated-gemini-ready",
+        summary:
+          "Dedicated Gemini voice has base URL and API key, so Waveary can attempt Gemini-backed TTS directly.",
+        missingFields: [],
+        providerBackedConfig: {
+          provider,
+          baseURL: resolvedVoiceConfig.baseURL,
+          apiKey: resolvedVoiceConfig.apiKey
+        }
+      };
+    }
+
+    return {
+      mode: "dedicated",
+      target: "browser-fallback",
+      providerType: "gemini",
+      providerLabel: "gemini",
+      ready: false,
+      reasonCode: missingFields.includes("baseURL")
+        ? "dedicated-gemini-missing-base-url"
+        : "dedicated-gemini-missing-api-key",
+      summary:
+        missingFields.includes("baseURL")
+          ? "Dedicated Gemini voice is missing base URL, so Waveary cannot call Gemini TTS and will fall back to browser speech."
+          : "Dedicated Gemini voice is missing API key, so Waveary cannot call Gemini TTS and will fall back to browser speech.",
       missingFields,
       providerBackedConfig: null
     };

@@ -61,7 +61,7 @@ interface VoiceProviderPreset {
   id: string;
   label: string;
   provider: string;
-  providerType: "openai-compatible" | "fish-audio" | "doubao" | "local";
+  providerType: "openai-compatible" | "gemini" | "fish-audio" | "doubao" | "local";
   baseURL: string;
   voiceFieldMode?: "select" | "input";
   defaultModel?: string;
@@ -75,7 +75,7 @@ interface VoiceOptionDescriptor {
 }
 
 interface VoiceCatalogResponse {
-  providerType: "openai-compatible" | "fish-audio" | "doubao" | "local";
+  providerType: "openai-compatible" | "gemini" | "fish-audio" | "doubao" | "local";
   models: ModelDescriptor[];
   voices: VoiceOptionDescriptor[];
   voiceFieldMode: "select" | "input";
@@ -169,7 +169,7 @@ interface VoiceTranscribeResponse {
 interface VoiceRoutingStatus {
   mode: "shared" | "dedicated";
   target: "provider-audio" | "browser-fallback";
-  providerType: "shared-chat-provider" | "openai-compatible" | "fish-audio" | "doubao" | "local" | "unknown";
+  providerType: "shared-chat-provider" | "openai-compatible" | "gemini" | "fish-audio" | "doubao" | "local" | "unknown";
   providerLabel: string;
   ready: boolean;
   reasonCode: string;
@@ -4039,7 +4039,13 @@ export function App(): ReactElement {
   const usesLiveVoiceCatalog = activeConsoleWorkspace === "voice" && voiceCatalog !== null;
   const activeVoiceProviderType =
     selectedVoiceProviderPreset?.providerType ??
-    (usesDoubaoVoiceProvider ? "doubao" : usesLocalVoiceProvider ? "local" : "openai-compatible");
+    ((voiceConfig?.provider ?? "").trim().toLowerCase() === "gemini"
+      ? "gemini"
+      : usesDoubaoVoiceProvider
+        ? "doubao"
+        : usesLocalVoiceProvider
+          ? "local"
+          : "openai-compatible");
   const voiceStatusProviderType = usesDedicatedVoiceProvider
     ? activeVoiceProviderType
     : voiceRoutingStatus?.providerType ?? "shared-chat-provider";
@@ -5503,6 +5509,10 @@ export function App(): ReactElement {
                         ? locale === "zh"
                           ? "本地桥接请保证 Base URL、Endpoint 和引擎字段与你的本地服务一致。"
                           : "For local bridges, make sure Base URL, endpoint, and engine all match your local service."
+                        : voiceStatusProviderType === "gemini"
+                          ? locale === "zh"
+                            ? "Gemini TTS 使用官方预置音色名和 Gemini TTS 模型，当前麦克风转写仍不会走 Gemini。"
+                            : "Gemini TTS uses official prebuilt voice names and Gemini TTS models. Microphone transcription does not route through Gemini yet."
                         : voiceStatusProviderType === "doubao"
                           ? locale === "zh"
                             ? "豆包还需要 App ID 和 Cluster，缺一项都跑不通。"

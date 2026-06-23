@@ -2,6 +2,7 @@ export * from "./types.js";
 export * from "./browser-speech-planner.js";
 export * from "./openai-compatible-tts-provider.js";
 export * from "./openai-compatible-stt-provider.js";
+export * from "./gemini-tts-provider.js";
 export * from "./fish-audio-tts-provider.js";
 export * from "./fish-audio-stt-provider.js";
 export * from "./doubao-tts-provider.js";

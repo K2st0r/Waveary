@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `794ddad` - `Surface Fish Audio network diagnostics`
+- `pending` - `Add Gemini dedicated voice provider`
 
 ## Modules
 
@@ -159,6 +159,7 @@ Brand line:
   - that generic local bridge now also forwards richer realism-oriented engine parameters plus the shared companion delivery hint, so self-hosted voice no longer drops either local engine tuning context or relationship-aware spoken-delivery intent
   - Fish Audio now also exists as a dedicated provider family through `FishAudioTextToSpeechProvider` and `FishAudioSpeechToTextProvider`, so Waveary can test a non-OpenAI-compatible commercial voice stack without pushing vendor-specific transport details into the wider chat-provider layer
   - Fish Audio catalog, TTS, and STT failures now surface explicit upstream connectivity diagnostics such as `UND_ERR_CONNECT_TIMEOUT` instead of collapsing into a generic `fetch failed`, so live console testing can distinguish network reachability issues from route or config regressions
+  - Gemini TTS now also exists as a dedicated voice-provider family through `GeminiTextToSpeechProvider`, with official prebuilt voice-name selection, dedicated routing diagnostics, and console preset support kept separate from the OpenAI-compatible speech path
   - the first local-action execution surface stays intentionally narrow and auditable inside `waveary-web`: proposal detection is rule-based, execution is permission-gated, denied policy blocks execution, ask-first requires one explicit approval click, and dismissing the card clears the pending action from persisted session state`r`n  - executed and dismissed local actions now also append a small assistant-side audit note into persisted chat history, so trust-visible action outcomes survive reloads and restored sessions instead of living only in transient UI state
   - the visible persisted-session archive panel has been removed from the runtime rail so the console reads less like a raw internal debug dump
   - the split home / console / chat shell now has a stronger page-by-page hierarchy: the homepage reads more like a formal project front page, the console reads more like a system desk, and the chat page is more tightly focused on the active conversation surface
@@ -326,6 +327,8 @@ Brand line:
 - add focused browser-side or component-level regression coverage for the new silence-based provider STT stop logic so later realtime voice work does not regress it silently
 - decide whether the next voice implementation cut after this first STT slice should be interruption/full duplex first, or wider provider-specific STT support such as Doubao/local
 - re-run the dedicated Fish Audio browser verification pass once the current machine can actually reach `https://api.fish.audio`, then verify catalog fetch, saved voice-model ID entry, provider-backed playback, and provider-backed microphone transcription end to end
+- run one focused browser pass for the new Gemini dedicated voice route, especially preset selection, static model and voice selection, config save, and provider-backed playback with a real Gemini key
+- decide whether Gemini should stay TTS-only for now or later receive a separate audio-understanding / transcription adapter instead of being forced into the current provider-backed STT contract
 - use the new repo-side mojibake guard whenever a future Waveary work block edits Chinese-facing copy, and keep broad historical Chinese cleanup isolated from unrelated feature work
 - keep future shell polish focused on the lower workspace stage and inner panel density; do not bloat the top workspace-tab strip when the real complaint is about the operational panels below
 - keep future voice-shell checks focused on true UI regressions now that shared, dedicated OpenAI-compatible, Doubao, and local branches have all been browser-verified against the routing card

@@ -51,6 +51,48 @@ Push:
 
 Objective:
 
+Add Gemini as another dedicated voice-provider family, keeping the current voice console flow and routing boundaries intact.
+
+Summary:
+
+- added `GeminiTextToSpeechProvider` inside `@waveary/voice`, using Gemini's dedicated `models/{model}:generateContent` audio route plus Google's prebuilt voice names instead of pretending Gemini fits the OpenAI-compatible speech endpoint shape
+- extended the voice console preset and routing layers so `Gemini TTS` now appears beside the other dedicated providers, with static supported-model selection, prebuilt voice selection, and dedicated readiness diagnostics
+- kept the scope intentionally honest and bounded: Gemini is now available for dedicated TTS output, but provider-backed microphone transcription still does not route through Gemini in this cut
+- added regression coverage proving that Gemini appears in the voice-provider preset list, exposes the expected model and voice catalog, and can synthesize provider-backed audio through the dedicated route contract
+
+Files changed:
+
+- `waveary-voice/src/gemini-tts-provider.ts`
+- `waveary-voice/src/gemini-tts-provider.test.ts`
+- `waveary-voice/src/index.ts`
+- `waveary-web/server/voice-config.ts`
+- `waveary-web/server/voice-routing-diagnostics.ts`
+- `waveary-web/server/voice-runtime.ts`
+- `waveary-web/server/provider-api.test.ts`
+- `waveary-web/src/App.tsx`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run test --workspace @waveary/voice`
+- `npm run test --workspace @waveary/web`
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+
+Commit:
+
+- `pending` - `Add Gemini dedicated voice provider`
+
+Push:
+
+- pending
+
+## 2026-06-23
+
+Objective:
+
 Run a real Fish Audio live verification pass with the provided key, then make upstream-connectivity failures visible enough to diagnose from the Waveary voice routes.
 
 Summary:
