@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `b1c4014` - `Refine in-panel Doubao voice picker layout`
+- `a2d207e` - `Record live dedicated voice verification`
 
 ## Modules
 
