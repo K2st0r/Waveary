@@ -265,7 +265,7 @@ test("voice catalog route returns discovered models plus mapped voices for opena
   assert.ok(response.body.voices.some((voice: { id: string }) => voice.id === "marin"));
 });
 
-test("voice catalog route returns input-mode catalogs for doubao and local providers", async () => {
+test("voice catalog route returns curated doubao speakers and local input-mode catalogs", async () => {
   const middleware = createProviderApiMiddleware();
 
   const doubaoResponse = await invokeJsonRoute(middleware, "POST", "/api/voice/catalog", {
@@ -277,10 +277,20 @@ test("voice catalog route returns input-mode catalogs for doubao and local provi
 
   assert.equal(doubaoResponse.statusCode, 200);
   assert.equal(doubaoResponse.body.providerType, "doubao");
-  assert.equal(doubaoResponse.body.voiceFieldMode, "input");
+  assert.equal(doubaoResponse.body.voiceFieldMode, "select");
   assert.equal(
     doubaoResponse.body.defaultVoice,
     "zh_female_gaolengyujie_uranus_bigtts"
+  );
+  assert.ok(
+    doubaoResponse.body.voices.some(
+      (voice: { id: string }) => voice.id === "zh_female_gaolengyujie_uranus_bigtts"
+    )
+  );
+  assert.ok(
+    doubaoResponse.body.voices.some(
+      (voice: { id: string }) => voice.id === "zh_male_aojiaobazong_uranus_bigtts"
+    )
   );
 
   assert.equal(localResponse.statusCode, 200);

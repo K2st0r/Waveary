@@ -69,6 +69,56 @@ const OPENAI_COMPATIBLE_STT_DEFAULT_MODEL = "gpt-4o-mini-transcribe";
 const DOUBAO_DEFAULT_BASE_URL = "https://openspeech.bytedance.com";
 const DOUBAO_DEFAULT_RESOURCE_ID = "seed-tts-2.0";
 const DOUBAO_DEFAULT_VOICE = "zh_female_gaolengyujie_uranus_bigtts";
+const DOUBAO_VOICE_OPTIONS: readonly VoiceOptionDescriptor[] = [
+  {
+    id: "zh_female_gaolengyujie_uranus_bigtts",
+    label: "Cool Yujie 2.0"
+  },
+  {
+    id: "zh_female_qingxinnvsheng_uranus_bigtts",
+    label: "Fresh Female 2.0"
+  },
+  {
+    id: "zh_female_cancan_uranus_bigtts",
+    label: "Zhixing Cancan 2.0"
+  },
+  {
+    id: "zh_female_sajiaoxuemei_uranus_bigtts",
+    label: "Playful Schoolmate 2.0"
+  },
+  {
+    id: "zh_female_linjianvhai_uranus_bigtts",
+    label: "Neighbor Girl 2.0"
+  },
+  {
+    id: "zh_female_meilinvyou_uranus_bigtts",
+    label: "Charming Girlfriend 2.0"
+  },
+  {
+    id: "zh_male_dayi_uranus_bigtts",
+    label: "Dayi 2.0"
+  },
+  {
+    id: "zh_male_shaonianzixin_uranus_bigtts",
+    label: "Young Zixin 2.0"
+  },
+  {
+    id: "zh_male_ruyayichen_uranus_bigtts",
+    label: "Ruya Yichen 2.0"
+  },
+  {
+    id: "zh_male_aojiaobazong_uranus_bigtts",
+    label: "Tsundere Boss 2.0"
+  },
+  {
+    id: "zh_male_lanyinmianbao_uranus_bigtts",
+    label: "Lazy Mianbao 2.0"
+  },
+  {
+    id: "zh_male_sunwukong_uranus_bigtts",
+    label: "Sun Wukong 2.0"
+  }
+];
 const OPENAI_COMPATIBLE_VOICE_OPTIONS: readonly VoiceOptionDescriptor[] = [
   { id: "alloy", label: "alloy" },
   { id: "ash", label: "ash" },
@@ -176,11 +226,11 @@ const VOICE_PROVIDER_PRESETS: readonly VoiceProviderPreset[] = [
     provider: "doubao",
     providerType: "doubao",
     baseURL: DOUBAO_DEFAULT_BASE_URL,
-    voiceFieldMode: "input",
+    voiceFieldMode: "select",
     defaultModel: "doubao-tts",
     defaultVoice: DOUBAO_DEFAULT_VOICE,
     notes:
-      "Doubao uses the OpenSpeech v3 route with an API key plus resource ID. Voice selection stays manual because this route does not expose one shared public speaker directory."
+      "Doubao uses the OpenSpeech v3 route with an API key plus resource ID. Waveary exposes a curated built-in speaker list here instead of pretending there is a generic public /models voice directory."
   },
   {
     id: "local",
@@ -255,13 +305,13 @@ export function buildStaticVoiceCatalog(providerOrPreset: string): VoiceCatalogR
     return {
       providerType: "doubao",
       models: [{ id: "doubao-tts", provider: "doubao", label: "Doubao TTS" }],
-      voices: [],
-      voiceFieldMode: "input",
+      voices: DOUBAO_VOICE_OPTIONS.map((voice) => ({ ...voice })),
+      voiceFieldMode: "select",
       defaultModel: "doubao-tts",
       defaultVoice: DOUBAO_DEFAULT_VOICE,
       notes:
         matchedPreset?.notes ??
-        "Doubao does not currently use a shared OpenAI-style voice-list route here. Enter the speaker ID you want after testing it."
+        "Doubao does not expose a generic OpenAI-style voice-list route here. Waveary ships a curated speaker set for quick selection while the real route still runs through resource ID plus speaker ID."
     };
   }
 

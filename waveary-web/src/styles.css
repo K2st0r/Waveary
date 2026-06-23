@@ -2679,16 +2679,37 @@ textarea {
 
 .chat-composer-toolbar {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
   gap: 0.9rem;
   flex-wrap: wrap;
 }
 
+.chat-composer-main-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.chat-composer-side-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.65rem;
+  flex: 1 1 26rem;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.chat-live-button {
+  min-width: 10.5rem;
+}
+
 .chat-permission-controls {
   display: flex;
   align-items: center;
-  gap: 0.7rem;
+  gap: 0.55rem;
   flex-wrap: wrap;
 }
 
@@ -2765,8 +2786,9 @@ textarea {
 }
 
 .chat-voice-controls-compact {
-  width: 100%;
-  justify-content: space-between;
+  width: auto;
+  justify-content: flex-start;
+  flex: 0 1 auto;
 }
 
 .chat-voice-controls-legacy {
@@ -2776,8 +2798,9 @@ textarea {
 .chat-voice-compact-summary {
   display: grid;
   gap: 0.12rem;
-  min-width: 11rem;
-  padding: 0.1rem 0.2rem;
+  min-width: 9.5rem;
+  max-width: 14rem;
+  padding: 0.05rem 0.15rem;
 }
 
 .chat-voice-compact-summary strong {
@@ -2896,6 +2919,7 @@ textarea {
   background: rgba(255, 252, 247, 0.78);
   color: rgba(27, 22, 17, 0.72);
   font-size: 0.88rem;
+  flex-wrap: wrap;
 }
 
 .chat-voice-status-secondary {
@@ -2908,6 +2932,35 @@ textarea {
   font-family: "IBM Plex Mono", "Cascadia Code", Consolas, monospace;
   font-size: 0.76rem;
   white-space: nowrap;
+}
+
+.voice-catalog-action-card {
+  display: grid;
+  align-content: start;
+  gap: 0.45rem;
+  padding: 0.82rem 0.9rem;
+  border: 1px dashed rgba(21, 18, 15, 0.16);
+  border-radius: 1rem;
+  background: rgba(255, 252, 247, 0.72);
+}
+
+.voice-catalog-action-card strong {
+  color: var(--text-strong);
+  font-size: 0.92rem;
+}
+
+.voice-catalog-action-card span {
+  color: var(--muted);
+  font-size: 0.84rem;
+  line-height: 1.48;
+}
+
+.voice-console-lead-grid {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.voice-console-note-card {
+  min-height: 0;
 }
 
 .chat-voice-status-badge {
@@ -2959,8 +3012,8 @@ textarea {
   display: inline-flex;
   align-items: center;
   gap: 0.28rem;
-  min-height: 3rem;
-  padding: 0.26rem;
+  min-height: 2.6rem;
+  padding: 0.2rem;
   border: 1.5px solid rgba(21, 18, 15, 0.16);
   border-radius: 999px;
   background: rgba(255, 252, 247, 0.95);
@@ -2968,13 +3021,13 @@ textarea {
 }
 
 .chat-permission-mode-button {
-  min-height: 2.4rem;
-  padding: 0.4rem 0.85rem;
+  min-height: 2.1rem;
+  padding: 0.34rem 0.68rem;
   border: 0;
   border-radius: 999px;
   background: transparent;
   color: var(--muted);
-  font-size: 0.88rem;
+  font-size: 0.81rem;
   font-weight: 700;
   cursor: pointer;
   transition:
@@ -2999,7 +3052,8 @@ textarea {
 }
 
 .chat-permission-trigger {
-  min-height: 3rem;
+  min-height: 2.6rem;
+  padding-inline: 0.9rem;
 }
 
 .chat-permission-trigger-active {
@@ -3415,6 +3469,18 @@ textarea {
     align-items: stretch;
   }
 
+  .chat-composer-main-actions,
+  .chat-composer-side-actions {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .chat-composer-main-actions .button,
+  .chat-composer-side-actions .button,
+  .chat-voice-controls-compact {
+    flex: 1 1 0;
+  }
+
   .chat-permission-controls {
     width: 100%;
     align-items: stretch;
@@ -3422,6 +3488,10 @@ textarea {
 
   .chat-voice-controls {
     width: 100%;
+  }
+
+  .chat-voice-controls-compact {
+    justify-content: space-between;
   }
 
   .chat-voice-toggle {
