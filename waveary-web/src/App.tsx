@@ -4104,7 +4104,11 @@ export function App(): ReactElement {
         : locale === "zh"
           ? "输入音色名称"
           : "Enter a voice name";
+  const selectedVoiceProviderPresetId = selectedVoiceProviderPreset?.id ?? null;
   const activeVoiceCatalogNote =
+    (selectedVoiceProviderPresetId === "gemini-micu" && locale !== "zh"
+      ? "For Micu relay, prefer the Gemini TTS model names Micu actually recognizes. The current verified Micu-recognized names are `gemini-2.5-flash-tts-preview` and `gemini-2.5-pro-tts-preview`, while `gemini-3.1-flash-tts-preview` and the official `*-preview-tts` aliases currently return model_not_found on Micu."
+      : undefined) ??
     voiceCatalog?.notes ??
     selectedVoiceProviderPreset?.notes ??
     (usesDedicatedVoiceProvider
@@ -4148,8 +4152,14 @@ export function App(): ReactElement {
       : locale === "zh"
         ? "无"
         : "None";
+  const formattedVoiceFallbackReason = formatVoiceFallbackReason(
+    voiceRoutingStatus?.fallbackReason,
+    voiceRoutingStatus?.providerType,
+    selectedVoiceProviderPresetId,
+    locale
+  );
   const voiceRoutingDetailMessage =
-    voiceRoutingStatus?.fallbackReason?.trim() ||
+    formattedVoiceFallbackReason ||
     voiceRoutingStatus?.summary ||
     (locale === "zh"
       ? "当前会根据回复情绪规划语气，实时对话打开后会直接进入说与听的循环。"
@@ -5462,7 +5472,7 @@ export function App(): ReactElement {
                     <p>
                       {locale === "zh"
                         ? `本次 fallback 原因：${voiceRoutingStatus.fallbackReason}`
-                        : `Last fallback reason: ${voiceRoutingStatus.fallbackReason}`}
+                        : `Last fallback reason: ${formattedVoiceFallbackReason ?? voiceRoutingStatus.fallbackReason}`}
                     </p>
                   ) : null}
                 </div>
@@ -5512,7 +5522,9 @@ export function App(): ReactElement {
                         : voiceStatusProviderType === "gemini"
                           ? locale === "zh"
                             ? "Gemini TTS 使用官方预置音色名和 Gemini TTS 模型，当前麦克风转写仍不会走 Gemini。"
-                            : "Gemini TTS uses official prebuilt voice names and Gemini TTS models. Microphone transcription does not route through Gemini yet."
+                            : selectedVoiceProviderPresetId === "gemini-micu"
+                              ? "Gemini over Micu relay currently needs the Micu-recognized model names instead of the official `*-preview-tts` aliases. Microphone transcription still does not route through Gemini."
+                              : "Gemini TTS uses official prebuilt voice names and Gemini TTS models. Microphone transcription does not route through Gemini yet."
                         : voiceStatusProviderType === "doubao"
                           ? locale === "zh"
                             ? "豆包还需要 App ID 和 Cluster，缺一项都跑不通。"
@@ -7468,6 +7480,39 @@ function formatProactiveAutoCheckOutcome(
   }
 
   return copy.runtime.proactiveAutoOutcomeWait;
+}
+
+function formatVoiceFallbackReason(
+  fallbackReason: string | undefined,
+  providerType: VoiceRoutingStatus["providerType"] | undefined,
+  presetId: string | null,
+  locale: Locale
+): string | null {
+  const raw = fallbackReason?.trim();
+
+  if (!raw) {
+    return null;
+  }
+
+  if (providerType === "gemini" && raw.includes("model_not_found")) {
+    if (presetId === "gemini-micu") {
+      return locale === "zh"
+        ? "Micu Relay \u5f53\u524d\u4e0d\u8ba4\u8fd9\u4e2a Gemini TTS \u6a21\u578b\u540d\u3002\u8bf7\u4f18\u5148\u6539\u7528 Micu \u5df2\u8bc6\u522b\u7684 `gemini-2.5-flash-tts-preview` \u6216 `gemini-2.5-pro-tts-preview`\u3002"
+        : "Micu relay does not currently recognize this Gemini TTS model name. Prefer the Micu-recognized `gemini-2.5-flash-tts-preview` or `gemini-2.5-pro-tts-preview` names instead.";
+    }
+
+    return locale === "zh"
+      ? "\u5f53\u524d Gemini \u8def\u7531\u6ca1\u6709\u627e\u5230\u8fd9\u4e2a TTS \u6a21\u578b\u3002\u8bf7\u786e\u8ba4\u6a21\u578b\u540d\u662f\u5426\u5c5e\u4e8e\u5f53\u524d\u4f9b\u5e94\u5546\u5b9e\u9645\u652f\u6301\u7684 Gemini TTS \u5bb6\u65cf\u3002"
+      : "The current Gemini route could not find this TTS model. Check whether the model name actually belongs to the Gemini TTS family supported by this provider.";
+  }
+
+  if (providerType === "gemini" && raw.includes("This token has no access to model")) {
+    return locale === "zh"
+      ? "\u5f53\u524d API Key \u5df2\u7ecf\u6253\u5230\u6b63\u786e\u6a21\u578b\u4e86\uff0c\u4f46\u8fd9\u4e2a Key \u8fd8\u6ca1\u6709\u8be5\u6a21\u578b\u7684\u8bbf\u95ee\u6743\u9650\u3002\u6362\u4e00\u4e2a\u5df2\u5f00\u901a\u6b64\u6a21\u578b\u6743\u9650\u7684 Key \u624d\u80fd\u771f\u6b63\u51fa\u58f0\u3002"
+      : "The request already reached the correct model, but this API key does not currently have access to it. Use a key with that model enabled to get real provider audio.";
+  }
+
+  return raw;
 }
 
 function pickSpeechVoice(
