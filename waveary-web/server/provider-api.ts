@@ -408,7 +408,7 @@ export function createProviderApiMiddleware() {
         const providerInput = requireNonEmpty(payload.provider, "Voice provider is required.");
         const preset = resolveVoiceProviderPreset(providerInput);
         const provider = preset?.provider ?? providerInput;
-        const staticCatalog = buildStaticVoiceCatalog(provider);
+        const staticCatalog = buildStaticVoiceCatalog(preset?.id ?? providerInput);
 
         if (!staticCatalog) {
           throw new Error("Voice provider catalog is not available.");

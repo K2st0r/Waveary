@@ -2158,7 +2158,7 @@ export function App(): ReactElement {
       const response = await fetchJson<VoiceCatalogResponse>("/api/voice/catalog", {
         method: "POST",
         body: JSON.stringify({
-          provider: voiceConfig.provider,
+          provider: selectedVoiceProviderPreset?.id ?? voiceConfig.provider,
           baseURL: voiceConfig.baseURL,
           apiKey: voiceConfig.apiKey
         })
