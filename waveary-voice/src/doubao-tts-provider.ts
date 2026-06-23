@@ -1,5 +1,3 @@
-import { randomUUID } from "node:crypto";
-
 import type {
   AudioSpeechResult,
   TextToSpeechProvider,
@@ -9,67 +7,54 @@ import type {
 
 export interface DoubaoTextToSpeechProviderOptions {
   apiKey: string;
-  appId: string;
   voiceType: string;
-  cluster?: string;
+  resourceId?: string;
   host?: string;
   fetchFn?: typeof fetch;
 }
 
-interface DoubaoSubmitRequest {
-  app: {
-    appid: string;
-    token: string;
-    cluster: string;
-  };
+interface DoubaoUnidirectionalRequest {
   user: {
     uid: string;
   };
-  audio: {
-    voice_type: string;
-    encoding: "mp3";
-    speed_ratio?: number;
-    volume_ratio?: number;
-  };
-  request: {
-    reqid: string;
+  req_params: {
     text: string;
-    text_type: "plain";
-    operation: "submit";
+    speaker: string;
+    additions: string;
+    audio_params: {
+      format: "mp3";
+      sample_rate: number;
+    };
   };
 }
 
-interface DoubaoSubmitResponse {
+interface DoubaoUnidirectionalResponse {
+  reqid?: string;
   code?: number;
   message?: string;
   data?: string;
 }
 
-const DEFAULT_CLUSTER = "volcano_tts";
 const DEFAULT_HOST = "https://openspeech.bytedance.com";
+const DEFAULT_RESOURCE_ID = "volc.service_type.10029";
+const DEFAULT_SAMPLE_RATE = 24000;
 
 export class DoubaoTextToSpeechProvider implements TextToSpeechProvider {
   private readonly apiKey: string;
-  private readonly appId: string;
   private readonly voiceType: string;
-  private readonly cluster: string;
+  private readonly resourceId: string;
   private readonly host: string;
   private readonly fetchFn: typeof fetch;
 
   constructor(options: DoubaoTextToSpeechProviderOptions) {
     this.apiKey = options.apiKey.trim();
-    this.appId = options.appId.trim();
     this.voiceType = options.voiceType.trim();
-    this.cluster = options.cluster?.trim() || DEFAULT_CLUSTER;
+    this.resourceId = options.resourceId?.trim() || DEFAULT_RESOURCE_ID;
     this.host = options.host?.replace(/\/+$/, "") || DEFAULT_HOST;
     this.fetchFn = options.fetchFn ?? fetch;
 
     if (!this.apiKey) {
       throw new Error("A Doubao API key is required for provider-backed TTS.");
-    }
-
-    if (!this.appId) {
-      throw new Error("A Doubao appId is required for provider-backed TTS.");
     }
 
     if (!this.voiceType) {
@@ -78,14 +63,17 @@ export class DoubaoTextToSpeechProvider implements TextToSpeechProvider {
   }
 
   async synthesize(request: TextToSpeechRequest): Promise<TextToSpeechResult> {
-    const endpoint = `${this.host}/api/v1/tts`;
+    const endpoint = `${this.host}/api/v3/tts/unidirectional`;
     const response = await this.fetchFn(endpoint, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer;${this.apiKey}`
+        "x-api-key": this.apiKey,
+        "X-Api-Resource-Id": this.resourceId,
+        "X-Api-Request-Id": crypto.randomUUID(),
+        Connection: "keep-alive"
       },
-      body: JSON.stringify(buildSubmitBody(request, this.appId, this.cluster, this.voiceType))
+      body: JSON.stringify(buildRequestBody(request, this.voiceType))
     });
 
     const rawText = await response.text();
@@ -94,9 +82,9 @@ export class DoubaoTextToSpeechProvider implements TextToSpeechProvider {
       throw new Error(`Doubao TTS request failed with status ${response.status}. Body: ${rawText}`);
     }
 
-    const parsed = JSON.parse(rawText) as DoubaoSubmitResponse;
+    const parsed = JSON.parse(rawText) as DoubaoUnidirectionalResponse;
 
-    if (parsed.code !== undefined && parsed.code !== 3000) {
+    if (parsed.code !== undefined && parsed.code !== 0) {
       throw new Error(
         `Doubao TTS returned code ${String(parsed.code)}.${parsed.message ? ` ${parsed.message}` : ""}`
       );
@@ -121,46 +109,32 @@ export class DoubaoTextToSpeechProvider implements TextToSpeechProvider {
   }
 }
 
-function buildSubmitBody(
+function buildRequestBody(
   request: TextToSpeechRequest,
-  appId: string,
-  cluster: string,
   voiceType: string
-): DoubaoSubmitRequest {
+): DoubaoUnidirectionalRequest {
   return {
-    app: {
-      appid: appId,
-      token: "access_token",
-      cluster
-    },
     user: {
-      uid: "waveary-user"
+      uid: "waveary-local-user"
     },
-    audio: {
-      voice_type: voiceType,
-      encoding: "mp3",
-      speed_ratio: resolveSpeedRatio(request),
-      volume_ratio: 1
-    },
-    request: {
-      reqid: randomUUID(),
+    req_params: {
       text: request.text.trim(),
-      text_type: "plain",
-      operation: "submit"
+      speaker: voiceType,
+      additions: JSON.stringify({
+        disable_markdown_filter: true,
+        enable_language_detector: true,
+        enable_latex_tn: true,
+        disable_default_bit_rate: true,
+        max_length_to_filter_parenthesis: 0,
+        cache_config: {
+          text_type: 1,
+          use_cache: true
+        }
+      }),
+      audio_params: {
+        format: "mp3",
+        sample_rate: DEFAULT_SAMPLE_RATE
+      }
     }
   };
-}
-
-function resolveSpeedRatio(request: TextToSpeechRequest): number {
-  const emotion = request.emotion?.primaryEmotion?.toLowerCase() ?? "";
-
-  if (emotion.includes("sad") || emotion.includes("concerned") || emotion.includes("quiet")) {
-    return 0.92;
-  }
-
-  if (emotion.includes("playful") || emotion.includes("happy")) {
-    return 1.04;
-  }
-
-  return 1;
 }

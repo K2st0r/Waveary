@@ -10,7 +10,7 @@ export interface ResolvedVoiceRoutingConfig {
   provider: string;
   baseURL: string;
   apiKey: string;
-  appId: string;
+  resourceId: string;
   cluster: string;
   endpointPath: string;
   engine: string;
@@ -52,19 +52,19 @@ export interface VoiceRoutingDiagnostic {
     | "dedicated-fish-audio-missing-api-key"
     | "dedicated-doubao-ready"
     | "dedicated-doubao-missing-api-key"
-    | "dedicated-doubao-missing-app-id"
+    | "dedicated-doubao-missing-resource-id"
     | "dedicated-local-ready"
     | "dedicated-local-missing-base-url"
     | "dedicated-provider-missing"
     | "dedicated-provider-unknown";
   summary: string;
-  missingFields: Array<"provider" | "baseURL" | "apiKey" | "appId">;
+  missingFields: Array<"provider" | "baseURL" | "apiKey" | "resourceId">;
   providerBackedConfig:
     | {
         provider: string;
         baseURL: string;
         apiKey: string;
-        appId?: string;
+        resourceId?: string;
         cluster?: string;
         endpointPath?: string;
         engine?: string;
@@ -140,14 +140,14 @@ export function buildVoiceRoutingDiagnostic(
   }
 
   if (provider === "doubao") {
-    const missingFields: Array<"provider" | "baseURL" | "apiKey" | "appId"> = [];
+    const missingFields: Array<"provider" | "baseURL" | "apiKey" | "resourceId"> = [];
 
     if (!resolvedVoiceConfig.apiKey) {
       missingFields.push("apiKey");
     }
 
-    if (!resolvedVoiceConfig.appId) {
-      missingFields.push("appId");
+    if (!resolvedVoiceConfig.resourceId) {
+      missingFields.push("resourceId");
     }
 
     if (missingFields.length === 0) {
@@ -159,14 +159,13 @@ export function buildVoiceRoutingDiagnostic(
         ready: true,
         reasonCode: "dedicated-doubao-ready",
         summary:
-          "Dedicated Doubao voice has the required API key and app ID, so provider-backed audio can be attempted.",
+          "Dedicated Doubao voice has the required API key and resource ID, so provider-backed audio can be attempted.",
         missingFields: [],
         providerBackedConfig: {
           provider,
           baseURL: resolvedVoiceConfig.baseURL,
           apiKey: resolvedVoiceConfig.apiKey,
-          appId: resolvedVoiceConfig.appId,
-          cluster: resolvedVoiceConfig.cluster
+          resourceId: resolvedVoiceConfig.resourceId
         }
       };
     }
@@ -177,12 +176,12 @@ export function buildVoiceRoutingDiagnostic(
       providerType: "doubao",
       providerLabel: "doubao",
       ready: false,
-      reasonCode: missingFields.includes("appId")
-        ? "dedicated-doubao-missing-app-id"
+      reasonCode: missingFields.includes("resourceId")
+        ? "dedicated-doubao-missing-resource-id"
         : "dedicated-doubao-missing-api-key",
       summary:
-        missingFields.includes("appId")
-          ? "Dedicated Doubao voice is missing app ID, so it cannot reach provider-backed audio and will fall back to browser speech."
+        missingFields.includes("resourceId")
+          ? "Dedicated Doubao voice is missing resource ID, so it cannot reach provider-backed audio and will fall back to browser speech."
           : "Dedicated Doubao voice is missing API key, so it cannot reach provider-backed audio and will fall back to browser speech.",
       missingFields,
       providerBackedConfig: null
@@ -190,7 +189,7 @@ export function buildVoiceRoutingDiagnostic(
   }
 
   if (provider === "gemini") {
-    const missingFields: Array<"provider" | "baseURL" | "apiKey" | "appId"> = [];
+    const missingFields: Array<"provider" | "baseURL" | "apiKey" | "resourceId"> = [];
 
     if (!resolvedVoiceConfig.baseURL) {
       missingFields.push("baseURL");
@@ -238,7 +237,7 @@ export function buildVoiceRoutingDiagnostic(
   }
 
   if (provider === "fish-audio") {
-    const missingFields: Array<"provider" | "baseURL" | "apiKey" | "appId"> = [];
+    const missingFields: Array<"provider" | "baseURL" | "apiKey" | "resourceId"> = [];
 
     if (!resolvedVoiceConfig.baseURL) {
       missingFields.push("baseURL");
@@ -331,7 +330,7 @@ export function buildVoiceRoutingDiagnostic(
   }
 
   if (provider === "openai-compatible" || resolvedVoiceConfig.baseURL) {
-    const missingFields: Array<"provider" | "baseURL" | "apiKey" | "appId"> = [];
+    const missingFields: Array<"provider" | "baseURL" | "apiKey" | "resourceId"> = [];
 
     if (!resolvedVoiceConfig.baseURL) {
       missingFields.push("baseURL");

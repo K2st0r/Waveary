@@ -21,7 +21,7 @@ export interface SavedVoiceConfig {
   provider: string;
   baseURL: string;
   apiKey: string;
-  appId: string;
+  resourceId: string;
   cluster: string;
   endpointPath: string;
   engine: string;
@@ -172,12 +172,12 @@ const VOICE_PROVIDER_PRESETS: readonly VoiceProviderPreset[] = [
     label: "Doubao TTS",
     provider: "doubao",
     providerType: "doubao",
-    baseURL: "https://openspeech.bytedance.com/api/v1",
+    baseURL: "https://openspeech.bytedance.com",
     voiceFieldMode: "input",
     defaultModel: "doubao-tts",
-    defaultVoice: "BV001_streaming",
+    defaultVoice: "zh_male_beijingxiaoye_emo_v2_mars_bigtts",
     notes:
-      "Doubao needs its own app credentials and cluster. Voice selection here is manual because one shared public voice directory is not exposed by this route."
+      "Doubao uses the OpenSpeech v3 route with an API key plus resource ID. Voice selection stays manual because this route does not expose one shared public speaker directory."
   },
   {
     id: "local",
@@ -205,8 +205,8 @@ export function getDefaultVoiceConfig(): SavedVoiceConfig {
     provider: "",
     baseURL: "",
     apiKey: "",
-    appId: "",
-    cluster: "volcano_tts",
+    resourceId: "volc.service_type.10029",
+    cluster: "",
     endpointPath: "/tts",
     engine: "generic",
     speaker: "",
@@ -255,10 +255,10 @@ export function buildStaticVoiceCatalog(providerOrPreset: string): VoiceCatalogR
       voices: [],
       voiceFieldMode: "input",
       defaultModel: "doubao-tts",
-      defaultVoice: "BV001_streaming",
+      defaultVoice: "zh_male_beijingxiaoye_emo_v2_mars_bigtts",
       notes:
         matchedPreset?.notes ??
-        "Doubao does not currently use a single OpenAI-style voice-list route here. Enter the voice_type you want after testing it."
+        "Doubao does not currently use a shared OpenAI-style voice-list route here. Enter the speaker ID you want after testing it."
     };
   }
 
@@ -407,6 +407,7 @@ function normalizeVoiceConfig(config: Partial<SavedVoiceConfig>): SavedVoiceConf
   const sttModel = config.sttModel?.trim() || OPENAI_COMPATIBLE_STT_DEFAULT_MODEL;
   const hasExplicitModel = Object.prototype.hasOwnProperty.call(config, "model");
   const hasExplicitVoice = Object.prototype.hasOwnProperty.call(config, "voice");
+  const hasExplicitResourceId = Object.prototype.hasOwnProperty.call(config, "resourceId");
   const model = hasExplicitModel ? (config.model?.trim() ?? "") : preset.model;
   const voice = hasExplicitVoice ? (config.voice?.trim() ?? "") : preset.voice;
   const providerMode =
@@ -416,8 +417,15 @@ function normalizeVoiceConfig(config: Partial<SavedVoiceConfig>): SavedVoiceConf
   const provider = config.provider?.trim() || "";
   const baseURL = config.baseURL?.trim() || "";
   const apiKey = config.apiKey?.trim() || "";
-  const appId = config.appId?.trim() || "";
-  const cluster = config.cluster?.trim() || "volcano_tts";
+  const legacyAppId =
+    typeof (config as Partial<SavedVoiceConfig> & { appId?: unknown }).appId === "string"
+      ? (config as Partial<SavedVoiceConfig> & { appId?: string }).appId?.trim() || ""
+      : "";
+  const resourceId =
+    hasExplicitResourceId
+      ? (config.resourceId?.trim() ?? "")
+      : legacyAppId || "volc.service_type.10029";
+  const cluster = config.cluster?.trim() || "";
   const endpointPath = normalizeEndpointPath(config.endpointPath);
   const engine = config.engine?.trim() || "generic";
   const speaker = config.speaker?.trim() || "";
@@ -440,7 +448,7 @@ function normalizeVoiceConfig(config: Partial<SavedVoiceConfig>): SavedVoiceConf
     provider,
     baseURL,
     apiKey,
-    appId,
+    resourceId,
     cluster,
     endpointPath,
     engine,
