@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `pending` - `Add live Doubao speaker catalog fetch`
+- `9445ca6` - `Add live Doubao speaker catalog fetch`
 
 ## Modules
 
