@@ -2722,6 +2722,23 @@ textarea {
   outline: none;
 }
 
+.chat-voice-select textarea {
+  min-width: 10rem;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  outline: none;
+  resize: vertical;
+  font: inherit;
+  line-height: 1.45;
+}
+
+.chat-voice-select-block {
+  align-items: flex-start;
+  min-width: 16rem;
+  border-radius: 1.15rem;
+}
+
 .chat-voice-select-compact select {
   min-width: 5.6rem;
 }

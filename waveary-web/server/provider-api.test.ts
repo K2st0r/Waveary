@@ -338,19 +338,41 @@ test("voice speak route supports dedicated local self-hosted tts config", async 
       const body = init?.body
         ? (JSON.parse(String(init.body)) as {
             text: string;
+            locale: string;
             engine: string;
             voice: string;
             speaker: string;
             referenceVoiceId: string;
+            textLanguage: string;
+            promptLanguage: string;
+            referenceTranscript: string;
+            stylePrompt: string;
+            styleStrength: number;
+            temperature: number;
+            topP: number;
+            delivery: {
+              style: string;
+              summary: string;
+            };
             format: string;
           })
         : null;
 
       assert.equal(body?.text, "你好，我在。");
+      assert.equal(body?.locale, "zh-CN");
       assert.equal(body?.engine, "gpt-sovits");
       assert.equal(body?.voice, "warm-youth");
       assert.equal(body?.speaker, "speaker-a");
       assert.equal(body?.referenceVoiceId, "ref-voice-1");
+      assert.equal(body?.textLanguage, "zh");
+      assert.equal(body?.promptLanguage, "zh");
+      assert.equal(body?.referenceTranscript, "陪着你慢慢说。");
+      assert.equal(body?.stylePrompt, "soft diary warmth");
+      assert.equal(body?.styleStrength, 0.68);
+      assert.equal(body?.temperature, 0.42);
+      assert.equal(body?.topP, 0.8);
+      assert.equal(body?.delivery.style, "warm");
+      assert.equal(body?.delivery.summary, "Stay near and gentle.");
       assert.equal(body?.format, "mp3");
 
       return new Response(
@@ -386,6 +408,13 @@ test("voice speak route supports dedicated local self-hosted tts config", async 
     apiKey: "",
     speaker: "speaker-a",
     referenceVoiceId: "ref-voice-1",
+    textLanguage: "zh",
+    promptLanguage: "zh",
+    referenceTranscript: "陪着你慢慢说。",
+    stylePrompt: "soft diary warmth",
+    styleStrength: 0.68,
+    temperature: 0.42,
+    topP: 0.8,
     voice: "warm-youth",
     model: "local-bridge",
     qualityProfile: "gentle",
@@ -401,7 +430,11 @@ test("voice speak route supports dedicated local self-hosted tts config", async 
 
   const speakResponse = await invokeJsonRoute(middleware, "POST", "/api/voice/speak", {
     text: "你好，我在。",
-    locale: "zh-CN"
+    locale: "zh-CN",
+    delivery: {
+      style: "warm",
+      summary: "Stay near and gentle."
+    }
   });
 
   assert.equal(speakResponse.statusCode, 200);

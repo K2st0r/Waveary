@@ -38,6 +38,13 @@ interface SavedVoiceConfig {
   engine: string;
   speaker: string;
   referenceVoiceId: string;
+  textLanguage: string;
+  promptLanguage: string;
+  referenceTranscript: string;
+  stylePrompt: string;
+  styleStrength: number | null;
+  temperature: number | null;
+  topP: number | null;
 }
 
 interface VoicePresetDescriptor {
@@ -1887,7 +1894,21 @@ export function App(): ReactElement {
           endpointPath: patch.endpointPath ?? currentVoiceConfig.endpointPath,
           engine: patch.engine ?? currentVoiceConfig.engine,
           speaker: patch.speaker ?? currentVoiceConfig.speaker,
-          referenceVoiceId: patch.referenceVoiceId ?? currentVoiceConfig.referenceVoiceId
+          referenceVoiceId: patch.referenceVoiceId ?? currentVoiceConfig.referenceVoiceId,
+          textLanguage: patch.textLanguage ?? currentVoiceConfig.textLanguage,
+          promptLanguage: patch.promptLanguage ?? currentVoiceConfig.promptLanguage,
+          referenceTranscript:
+            patch.referenceTranscript ?? currentVoiceConfig.referenceTranscript,
+          stylePrompt: patch.stylePrompt ?? currentVoiceConfig.stylePrompt,
+          styleStrength:
+            patch.styleStrength !== undefined
+              ? patch.styleStrength
+              : currentVoiceConfig.styleStrength,
+          temperature:
+            patch.temperature !== undefined
+              ? patch.temperature
+              : currentVoiceConfig.temperature,
+          topP: patch.topP !== undefined ? patch.topP : currentVoiceConfig.topP
         })
       });
 
@@ -1963,12 +1984,39 @@ export function App(): ReactElement {
       | "endpointPath"
       | "engine"
       | "speaker"
-      | "referenceVoiceId",
+      | "referenceVoiceId"
+      | "textLanguage"
+      | "promptLanguage"
+      | "referenceTranscript"
+      | "stylePrompt",
     value: string
   ): Promise<void> {
     await saveVoiceConfigPatch(
       { [field]: value.trim() } as Partial<SavedVoiceConfig>,
       locale === "zh" ? "真人语音供应商设置已更新。" : "Voice provider settings updated."
+    );
+  }
+
+  async function handleVoiceProviderNumberFieldChange(
+    field: "styleStrength" | "temperature" | "topP",
+    value: string
+  ): Promise<void> {
+    const trimmed = value.trim();
+    const normalizedValue = trimmed.length === 0 ? null : Number(trimmed);
+
+    if (normalizedValue !== null && !Number.isFinite(normalizedValue)) {
+      setVoiceConfigState("error");
+      setVoiceStatusMessage(
+        locale === "zh"
+          ? "请输入有效的语音参数数字。"
+          : "Enter a valid numeric voice setting."
+      );
+      return;
+    }
+
+    await saveVoiceConfigPatch(
+      { [field]: normalizedValue } as Partial<SavedVoiceConfig>,
+      locale === "zh" ? "本地语音参数已更新。" : "Local voice tuning updated."
     );
   }
 
@@ -5248,6 +5296,174 @@ export function App(): ReactElement {
                                   }
                                   placeholder={
                                     locale === "zh" ? "可选参考音色或角色 ID" : "Optional reference voice or role ID"
+                                  }
+                                  disabled={!canAdjustVoiceConfig}
+                                />
+                              </label>
+                              <label className="chat-voice-select">
+                                <span>{locale === "zh" ? "文本语言" : "Text Lang"}</span>
+                                <input
+                                  type="text"
+                                  value={voiceConfig?.textLanguage ?? ""}
+                                  onChange={(event) =>
+                                    setVoiceConfig((current) =>
+                                      current ? { ...current, textLanguage: event.target.value } : current
+                                    )
+                                  }
+                                  onBlur={(event) =>
+                                    void handleVoiceProviderFieldChange("textLanguage", event.target.value)
+                                  }
+                                  placeholder={locale === "zh" ? "zh / en" : "zh / en"}
+                                  disabled={!canAdjustVoiceConfig}
+                                />
+                              </label>
+                              <label className="chat-voice-select">
+                                <span>{locale === "zh" ? "提示语言" : "Prompt Lang"}</span>
+                                <input
+                                  type="text"
+                                  value={voiceConfig?.promptLanguage ?? ""}
+                                  onChange={(event) =>
+                                    setVoiceConfig((current) =>
+                                      current ? { ...current, promptLanguage: event.target.value } : current
+                                    )
+                                  }
+                                  onBlur={(event) =>
+                                    void handleVoiceProviderFieldChange("promptLanguage", event.target.value)
+                                  }
+                                  placeholder={locale === "zh" ? "zh / en" : "zh / en"}
+                                  disabled={!canAdjustVoiceConfig}
+                                />
+                              </label>
+                              <label className="chat-voice-select">
+                                <span>{locale === "zh" ? "风格强度" : "Style"}</span>
+                                <input
+                                  type="number"
+                                  step="0.1"
+                                  value={voiceConfig?.styleStrength ?? ""}
+                                  onChange={(event) =>
+                                    setVoiceConfig((current) =>
+                                      current
+                                        ? {
+                                            ...current,
+                                            styleStrength:
+                                              event.target.value.trim().length === 0
+                                                ? null
+                                                : Number(event.target.value)
+                                          }
+                                        : current
+                                    )
+                                  }
+                                  onBlur={(event) =>
+                                    void handleVoiceProviderNumberFieldChange(
+                                      "styleStrength",
+                                      event.target.value
+                                    )
+                                  }
+                                  placeholder="0.7"
+                                  disabled={!canAdjustVoiceConfig}
+                                />
+                              </label>
+                              <label className="chat-voice-select">
+                                <span>Temp</span>
+                                <input
+                                  type="number"
+                                  step="0.1"
+                                  value={voiceConfig?.temperature ?? ""}
+                                  onChange={(event) =>
+                                    setVoiceConfig((current) =>
+                                      current
+                                        ? {
+                                            ...current,
+                                            temperature:
+                                              event.target.value.trim().length === 0
+                                                ? null
+                                                : Number(event.target.value)
+                                          }
+                                        : current
+                                    )
+                                  }
+                                  onBlur={(event) =>
+                                    void handleVoiceProviderNumberFieldChange(
+                                      "temperature",
+                                      event.target.value
+                                    )
+                                  }
+                                  placeholder="0.7"
+                                  disabled={!canAdjustVoiceConfig}
+                                />
+                              </label>
+                              <label className="chat-voice-select">
+                                <span>Top P</span>
+                                <input
+                                  type="number"
+                                  step="0.1"
+                                  value={voiceConfig?.topP ?? ""}
+                                  onChange={(event) =>
+                                    setVoiceConfig((current) =>
+                                      current
+                                        ? {
+                                            ...current,
+                                            topP:
+                                              event.target.value.trim().length === 0
+                                                ? null
+                                                : Number(event.target.value)
+                                          }
+                                        : current
+                                    )
+                                  }
+                                  onBlur={(event) =>
+                                    void handleVoiceProviderNumberFieldChange(
+                                      "topP",
+                                      event.target.value
+                                    )
+                                  }
+                                  placeholder="0.9"
+                                  disabled={!canAdjustVoiceConfig}
+                                />
+                              </label>
+                              <label className="chat-voice-select chat-voice-select-block chat-voice-select-wide">
+                                <span>{locale === "zh" ? "参考文本" : "Reference Text"}</span>
+                                <textarea
+                                  rows={2}
+                                  value={voiceConfig?.referenceTranscript ?? ""}
+                                  onChange={(event) =>
+                                    setVoiceConfig((current) =>
+                                      current
+                                        ? { ...current, referenceTranscript: event.target.value }
+                                        : current
+                                    )
+                                  }
+                                  onBlur={(event) =>
+                                    void handleVoiceProviderFieldChange(
+                                      "referenceTranscript",
+                                      event.target.value
+                                    )
+                                  }
+                                  placeholder={
+                                    locale === "zh"
+                                      ? "可选参考台词或参考音频对应文本"
+                                      : "Optional reference transcript"
+                                  }
+                                  disabled={!canAdjustVoiceConfig}
+                                />
+                              </label>
+                              <label className="chat-voice-select chat-voice-select-block chat-voice-select-wide">
+                                <span>{locale === "zh" ? "风格提示" : "Style Prompt"}</span>
+                                <textarea
+                                  rows={2}
+                                  value={voiceConfig?.stylePrompt ?? ""}
+                                  onChange={(event) =>
+                                    setVoiceConfig((current) =>
+                                      current ? { ...current, stylePrompt: event.target.value } : current
+                                    )
+                                  }
+                                  onBlur={(event) =>
+                                    void handleVoiceProviderFieldChange("stylePrompt", event.target.value)
+                                  }
+                                  placeholder={
+                                    locale === "zh"
+                                      ? "例如：更轻、更近、更像耳边低语"
+                                      : "e.g. gentle, intimate, diary-like"
                                   }
                                   disabled={!canAdjustVoiceConfig}
                                 />

@@ -37,6 +37,13 @@ export interface VoiceSpeakPlanRequest {
     engine?: string;
     speaker?: string;
     referenceVoiceId?: string;
+    textLanguage?: string;
+    promptLanguage?: string;
+    referenceTranscript?: string;
+    stylePrompt?: string;
+    styleStrength?: number | null;
+    temperature?: number | null;
+    topP?: number | null;
   };
 }
 
@@ -120,7 +127,29 @@ export async function planChatSpeech(input: VoiceSpeakPlanRequest) {
     referenceVoiceId:
       requestedVoiceConfig?.referenceVoiceId?.trim() ||
       savedVoiceConfig.referenceVoiceId ||
-      ""
+      "",
+    textLanguage:
+      requestedVoiceConfig?.textLanguage?.trim() || savedVoiceConfig.textLanguage || "",
+    promptLanguage:
+      requestedVoiceConfig?.promptLanguage?.trim() || savedVoiceConfig.promptLanguage || "",
+    referenceTranscript:
+      requestedVoiceConfig?.referenceTranscript?.trim() ||
+      savedVoiceConfig.referenceTranscript ||
+      "",
+    stylePrompt:
+      requestedVoiceConfig?.stylePrompt?.trim() || savedVoiceConfig.stylePrompt || "",
+    styleStrength:
+      typeof requestedVoiceConfig?.styleStrength === "number"
+        ? requestedVoiceConfig.styleStrength
+        : savedVoiceConfig.styleStrength,
+    temperature:
+      typeof requestedVoiceConfig?.temperature === "number"
+        ? requestedVoiceConfig.temperature
+        : savedVoiceConfig.temperature,
+    topP:
+      typeof requestedVoiceConfig?.topP === "number"
+        ? requestedVoiceConfig.topP
+        : savedVoiceConfig.topP
   };
 
   const providerBackedVoiceConfig =
@@ -140,7 +169,14 @@ export async function planChatSpeech(input: VoiceSpeakPlanRequest) {
             endpointPath: resolvedVoiceConfig.endpointPath,
             engine: resolvedVoiceConfig.engine,
             speaker: resolvedVoiceConfig.speaker,
-            referenceVoiceId: resolvedVoiceConfig.referenceVoiceId
+            referenceVoiceId: resolvedVoiceConfig.referenceVoiceId,
+            textLanguage: resolvedVoiceConfig.textLanguage,
+            promptLanguage: resolvedVoiceConfig.promptLanguage,
+            referenceTranscript: resolvedVoiceConfig.referenceTranscript,
+            stylePrompt: resolvedVoiceConfig.stylePrompt,
+            styleStrength: resolvedVoiceConfig.styleStrength,
+            temperature: resolvedVoiceConfig.temperature,
+            topP: resolvedVoiceConfig.topP
           }
         : null
       : savedProvider
@@ -185,6 +221,30 @@ export async function planChatSpeech(input: VoiceSpeakPlanRequest) {
             : {}),
           ...(providerBackedVoiceConfig.referenceVoiceId
             ? { referenceVoiceId: providerBackedVoiceConfig.referenceVoiceId }
+            : {}),
+          ...(providerBackedVoiceConfig.textLanguage
+            ? { textLanguage: providerBackedVoiceConfig.textLanguage }
+            : {}),
+          ...(providerBackedVoiceConfig.promptLanguage
+            ? { promptLanguage: providerBackedVoiceConfig.promptLanguage }
+            : {}),
+          ...(providerBackedVoiceConfig.referenceTranscript
+            ? { referenceTranscript: providerBackedVoiceConfig.referenceTranscript }
+            : {}),
+          ...(providerBackedVoiceConfig.stylePrompt
+            ? { stylePrompt: providerBackedVoiceConfig.stylePrompt }
+            : {}),
+          ...(providerBackedVoiceConfig.styleStrength !== null &&
+          providerBackedVoiceConfig.styleStrength !== undefined
+            ? { styleStrength: providerBackedVoiceConfig.styleStrength }
+            : {}),
+          ...(providerBackedVoiceConfig.temperature !== null &&
+          providerBackedVoiceConfig.temperature !== undefined
+            ? { temperature: providerBackedVoiceConfig.temperature }
+            : {}),
+          ...(providerBackedVoiceConfig.topP !== null &&
+          providerBackedVoiceConfig.topP !== undefined
+            ? { topP: providerBackedVoiceConfig.topP }
             : {}),
           format: resolvedVoiceConfig.format,
           ...(providerBackedVoiceConfig.apiKey

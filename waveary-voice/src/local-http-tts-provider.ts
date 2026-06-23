@@ -13,6 +13,13 @@ export interface LocalHttpTextToSpeechProviderOptions {
   voice?: string;
   speaker?: string;
   referenceVoiceId?: string;
+  textLanguage?: string;
+  promptLanguage?: string;
+  referenceTranscript?: string;
+  stylePrompt?: string;
+  styleStrength?: number;
+  temperature?: number;
+  topP?: number;
   format?: VoiceOutputFormat;
   apiKey?: string;
   fetchFn?: typeof fetch;
@@ -25,10 +32,18 @@ interface LocalHttpTextToSpeechBody {
   personaTone?: string;
   personaVoiceStyle?: string;
   emotion?: TextToSpeechRequest["emotion"];
+  delivery?: TextToSpeechRequest["delivery"];
   engine?: string;
   voice?: string;
   speaker?: string;
   referenceVoiceId?: string;
+  textLanguage?: string;
+  promptLanguage?: string;
+  referenceTranscript?: string;
+  stylePrompt?: string;
+  styleStrength?: number;
+  temperature?: number;
+  topP?: number;
   format?: VoiceOutputFormat;
 }
 
@@ -57,6 +72,13 @@ export class LocalHttpTextToSpeechProvider implements TextToSpeechProvider {
   private readonly voice: string;
   private readonly speaker: string;
   private readonly referenceVoiceId: string;
+  private readonly textLanguage: string;
+  private readonly promptLanguage: string;
+  private readonly referenceTranscript: string;
+  private readonly stylePrompt: string;
+  private readonly styleStrength: number | null;
+  private readonly temperature: number | null;
+  private readonly topP: number | null;
   private readonly format: VoiceOutputFormat;
   private readonly apiKey: string;
   private readonly fetchFn: typeof fetch;
@@ -68,6 +90,13 @@ export class LocalHttpTextToSpeechProvider implements TextToSpeechProvider {
     this.voice = options.voice?.trim() || "";
     this.speaker = options.speaker?.trim() || "";
     this.referenceVoiceId = options.referenceVoiceId?.trim() || "";
+    this.textLanguage = options.textLanguage?.trim() || "";
+    this.promptLanguage = options.promptLanguage?.trim() || "";
+    this.referenceTranscript = options.referenceTranscript?.trim() || "";
+    this.stylePrompt = options.stylePrompt?.trim() || "";
+    this.styleStrength = normalizeOptionalNumber(options.styleStrength);
+    this.temperature = normalizeOptionalNumber(options.temperature);
+    this.topP = normalizeOptionalNumber(options.topP);
     this.format = options.format ?? "mp3";
     this.apiKey = options.apiKey?.trim() || "";
     this.fetchFn = options.fetchFn ?? fetch;
@@ -127,10 +156,18 @@ export class LocalHttpTextToSpeechProvider implements TextToSpeechProvider {
       ...(request.personaTone ? { personaTone: request.personaTone } : {}),
       ...(request.personaVoiceStyle ? { personaVoiceStyle: request.personaVoiceStyle } : {}),
       ...(request.emotion ? { emotion: request.emotion } : {}),
+      ...(request.delivery ? { delivery: request.delivery } : {}),
       engine: this.engine,
       ...(this.voice ? { voice: this.voice } : {}),
       ...(this.speaker ? { speaker: this.speaker } : {}),
       ...(this.referenceVoiceId ? { referenceVoiceId: this.referenceVoiceId } : {}),
+      ...(this.textLanguage ? { textLanguage: this.textLanguage } : {}),
+      ...(this.promptLanguage ? { promptLanguage: this.promptLanguage } : {}),
+      ...(this.referenceTranscript ? { referenceTranscript: this.referenceTranscript } : {}),
+      ...(this.stylePrompt ? { stylePrompt: this.stylePrompt } : {}),
+      ...(this.styleStrength !== null ? { styleStrength: this.styleStrength } : {}),
+      ...(this.temperature !== null ? { temperature: this.temperature } : {}),
+      ...(this.topP !== null ? { topP: this.topP } : {}),
       format: this.format
     };
   }
@@ -197,4 +234,8 @@ function resolveMimeType(format: VoiceOutputFormat): string {
   }
 
   return "audio/mpeg";
+}
+
+function normalizeOptionalNumber(value: number | undefined): number | null {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
 }

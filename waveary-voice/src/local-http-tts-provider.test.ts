@@ -11,6 +11,13 @@ test("local http tts provider accepts normalized json audio payloads", async () 
     voice: "youthful",
     speaker: "speaker-a",
     referenceVoiceId: "ref-voice-1",
+    textLanguage: "zh",
+    promptLanguage: "zh",
+    referenceTranscript: "gentle night companionship",
+    stylePrompt: "soft diary warmth",
+    styleStrength: 0.72,
+    temperature: 0.45,
+    topP: 0.82,
     format: "wav",
     apiKey: "local-token",
     fetchFn: (async (input, init) => {
@@ -28,15 +35,35 @@ test("local http tts provider accepts normalized json audio payloads", async () 
         voice: string;
         speaker: string;
         referenceVoiceId: string;
+        textLanguage: string;
+        promptLanguage: string;
+        referenceTranscript: string;
+        stylePrompt: string;
+        styleStrength: number;
+        temperature: number;
+        topP: number;
+        delivery: {
+          style: string;
+          summary: string;
+        };
         format: string;
       };
 
-      assert.equal(body.text, "你好，我在。");
+      assert.equal(body.text, "Hello, I am here.");
       assert.equal(body.locale, "zh-CN");
       assert.equal(body.engine, "gpt-sovits");
       assert.equal(body.voice, "youthful");
       assert.equal(body.speaker, "speaker-a");
       assert.equal(body.referenceVoiceId, "ref-voice-1");
+      assert.equal(body.textLanguage, "zh");
+      assert.equal(body.promptLanguage, "zh");
+      assert.equal(body.referenceTranscript, "gentle night companionship");
+      assert.equal(body.stylePrompt, "soft diary warmth");
+      assert.equal(body.styleStrength, 0.72);
+      assert.equal(body.temperature, 0.45);
+      assert.equal(body.topP, 0.82);
+      assert.equal(body.delivery.style, "warm");
+      assert.equal(body.delivery.summary, "Stay near and gentle.");
       assert.equal(body.format, "wav");
 
       return new Response(
@@ -62,8 +89,12 @@ test("local http tts provider accepts normalized json audio payloads", async () 
   });
 
   const result = await provider.synthesize({
-    text: "你好，我在。",
-    locale: "zh-CN"
+    text: "Hello, I am here.",
+    locale: "zh-CN",
+    delivery: {
+      style: "warm",
+      summary: "Stay near and gentle."
+    }
   });
 
   assert.equal(result.provider, "local-gpt-sovits");

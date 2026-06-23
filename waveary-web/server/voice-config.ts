@@ -25,6 +25,13 @@ export interface SavedVoiceConfig {
   engine: string;
   speaker: string;
   referenceVoiceId: string;
+  textLanguage: string;
+  promptLanguage: string;
+  referenceTranscript: string;
+  stylePrompt: string;
+  styleStrength: number | null;
+  temperature: number | null;
+  topP: number | null;
 }
 
 const CONFIG_PATH = join(getWavearyDataDir(), "voice-config.json");
@@ -46,7 +53,14 @@ export function getDefaultVoiceConfig(): SavedVoiceConfig {
     endpointPath: "/tts",
     engine: "generic",
     speaker: "",
-    referenceVoiceId: ""
+    referenceVoiceId: "",
+    textLanguage: "",
+    promptLanguage: "",
+    referenceTranscript: "",
+    stylePrompt: "",
+    styleStrength: null,
+    temperature: null,
+    topP: null
   };
 }
 
@@ -97,6 +111,13 @@ function normalizeVoiceConfig(config: Partial<SavedVoiceConfig>): SavedVoiceConf
   const engine = config.engine?.trim() || "generic";
   const speaker = config.speaker?.trim() || "";
   const referenceVoiceId = config.referenceVoiceId?.trim() || "";
+  const textLanguage = config.textLanguage?.trim() || "";
+  const promptLanguage = config.promptLanguage?.trim() || "";
+  const referenceTranscript = config.referenceTranscript?.trim() || "";
+  const stylePrompt = config.stylePrompt?.trim() || "";
+  const styleStrength = normalizeOptionalNumber(config.styleStrength);
+  const temperature = normalizeOptionalNumber(config.temperature);
+  const topP = normalizeOptionalNumber(config.topP);
 
   return {
     model,
@@ -112,7 +133,14 @@ function normalizeVoiceConfig(config: Partial<SavedVoiceConfig>): SavedVoiceConf
     endpointPath,
     engine,
     speaker,
-    referenceVoiceId
+    referenceVoiceId,
+    textLanguage,
+    promptLanguage,
+    referenceTranscript,
+    stylePrompt,
+    styleStrength,
+    temperature,
+    topP
   };
 }
 
@@ -134,4 +162,8 @@ function normalizeEndpointPath(value: unknown): string {
 
   const normalized = value.trim();
   return normalized.startsWith("/") ? normalized : `/${normalized}`;
+}
+
+function normalizeOptionalNumber(value: unknown): number | null {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
