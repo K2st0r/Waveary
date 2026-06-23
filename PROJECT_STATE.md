@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `00fd262` - `Sync continuity after voice console update`
+- `614e6a0` - `Refine voice console provider workspace`
 
 ## Modules
 
