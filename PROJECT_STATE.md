@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `1548477` - `Expose voice key field in console`
+- `ebba2bd` - `Repair voice credential copy mojibake`
 
 ## Modules
 
@@ -188,6 +188,7 @@ Brand line:
   - the voice workspace onboarding is now tighter on the frontend too: provider presets reset stale catalog state, discovered voice models render with normalized labels, and dedicated vendors such as Doubao or local bridges now switch the voice field into explicit manual input instead of pretending a universal selectable voice list exists
   - the voice workspace now also exposes a broader preset roster for domestic and compatible voice vendors, switches the dedicated provider form by vendor type instead of showing one fixed block, and uses the right-side console area as a live guidance panel so users can see what the current provider path expects
   - the dedicated voice-provider form now keeps `Voice Key` in a fixed visible credential slot inside the console instead of hiding that field behind non-local-only branching, and the local bridge path now shows the same slot as an optional auth field rather than making it disappear entirely
+  - the latest visible mojibake in that dedicated voice credential block has now been repaired with encoding-safe literals, while the surrounding voice-provider logic remains unchanged
   - the console workspaces now share one unified stage shell across provider, voice, sessions, care, and runtime views, with matched panel heights and internal scroll regions so workspace switching no longer feels like jumping between mismatched page layouts
   - the top workspace tabs have been restored to the tighter compact height, while the lower console workspace panels themselves are now taller so the operational surface has more room without inflating the navigation strip
 
@@ -372,3 +373,4 @@ Brand line:
 - `npm run web:build` can still fail on Windows with `EPERM` while removing `waveary-core/dist` if a prior build or process is holding the directory, even when narrower `@waveary/web` test and typecheck verification succeeds
 - the currently running local dev server can expose healthy `/api/provider/*` routes while still returning `404` for `/api/voice/config`; the frontend now tolerates that split state, but the server/runtime mismatch still needs a separate root-cause pass
 - several repository files already contain historical mojibake in Chinese copy, and fresh PowerShell / Windows shell edits can make diagnosis misleading because console rendering is not byte-faithful; treat Chinese-text cleanup as a separate deliberate pass, and verify future Chinese copy edits with `git diff` instead of trusting raw terminal output alone
+- `waveary-web/src/App.tsx` no longer has the newest visible mojibake in the dedicated voice credential block, but broader document-level cleanup is still outstanding and should stay isolated from active feature work

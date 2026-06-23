@@ -4,6 +4,38 @@
 
 Objective:
 
+Repair the visible mojibake in the dedicated voice credential block without changing the voice-provider flow.
+
+Summary:
+
+- repaired the corrupted Chinese `Voice Key` label and both related dedicated-voice API-key placeholders in `waveary-web/src/App.tsx`
+- used `\uXXXX` string literals for the repaired Chinese copy so the fix does not depend on unreliable Windows / PowerShell inline encoding behavior
+- kept the change intentionally narrow to visible credential copy and left the surrounding dedicated voice-provider logic unchanged
+
+Files changed:
+
+- `waveary-web/src/App.tsx`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `git diff -- waveary-web/src/App.tsx`
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+
+Commit:
+
+- `ebba2bd` - `Repair voice credential copy mojibake`
+
+Push:
+
+- pending in this work block
+
+## 2026-06-23
+
+Objective:
+
 Investigate the new Chinese mojibake issue, preserve the finding in the continuity skill, and avoid repeating the same encoding mistake in later sessions.
 
 Summary:
