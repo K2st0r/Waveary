@@ -280,7 +280,7 @@ test("voice catalog route returns input-mode catalogs for doubao and local provi
   assert.equal(doubaoResponse.body.voiceFieldMode, "input");
   assert.equal(
     doubaoResponse.body.defaultVoice,
-    "zh_male_beijingxiaoye_emo_v2_mars_bigtts"
+    "zh_female_gaolengyujie_uranus_bigtts"
   );
 
   assert.equal(localResponse.statusCode, 200);
@@ -469,10 +469,10 @@ test("voice config route auto-normalizes legacy saved doubao fields to the v3 co
 
   assert.equal(response.statusCode, 200);
   assert.equal(response.body.config.baseURL, "https://openspeech.bytedance.com");
-  assert.equal(response.body.config.resourceId, "volc.service_type.10029");
+  assert.equal(response.body.config.resourceId, "seed-tts-2.0");
   assert.equal(
     response.body.config.voice,
-    "zh_male_beijingxiaoye_emo_v2_mars_bigtts"
+    "zh_female_gaolengyujie_uranus_bigtts"
   );
   assert.equal(response.body.routing.reasonCode, "dedicated-doubao-ready");
 });
@@ -537,8 +537,8 @@ test("voice transcribe route rejects unsupported provider-backed stt families fo
     providerMode: "dedicated",
     provider: "doubao",
     apiKey: "doubao-key",
-    resourceId: "volc.service_type.10029",
-    voice: "zh_male_beijingxiaoye_emo_v2_mars_bigtts",
+    resourceId: "seed-tts-2.0",
+    voice: "zh_female_gaolengyujie_uranus_bigtts",
     model: "doubao-tts",
     qualityProfile: "cinematic",
     format: "mp3"
@@ -843,11 +843,11 @@ test("voice speak route supports dedicated doubao tts config", async () => {
         : null;
 
       assert.equal(headers["x-api-key"], "doubao-key");
-      assert.equal(headers["X-Api-Resource-Id"], "volc.service_type.10029");
+      assert.equal(headers["X-Api-Resource-Id"], "seed-tts-2.0");
       assert.equal(body?.req_params.text, "你好，我在。");
       assert.equal(
         body?.req_params.speaker,
-        "zh_male_beijingxiaoye_emo_v2_mars_bigtts"
+        "zh_female_gaolengyujie_uranus_bigtts"
       );
       assert.equal(body?.req_params.audio_params.format, "mp3");
       assert.equal(body?.req_params.audio_params.sample_rate, 24000);
@@ -874,8 +874,8 @@ test("voice speak route supports dedicated doubao tts config", async () => {
     providerMode: "dedicated",
     provider: "doubao",
     apiKey: "doubao-key",
-    resourceId: "volc.service_type.10029",
-    voice: "zh_male_beijingxiaoye_emo_v2_mars_bigtts",
+    resourceId: "seed-tts-2.0",
+    voice: "zh_female_gaolengyujie_uranus_bigtts",
     model: "doubao-tts",
     qualityProfile: "cinematic",
     format: "mp3"
@@ -1025,7 +1025,7 @@ test("voice config route reports missing doubao resource id before playback", as
     provider: "doubao",
     apiKey: "doubao-key",
     resourceId: "",
-    voice: "zh_male_beijingxiaoye_emo_v2_mars_bigtts",
+    voice: "zh_female_gaolengyujie_uranus_bigtts",
     model: "doubao-tts",
     qualityProfile: "cinematic",
     format: "mp3"
