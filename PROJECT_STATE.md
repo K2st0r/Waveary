@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `cee0224` - `Add provider-backed speech transcription path`
+- `d430380` - `Add silence-based provider STT stop detection`
 
 ## Modules
 
@@ -221,7 +221,7 @@ Brand line:
   - can now capture microphone speech in supported browsers and turn it into the next local chat turn without leaving the chat page
   - can now transcribe microphone audio through a provider-backed `/api/voice/transcribe` path whenever the active voice route is shared-compatible or dedicated-compatible, while honestly falling back to browser speech recognition when provider STT is unavailable
   - saved voice config now also persists `sttModel`, so compatible speech transcription no longer has to be hardwired to one provider default
-  - the current provider-backed STT browser loop uses a bounded short recording window before upload/transcription rather than pretending full duplex or interruption handling already exists
+  - the current provider-backed STT browser loop now uses client-side speech-activity monitoring to stop after detected post-speech silence, while still keeping a max-duration safety cap instead of pretending full duplex or interruption handling already exists
   - now exposes a read-only `/api/chat/proactive/evaluate` route so the current `WPCE` decision path can be inspected from the local web runtime without generating outbound messages
   - now exposes `/api/chat/proactive/settings` so per-session proactive-care policy and care-state counters can be saved, reloaded, exported, imported, and reused by later `WPCE` evaluations
   - restores local chat history and latest runtime signals after dev server restart
@@ -321,6 +321,7 @@ Brand line:
 ## Next Steps
 
 - replace the current fixed short capture window in provider-backed STT with a more truthful turn-end detector or streaming transport before claiming realtime voice is close to done
+- add focused browser-side or component-level regression coverage for the new silence-based provider STT stop logic so later realtime voice work does not regress it silently
 - decide whether the next voice implementation cut after this first STT slice should be interruption/full duplex first, or wider provider-specific STT support such as Doubao/local
 - use the new repo-side mojibake guard whenever a future Waveary work block edits Chinese-facing copy, and keep broad historical Chinese cleanup isolated from unrelated feature work
 - keep future shell polish focused on the lower workspace stage and inner panel density; do not bloat the top workspace-tab strip when the real complaint is about the operational panels below
@@ -394,4 +395,4 @@ Brand line:
 - the new `npm run check:mojibake` guard only scans changed added lines for obvious corruption patterns; it reduces repeat mistakes but does not replace a dedicated full-document Chinese cleanup pass
 - `npx tsc --noEmit -p waveary-web/tsconfig.server.json` is not a trustworthy verification command in this workspace right now because its standalone resolution still reports broader historical workspace-type issues even when the package build/test flow passes; prefer `npm run test --workspace @waveary/web` or `npm run build:server --workspace @waveary/web` for server-side voice verification until that separate tsconfig issue is deliberately cleaned up
 - `waveary-web/src/App.tsx` no longer has the newest visible mojibake in the dedicated voice credential block, but broader document-level cleanup is still outstanding and should stay isolated from active feature work
-- the first provider-backed STT browser path currently stops recording on a fixed short timer; it is a bounded honest step toward真人语音, but not yet a true turn-end detector, interruption-capable loop, or full duplex transport
+- the first provider-backed STT browser path now uses browser-side speech-activity heuristics rather than a fixed short timer, but it is still not a server-grounded VAD, interruption-capable loop, or full duplex transport

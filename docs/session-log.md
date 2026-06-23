@@ -4,6 +4,40 @@
 
 Objective:
 
+Replace the fixed short provider-STT recording window with a more truthful silence-based stop path without widening the current voice scope.
+
+Summary:
+
+- updated `waveary-web/src/App.tsx` so provider-backed microphone capture no longer always stops on one fixed 6-second timer
+- added a browser-side speech-activity monitor using `AudioContext` + `AnalyserNode`, so Waveary now waits until the user has actually spoken and then stops after a short post-speech silence window
+- kept the implementation bounded and honest by preserving a max-duration safety cap; this is a truer turn-end detector than the earlier timer-only path, but still not full duplex, interruption handling, or server-side VAD
+- preserved the existing fallback boundaries: compatible provider STT still falls back to browser `SpeechRecognition` when needed, and the rest of the chat/voice console path stayed unchanged
+
+Files changed:
+
+- `waveary-web/src/App.tsx`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run test --workspace @waveary/web`
+- `npm run check:mojibake`
+
+Commit:
+
+- `d430380` - `Add silence-based provider STT stop detection`
+
+Push:
+
+- succeeded: `git push origin main` pushed functional commit `d430380` to `origin/main`
+
+## 2026-06-23
+
+Objective:
+
 Add the first provider-backed STT path without breaking the current voice console or browser realtime-chat loop.
 
 Summary:
