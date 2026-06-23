@@ -4426,13 +4426,13 @@ export function App(): ReactElement {
             <p>{copy.setup.description}</p>
           </div>
 
-          <div className="setup-layout">
-            <div className="panel setup-overview-panel">
+          <div className="setup-layout console-workspace-stage">
+            <div className="panel setup-overview-panel console-workspace-panel">
               <div className="panel-header">
                 <span>{copy.setup.sequence}</span>
                 <span className="panel-tag">{copy.setup.interactive}</span>
               </div>
-
+              <div className="console-workspace-scroll">
               <ol className="step-list">
                 {copy.setup.steps.map((step) => (
                   <li key={step}>{step}</li>
@@ -4471,14 +4471,15 @@ export function App(): ReactElement {
                   ))}
                 </div>
               </div>
+              </div>
             </div>
 
-            <div className="panel provider-console-panel">
+            <div className="panel provider-console-panel console-workspace-panel">
               <div className="panel-header">
                 <span>{copy.setup.setupConsole}</span>
                 <span className="panel-tag">{copy.setup.localApi}</span>
               </div>
-
+              <div className="console-workspace-scroll">
               <div
                 className={`status-banner ${
                   loadState === "error" || modelsState === "error" || saveState === "error"
@@ -4580,6 +4581,7 @@ export function App(): ReactElement {
                   {saveState === "loading" ? copy.setup.saving : copy.setup.saveConfig}
                 </button>
               </div>
+              </div>
             </div>
           </div>
         </section>
@@ -4597,12 +4599,13 @@ export function App(): ReactElement {
             </p>
           </div>
 
-          <div className="console-diagnostics-grid console-voice-grid">
-            <div className="panel provider-console-panel">
+          <div className="console-diagnostics-grid console-voice-grid console-workspace-stage">
+            <div className="panel provider-console-panel console-workspace-panel">
               <div className="panel-header">
                 <span>{locale === "zh" ? "语音路由" : "Voice routing"}</span>
                 <span className="panel-tag">{locale === "zh" ? "实时对话" : "Realtime"}</span>
               </div>
+              <div className="console-workspace-scroll">
               <p className="provider-note">
                 {locale === "zh"
                   ? "聊天模型负责内容，语音模型负责把情绪、距离感和语气读出来。你可以共用聊天供应商，也可以单独接豆包、本地桥或其他兼容端点。"
@@ -4675,14 +4678,15 @@ export function App(): ReactElement {
                 </div>
               ) : null}
               {renderVoiceConfigControls("console")}
+              </div>
             </div>
 
-            <div className="panel insight-panel voice-console-sidepanel">
+            <div className="panel insight-panel voice-console-sidepanel console-workspace-panel">
               <div className="panel-header">
                 <span>{locale === "zh" ? "当前语音状态" : "Current voice state"}</span>
                 <span className="panel-tag">{locale === "zh" ? "状态 + 说明" : "State + guide"}</span>
               </div>
-              <div className="insight-stack">
+              <div className="console-workspace-scroll insight-stack">
                 <div className="signal-metrics">
                   <div className="signal-metric-card">
                     <span>{locale === "zh" ? "播放" : "Playback"}</span>
@@ -4805,14 +4809,15 @@ export function App(): ReactElement {
           </div>
 
           {activeConsoleWorkspace === "sessions" ? (
-          <div className="panel session-panel">
+          <div className="console-workspace-stage console-workspace-stage-single">
+          <div className="panel session-panel console-workspace-panel console-workspace-panel-full">
             <div className="panel-header">
               <span>{copy.runtime.sessionLayer}</span>
               <span className="panel-tag">{copy.runtime.sessionTag}</span>
             </div>
 
-            <div className="session-panel-grid">
-              <div className="session-list">
+            <div className="session-panel-grid console-workspace-scroll">
+              <div className="session-list console-subpanel">
                 {chatSessions.map((session) => {
                   const isActive = session.sessionId === activeSessionId;
                   const isMain = session.sessionId === defaultSessionId;
@@ -5210,17 +5215,18 @@ export function App(): ReactElement {
               </div>
             </div>
           </div>
+          </div>
           ) : null}
 
           {activeConsoleWorkspace === "care" ? (
-          <div className="console-diagnostics-grid">
-            <div className="panel insight-panel">
+          <div className="console-diagnostics-grid console-workspace-stage">
+            <div className="panel insight-panel console-workspace-panel console-workspace-panel-full">
               <div className="panel-header">
                 <span>{copy.runtime.proactiveCare}</span>
                 <span className="panel-tag">{copy.runtime.proactiveCareTag}</span>
               </div>
 
-              <div className="insight-stack">
+              <div className="console-workspace-scroll insight-stack">
                 <p className="provider-note">{copy.runtime.proactiveCareDescription}</p>
 
                 {proactiveCarePolicy && proactiveCareState ? (
@@ -5615,15 +5621,15 @@ export function App(): ReactElement {
           ) : null}
 
           {activeConsoleWorkspace === "runtime" ? (
-          <div className="console-diagnostics-grid">
-            <div className="panel insight-panel">
+          <div className="console-diagnostics-grid console-workspace-stage">
+            <div className="panel insight-panel console-workspace-panel">
               <div className="panel-header">
                 <span>{copy.runtime.signals}</span>
                 <span className="panel-tag">{copy.runtime.signalsTag}</span>
               </div>
 
               {chatInsights ? (
-                <div className="insight-stack">
+                <div className="console-workspace-scroll insight-stack">
                   <div className="signal-metrics">
                     <div className="signal-metric-card">
                       <span>{copy.runtime.relationshipStage}</span>
@@ -5699,11 +5705,12 @@ export function App(): ReactElement {
               )}
             </div>
 
-            <div className="panel console-export-panel">
+            <div className="panel console-export-panel console-workspace-panel">
               <div className="panel-header">
                 <span>{copy.runtime.sessionExport}</span>
                 <span className="panel-tag">{copy.runtime.structuredJson}</span>
               </div>
+              <div className="console-workspace-scroll">
               {sessionExportJson ? (
                 <>
                   <p className="provider-note">{copy.runtime.exportDescription}</p>
@@ -5726,6 +5733,7 @@ export function App(): ReactElement {
                     : "Export the active session from the manage-session card above and the structured JSON will appear here."}
                 </p>
               )}
+              </div>
             </div>
           </div>
           ) : null}
