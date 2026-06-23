@@ -3417,6 +3417,12 @@ export function App(): ReactElement {
   const activeVoiceProviderType =
     selectedVoiceProviderPreset?.providerType ??
     (usesDoubaoVoiceProvider ? "doubao" : usesLocalVoiceProvider ? "local" : "openai-compatible");
+  const voiceStatusProviderType = usesDedicatedVoiceProvider
+    ? activeVoiceProviderType
+    : voiceRoutingStatus?.providerType ?? "shared-chat-provider";
+  const voiceStatusProviderLabel = usesDedicatedVoiceProvider
+    ? voiceConfig?.provider || "dedicated"
+    : voiceRoutingStatus?.providerLabel || "shared";
   const preferredVoiceFieldMode =
     selectedVoiceProviderPreset?.voiceFieldMode ??
     (usesDoubaoVoiceProvider || usesLocalVoiceProvider ? "input" : "select");
@@ -3519,6 +3525,11 @@ export function App(): ReactElement {
     (locale === "zh"
       ? "当前会根据回复情绪规划语气，实时对话打开后会直接进入说与听的循环。"
       : "Reply playback follows emotional delivery hints, and realtime mode moves directly into a speak-and-listen loop.");
+  const voiceStatusGuidanceNote = usesDedicatedVoiceProvider
+    ? activeVoiceCatalogNote
+    : locale === "zh"
+      ? "\u5171\u4eab\u6a21\u5f0f\u4f1a\u7ee7\u7eed\u4f7f\u7528\u804a\u5929\u4f9b\u5e94\u5546\u7684\u5185\u5bb9\u8def\u5f84\uff0c\u4f46\u4f60\u4ecd\u53ef\u4ee5\u5355\u72ec\u8c03\u6574\u8bed\u97f3\u98ce\u683c\u3002"
+      : "Shared mode keeps using the chat-provider route, while still letting you tune the voice delivery profile separately.";
   const chatReady = Boolean(savedConfig?.provider && savedConfig.model);
   const activeSession =
     chatSessions.find((session) => session.sessionId === activeSessionId) ??
@@ -4781,7 +4792,7 @@ export function App(): ReactElement {
                     <span>{locale === "zh" ? "来源" : "Source"}</span>
                     <strong>
                       {usesDedicatedVoiceProvider
-                        ? voiceConfig?.provider || "dedicated"
+                        ? voiceStatusProviderLabel
                         : locale === "zh"
                           ? "共享"
                           : "shared"}
@@ -4797,7 +4808,7 @@ export function App(): ReactElement {
                   </div>
                   <div className="signal-metric-card">
                     <span>{locale === "zh" ? "供应商类型" : "Provider type"}</span>
-                    <strong>{activeVoiceProviderType}</strong>
+                    <strong>{voiceStatusProviderType}</strong>
                   </div>
                 </div>
                 <div className="insight-card">
@@ -4841,7 +4852,7 @@ export function App(): ReactElement {
                 </div>
                 <div className="insight-card voice-guide-card">
                   <div className="mini-heading">{locale === "zh" ? "当前面板在做什么" : "Current guidance"}</div>
-                  <p>{activeVoiceCatalogNote}</p>
+                  <p>{voiceStatusGuidanceNote}</p>
                 </div>
                 <div className="insight-card voice-guide-card">
                   <div className="mini-heading">{locale === "zh" ? "填写建议" : "How to fill it"}</div>
@@ -4865,11 +4876,11 @@ export function App(): ReactElement {
                           : "This provider expects a manual voice or speaker ID."}
                     </li>
                     <li>
-                      {activeVoiceProviderType === "local"
+                      {voiceStatusProviderType === "local"
                         ? locale === "zh"
                           ? "本地桥接请保证 Base URL、Endpoint 和引擎字段与你的本地服务一致。"
                           : "For local bridges, make sure Base URL, endpoint, and engine all match your local service."
-                        : activeVoiceProviderType === "doubao"
+                        : voiceStatusProviderType === "doubao"
                           ? locale === "zh"
                             ? "豆包还需要 App ID 和 Cluster，缺一项都跑不通。"
                             : "Doubao also needs App ID and cluster; missing either will break the route."
