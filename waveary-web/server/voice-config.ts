@@ -145,6 +145,18 @@ const VOICE_PROVIDER_PRESETS: readonly VoiceProviderPreset[] = [
       "Gemini TTS uses the Gemini generateContent audio path with prebuilt voice names. Model selection is kept to the supported Gemini TTS family, and voice selection uses Google's documented prebuilt voices."
   },
   {
+    id: "gemini-micu",
+    label: "Gemini TTS (Micu Relay)",
+    provider: "gemini",
+    providerType: "gemini",
+    baseURL: "https://www.micuapi.ai/v1beta",
+    voiceFieldMode: "select",
+    defaultModel: "gemini-2.5-flash-tts-preview",
+    defaultVoice: "Kore",
+    notes:
+      "Use this when Gemini TTS should route through Micu relay. Micu currently recognizes Gemini TTS model names such as gemini-2.5-flash-tts-preview and gemini-2.5-pro-tts-preview instead of the newer 3.1 preview alias."
+  },
+  {
     id: "fish-audio",
     label: "Fish Audio",
     provider: "fish-audio",
@@ -264,25 +276,39 @@ export function buildStaticVoiceCatalog(providerOrPreset: string): VoiceCatalogR
   }
 
   if (providerType === "gemini") {
+    const usesMicuRelay = matchedPreset?.id === "gemini-micu";
     return {
       providerType: "gemini",
-      models: [
-        {
-          id: "gemini-3.1-flash-tts-preview",
-          provider: "gemini",
-          label: "Gemini 3.1 Flash TTS Preview"
-        },
-        {
-          id: "gemini-2.5-flash-preview-tts",
-          provider: "gemini",
-          label: "Gemini 2.5 Flash Preview TTS"
-        },
-        {
-          id: "gemini-2.5-pro-preview-tts",
-          provider: "gemini",
-          label: "Gemini 2.5 Pro Preview TTS"
-        }
-      ],
+      models: usesMicuRelay
+        ? [
+            {
+              id: "gemini-2.5-flash-tts-preview",
+              provider: "gemini",
+              label: "Gemini 2.5 Flash TTS Preview"
+            },
+            {
+              id: "gemini-2.5-pro-tts-preview",
+              provider: "gemini",
+              label: "Gemini 2.5 Pro TTS Preview"
+            }
+          ]
+        : [
+            {
+              id: "gemini-3.1-flash-tts-preview",
+              provider: "gemini",
+              label: "Gemini 3.1 Flash TTS Preview"
+            },
+            {
+              id: "gemini-2.5-flash-preview-tts",
+              provider: "gemini",
+              label: "Gemini 2.5 Flash Preview TTS"
+            },
+            {
+              id: "gemini-2.5-pro-preview-tts",
+              provider: "gemini",
+              label: "Gemini 2.5 Pro Preview TTS"
+            }
+          ],
       voices: [
         { id: "Zephyr", label: "Zephyr" },
         { id: "Puck", label: "Puck" },
@@ -316,7 +342,9 @@ export function buildStaticVoiceCatalog(providerOrPreset: string): VoiceCatalogR
         { id: "Sulafat", label: "Sulafat" }
       ],
       voiceFieldMode: "select",
-      defaultModel: "gemini-3.1-flash-tts-preview",
+      defaultModel: usesMicuRelay
+        ? "gemini-2.5-flash-tts-preview"
+        : "gemini-3.1-flash-tts-preview",
       defaultVoice: "Kore",
       notes:
         matchedPreset?.notes ??

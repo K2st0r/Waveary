@@ -222,6 +222,7 @@ test("voice provider presets route returns selectable voice vendors", async () =
   assert.ok(response.body.presets.some((preset: { id: string }) => preset.id === "dashscope"));
   assert.ok(response.body.presets.some((preset: { id: string }) => preset.id === "ark"));
   assert.ok(response.body.presets.some((preset: { id: string }) => preset.id === "gemini"));
+  assert.ok(response.body.presets.some((preset: { id: string }) => preset.id === "gemini-micu"));
   assert.ok(response.body.presets.some((preset: { id: string }) => preset.id === "fish-audio"));
   assert.ok(response.body.presets.some((preset: { id: string }) => preset.id === "doubao"));
   assert.ok(response.body.presets.some((preset: { id: string }) => preset.id === "local"));
@@ -304,6 +305,35 @@ test("voice catalog route returns static Gemini TTS models and voices", async ()
   );
   assert.ok(
     response.body.voices.some((voice: { id: string }) => voice.id === "Kore")
+  );
+});
+
+test("voice catalog route returns Micu-specific Gemini TTS model names for the Micu relay preset", async () => {
+  const middleware = createProviderApiMiddleware();
+
+  const response = await invokeJsonRoute(middleware, "POST", "/api/voice/catalog", {
+    provider: "gemini-micu",
+    baseURL: "https://www.micuapi.ai/v1beta",
+    apiKey: "micu-key"
+  });
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.providerType, "gemini");
+  assert.equal(response.body.defaultModel, "gemini-2.5-flash-tts-preview");
+  assert.ok(
+    response.body.models.some(
+      (model: { id: string }) => model.id === "gemini-2.5-flash-tts-preview"
+    )
+  );
+  assert.ok(
+    response.body.models.some(
+      (model: { id: string }) => model.id === "gemini-2.5-pro-tts-preview"
+    )
+  );
+  assert.ok(
+    response.body.models.every(
+      (model: { id: string }) => model.id !== "gemini-3.1-flash-tts-preview"
+    )
   );
 });
 
