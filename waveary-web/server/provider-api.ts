@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 
 import { OpenAICompatibleChatProvider, PROVIDER_PRESETS } from "@waveary/core";
 import type { EmotionState, RelationshipProfile } from "@waveary/core";
+import { OpenAICompatibleSpeechToTextProvider } from "@waveary/voice";
 import {
   clickManagedBrowserElementByText,
   extractManagedBrowserPageText,
@@ -96,6 +97,7 @@ interface VoiceConfigRequest {
   voice?: string;
   format?: VoiceOutputFormat;
   qualityProfile?: VoiceQualityProfile;
+  sttModel?: string;
   providerMode?: "shared" | "dedicated";
   provider?: string;
   baseURL?: string;
@@ -119,6 +121,18 @@ interface VoiceCatalogRequest {
   provider?: string;
   baseURL?: string;
   apiKey?: string;
+}
+
+interface VoiceTranscribeRequest {
+  audio?: {
+    base64?: string;
+    mimeType?: string;
+    fileName?: string;
+  };
+  locale?: string;
+  language?: string;
+  prompt?: string;
+  voiceConfig?: Partial<SavedVoiceConfig>;
 }
 
 interface ChatSessionRequest {
@@ -295,6 +309,61 @@ export function createProviderApiMiddleware() {
         });
 
         sendJson(response, 200, result);
+        return;
+      }
+
+      if (request.method === "POST" && request.url === "/api/voice/transcribe") {
+        const payload = (await readJsonBody(request)) as VoiceTranscribeRequest;
+        const savedProvider = loadSavedProviderConfig();
+        const savedVoiceConfig = loadSavedVoiceConfig();
+        const mergedVoiceConfig: SavedVoiceConfig = {
+          ...savedVoiceConfig,
+          ...(payload.voiceConfig ?? {})
+        };
+        const routing = buildVoiceRoutingDiagnostic(mergedVoiceConfig, savedProvider);
+        const providerBackedConfig = routing.providerBackedConfig;
+
+        if (!providerBackedConfig) {
+          throw new Error("Provider-backed STT is not ready for the current voice route.");
+        }
+
+        if (
+          providerBackedConfig.provider === "doubao" ||
+          providerBackedConfig.provider === "local"
+        ) {
+          throw new Error("Provider-backed STT is not implemented for this voice provider yet.");
+        }
+
+        const provider = new OpenAICompatibleSpeechToTextProvider({
+          provider: providerBackedConfig.provider,
+          apiKey: providerBackedConfig.apiKey,
+          baseURL: providerBackedConfig.baseURL,
+          model: mergedVoiceConfig.sttModel
+        });
+
+        const result = await provider.transcribe({
+          audio: {
+            base64: requireNonEmpty(
+              payload.audio?.base64,
+              "Speech audio base64 payload is required."
+            ),
+            mimeType: requireNonEmpty(
+              payload.audio?.mimeType,
+              "Speech audio mime type is required."
+            ),
+            ...(payload.audio?.fileName?.trim()
+              ? { fileName: payload.audio.fileName.trim() }
+              : {})
+          },
+          ...(payload.locale?.trim() ? { locale: payload.locale.trim() } : {}),
+          ...(payload.language?.trim() ? { language: payload.language.trim() } : {}),
+          ...(payload.prompt?.trim() ? { prompt: payload.prompt.trim() } : {})
+        });
+
+        sendJson(response, 200, {
+          ...result,
+          routing
+        });
         return;
       }
 

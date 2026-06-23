@@ -63,3 +63,29 @@ export type TextToSpeechResult = AudioSpeechResult | BrowserSpeechResult;
 export interface TextToSpeechProvider {
   synthesize(request: TextToSpeechRequest): Promise<TextToSpeechResult>;
 }
+
+export interface SpeechToTextAudioInput {
+  base64: string;
+  mimeType: string;
+  fileName?: string;
+}
+
+export interface SpeechToTextRequest {
+  audio: SpeechToTextAudioInput;
+  locale?: string;
+  language?: string;
+  prompt?: string;
+}
+
+export interface SpeechToTextResult {
+  provider: string;
+  text: string;
+  metadata?: {
+    model?: string;
+    language?: string;
+  };
+}
+
+export interface SpeechToTextProvider {
+  transcribe(request: SpeechToTextRequest): Promise<SpeechToTextResult>;
+}

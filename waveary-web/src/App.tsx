@@ -28,6 +28,7 @@ interface SavedVoiceConfig {
   voice: string;
   format: "mp3" | "wav" | "opus" | "aac" | "flac" | "pcm";
   qualityProfile: string;
+  sttModel: string;
   providerMode: "shared" | "dedicated";
   provider: string;
   baseURL: string;
@@ -152,6 +153,16 @@ interface VoiceSpeakPlanResponse {
 interface VoiceConfigResponse {
   config: SavedVoiceConfig;
   presets: VoicePresetDescriptor[];
+  routing: VoiceRoutingStatus;
+}
+
+interface VoiceTranscribeResponse {
+  provider: string;
+  text: string;
+  metadata?: {
+    model?: string;
+    language?: string;
+  };
   routing: VoiceRoutingStatus;
 }
 
@@ -383,6 +394,23 @@ interface BrowserSpeechRecognitionInstance extends EventTarget {
 }
 
 type BrowserSpeechRecognitionConstructor = new () => BrowserSpeechRecognitionInstance;
+
+interface BrowserMediaRecorder extends EventTarget {
+  mimeType: string;
+  state: "inactive" | "recording" | "paused";
+  ondataavailable: ((event: BlobEvent) => void) | null;
+  onerror: ((event: Event) => void) | null;
+  onstop: ((event: Event) => void) | null;
+  start(timeslice?: number): void;
+  stop(): void;
+}
+
+type BrowserMediaRecorderConstructor = new (
+  stream: MediaStream,
+  options?: { mimeType?: string }
+) => BrowserMediaRecorder;
+
+const PROVIDER_STT_CAPTURE_WINDOW_MS = 6000;
 
 interface PageLocation {
   page: AppPage;
@@ -1505,12 +1533,17 @@ export function App(): ReactElement {
   const activeAudioRef = useRef<HTMLAudioElement | null>(null);
   const activeAudioUrlRef = useRef<string | null>(null);
   const speechRecognitionRef = useRef<BrowserSpeechRecognitionInstance | null>(null);
+  const mediaRecorderRef = useRef<BrowserMediaRecorder | null>(null);
+  const mediaRecorderStreamRef = useRef<MediaStream | null>(null);
+  const speechAudioChunksRef = useRef<Blob[]>([]);
+  const speechInputModeRef = useRef<"browser-recognition" | "provider-stt" | null>(null);
   const speechInputBaseRef = useRef("");
   const speechInputFinalRef = useRef("");
   const speechInputManualStopRef = useRef(false);
   const speechInputErrorRef = useRef(false);
   const voiceConversationModeRef = useRef(false);
   const voiceConversationResumeTimerRef = useRef<number | null>(null);
+  const providerSpeechStopTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     voiceConversationModeRef.current = voiceConversationMode;
@@ -1535,6 +1568,9 @@ export function App(): ReactElement {
         recognition.onend = null;
         recognition.abort();
       }
+
+      clearProviderSpeechStopTimer();
+      cleanupProviderSpeechCapture();
 
       stopVoicePlayback();
     };
@@ -1937,11 +1973,12 @@ export function App(): ReactElement {
     try {
       const response = await fetchJson<VoiceConfigResponse>("/api/voice/config", {
         method: "POST",
-        body: JSON.stringify({
+      body: JSON.stringify({
           model: patch.model ?? currentVoiceConfig.model,
           voice: patch.voice ?? currentVoiceConfig.voice,
           format: patch.format ?? currentVoiceConfig.format,
           qualityProfile: patch.qualityProfile ?? currentVoiceConfig.qualityProfile,
+          sttModel: patch.sttModel ?? currentVoiceConfig.sttModel,
           providerMode: patch.providerMode ?? currentVoiceConfig.providerMode,
           provider: patch.provider ?? currentVoiceConfig.provider,
           baseURL: patch.baseURL ?? currentVoiceConfig.baseURL,
@@ -2900,9 +2937,10 @@ export function App(): ReactElement {
   }
 
   async function startVoiceConversation(): Promise<void> {
-    const SpeechRecognition = getSpeechRecognitionConstructor();
+    const supportsBrowserRecognition = Boolean(getSpeechRecognitionConstructor());
+    const supportsProviderStt = canUseProviderSpeechToText(voiceConfig, voiceRoutingStatus);
 
-    if (!SpeechRecognition) {
+    if (!supportsBrowserRecognition && !supportsProviderStt) {
       setVoiceConversationMode(false);
       setSpeechInputState("unsupported");
       setSpeechInputStatusMessage(
@@ -2934,6 +2972,7 @@ export function App(): ReactElement {
     setVoiceConversationMode(false);
     voiceConversationModeRef.current = false;
     stopSpeechRecognition({ markManualStop: true });
+    requestStopProviderSpeechCapture({ markManualStop: true, finalize: false });
     stopVoicePlayback();
     setVoicePlaybackState("idle");
     setVoiceStatusMessage(
@@ -2983,6 +3022,7 @@ export function App(): ReactElement {
 
     if (speechInputState === "listening") {
       stopSpeechRecognition({ markManualStop: true });
+      requestStopProviderSpeechCapture({ markManualStop: true, finalize: false });
       setSpeechInputState("idle");
       setSpeechInputStatusMessage(
         locale === "zh"
@@ -2996,7 +3036,13 @@ export function App(): ReactElement {
   }
 
   async function startSpeechInput(options?: { fromVoiceConversation?: boolean }): Promise<void> {
+    const supportsProviderStt = canUseProviderSpeechToText(voiceConfig, voiceRoutingStatus);
     const SpeechRecognition = getSpeechRecognitionConstructor();
+
+    if (supportsProviderStt) {
+      await startProviderSpeechInput(options);
+      return;
+    }
 
     if (!SpeechRecognition) {
       setSpeechInputState("unsupported");
@@ -3015,6 +3061,7 @@ export function App(): ReactElement {
     clearVoiceConversationResumeTimer();
     stopVoicePlayback();
     stopSpeechRecognition({ markManualStop: true });
+    speechInputModeRef.current = "browser-recognition";
 
     const recognition = new SpeechRecognition();
     speechRecognitionRef.current = recognition;
@@ -3154,8 +3201,404 @@ export function App(): ReactElement {
       recognition.start();
     } catch (error) {
       speechRecognitionRef.current = null;
+      speechInputModeRef.current = null;
       setSpeechInputState("error");
       setSpeechInputStatusMessage(getErrorMessage(error));
+    }
+  }
+
+  async function startProviderSpeechInput(options?: {
+    fromVoiceConversation?: boolean;
+  }): Promise<void> {
+    if (
+      typeof window === "undefined" ||
+      typeof navigator === "undefined" ||
+      !navigator.mediaDevices?.getUserMedia
+    ) {
+      if (getSpeechRecognitionConstructor()) {
+        await startSpeechRecognitionFallback(options);
+        return;
+      }
+
+      setSpeechInputState("unsupported");
+      setSpeechInputStatusMessage(
+        locale === "zh"
+          ? "当前环境不支持麦克风采集。"
+          : "This environment does not support microphone capture."
+      );
+      return;
+    }
+
+    if (!chatReady || chatState === "loading" || speechInputState === "processing") {
+      return;
+    }
+
+    clearVoiceConversationResumeTimer();
+    stopVoicePlayback();
+    stopSpeechRecognition({ markManualStop: true });
+    clearProviderSpeechStopTimer();
+    cleanupProviderSpeechCapture();
+
+    speechInputBaseRef.current = chatInput.trim();
+    speechInputFinalRef.current = "";
+    speechInputManualStopRef.current = false;
+    speechInputErrorRef.current = false;
+    speechAudioChunksRef.current = [];
+    speechInputModeRef.current = "provider-stt";
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const MediaRecorderCtor = getMediaRecorderConstructor();
+      const mimeType = pickSupportedRecorderMimeType(MediaRecorderCtor);
+      const recorder = mimeType
+        ? new MediaRecorderCtor(stream, { mimeType })
+        : new MediaRecorderCtor(stream);
+
+      mediaRecorderRef.current = recorder;
+      mediaRecorderStreamRef.current = stream;
+
+      recorder.ondataavailable = (event) => {
+        if (event.data && event.data.size > 0) {
+          speechAudioChunksRef.current.push(event.data);
+        }
+      };
+
+      recorder.onerror = async () => {
+        clearProviderSpeechStopTimer();
+        cleanupProviderSpeechCapture();
+
+        if (getSpeechRecognitionConstructor()) {
+          await startSpeechRecognitionFallback(options);
+          return;
+        }
+
+        speechInputErrorRef.current = true;
+        setSpeechInputState("error");
+        setSpeechInputStatusMessage(
+          locale === "zh"
+            ? "语音采集失败了。"
+            : "Speech capture failed."
+        );
+      };
+
+      recorder.onstop = () => {
+        void finalizeProviderSpeechInput(options);
+      };
+
+      setSpeechInputState("listening");
+      setSpeechInputStatusMessage(
+        options?.fromVoiceConversation
+          ? locale === "zh"
+            ? "我在听，你慢慢说，说完我就接你。"
+            : "I am listening. Take your time and I will answer as soon as you finish."
+          : locale === "zh"
+            ? "正在听你说话…说完后我会直接发出去。"
+            : "Listening... I will send it as soon as you finish."
+      );
+
+      recorder.start();
+      scheduleProviderSpeechStop();
+    } catch (error) {
+      clearProviderSpeechStopTimer();
+      cleanupProviderSpeechCapture();
+
+      if (getSpeechRecognitionConstructor()) {
+        await startSpeechRecognitionFallback(options);
+        return;
+      }
+
+      speechInputModeRef.current = null;
+      setSpeechInputState("error");
+      setSpeechInputStatusMessage(getErrorMessage(error));
+    }
+  }
+
+  async function startSpeechRecognitionFallback(options?: {
+    fromVoiceConversation?: boolean;
+  }): Promise<void> {
+    speechInputModeRef.current = null;
+    await startSpeechInputWithBrowserRecognition(options);
+  }
+
+  async function startSpeechInputWithBrowserRecognition(options?: {
+    fromVoiceConversation?: boolean;
+  }): Promise<void> {
+    const SpeechRecognition = getSpeechRecognitionConstructor();
+
+    if (!SpeechRecognition) {
+      setSpeechInputState("unsupported");
+      setSpeechInputStatusMessage(
+        locale === "zh"
+          ? "当前浏览器不支持语音输入。"
+          : "This browser does not support speech input."
+      );
+      return;
+    }
+
+    clearVoiceConversationResumeTimer();
+    stopVoicePlayback();
+    stopSpeechRecognition({ markManualStop: true });
+    speechInputModeRef.current = "browser-recognition";
+
+    const recognition = new SpeechRecognition();
+    speechRecognitionRef.current = recognition;
+    speechInputBaseRef.current = chatInput.trim();
+    speechInputFinalRef.current = "";
+    speechInputManualStopRef.current = false;
+    speechInputErrorRef.current = false;
+
+    recognition.continuous = false;
+    recognition.interimResults = true;
+    recognition.lang = locale === "zh" ? "zh-CN" : "en-US";
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = () => {
+      setSpeechInputState("listening");
+      setSpeechInputStatusMessage(
+        options?.fromVoiceConversation
+          ? locale === "zh"
+            ? "我在听，你慢慢说，说完我就接你。"
+            : "I am listening. Take your time and I will answer as soon as you finish."
+          : locale === "zh"
+            ? "正在听你说话…说完后我会直接发出去。"
+            : "Listening... I will send it as soon as you finish."
+      );
+    };
+
+    recognition.onresult = (event) => {
+      let nextFinal = speechInputFinalRef.current;
+      let interimTranscript = "";
+
+      for (let index = event.resultIndex; index < event.results.length; index += 1) {
+        const result = event.results[index];
+        if (!result) {
+          continue;
+        }
+        const transcript = result[0]?.transcript?.trim();
+
+        if (!transcript) {
+          continue;
+        }
+
+        if (result.isFinal) {
+          nextFinal = `${nextFinal} ${transcript}`.trim();
+        } else {
+          interimTranscript = transcript;
+        }
+      }
+
+      speechInputFinalRef.current = nextFinal;
+      setChatInput(
+        composeSpeechDraft(
+          speechInputBaseRef.current,
+          speechInputFinalRef.current,
+          interimTranscript
+        )
+      );
+    };
+
+    recognition.onerror = (event) => {
+      speechRecognitionRef.current = null;
+      speechInputModeRef.current = null;
+
+      if (voiceConversationModeRef.current && event.error === "no-speech") {
+        speechInputErrorRef.current = false;
+        setSpeechInputState("idle");
+        setSpeechInputStatusMessage(
+          locale === "zh"
+            ? "刚刚没听清，我继续听着你。"
+            : "I did not quite catch that. I will keep listening."
+        );
+        return;
+      }
+
+      speechInputErrorRef.current = true;
+      setSpeechInputState("error");
+      setSpeechInputStatusMessage(localizeSpeechInputError(event.error, locale));
+    };
+
+    recognition.onend = () => {
+      if (speechRecognitionRef.current === recognition) {
+        speechRecognitionRef.current = null;
+      }
+
+      if (speechInputErrorRef.current) {
+        return;
+      }
+
+      const recognizedDraft = composeSpeechDraft(
+        speechInputBaseRef.current,
+        speechInputFinalRef.current
+      );
+
+      if (speechInputManualStopRef.current) {
+        setSpeechInputState("idle");
+        setSpeechInputStatusMessage(
+          recognizedDraft
+            ? locale === "zh"
+              ? "听写已停止，你可以修改后发送。"
+              : "Listening stopped. You can edit the draft before sending."
+            : locale === "zh"
+              ? "已停止语音输入。"
+              : "Speech input stopped."
+        );
+        return;
+      }
+
+      if (!recognizedDraft) {
+        setSpeechInputState("idle");
+        setSpeechInputStatusMessage(
+          voiceConversationModeRef.current
+            ? locale === "zh"
+              ? "这次没听清，我再听你一次。"
+              : "I did not catch that. I will listen again."
+            : locale === "zh"
+              ? "这次没有听清，我们再试一次。"
+              : "I did not catch that. Try again."
+        );
+        if (voiceConversationModeRef.current) {
+          scheduleVoiceConversationResume("retry-listening");
+        }
+        return;
+      }
+
+      setSpeechInputState("processing");
+      setSpeechInputStatusMessage(
+        voiceConversationModeRef.current
+          ? locale === "zh"
+            ? "听到了，我这就回你。"
+            : "I heard you. Let me answer you now."
+          : locale === "zh"
+            ? "听到了，正在替你发出去…"
+            : "Got it. Sending it now..."
+      );
+      void sendChatMessage(recognizedDraft, { fromSpeechInput: true });
+    };
+
+    try {
+      recognition.start();
+    } catch (error) {
+      speechRecognitionRef.current = null;
+      speechInputModeRef.current = null;
+      setSpeechInputState("error");
+      setSpeechInputStatusMessage(getErrorMessage(error));
+    }
+  }
+
+  async function finalizeProviderSpeechInput(options?: {
+    fromVoiceConversation?: boolean;
+  }): Promise<void> {
+    const recordedChunks = [...speechAudioChunksRef.current];
+    const recorder = mediaRecorderRef.current;
+    const mimeType = recorder?.mimeType || recordedChunks[0]?.type || "audio/webm";
+
+    clearProviderSpeechStopTimer();
+    cleanupProviderSpeechCapture();
+
+    if (speechInputManualStopRef.current) {
+      setSpeechInputState("idle");
+      setSpeechInputStatusMessage(
+        locale === "zh"
+          ? "已停止语音输入。"
+          : "Speech input stopped."
+      );
+      return;
+    }
+
+    if (recordedChunks.length === 0) {
+      setSpeechInputState("idle");
+      setSpeechInputStatusMessage(
+        voiceConversationModeRef.current
+          ? locale === "zh"
+            ? "这次没听清，我再听你一次。"
+            : "I did not catch that. I will listen again."
+          : locale === "zh"
+            ? "这次没有听清，我们再试一次。"
+            : "I did not catch that. Try again."
+      );
+      if (voiceConversationModeRef.current) {
+        scheduleVoiceConversationResume("retry-listening");
+      }
+      return;
+    }
+
+    setSpeechInputState("processing");
+    setSpeechInputStatusMessage(
+      voiceConversationModeRef.current
+        ? locale === "zh"
+          ? "我在整理你刚刚的话。"
+          : "I am transcribing what you just said."
+        : locale === "zh"
+          ? "正在转写你的语音…"
+          : "Transcribing your voice..."
+    );
+
+    try {
+      const blob = new Blob(recordedChunks, { type: mimeType });
+      const base64 = await blobToBase64(blob);
+      const response = await fetchJson<VoiceTranscribeResponse>("/api/voice/transcribe", {
+        method: "POST",
+        body: JSON.stringify({
+          locale,
+          prompt: "Companion live conversation.",
+          audio: {
+            base64,
+            mimeType,
+            fileName: buildSpeechAudioFileName(mimeType)
+          },
+          ...(voiceConfig ? { voiceConfig } : {})
+        })
+      });
+
+      const recognizedDraft = composeSpeechDraft(
+        speechInputBaseRef.current,
+        response.text
+      );
+
+      if (!recognizedDraft.trim()) {
+        setSpeechInputState("idle");
+        setSpeechInputStatusMessage(
+          voiceConversationModeRef.current
+            ? locale === "zh"
+              ? "这次没听清，我再听你一次。"
+              : "I did not catch that. I will listen again."
+            : locale === "zh"
+              ? "这次没有听清，我们再试一次。"
+              : "I did not catch that. Try again."
+        );
+        if (voiceConversationModeRef.current) {
+          scheduleVoiceConversationResume("retry-listening");
+        }
+        return;
+      }
+
+      setVoiceRoutingStatus(response.routing);
+      setChatInput(recognizedDraft);
+      setSpeechInputStatusMessage(
+        voiceConversationModeRef.current
+          ? locale === "zh"
+            ? "听到了，我这就回你。"
+            : "I heard you. Let me answer you now."
+          : locale === "zh"
+            ? "听到了，正在替你发出去…"
+            : "Got it. Sending it now..."
+      );
+      void sendChatMessage(recognizedDraft, { fromSpeechInput: true });
+    } catch (error) {
+      if (getSpeechRecognitionConstructor()) {
+        setSpeechInputStatusMessage(
+          locale === "zh"
+            ? "当前转写线路没接通，我先切回浏览器听写。"
+            : "Provider transcription is unavailable right now. Falling back to browser recognition."
+        );
+        await startSpeechRecognitionFallback(options);
+        return;
+      }
+
+      setSpeechInputState("error");
+      setSpeechInputStatusMessage(getErrorMessage(error));
+    } finally {
+      speechInputModeRef.current = null;
     }
   }
 
@@ -3266,11 +3709,87 @@ export function App(): ReactElement {
     }
 
     speechRecognitionRef.current = null;
+    speechInputModeRef.current = null;
     recognition.onstart = null;
     recognition.onresult = null;
     recognition.onerror = null;
     recognition.onend = null;
     recognition.stop();
+  }
+
+  function requestStopProviderSpeechCapture(options?: {
+    markManualStop?: boolean;
+    finalize?: boolean;
+  }): void {
+    if (options?.markManualStop) {
+      speechInputManualStopRef.current = true;
+    }
+
+    const recorder = mediaRecorderRef.current;
+
+    clearProviderSpeechStopTimer();
+
+    if (!recorder) {
+      cleanupProviderSpeechCapture();
+      return;
+    }
+
+    if (options?.finalize === false) {
+      recorder.onstop = null;
+      cleanupProviderSpeechCapture();
+      return;
+    }
+
+    if (recorder.state !== "inactive") {
+      recorder.stop();
+      return;
+    }
+
+    cleanupProviderSpeechCapture();
+  }
+
+  function cleanupProviderSpeechCapture(): void {
+    const recorder = mediaRecorderRef.current;
+    mediaRecorderRef.current = null;
+
+    if (recorder) {
+      recorder.ondataavailable = null;
+      recorder.onerror = null;
+      recorder.onstop = null;
+    }
+
+    const stream = mediaRecorderStreamRef.current;
+    mediaRecorderStreamRef.current = null;
+
+    if (stream) {
+      stream.getTracks().forEach((track) => track.stop());
+    }
+  }
+
+  function scheduleProviderSpeechStop(): void {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    clearProviderSpeechStopTimer();
+    providerSpeechStopTimerRef.current = window.setTimeout(() => {
+      providerSpeechStopTimerRef.current = null;
+
+      if (!voiceConversationModeRef.current && speechInputState !== "listening") {
+        return;
+      }
+
+      requestStopProviderSpeechCapture();
+    }, PROVIDER_STT_CAPTURE_WINDOW_MS);
+  }
+
+  function clearProviderSpeechStopTimer(): void {
+    if (typeof window === "undefined" || providerSpeechStopTimerRef.current === null) {
+      return;
+    }
+
+    window.clearTimeout(providerSpeechStopTimerRef.current);
+    providerSpeechStopTimerRef.current = null;
   }
 
   async function handleExecutePendingLocalAction(): Promise<void> {
@@ -6871,6 +7390,72 @@ function getSpeechRecognitionConstructor(): BrowserSpeechRecognitionConstructor 
   };
 
   return speechWindow.SpeechRecognition ?? speechWindow.webkitSpeechRecognition ?? null;
+}
+
+function getMediaRecorderConstructor(): BrowserMediaRecorderConstructor {
+  if (typeof window === "undefined" || typeof window.MediaRecorder === "undefined") {
+    throw new Error("MediaRecorder is not available in this browser.");
+  }
+
+  return window.MediaRecorder as unknown as BrowserMediaRecorderConstructor;
+}
+
+function pickSupportedRecorderMimeType(
+  MediaRecorderCtor: BrowserMediaRecorderConstructor
+): string | undefined {
+  const mediaRecorderWithSupport = MediaRecorderCtor as BrowserMediaRecorderConstructor & {
+    isTypeSupported?: (mimeType: string) => boolean;
+  };
+  const candidates = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4"];
+
+  if (typeof mediaRecorderWithSupport.isTypeSupported !== "function") {
+    return candidates[0];
+  }
+
+  return candidates.find((candidate) => mediaRecorderWithSupport.isTypeSupported?.(candidate));
+}
+
+function canUseProviderSpeechToText(
+  voiceConfig: SavedVoiceConfig | null,
+  voiceRoutingStatus: VoiceRoutingStatus | null
+): boolean {
+  if (!voiceConfig || !voiceRoutingStatus) {
+    return false;
+  }
+
+  if (!voiceRoutingStatus.ready) {
+    return false;
+  }
+
+  if (voiceRoutingStatus.providerType === "shared-chat-provider") {
+    return true;
+  }
+
+  return voiceRoutingStatus.providerType === "openai-compatible";
+}
+
+async function blobToBase64(blob: Blob): Promise<string> {
+  const buffer = await blob.arrayBuffer();
+  let binary = "";
+  const bytes = new Uint8Array(buffer);
+
+  for (const byte of bytes) {
+    binary += String.fromCharCode(byte);
+  }
+
+  return window.btoa(binary);
+}
+
+function buildSpeechAudioFileName(mimeType: string): string {
+  if (mimeType.includes("mp4")) {
+    return "waveary-input.mp4";
+  }
+
+  if (mimeType.includes("wav")) {
+    return "waveary-input.wav";
+  }
+
+  return "waveary-input.webm";
 }
 
 function composeSpeechDraft(base: string, finalTranscript: string, interimTranscript = ""): string {

@@ -203,6 +203,7 @@ test("voice config route returns saved config plus presets", async () => {
 
   assert.equal(response.statusCode, 200);
   assert.equal(response.body.config.qualityProfile, "cinematic");
+  assert.equal(response.body.config.sttModel, "gpt-4o-mini-transcribe");
   assert.ok(Array.isArray(response.body.presets));
   assert.ok(response.body.presets.length >= 4);
   assert.equal(response.body.routing.mode, "shared");
@@ -320,6 +321,7 @@ test("voice config route persists a selected preset", async () => {
   const response = await invokeJsonRoute(middleware, "POST", "/api/voice/config", {
     qualityProfile: "gentle",
     model: "gpt-4o-mini-tts",
+    sttModel: "whisper-1",
     voice: "cedar",
     format: "mp3"
   });
@@ -328,7 +330,90 @@ test("voice config route persists a selected preset", async () => {
   assert.equal(response.body.config.qualityProfile, "gentle");
   assert.equal(response.body.config.voice, "cedar");
   assert.equal(response.body.config.model, "gpt-4o-mini-tts");
+  assert.equal(response.body.config.sttModel, "whisper-1");
   assert.equal(response.body.routing.mode, "shared");
+});
+
+test("voice transcribe route returns transcript text for compatible providers", async () => {
+  const middleware = createProviderApiMiddleware();
+
+  saveProviderConfig({
+    provider: "openai",
+    baseURL: "https://api.openai.com/v1",
+    apiKey: "chat-key",
+    model: "gpt-4o-mini"
+  });
+
+  globalThis.fetch = (async (input, init) => {
+    if (String(input) === "https://api.openai.com/v1/audio/transcriptions") {
+      const body = init?.body;
+      assert.ok(body instanceof FormData);
+      assert.equal(body.get("model"), "gpt-4o-mini-transcribe");
+      assert.equal(body.get("language"), "zh");
+      assert.equal(body.get("prompt"), "Companion live conversation.");
+
+      return new Response(
+        JSON.stringify({
+          text: "我在，继续说吧。",
+          language: "zh"
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json"
+          }
+        }
+      );
+    }
+
+    throw new Error(`Unexpected fetch URL: ${String(input)}`);
+  }) as typeof fetch;
+
+  const response = await invokeJsonRoute(middleware, "POST", "/api/voice/transcribe", {
+    locale: "zh-CN",
+    prompt: "Companion live conversation.",
+    audio: {
+      base64: Buffer.from("fake-audio").toString("base64"),
+      mimeType: "audio/webm",
+      fileName: "voice.webm"
+    }
+  });
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.provider, "openai");
+  assert.equal(response.body.text, "我在，继续说吧。");
+  assert.equal(response.body.metadata.model, "gpt-4o-mini-transcribe");
+  assert.equal(response.body.metadata.language, "zh");
+  assert.equal(response.body.routing.reasonCode, "shared-provider-ready");
+});
+
+test("voice transcribe route rejects unsupported provider-backed stt families for now", async () => {
+  const middleware = createProviderApiMiddleware();
+
+  await invokeJsonRoute(middleware, "POST", "/api/voice/config", {
+    providerMode: "dedicated",
+    provider: "doubao",
+    apiKey: "doubao-key",
+    appId: "doubao-app",
+    cluster: "volcano_tts",
+    voice: "BV001_streaming",
+    model: "doubao-tts",
+    qualityProfile: "cinematic",
+    format: "mp3"
+  });
+
+  const response = await invokeJsonRoute(middleware, "POST", "/api/voice/transcribe", {
+    audio: {
+      base64: Buffer.from("fake-audio").toString("base64"),
+      mimeType: "audio/webm"
+    }
+  });
+
+  assert.equal(response.statusCode, 400);
+  assert.equal(
+    response.body.error,
+    "Provider-backed STT is not implemented for this voice provider yet."
+  );
 });
 
 test("voice config route preserves explicit empty model and voice when switching dedicated provider presets", async () => {
