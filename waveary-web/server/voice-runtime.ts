@@ -3,6 +3,7 @@ import {
   BrowserSpeechPlanner,
   DoubaoTextToSpeechProvider,
   FishAudioTextToSpeechProvider,
+  GeminiTextToSpeechProvider,
   LocalHttpTextToSpeechProvider,
   OpenAICompatibleTextToSpeechProvider,
   resolveVoicePreset,
@@ -227,6 +228,25 @@ export async function planChatSpeech(input: VoiceSpeakPlanRequest) {
           model: resolvedVoiceConfig.model,
           referenceId: resolvedVoiceConfig.voice,
           format: resolvedVoiceConfig.format,
+          qualityProfile: resolvedVoiceConfig.qualityProfile
+        });
+
+        const result = await ttsProvider.synthesize(request);
+        return {
+          ...result,
+          routing: {
+            ...routingDiagnostic,
+            attemptedProviderAudio: true
+          }
+        } satisfies VoiceSpeakResultWithDiagnostics;
+      }
+
+      if (providerBackedVoiceConfig.provider === "gemini") {
+        const ttsProvider = new GeminiTextToSpeechProvider({
+          apiKey: providerBackedVoiceConfig.apiKey,
+          baseURL: providerBackedVoiceConfig.baseURL,
+          model: resolvedVoiceConfig.model,
+          voice: resolvedVoiceConfig.voice,
           qualityProfile: resolvedVoiceConfig.qualityProfile
         });
 

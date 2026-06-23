@@ -40,7 +40,7 @@ export interface VoiceProviderPreset {
   id: string;
   label: string;
   provider: string;
-  providerType: "openai-compatible" | "fish-audio" | "doubao" | "local";
+  providerType: "openai-compatible" | "gemini" | "fish-audio" | "doubao" | "local";
   baseURL: string;
   voiceFieldMode?: "select" | "input";
   defaultModel?: string;
@@ -131,6 +131,18 @@ const VOICE_PROVIDER_PRESETS: readonly VoiceProviderPreset[] = [
     voiceFieldMode: "input",
     notes:
       "Ark-style compatible speech routes can share the model-discovery flow, but voice naming differs by vendor and should be entered manually."
+  },
+  {
+    id: "gemini",
+    label: "Gemini TTS",
+    provider: "gemini",
+    providerType: "gemini",
+    baseURL: "https://generativelanguage.googleapis.com/v1beta",
+    voiceFieldMode: "select",
+    defaultModel: "gemini-3.1-flash-tts-preview",
+    defaultVoice: "Kore",
+    notes:
+      "Gemini TTS uses the Gemini generateContent audio path with prebuilt voice names. Model selection is kept to the supported Gemini TTS family, and voice selection uses Google's documented prebuilt voices."
   },
   {
     id: "fish-audio",
@@ -248,6 +260,67 @@ export function buildStaticVoiceCatalog(providerOrPreset: string): VoiceCatalogR
       notes:
         matchedPreset?.notes ??
         "Fish Audio discovers reusable voice models through /model. Fetch the catalog, then enter the chosen Fish voice model ID in the voice field."
+    };
+  }
+
+  if (providerType === "gemini") {
+    return {
+      providerType: "gemini",
+      models: [
+        {
+          id: "gemini-3.1-flash-tts-preview",
+          provider: "gemini",
+          label: "Gemini 3.1 Flash TTS Preview"
+        },
+        {
+          id: "gemini-2.5-flash-preview-tts",
+          provider: "gemini",
+          label: "Gemini 2.5 Flash Preview TTS"
+        },
+        {
+          id: "gemini-2.5-pro-preview-tts",
+          provider: "gemini",
+          label: "Gemini 2.5 Pro Preview TTS"
+        }
+      ],
+      voices: [
+        { id: "Zephyr", label: "Zephyr" },
+        { id: "Puck", label: "Puck" },
+        { id: "Charon", label: "Charon" },
+        { id: "Kore", label: "Kore" },
+        { id: "Fenrir", label: "Fenrir" },
+        { id: "Leda", label: "Leda" },
+        { id: "Orus", label: "Orus" },
+        { id: "Aoede", label: "Aoede" },
+        { id: "Callirrhoe", label: "Callirrhoe" },
+        { id: "Autonoe", label: "Autonoe" },
+        { id: "Enceladus", label: "Enceladus" },
+        { id: "Iapetus", label: "Iapetus" },
+        { id: "Umbriel", label: "Umbriel" },
+        { id: "Algieba", label: "Algieba" },
+        { id: "Despina", label: "Despina" },
+        { id: "Erinome", label: "Erinome" },
+        { id: "Algenib", label: "Algenib" },
+        { id: "Rasalgethi", label: "Rasalgethi" },
+        { id: "Laomedeia", label: "Laomedeia" },
+        { id: "Achernar", label: "Achernar" },
+        { id: "Alnilam", label: "Alnilam" },
+        { id: "Schedar", label: "Schedar" },
+        { id: "Gacrux", label: "Gacrux" },
+        { id: "Pulcherrima", label: "Pulcherrima" },
+        { id: "Achird", label: "Achird" },
+        { id: "Zubenelgenubi", label: "Zubenelgenubi" },
+        { id: "Vindemiatrix", label: "Vindemiatrix" },
+        { id: "Sadachbia", label: "Sadachbia" },
+        { id: "Sadaltager", label: "Sadaltager" },
+        { id: "Sulafat", label: "Sulafat" }
+      ],
+      voiceFieldMode: "select",
+      defaultModel: "gemini-3.1-flash-tts-preview",
+      defaultVoice: "Kore",
+      notes:
+        matchedPreset?.notes ??
+        "Gemini TTS uses Google's documented prebuilt voice list. Choose a supported Gemini TTS model and a prebuilt voice name here."
     };
   }
 

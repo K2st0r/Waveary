@@ -221,6 +221,7 @@ test("voice provider presets route returns selectable voice vendors", async () =
   assert.ok(response.body.presets.some((preset: { id: string }) => preset.id === "siliconflow"));
   assert.ok(response.body.presets.some((preset: { id: string }) => preset.id === "dashscope"));
   assert.ok(response.body.presets.some((preset: { id: string }) => preset.id === "ark"));
+  assert.ok(response.body.presets.some((preset: { id: string }) => preset.id === "gemini"));
   assert.ok(response.body.presets.some((preset: { id: string }) => preset.id === "fish-audio"));
   assert.ok(response.body.presets.some((preset: { id: string }) => preset.id === "doubao"));
   assert.ok(response.body.presets.some((preset: { id: string }) => preset.id === "local"));
@@ -282,6 +283,28 @@ test("voice catalog route returns input-mode catalogs for doubao and local provi
   assert.equal(localResponse.body.providerType, "local");
   assert.equal(localResponse.body.voiceFieldMode, "input");
   assert.equal(localResponse.body.defaultModel, "local-bridge");
+});
+
+test("voice catalog route returns static Gemini TTS models and voices", async () => {
+  const middleware = createProviderApiMiddleware();
+
+  const response = await invokeJsonRoute(middleware, "POST", "/api/voice/catalog", {
+    provider: "gemini",
+    baseURL: "https://generativelanguage.googleapis.com/v1beta",
+    apiKey: "gemini-key"
+  });
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.providerType, "gemini");
+  assert.equal(response.body.voiceFieldMode, "select");
+  assert.ok(
+    response.body.models.some(
+      (model: { id: string }) => model.id === "gemini-3.1-flash-tts-preview"
+    )
+  );
+  assert.ok(
+    response.body.voices.some((voice: { id: string }) => voice.id === "Kore")
+  );
 });
 
 test("voice catalog route returns fish audio voice models from fish model api", async () => {
@@ -588,6 +611,89 @@ test("voice speak route supports dedicated fish audio tts config", async () => {
   assert.equal(
     Buffer.from(response.body.audio.base64, "base64").toString("utf8"),
     "fish-voice-audio"
+  );
+});
+
+test("voice speak route supports dedicated gemini tts config", async () => {
+  const middleware = createProviderApiMiddleware();
+
+  await invokeJsonRoute(middleware, "POST", "/api/voice/config", {
+    providerMode: "dedicated",
+    provider: "gemini",
+    baseURL: "https://generativelanguage.googleapis.com/v1beta",
+    apiKey: "gemini-key",
+    model: "gemini-3.1-flash-tts-preview",
+    voice: "Kore",
+    qualityProfile: "gentle",
+    format: "mp3"
+  });
+
+  globalThis.fetch = (async (input, init) => {
+    if (
+      String(input) ===
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-tts-preview:generateContent"
+    ) {
+      const headers = init?.headers as Record<string, string>;
+      assert.equal(headers["x-goog-api-key"], "gemini-key");
+      const body = JSON.parse(String(init?.body)) as {
+        contents: Array<{ parts: Array<{ text: string }> }>;
+        generationConfig: {
+          responseModalities: string[];
+          speechConfig: {
+            voiceConfig: {
+              prebuiltVoiceConfig: {
+                voiceName: string;
+              };
+            };
+          };
+        };
+      };
+      assert.equal(
+        body.generationConfig.speechConfig.voiceConfig.prebuiltVoiceConfig.voiceName,
+        "Kore"
+      );
+      assert.deepEqual(body.generationConfig.responseModalities, ["AUDIO"]);
+
+      return new Response(
+        JSON.stringify({
+          candidates: [
+            {
+              content: {
+                parts: [
+                  {
+                    inlineData: {
+                      mimeType: "audio/wav",
+                      data: Buffer.from("gemini-voice-audio").toString("base64")
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json"
+          }
+        }
+      );
+    }
+
+    throw new Error(`Unexpected fetch URL: ${String(input)}`);
+  }) as typeof fetch;
+
+  const response = await invokeJsonRoute(middleware, "POST", "/api/voice/speak", {
+    text: "Stay with me.",
+    locale: "en-US"
+  });
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.provider, "gemini");
+  assert.equal(response.body.routing.reasonCode, "dedicated-gemini-ready");
+  assert.equal(
+    Buffer.from(response.body.audio.base64, "base64").toString("utf8"),
+    "gemini-voice-audio"
   );
 });
 
