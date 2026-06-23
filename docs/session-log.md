@@ -3,6 +3,42 @@
 
 Objective:
 
+Close the split Doubao verification loop by proving that both the current v3 route and the legacy app route still return real provider audio on the running local server, then write the remaining browser-verification gap back into continuity records instead of reopening backend work.
+
+Summary:
+
+- confirmed from the live local `/api/voice/config` route that the persisted dedicated voice profile is currently set to `doubao-legacy` with `multi_female_shuangkuaisisi_moon_bigtts`, `App ID`, and `Access Token`, and that the routing diagnostic reports `provider-audio` readiness
+- re-ran the live local `/api/voice/speak` route against that saved legacy profile with UTF-8-safe escaped Chinese text and confirmed non-zero provider audio bytes with `provider = doubao-legacy`
+- separately re-ran the live local `/api/voice/speak` route with an explicit v3 `doubao` override using `resourceId = seed-tts-2.0` plus `zh_female_gaolengyujie_uranus_bigtts`, and confirmed non-zero provider audio bytes with `provider = doubao`
+- browser-verified the real console voice workspace again and confirmed that the legacy preset is visibly selected, the visible credential block shows `App ID`, and the status card reports `doubao-legacy` as ready; the only remaining split-Doubao browser gap is an explicit preset-switch pass that visibly flips the console between the v3 `Resource ID` route and the legacy `App ID` route
+
+Files changed:
+
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `Invoke-RestMethod -Uri 'http://127.0.0.1:4173/api/voice/config' -Method Get | ConvertTo-Json -Depth 8`
+- `Invoke-RestMethod -Uri 'http://127.0.0.1:4173/api/voice/speak' -Method Post -ContentType 'application/json'` with UTF-8-safe escaped Chinese text against the saved `doubao-legacy` route
+- `Invoke-RestMethod -Uri 'http://127.0.0.1:4173/api/voice/speak' -Method Post -ContentType 'application/json'` with an explicit dedicated `doubao` v3 override using `seed-tts-2.0` and `zh_female_gaolengyujie_uranus_bigtts`
+- `npx --yes --package @playwright/cli playwright-cli -s=waveary-voice-verify open http://127.0.0.1:4173/#console --headed`
+- `npx --yes --package @playwright/cli playwright-cli -s=waveary-voice-verify snapshot`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-23
+
+Objective:
+
 Tighten the visible chat/voice control surfaces and make dedicated Doubao TTS easier to use by exposing multiple curated speakers instead of only one default voice.
 
 Summary:

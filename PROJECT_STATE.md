@@ -327,7 +327,8 @@ Brand line:
 
 ## Next Steps
 
-- run one focused browser pass for the dedicated Doubao voice route covering both curated fallback and live `ListSpeakers` fetch, then verify saved values, real playback, and chat-page output behavior
+- finish one focused browser pass for dedicated Doubao preset switching inside the live console, specifically moving between `Doubao TTS` and `Doubao TTS (Legacy App)` and confirming the visible config block flips cleanly between `Resource ID` and `App ID`
+- verify chat-page reply playback behavior end to end while dedicated voice stays on a different vendor path from chat, so the browser UI proves it is still using provider audio instead of silently falling back
 - decide whether the next voice implementation cut should prioritize wider provider-specific STT coverage such as Doubao/local or a truer realtime duplex / interruption pass
 - replace the current fixed short capture window in provider-backed STT with a more truthful turn-end detector or streaming transport before claiming realtime voice is close to done
 - add focused browser-side or component-level regression coverage for the new silence-based provider STT stop logic so later realtime voice work does not regress it silently
@@ -414,3 +415,4 @@ Brand line:
 - ad hoc direct-shell Doubao probes on this Windows / PowerShell setup can still mislead if Chinese text is sent through a non-UTF-8-safe path; use UTF-8-safe payload construction or the repo/runtime verification path before concluding that upstream returned `No readable text!`
 - stale local `web:dev` processes can still serve older voice-runtime code and produce misleading browser fallback reasons; restart the local dev server before trusting a browser-side Doubao voice conclusion after backend changes
 - live Doubao speaker discovery is now intentionally separate from the working OpenSpeech TTS route: TTS still uses `x-api-key + resourceId`, while full `ListSpeakers` discovery needs Volcengine `AccessKey ID + Secret Access Key`
+- the current local verification baseline is split: live route probes already confirm both `doubao` v3 and `doubao-legacy` return provider audio through `/api/voice/speak`, while the browser console has only been visually confirmed on the legacy preset so far

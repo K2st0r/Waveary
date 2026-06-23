@@ -1241,3 +1241,24 @@ Impact:
 - `waveary-web/server/voice-routing-diagnostics.ts` now distinguishes `doubao` from `doubao-legacy`
 - the voice console can now save and route older Doubao app credentials without regressing the current v3 Doubao path
 - future sessions should not try to "fix" `multi_female_shuangkuaisisi_moon_bigtts` inside `seed-tts-2.0`; it belongs on the legacy route unless the upstream resource family changes
+
+## 2026-06-23 - Split Doubao Verification Should Trust Live Route Probes Before Browser Copy
+
+Status:
+
+- accepted
+
+Decision:
+
+When verifying the split Doubao voice path, treat live `/api/voice/speak` route probes as the primary truth for provider-audio success, and use browser-console checks mainly to confirm that the visible preset, field set, and routing summary match that backend truth.
+
+Reason:
+
+- both `doubao` v3 and `doubao-legacy` now succeed through the running local server with real provider audio, so route-level verification can already prove whether the provider path works
+- the browser shell can still drift because of navigation state, stale sessions, or local dev-server mismatch, which makes UI-only conclusions weaker than direct live route probes
+- this keeps future sessions from re-opening already solved backend questions just because the console was left on another workspace or the wrong preset at the moment of inspection
+
+Impact:
+
+- future Doubao verification should start with the live `POST /api/voice/speak` route and only then inspect the browser console for preset and field correctness
+- browser verification for the split Doubao path now focuses on whether `Doubao TTS` exposes the v3 `Resource ID` route and whether `Doubao TTS (Legacy App)` exposes the legacy `App ID` route cleanly
