@@ -4,6 +4,45 @@
 
 Objective:
 
+Browser-verify the voice workspace across provider types and fix any real preset-switch regression discovered during the pass.
+
+Summary:
+
+- ran a live browser pass on `http://127.0.0.1:4173/#console` against the dedicated voice workspace and confirmed shared mode still collapses the credential block into the expected shared-mode explanation
+- found a real regression during that pass: switching from `Doubao TTS` to a manual-entry compatible provider left stale Doubao `model` and `voice` values in place, which could mislead users into saving an invalid cross-vendor route
+- repaired the frontend preset-switch handler so dedicated voice provider presets now explicitly reset `model` and `voice` to the new preset defaults or empty strings instead of silently retaining the previous vendor's values
+- repaired the server-side voice-config normalization so explicit empty `model` and `voice` values stay empty when the browser intentionally clears them, rather than being rehydrated from the quality-profile default voice preset
+- added a regression test covering that explicit-empty preservation path and re-verified the live browser after restarting the local dev server; the compatible manual-entry path now shows an empty voice field and `-` in the status card instead of leaking `BV001_streaming` or `marin`
+- restored the live browser configuration back to the Doubao dedicated path after verification so the user's current local voice setup is not left in the temporary compatible-vendor test state
+
+Files changed:
+
+- `waveary-web/src/App.tsx`
+- `waveary-web/server/voice-config.ts`
+- `waveary-web/server/provider-api.test.ts`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run test --workspace @waveary/web`
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- live Playwright verification on `http://127.0.0.1:4173/#console` for shared mode, manual-entry compatible vendor mode, and restored Doubao mode
+- `Invoke-RestMethod -Method Post http://127.0.0.1:4173/api/voice/config` with explicit empty `model` and `voice`, confirming the route now preserves empty values
+
+Commit:
+
+- `pending`
+
+Push:
+
+- pending
+
+## 2026-06-23
+
+Objective:
+
 Repair the visible mojibake in the dedicated voice credential block without changing the voice-provider flow.
 
 Summary:

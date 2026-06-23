@@ -276,8 +276,10 @@ function normalizeVoiceConfig(config: Partial<SavedVoiceConfig>): SavedVoiceConf
   const fallback = getDefaultVoiceConfig();
   const preset = resolveVoicePreset(config.qualityProfile ?? fallback.qualityProfile);
   const format = isVoiceFormat(config.format) ? config.format : preset.format;
-  const model = config.model?.trim() || preset.model;
-  const voice = config.voice?.trim() || preset.voice;
+  const hasExplicitModel = Object.prototype.hasOwnProperty.call(config, "model");
+  const hasExplicitVoice = Object.prototype.hasOwnProperty.call(config, "voice");
+  const model = hasExplicitModel ? (config.model?.trim() ?? "") : preset.model;
+  const voice = hasExplicitVoice ? (config.voice?.trim() ?? "") : preset.voice;
   const providerMode =
     config.providerMode === "dedicated" || config.providerMode === "shared"
       ? config.providerMode

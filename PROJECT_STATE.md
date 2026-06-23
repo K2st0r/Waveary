@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `ebba2bd` - `Repair voice credential copy mojibake`
+- `pending` - `Stabilize voice provider preset switching`
 
 ## Modules
 
@@ -189,6 +189,7 @@ Brand line:
   - the voice workspace now also exposes a broader preset roster for domestic and compatible voice vendors, switches the dedicated provider form by vendor type instead of showing one fixed block, and uses the right-side console area as a live guidance panel so users can see what the current provider path expects
   - the dedicated voice-provider form now keeps `Voice Key` in a fixed visible credential slot inside the console instead of hiding that field behind non-local-only branching, and the local bridge path now shows the same slot as an optional auth field rather than making it disappear entirely
   - the latest visible mojibake in that dedicated voice credential block has now been repaired with encoding-safe literals, while the surrounding voice-provider logic remains unchanged
+  - voice-provider preset switching now also clears stale provider-specific `model` and `voice` values instead of letting Doubao or other previous-vendor values leak into the next dedicated provider path, and server-side voice-config normalization now preserves explicit empty values so manual-entry compatible vendors can stay blank until the user fills them
   - the console workspaces now share one unified stage shell across provider, voice, sessions, care, and runtime views, with matched panel heights and internal scroll regions so workspace switching no longer feels like jumping between mismatched page layouts
   - the top workspace tabs have been restored to the tighter compact height, while the lower console workspace panels themselves are now taller so the operational surface has more room without inflating the navigation strip
 
@@ -304,9 +305,9 @@ Brand line:
 
 ## Next Steps
 
-- run a focused browser pass for the refreshed voice workspace against real provider endpoints, now that the shared console shell is stable and no longer obscures workspace-specific layout regressions
+- continue the focused browser pass for the refreshed voice workspace against real provider endpoints, now that the stale preset-switch carryover bug has been removed and the local dev server has been re-verified on the updated server code
 - keep future shell polish focused on the lower workspace stage and inner panel density; do not bloat the top workspace-tab strip when the real complaint is about the operational panels below
-- browser-verify the dedicated OpenAI-compatible, Doubao, and local self-hosted voice branches end-to-end from the console, including provider-specific form switching, manual voice-entry paths, and live guidance copy
+- browser-verify the dedicated OpenAI-compatible, Doubao, and local self-hosted voice branches end-to-end from the console, including provider-specific form switching, manual voice-entry paths, live guidance copy, and post-switch persistence behavior after the new stale-field reset fix
 - confirm the dedicated local-bridge voice path in-browser now that its optional auth slot stays visible in the same credential area instead of disappearing with the old conditional rendering
 - test the dedicated voice-provider path end-to-end in the browser by saving a separate真人语音 provider and confirming the delivery hint still shapes playback when chat stays on a different vendor
 - decide the next voice cut after this shell-stability pass: provider-backed STT, or a truer realtime duplex / interruption pass first
@@ -371,6 +372,6 @@ Brand line:
 
 - `npm run web:build` should not be executed in parallel with another root build command because package `dist` cleanup can race on Windows
 - `npm run web:build` can still fail on Windows with `EPERM` while removing `waveary-core/dist` if a prior build or process is holding the directory, even when narrower `@waveary/web` test and typecheck verification succeeds
-- the currently running local dev server can expose healthy `/api/provider/*` routes while still returning `404` for `/api/voice/config`; the frontend now tolerates that split state, but the server/runtime mismatch still needs a separate root-cause pass
+- a stale local dev server can still make browser verification lie about already-fixed voice-config behavior, because the browser may keep talking to older server code until the local `web:dev` process is restarted; recheck live voice-route conclusions against the running server version before assuming the repository fix failed
 - several repository files already contain historical mojibake in Chinese copy, and fresh PowerShell / Windows shell edits can make diagnosis misleading because console rendering is not byte-faithful; treat Chinese-text cleanup as a separate deliberate pass, and verify future Chinese copy edits with `git diff` instead of trusting raw terminal output alone
 - `waveary-web/src/App.tsx` no longer has the newest visible mojibake in the dedicated voice credential block, but broader document-level cleanup is still outstanding and should stay isolated from active feature work

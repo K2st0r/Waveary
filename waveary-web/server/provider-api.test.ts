@@ -327,6 +327,26 @@ test("voice config route persists a selected preset", async () => {
   assert.equal(response.body.config.model, "gpt-4o-mini-tts");
 });
 
+test("voice config route preserves explicit empty model and voice when switching dedicated provider presets", async () => {
+  const middleware = createProviderApiMiddleware();
+
+  const response = await invokeJsonRoute(middleware, "POST", "/api/voice/config", {
+    providerMode: "dedicated",
+    provider: "openai-compatible",
+    baseURL: "https://api.example.com/v1",
+    apiKey: "voice-key",
+    qualityProfile: "cinematic",
+    model: "",
+    voice: ""
+  });
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.config.providerMode, "dedicated");
+  assert.equal(response.body.config.provider, "openai-compatible");
+  assert.equal(response.body.config.model, "");
+  assert.equal(response.body.config.voice, "");
+});
+
 test("voice speak route prefers dedicated voice provider config when present", async () => {
   const middleware = createProviderApiMiddleware();
 
