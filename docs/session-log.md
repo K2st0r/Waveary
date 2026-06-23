@@ -1,4 +1,40 @@
 
+## 2026-06-24
+
+Objective:
+
+Close the remaining live-browser verification gap for the split Doubao voice path and confirm that the chat page still uses dedicated provider audio when the chat model stays on a different vendor.
+
+Summary:
+
+- restarted the local `web:dev` server and re-established the live browser verification baseline on `http://127.0.0.1:4173/`
+- browser-verified the voice workspace in the live console: switching from `doubao` to `doubao-legacy` cleanly flips the visible credential surface from the v3 `Resource ID` route to the legacy `App ID` route while preserving the in-panel searchable picker behavior for the v3 branch
+- confirmed from the running local `/api/voice/config` route that the active dedicated voice profile on this machine is currently `doubao-legacy` with `multi_female_shuangkuaisisi_moon_bigtts`, and that routing still reports `provider-audio` readiness
+- browser-verified the live chat page with the text model still on `deepseek-v4-pro` while dedicated voice remains on `doubao-legacy`; real request capture showed `/api/chat/turn` returning the reply plus structured `delivery`, followed by `/api/voice/speak` receiving that reply, the same `delivery`, and the saved dedicated voice config, then returning `provider = doubao-legacy`, `mode = audio`, and `routing.target = provider-audio`
+
+Files changed:
+
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `git status --short -b`
+- `curl.exe -I http://127.0.0.1:4173/`
+- `Invoke-RestMethod -Uri 'http://127.0.0.1:4173/api/voice/config' -Method Get | ConvertTo-Json -Depth 10`
+- `Invoke-RestMethod -Uri 'http://127.0.0.1:4173/api/provider/config' -Method Get | ConvertTo-Json -Depth 10`
+- local Playwright DOM verification on `http://127.0.0.1:4173/#console`, confirming the live console switches from `doubao` `Resource ID` to `doubao-legacy` `App ID`
+- local Playwright request/response capture on `http://127.0.0.1:4173/#chat`, confirming `deepseek-v4-pro` chat generation plus follow-up dedicated `doubao-legacy` `/api/voice/speak` provider audio routing
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
 ## 2026-06-23
 
 Objective:
