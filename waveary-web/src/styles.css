@@ -2891,6 +2891,14 @@ textarea {
   min-width: 10rem;
 }
 
+.button-compact {
+  min-height: 2rem;
+  padding: 0.36rem 0.72rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
 .chat-voice-toggle {
   display: inline-flex;
   align-items: center;

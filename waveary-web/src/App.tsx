@@ -1438,6 +1438,7 @@ export function App(): ReactElement {
   const [voiceProviderPresets, setVoiceProviderPresets] = useState<VoiceProviderPreset[]>([]);
   const [voiceCatalog, setVoiceCatalog] = useState<VoiceCatalogResponse | null>(null);
   const [voiceRoutingStatus, setVoiceRoutingStatus] = useState<VoiceRoutingStatus | null>(null);
+  const [voiceDraftInput, setVoiceDraftInput] = useState("");
   const [selectedProvider, setSelectedProvider] = useState("");
   const [baseURL, setBaseURL] = useState("");
   const [apiKey, setApiKey] = useState("");
@@ -2071,6 +2072,20 @@ export function App(): ReactElement {
       { voice: nextVoice },
       locale === "zh" ? "声线已更新。" : "Voice name updated."
     );
+  }
+
+  async function handleSaveVoiceDraft(): Promise<void> {
+    const nextVoice = voiceDraftInput.trim();
+
+    if (!nextVoice) {
+      setVoiceConfigState("error");
+      setVoiceStatusMessage(
+        locale === "zh" ? "请先输入或选择一个音色名称。" : "Enter or choose a voice name first."
+      );
+      return;
+    }
+
+    await handleVoiceNameChange(nextVoice);
   }
 
   async function handleVoiceProviderModeChange(nextMode: "shared" | "dedicated"): Promise<void> {
@@ -4289,6 +4304,10 @@ export function App(): ReactElement {
     }
   }, [activeConsoleWorkspace, chatReady, currentPage]);
 
+  useEffect(() => {
+    setVoiceDraftInput(voiceConfig?.voice ?? "");
+  }, [voiceConfig?.voice]);
+
   function renderVoiceConfigControls(mode: "chat" | "console"): ReactElement {
     const isConsole = mode === "console";
 
@@ -4400,32 +4419,49 @@ export function App(): ReactElement {
                 <span>{voiceFieldLabel}</span>
                 {voiceFieldMode === "select" && visibleVoiceOptionDescriptors.length > 0 ? (
                   <>
-                  <input
-                    list="waveary-voice-options"
-                    value={voiceConfig?.voice ?? ""}
-                    onChange={(event) =>
-                      setVoiceConfig((current) => (current ? { ...current, voice: event.target.value } : current))
-                    }
-                    onBlur={(event) => void handleVoiceNameChange(event.target.value)}
-                    placeholder={voiceFieldPlaceholder}
-                    disabled={!canAdjustVoiceConfig}
-                  />
-                  <datalist id="waveary-voice-options">
-                    {visibleVoiceOptionDescriptors.map((voice) => (
-                      <option key={voice.id} value={voice.id}>
-                        {voice.label}
-                      </option>
-                    ))}
-                  </datalist>
+                    <select
+                      value={voiceConfig?.voice ?? ""}
+                      onChange={(event) => {
+                        setVoiceDraftInput(event.target.value);
+                        void handleVoiceNameChange(event.target.value);
+                      }}
+                      disabled={!canAdjustVoiceConfig}
+                    >
+                      {visibleVoiceOptionDescriptors.map((voice) => (
+                        <option key={voice.id} value={voice.id}>
+                          {voice.label}
+                        </option>
+                      ))}
+                    </select>
+                    <input
+                      type="text"
+                      list="waveary-voice-options"
+                      value={voiceDraftInput}
+                      onChange={(event) => setVoiceDraftInput(event.target.value)}
+                      placeholder={voiceFieldPlaceholder}
+                      disabled={!canAdjustVoiceConfig}
+                    />
+                    <button
+                      className="button button-secondary button-compact"
+                      type="button"
+                      onClick={() => void handleSaveVoiceDraft()}
+                      disabled={!canAdjustVoiceConfig}
+                    >
+                      {locale === "zh" ? "保存" : "Save"}
+                    </button>
+                    <datalist id="waveary-voice-options">
+                      {visibleVoiceOptionDescriptors.map((voice) => (
+                        <option key={voice.id} value={voice.id}>
+                          {voice.label}
+                        </option>
+                      ))}
+                    </datalist>
                   </>
                 ) : (
                   <input
                     type="text"
-                    value={voiceConfig?.voice ?? ""}
-                    onChange={(event) =>
-                      setVoiceConfig((current) => (current ? { ...current, voice: event.target.value } : current))
-                    }
-                    onBlur={(event) => void handleVoiceNameChange(event.target.value)}
+                    value={voiceDraftInput}
+                    onChange={(event) => setVoiceDraftInput(event.target.value)}
                     placeholder={voiceFieldPlaceholder}
                     disabled={!canAdjustVoiceConfig}
                   />
