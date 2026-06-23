@@ -44,8 +44,11 @@ import type { ChatPersistenceBackend } from "./chat-persistence-config.js";
 import type { LocalActionPermissionLevel } from "./local-actions.js";
 import { loadSavedProviderConfig, saveProviderConfig } from "./provider-config.js";
 import {
+  buildStaticVoiceCatalog,
+  listVoiceProviderPresets,
   listVoicePresets,
   loadSavedVoiceConfig,
+  resolveVoiceProviderPreset,
   saveVoiceConfig,
   type SavedVoiceConfig
 } from "./voice-config.js";
@@ -109,6 +112,12 @@ interface VoiceConfigRequest {
   styleStrength?: number | null;
   temperature?: number | null;
   topP?: number | null;
+}
+
+interface VoiceCatalogRequest {
+  provider?: string;
+  baseURL?: string;
+  apiKey?: string;
 }
 
 interface ChatSessionRequest {
@@ -296,6 +305,13 @@ export function createProviderApiMiddleware() {
         return;
       }
 
+      if (request.method === "GET" && request.url === "/api/voice/presets") {
+        sendJson(response, 200, {
+          presets: listVoiceProviderPresets()
+        });
+        return;
+      }
+
       if (request.method === "POST" && request.url === "/api/voice/config") {
         const payload = (await readJsonBody(request)) as VoiceConfigRequest;
         const config = saveVoiceConfig(payload);
@@ -304,6 +320,42 @@ export function createProviderApiMiddleware() {
           config,
           presets: listVoicePresets()
         });
+        return;
+      }
+
+      if (request.method === "POST" && request.url === "/api/voice/catalog") {
+        const payload = (await readJsonBody(request)) as VoiceCatalogRequest;
+        const providerInput = requireNonEmpty(payload.provider, "Voice provider is required.");
+        const preset = resolveVoiceProviderPreset(providerInput);
+        const provider = preset?.provider ?? providerInput;
+        const staticCatalog = buildStaticVoiceCatalog(provider);
+
+        if (!staticCatalog) {
+          throw new Error("Voice provider catalog is not available.");
+        }
+
+        if (staticCatalog.providerType === "openai-compatible") {
+          const baseURL = requireNonEmpty(
+            payload.baseURL ?? preset?.baseURL,
+            "Voice base URL is required."
+          );
+          const apiKey = requireNonEmpty(payload.apiKey, "Voice API key is required.");
+          const adapter = new OpenAICompatibleChatProvider({
+            provider,
+            baseURL,
+            apiKey,
+            model: "placeholder-model"
+          });
+          const models = await adapter.listModels();
+
+          sendJson(response, 200, {
+            ...staticCatalog,
+            models
+          });
+          return;
+        }
+
+        sendJson(response, 200, staticCatalog);
         return;
       }
 

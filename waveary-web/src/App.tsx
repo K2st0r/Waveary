@@ -56,6 +56,31 @@ interface VoicePresetDescriptor {
   format: string;
 }
 
+interface VoiceProviderPreset {
+  id: string;
+  label: string;
+  provider: string;
+  providerType: "openai-compatible" | "doubao" | "local";
+  baseURL: string;
+  defaultModel?: string;
+  defaultVoice?: string;
+}
+
+interface VoiceOptionDescriptor {
+  id: string;
+  label: string;
+}
+
+interface VoiceCatalogResponse {
+  providerType: "openai-compatible" | "doubao" | "local";
+  models: ModelDescriptor[];
+  voices: VoiceOptionDescriptor[];
+  voiceFieldMode: "select" | "input";
+  defaultModel?: string;
+  defaultVoice?: string;
+  notes?: string;
+}
+
 interface ModelDescriptor {
   id: string;
   provider: string;
@@ -1359,6 +1384,8 @@ export function App(): ReactElement {
   const [savedConfig, setSavedConfig] = useState<SavedProviderConfig | null>(null);
   const [voiceConfig, setVoiceConfig] = useState<SavedVoiceConfig | null>(null);
   const [voicePresets, setVoicePresets] = useState<VoicePresetDescriptor[]>([]);
+  const [voiceProviderPresets, setVoiceProviderPresets] = useState<VoiceProviderPreset[]>([]);
+  const [voiceCatalog, setVoiceCatalog] = useState<VoiceCatalogResponse | null>(null);
   const [selectedProvider, setSelectedProvider] = useState("");
   const [baseURL, setBaseURL] = useState("");
   const [apiKey, setApiKey] = useState("");
@@ -1368,6 +1395,7 @@ export function App(): ReactElement {
   const [modelsState, setModelsState] = useState<LoadState>("idle");
   const [saveState, setSaveState] = useState<LoadState>("idle");
   const [voiceConfigState, setVoiceConfigState] = useState<LoadState>("idle");
+  const [voiceCatalogState, setVoiceCatalogState] = useState<LoadState>("idle");
   const [statusMessage, setStatusMessage] = useState<string>(zhCopy.statuses.loadingProviderConfiguration);
   const [chatInput, setChatInput] = useState("");
   const [chatState, setChatState] = useState<LoadState>("idle");
@@ -1690,7 +1718,13 @@ export function App(): ReactElement {
         console.warn("Optional voice config init failed.", error);
         return null;
       });
-      const [presetResponse, configResponse, sessionFormatResponse, sessionsResponse, voiceConfigResponse] = await Promise.all([
+      const voiceProviderPresetPromise = fetchJson<{ presets: VoiceProviderPreset[] }>("/api/voice/presets").catch(
+        (error) => {
+          console.warn("Optional voice presets init failed.", error);
+          return null;
+        }
+      );
+      const [presetResponse, configResponse, sessionFormatResponse, sessionsResponse, voiceConfigResponse, voiceProviderPresetResponse] = await Promise.all([
         fetchJson<{ presets: ProviderPreset[] }>("/api/provider/presets"),
         fetchJson<{ config?: SavedProviderConfig }>("/api/provider/config"),
         fetchJson<{ reference: SessionPackageReference }>("/api/chat/session/format"),
@@ -1699,7 +1733,8 @@ export function App(): ReactElement {
           defaultSessionId: string;
           persistence: ChatPersistenceStatus;
         }>("/api/chat/sessions"),
-        voiceConfigPromise
+        voiceConfigPromise,
+        voiceProviderPresetPromise
       ]);
 
       const nextConfig = configResponse.config ?? null;
@@ -1716,6 +1751,9 @@ export function App(): ReactElement {
       if (voiceConfigResponse) {
         setVoiceConfig(voiceConfigResponse.config);
         setVoicePresets(voiceConfigResponse.presets);
+      }
+      if (voiceProviderPresetResponse) {
+        setVoiceProviderPresets(voiceProviderPresetResponse.presets);
       }
       setSessionPackageReference(sessionFormatResponse.reference);
       setChatSessions(nextSessions);
@@ -1995,6 +2033,91 @@ export function App(): ReactElement {
       { [field]: value.trim() } as Partial<SavedVoiceConfig>,
       locale === "zh" ? "真人语音供应商设置已更新。" : "Voice provider settings updated."
     );
+  }
+
+  async function handleApplyVoiceProviderPreset(nextPresetId: string): Promise<void> {
+    const preset = voiceProviderPresets.find((item) => item.id === nextPresetId);
+
+    if (!preset) {
+      return;
+    }
+
+    setVoiceCatalog(null);
+    await saveVoiceConfigPatch(
+      {
+        providerMode: "dedicated",
+        provider: preset.provider,
+        baseURL: preset.baseURL,
+        ...(preset.defaultModel ? { model: preset.defaultModel } : {}),
+        ...(preset.defaultVoice ? { voice: preset.defaultVoice } : {})
+      },
+      locale === "zh" ? "已应用语音供应商预设。" : "Voice provider preset applied."
+    );
+  }
+
+  async function handleFetchVoiceCatalog(): Promise<void> {
+    if (!voiceConfig?.provider?.trim()) {
+      setVoiceCatalogState("error");
+      setVoiceStatusMessage(locale === "zh" ? "请先选择语音供应商。" : "Choose a voice provider first.");
+      return;
+    }
+
+    const normalizedProvider = voiceConfig.provider.trim().toLowerCase();
+    const requiresApiKey = normalizedProvider !== "local";
+    const requiresBaseURL = normalizedProvider !== "doubao";
+
+    if (requiresBaseURL && !voiceConfig.baseURL.trim()) {
+      setVoiceCatalogState("error");
+      setVoiceStatusMessage(locale === "zh" ? "请先填写语音 Base URL。" : "Enter the voice base URL first.");
+      return;
+    }
+
+    if (requiresApiKey && !voiceConfig.apiKey.trim()) {
+      setVoiceCatalogState("error");
+      setVoiceStatusMessage(locale === "zh" ? "请先填写语音 API Key。" : "Enter the voice API key first.");
+      return;
+    }
+
+    setVoiceCatalogState("loading");
+
+    try {
+      const response = await fetchJson<VoiceCatalogResponse>("/api/voice/catalog", {
+        method: "POST",
+        body: JSON.stringify({
+          provider: voiceConfig.provider,
+          baseURL: voiceConfig.baseURL,
+          apiKey: voiceConfig.apiKey
+        })
+      });
+
+      setVoiceCatalog(response);
+      setVoiceCatalogState("success");
+      setVoiceStatusMessage(
+        locale === "zh"
+          ? `已加载语音目录：${response.models.length} 个模型，${response.voices.length} 个可选音色。`
+          : `Loaded voice catalog: ${response.models.length} models and ${response.voices.length} voice options.`
+      );
+
+      const patch: Partial<SavedVoiceConfig> = {};
+      const nextModel = response.models[0]?.id ?? response.defaultModel;
+      const nextVoice = response.defaultVoice ?? response.voices[0]?.id;
+
+      if (nextModel && nextModel !== voiceConfig.model) {
+        patch.model = nextModel;
+      }
+
+      if (nextVoice && nextVoice !== voiceConfig.voice) {
+        patch.voice = nextVoice;
+      }
+
+      if (Object.keys(patch).length > 0) {
+        await saveVoiceConfigPatch(patch);
+      }
+    } catch (error) {
+      setVoiceCatalog(null);
+      setVoiceCatalogState("error");
+      setVoiceStatusMessage(getErrorMessage(error));
+    }
   }
 
   async function handleVoiceProviderNumberFieldChange(
@@ -3254,6 +3377,16 @@ export function App(): ReactElement {
     usesDedicatedVoiceProvider && (voiceConfig?.provider ?? "").trim().toLowerCase() === "local";
   const usesDoubaoVoiceProvider =
     usesDedicatedVoiceProvider && (voiceConfig?.provider ?? "").trim().toLowerCase() === "doubao";
+  const selectedVoiceProviderPreset =
+    voiceProviderPresets.find((preset) => preset.provider === (voiceConfig?.provider ?? "")) ?? null;
+  const visibleVoiceModels =
+    voiceCatalog?.models.length && activeConsoleWorkspace === "voice"
+      ? voiceCatalog.models.map((model) => model.id)
+      : availableVoiceModels;
+  const visibleVoiceOptions =
+    voiceCatalog?.voices.length && activeConsoleWorkspace === "voice"
+      ? voiceCatalog.voices.map((voice) => voice.id)
+      : availableVoices;
   const chatReady = Boolean(savedConfig?.provider && savedConfig.model);
   const activeSession =
     chatSessions.find((session) => session.sessionId === activeSessionId) ??
@@ -3452,7 +3585,7 @@ export function App(): ReactElement {
             onChange={(event) => void handleVoiceModelChange(event.target.value)}
             disabled={!canAdjustVoiceConfig}
           >
-            {availableVoiceModels.map((model) => (
+            {visibleVoiceModels.map((model) => (
               <option key={model} value={model}>
                 {model}
               </option>
@@ -3466,7 +3599,7 @@ export function App(): ReactElement {
             onChange={(event) => void handleVoiceNameChange(event.target.value)}
             disabled={!canAdjustVoiceConfig}
           >
-            {availableVoices.map((voice) => (
+            {visibleVoiceOptions.map((voice) => (
               <option key={voice} value={voice}>
                 {voice}
               </option>
@@ -4346,7 +4479,47 @@ export function App(): ReactElement {
                   ? "聊天模型负责内容，语音模型负责把情绪、距离感和语气读出来。你可以共用聊天供应商，也可以单独接豆包、本地桥或其他兼容端点。"
                   : "Let the chat model handle meaning while the voice path carries emotion, closeness, and delivery. Use the chat provider or attach a dedicated domestic, local, or compatible route."}
               </p>
+              <div className="provider-form-grid">
+                <label className="form-field">
+                  <span>{locale === "zh" ? "语音供应商预设" : "Voice preset"}</span>
+                  <select
+                    value={selectedVoiceProviderPreset?.id ?? ""}
+                    onChange={(event) => void handleApplyVoiceProviderPreset(event.target.value)}
+                    disabled={!canAdjustVoiceConfig}
+                  >
+                    <option value="">{locale === "zh" ? "选择语音供应商" : "Select voice provider"}</option>
+                    {voiceProviderPresets.map((preset) => (
+                      <option key={preset.id} value={preset.id}>
+                        {preset.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <div className="provider-hint">
+                  <span className="mini-heading">{locale === "zh" ? "目录发现" : "Catalog discovery"}</span>
+                  <p>
+                    {voiceCatalog?.notes ??
+                      (locale === "zh"
+                        ? "先选供应商并填好对应凭据，再获取语音模型。模型尽量实时发现，音色按供应商目录或本地手填。"
+                        : "Choose a provider and credentials first, then fetch the voice catalog. Models are discovered when possible; voices are mapped per provider or entered manually for local bridges.")}
+                  </p>
+                </div>
+              </div>
               <div className="console-actions">
+                <button
+                  className="button button-secondary"
+                  onClick={() => void handleFetchVoiceCatalog()}
+                  disabled={!canAdjustVoiceConfig || voiceCatalogState === "loading"}
+                  type="button"
+                >
+                  {voiceCatalogState === "loading"
+                    ? locale === "zh"
+                      ? "正在获取语音模型..."
+                      : "Loading voice catalog..."
+                    : locale === "zh"
+                      ? "获取语音模型"
+                      : "Fetch voice catalog"}
+                </button>
                 <button
                   className={`button button-secondary ${voiceConversationMode ? "chat-voice-button-active" : ""}`}
                   onClick={() => handleToggleSpeechInput()}
