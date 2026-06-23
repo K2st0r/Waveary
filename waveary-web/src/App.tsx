@@ -410,7 +410,10 @@ type BrowserMediaRecorderConstructor = new (
   options?: { mimeType?: string }
 ) => BrowserMediaRecorder;
 
-const PROVIDER_STT_CAPTURE_WINDOW_MS = 6000;
+const PROVIDER_STT_MAX_CAPTURE_MS = 12000;
+const PROVIDER_STT_MIN_CAPTURE_MS = 900;
+const PROVIDER_STT_SILENCE_GRACE_MS = 1300;
+const PROVIDER_STT_ACTIVITY_THRESHOLD = 0.028;
 
 interface PageLocation {
   page: AppPage;
@@ -1544,6 +1547,13 @@ export function App(): ReactElement {
   const voiceConversationModeRef = useRef(false);
   const voiceConversationResumeTimerRef = useRef<number | null>(null);
   const providerSpeechStopTimerRef = useRef<number | null>(null);
+  const providerSpeechFrameRef = useRef<number | null>(null);
+  const providerSpeechAudioContextRef = useRef<AudioContext | null>(null);
+  const providerSpeechAnalyserRef = useRef<AnalyserNode | null>(null);
+  const providerSpeechSourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
+  const providerSpeechHeardVoiceRef = useRef(false);
+  const providerSpeechStartedAtRef = useRef<number>(0);
+  const providerSpeechLastActiveAtRef = useRef<number>(0);
 
   useEffect(() => {
     voiceConversationModeRef.current = voiceConversationMode;
@@ -1570,6 +1580,7 @@ export function App(): ReactElement {
       }
 
       clearProviderSpeechStopTimer();
+      stopProviderSpeechActivityMonitor();
       cleanupProviderSpeechCapture();
 
       stopVoicePlayback();
@@ -3237,6 +3248,7 @@ export function App(): ReactElement {
     stopVoicePlayback();
     stopSpeechRecognition({ markManualStop: true });
     clearProviderSpeechStopTimer();
+    stopProviderSpeechActivityMonitor();
     cleanupProviderSpeechCapture();
 
     speechInputBaseRef.current = chatInput.trim();
@@ -3265,6 +3277,7 @@ export function App(): ReactElement {
 
       recorder.onerror = async () => {
         clearProviderSpeechStopTimer();
+        stopProviderSpeechActivityMonitor();
         cleanupProviderSpeechCapture();
 
         if (getSpeechRecognitionConstructor()) {
@@ -3297,9 +3310,10 @@ export function App(): ReactElement {
       );
 
       recorder.start();
-      scheduleProviderSpeechStop();
+      startProviderSpeechActivityMonitor(stream);
     } catch (error) {
       clearProviderSpeechStopTimer();
+      stopProviderSpeechActivityMonitor();
       cleanupProviderSpeechCapture();
 
       if (getSpeechRecognitionConstructor()) {
@@ -3493,6 +3507,7 @@ export function App(): ReactElement {
     const mimeType = recorder?.mimeType || recordedChunks[0]?.type || "audio/webm";
 
     clearProviderSpeechStopTimer();
+    stopProviderSpeechActivityMonitor();
     cleanupProviderSpeechCapture();
 
     if (speechInputManualStopRef.current) {
@@ -3766,7 +3781,80 @@ export function App(): ReactElement {
     }
   }
 
-  function scheduleProviderSpeechStop(): void {
+  function startProviderSpeechActivityMonitor(stream: MediaStream): void {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    clearProviderSpeechStopTimer();
+    stopProviderSpeechActivityMonitor();
+
+    const AudioContextCtor =
+      window.AudioContext ??
+      (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+
+    providerSpeechStartedAtRef.current = performance.now();
+    providerSpeechLastActiveAtRef.current = providerSpeechStartedAtRef.current;
+    providerSpeechHeardVoiceRef.current = false;
+
+    if (!AudioContextCtor) {
+      scheduleProviderSpeechStop(PROVIDER_STT_MAX_CAPTURE_MS);
+      return;
+    }
+
+    const audioContext = new AudioContextCtor();
+    const analyser = audioContext.createAnalyser();
+    const source = audioContext.createMediaStreamSource(stream);
+
+    analyser.fftSize = 2048;
+    analyser.smoothingTimeConstant = 0.85;
+    source.connect(analyser);
+
+    providerSpeechAudioContextRef.current = audioContext;
+    providerSpeechAnalyserRef.current = analyser;
+    providerSpeechSourceRef.current = source;
+
+    const sampleBuffer = new Uint8Array(analyser.fftSize);
+
+    const tick = () => {
+      const activeRecorder = mediaRecorderRef.current;
+
+      if (!activeRecorder || activeRecorder.state !== "recording") {
+        providerSpeechFrameRef.current = null;
+        return;
+      }
+
+      const now = performance.now();
+      const elapsedMs = now - providerSpeechStartedAtRef.current;
+
+      analyser.getByteTimeDomainData(sampleBuffer);
+      const activity = measureSpeechActivity(sampleBuffer);
+
+      if (activity >= PROVIDER_STT_ACTIVITY_THRESHOLD) {
+        providerSpeechHeardVoiceRef.current = true;
+        providerSpeechLastActiveAtRef.current = now;
+      }
+
+      const silenceMs = now - providerSpeechLastActiveAtRef.current;
+      const shouldStopForSilence =
+        providerSpeechHeardVoiceRef.current &&
+        elapsedMs >= PROVIDER_STT_MIN_CAPTURE_MS &&
+        silenceMs >= PROVIDER_STT_SILENCE_GRACE_MS;
+
+      const shouldStopForMaxDuration = elapsedMs >= PROVIDER_STT_MAX_CAPTURE_MS;
+
+      if (shouldStopForSilence || shouldStopForMaxDuration) {
+        requestStopProviderSpeechCapture();
+        return;
+      }
+
+      providerSpeechFrameRef.current = window.requestAnimationFrame(tick);
+    };
+
+    providerSpeechFrameRef.current = window.requestAnimationFrame(tick);
+  }
+
+  function scheduleProviderSpeechStop(delayMs: number): void {
     if (typeof window === "undefined") {
       return;
     }
@@ -3774,13 +3862,8 @@ export function App(): ReactElement {
     clearProviderSpeechStopTimer();
     providerSpeechStopTimerRef.current = window.setTimeout(() => {
       providerSpeechStopTimerRef.current = null;
-
-      if (!voiceConversationModeRef.current && speechInputState !== "listening") {
-        return;
-      }
-
       requestStopProviderSpeechCapture();
-    }, PROVIDER_STT_CAPTURE_WINDOW_MS);
+    }, delayMs);
   }
 
   function clearProviderSpeechStopTimer(): void {
@@ -3790,6 +3873,27 @@ export function App(): ReactElement {
 
     window.clearTimeout(providerSpeechStopTimerRef.current);
     providerSpeechStopTimerRef.current = null;
+  }
+
+  function stopProviderSpeechActivityMonitor(): void {
+    if (typeof window !== "undefined" && providerSpeechFrameRef.current !== null) {
+      window.cancelAnimationFrame(providerSpeechFrameRef.current);
+      providerSpeechFrameRef.current = null;
+    }
+
+    providerSpeechSourceRef.current?.disconnect();
+    providerSpeechSourceRef.current = null;
+    providerSpeechAnalyserRef.current?.disconnect();
+    providerSpeechAnalyserRef.current = null;
+
+    const audioContext = providerSpeechAudioContextRef.current;
+    providerSpeechAudioContextRef.current = null;
+
+    if (audioContext) {
+      void audioContext.close().catch(() => {
+        // Ignore shutdown failures during browser cleanup.
+      });
+    }
   }
 
   async function handleExecutePendingLocalAction(): Promise<void> {
@@ -7456,6 +7560,21 @@ function buildSpeechAudioFileName(mimeType: string): string {
   }
 
   return "waveary-input.webm";
+}
+
+function measureSpeechActivity(sampleBuffer: Uint8Array): number {
+  if (sampleBuffer.length === 0) {
+    return 0;
+  }
+
+  let squaredSum = 0;
+
+  for (const sample of sampleBuffer) {
+    const normalized = (sample - 128) / 128;
+    squaredSum += normalized * normalized;
+  }
+
+  return Math.sqrt(squaredSum / sampleBuffer.length);
 }
 
 function composeSpeechDraft(base: string, finalTranscript: string, interimTranscript = ""): string {
