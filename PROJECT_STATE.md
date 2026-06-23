@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `614e6a0` - `Refine voice console provider workspace`
+- `af11617` - `Sync continuity after voice console workspace update`
 
 ## Modules
 
@@ -187,6 +187,7 @@ Brand line:
   - the voice workspace now also starts moving toward provider-style onboarding: it can list dedicated voice-provider presets, fetch real voice-model catalogs for OpenAI-compatible vendors through `/api/voice/catalog`, and fall back to provider-mapped or manual voice entry where no shared cross-vendor voice-list API exists
   - the voice workspace onboarding is now tighter on the frontend too: provider presets reset stale catalog state, discovered voice models render with normalized labels, and dedicated vendors such as Doubao or local bridges now switch the voice field into explicit manual input instead of pretending a universal selectable voice list exists
   - the voice workspace now also exposes a broader preset roster for domestic and compatible voice vendors, switches the dedicated provider form by vendor type instead of showing one fixed block, and uses the right-side console area as a live guidance panel so users can see what the current provider path expects
+  - the console workspaces now share one unified stage shell across provider, voice, sessions, care, and runtime views, with matched panel heights and internal scroll regions so workspace switching no longer feels like jumping between mismatched page layouts
 
 ## Provider Flow
 
@@ -300,11 +301,10 @@ Brand line:
 
 ## Next Steps
 
-- restart or refresh the local `waveary-web` dev server/browser session and run a focused browser pass for the refreshed voice console so the newly added provider-specific form switching, expanded vendor presets, and right-side guidance panel are verified visually against the live page
-- browser-verify the tightened manual-input branch more completely for Doubao and local voice vendors now that API-level `voiceFieldMode = input` and the first DOM-level input rendering check have both passed
-- run a focused browser pass for the local self-hosted voice path specifically against a real bridge endpoint, now that the chat voice strip field expansion and persistence for `provider = local` have been browser-verified already
-- test the dedicated voice-provider path end-to-end in the browser by saving a separate真人语音 provider under the chat voice strip and confirming the delivery hint still shapes playback when chat stays on a different vendor
-- decide the next voice cut after this delivery-hint pass: provider-backed STT, or a truer realtime duplex / interruption pass first
+- run a focused browser pass for the refreshed voice workspace against real provider endpoints, now that the shared console shell is stable and no longer obscures workspace-specific layout regressions
+- browser-verify the dedicated OpenAI-compatible, Doubao, and local self-hosted voice branches end-to-end from the console, including provider-specific form switching, manual voice-entry paths, and live guidance copy
+- test the dedicated voice-provider path end-to-end in the browser by saving a separate真人语音 provider and confirming the delivery hint still shapes playback when chat stays on a different vendor
+- decide the next voice cut after this shell-stability pass: provider-backed STT, or a truer realtime duplex / interruption pass first
 - verify the restored provider console end-to-end in the browser against the currently running local dev server, then decide whether to also harden the underlying voice route startup path so `/api/voice/config` stops returning `404`
 - decide the next voice cut after the new continuous browser voice loop: provider-backed STT, or a truer realtime duplex / interruption pass first
 - consider whether the saved voice profile should stay local-only for CE or later become part of user-facing companionship preference portability
@@ -339,6 +339,7 @@ Brand line:
 - keep iterating on the compact console shell only after visual verification shows a remaining real usability gap, instead of re-expanding it into explanatory blocks
 - run a focused browser pass for homepage doodle density, fade rhythm, and overall visual balance now that the doodle set includes both the original study objects and the new paper-memory objects
 - visually verify and, only if needed, tighten any remaining console workspace that still forces awkward external page scrolling after the latest compact-shell pass
+- if a later console refinement is needed, preserve the new invariant that all workspaces share the same stage footprint and prefer inner-panel scrolling over reintroducing long outer-page scroll
 - expand the new ask-first local action layer beyond the first safe open-url / open-folder / launch-app set, while keeping every higher-trust action explicit, revocable, and auditable
 - consider whether the next local-action pass should add richer action summaries or per-action approval history now that completed and dismissed actions already leave a small completed-action echo in chat
 - continue the homepage portrait system with a more deliberate `4 male / 4 female` hand-drawn polaroid-style set so the visual range feels broader and less clustered around one youth archetype
@@ -366,5 +367,4 @@ Brand line:
 - `npm run web:build` should not be executed in parallel with another root build command because package `dist` cleanup can race on Windows
 - `npm run web:build` can still fail on Windows with `EPERM` while removing `waveary-core/dist` if a prior build or process is holding the directory, even when narrower `@waveary/web` test and typecheck verification succeeds
 - the currently running local dev server can expose healthy `/api/provider/*` routes while still returning `404` for `/api/voice/config`; the frontend now tolerates that split state, but the server/runtime mismatch still needs a separate root-cause pass
-
 

@@ -1,5 +1,43 @@
 # Session Log
 
+## 2026-06-23
+
+Objective:
+
+Unify the Waveary console workspaces so provider, voice, sessions, care, and runtime all share the same stage footprint, panel rhythm, and inner-scroll behavior instead of switching between mismatched page layouts.
+
+Summary:
+
+- updated `waveary-web/src/App.tsx` so the provider, voice, sessions, care, and runtime workspaces all mount through one shared console-stage shell with common panel wrappers
+- converted the sessions workspace from its older structurally different full-page feel into the same control-desk stage system, while keeping the existing session, persistence, import/export, and permission logic intact
+- added shared console workspace CSS in `waveary-web/src/styles.css` for matched panel heights, single-panel full-width behavior, and internal scrolling so long content no longer forces awkward outer-page workspace changes on desktop
+- browser-verified on the live local console that all five workspace tabs now render with aligned stage heights, and that the single-panel care workspace spans the full console width instead of collapsing into a narrower left column
+
+Files changed:
+
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/product-preferences.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run web:build`
+- `curl.exe -I http://127.0.0.1:4173/`
+- Playwright browser verification on `http://127.0.0.1:4173/#console` for provider / voice / sessions / care / runtime workspace switching, matched panel heights, and full-width single-panel care layout
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
 ## 2026-06-22
 
 Objective:
@@ -4821,4 +4859,3 @@ Commit:
 Push:
 
 - succeeded: `git push origin main` pushed functional commit `614e6a0` to `origin/main`
-

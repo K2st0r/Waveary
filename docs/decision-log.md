@@ -862,6 +862,28 @@ Impact:
 - the provider dropdown, saved provider selection, and model setup surface can recover independently from voice-route startup drift
 - a later server/runtime pass can still fix the underlying `/api/voice/config` `404`, but that mismatch no longer breaks core console use
 
+## 2026-06-23 - Console Workspaces Must Share One Stage Shell
+
+Status:
+
+- accepted
+
+Decision:
+
+Keep `provider`, `voice`, `sessions`, `care`, and `runtime` inside one shared console-stage layout system with matched panel heights and internal scrolling, instead of letting each workspace drift into a different page structure.
+
+Reason:
+
+- the compact-control-desk direction breaks down if switching tabs changes the whole page species
+- the user explicitly wants no more “one page long, one page short” workspace mismatch
+- single-panel workspaces still need to occupy the same visual stage as two-panel workspaces so the console reads like one product
+
+Impact:
+
+- `waveary-web/src/App.tsx` now applies a shared stage shell and panel wrapper across all console workspaces
+- `waveary-web/src/styles.css` now centralizes console workspace height, full-width single-panel behavior, and inner-panel scrolling rules
+- future console polish should refine density or mobile behavior without reintroducing workspace-specific outer-page layouts
+
 ## 2026-06-22 - 真人语音 Must Not Be Forced To Reuse The Chat Provider
 
 Status:

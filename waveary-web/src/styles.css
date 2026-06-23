@@ -1958,10 +1958,15 @@ textarea {
 }
 
 .setup-layout,
-.session-panel-grid {
+.session-panel-grid,
+.console-workspace-stage {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
+}
+
+.console-workspace-stage-single {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .step-list {
@@ -1993,12 +1998,6 @@ textarea {
 .session-import-error-card {
   display: grid;
   gap: 0.8rem;
-}
-
-.session-list {
-  max-height: calc(100dvh - 17rem);
-  overflow-y: auto;
-  padding-right: 0.15rem;
 }
 
 .session-controls {
@@ -2222,25 +2221,47 @@ textarea {
   align-items: start;
 }
 
-.session-panel,
-.insight-panel,
-.console-export-panel,
-.provider-console-panel,
-.setup-overview-panel {
+.console-workspace-panel {
   min-height: calc(100dvh - 15.75rem);
 }
 
+.console-workspace-panel,
 .session-panel,
 .insight-panel,
-.provider-console-panel {
-  padding: 1rem;
+.provider-console-panel,
+.console-export-panel,
+.setup-overview-panel {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
 }
 
+.console-workspace-panel-full {
+  width: 100%;
+  grid-column: 1 / -1;
+}
+
+.console-workspace-scroll,
 .session-controls,
-.insight-stack {
+.insight-stack,
+.session-list {
+  min-height: 0;
   max-height: calc(100dvh - 20.25rem);
   overflow-y: auto;
   padding-right: 0.15rem;
+}
+
+.console-subpanel {
+  display: grid;
+  gap: 0.8rem;
+  align-content: start;
+}
+
+.provider-console-panel,
+.setup-overview-panel,
+.session-panel,
+.insight-panel,
+.console-export-panel {
+  padding: 1rem;
 }
 
 .runtime-main-column,
@@ -3276,6 +3297,7 @@ textarea {
   .repo-layout,
   .console-masthead,
   .setup-layout,
+  .console-workspace-stage,
   .session-panel-grid,
   .console-diagnostics-grid,
   .runtime-grid {
@@ -3351,6 +3373,24 @@ textarea {
   .console-workspace-bar,
   .console-status-strip {
     grid-template-columns: 1fr;
+  }
+
+  .console-workspace-panel,
+  .session-panel,
+  .insight-panel,
+  .provider-console-panel,
+  .console-export-panel,
+  .setup-overview-panel {
+    min-height: auto;
+  }
+
+  .console-workspace-scroll,
+  .session-controls,
+  .insight-stack,
+  .session-list {
+    max-height: none;
+    overflow: visible;
+    padding-right: 0;
   }
 
   .hero {

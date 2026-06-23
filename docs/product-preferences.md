@@ -44,6 +44,7 @@ Only write preferences here when they are likely to remain useful over time.
 - Permissions that matter during conversation should be reachable from the chat composer area, not only from a deeper management page.
 - The user prefers a more emotional, higher-quality, less generic frontend feel over generic utility UI.
 - The console should behave like a compact real control desk: no marketing-style intro cards at the top, no long explanatory blocks, and no avoidable full-page scrolling for routine controls.
+- All console workspaces should share one consistent stage footprint and panel rhythm; single-panel views should visually occupy the same control-desk stage as dual-panel views instead of shrinking into a different layout species.
 - The homepage background objects should ultimately come from transparent PNG doodle assets generated through `C:\Users\13571\Desktop\micu-image-20260608.html`, not from long-term CSS-only fake doodle shapes.
 - Those doodle assets should be black-and-white, hand-drawn, memory-laden everyday objects with slightly denser distribution across the milk-white homepage background.
 - The doodle mix should not stay limited to stationery basics; it should also include memory-carrier paper objects such as stamps, envelopes, tickets, postcards, and similar keepsakes.
