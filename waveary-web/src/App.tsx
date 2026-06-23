@@ -3725,6 +3725,27 @@ export function App(): ReactElement {
                     disabled={!canAdjustVoiceConfig}
                   />
                 </label>
+                <label className="chat-voice-select">
+                  <span>{locale === "zh" ? "璇煶 Key" : "Voice Key"}</span>
+                  <input
+                    type="password"
+                    value={voiceConfig?.apiKey ?? ""}
+                    onChange={(event) =>
+                      setVoiceConfig((current) => (current ? { ...current, apiKey: event.target.value } : current))
+                    }
+                    onBlur={(event) => void handleVoiceProviderFieldChange("apiKey", event.target.value)}
+                    placeholder={
+                      activeVoiceProviderType === "local"
+                        ? locale === "zh"
+                          ? "鍙€夛細濡傛灉鏈湴妗ユ帴闇€瑕侀壌鏉冿紝鍦ㄨ繖閲屽～鍏?"
+                          : "Optional: enter it if your local bridge requires auth"
+                        : locale === "zh"
+                          ? "濉叆鐪熶汉璇煶 API Key"
+                          : "Enter dedicated voice API key"
+                    }
+                    disabled={!canAdjustVoiceConfig}
+                  />
+                </label>
                 <label className="chat-voice-select chat-voice-select-wide">
                   <span>Base URL</span>
                   <input
@@ -3958,7 +3979,7 @@ export function App(): ReactElement {
                     </label>
                   </>
                 ) : null}
-                {activeVoiceProviderType !== "local" ? (
+                {false && activeVoiceProviderType !== "local" ? (
                   <label className="chat-voice-select chat-voice-select-wide">
                     <span>{locale === "zh" ? "语音 Key" : "Voice Key"}</span>
                     <input
