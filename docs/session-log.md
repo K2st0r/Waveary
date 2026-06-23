@@ -4,6 +4,51 @@
 
 Objective:
 
+Migrate the dedicated Doubao voice path from the obsolete `appId / cluster` contract to OpenSpeech v3 `resourceId` routing without regressing the rest of the Waveary voice console.
+
+Summary:
+
+- replaced the old Doubao adapter transport with `POST https://openspeech.bytedance.com/api/v3/tts/unidirectional`, now using `x-api-key`, `X-Api-Resource-Id`, `X-Api-Request-Id`, `user.uid`, and the v3 `req_params` payload shape
+- updated `waveary-web` saved voice config, routing diagnostics, and runtime wiring so dedicated Doubao voice now uses `resourceId` instead of the earlier `App ID / Cluster` concept while still reading legacy local `appId` values for compatibility
+- updated the voice console and chat-side voice settings so Doubao now asks for `Resource ID`, defaults its manual voice field to `zh_male_beijingxiaoye_emo_v2_mars_bigtts`, and no longer shows the obsolete `Cluster` input
+- rewrote the Doubao route tests around the v3 request shape and re-verified that both `@waveary/voice` and `@waveary/web` pass after the migration
+- live-probed the provided real key directly against the new upstream route: the old route-level mismatch is gone, but the upstream service still returns `code 45002001` / `No readable text!` even after adding `user.uid`, so the remaining blocker is now upstream request semantics or account-side expectations rather than the old Waveary route
+
+Files changed:
+
+- `waveary-voice/src/doubao-tts-provider.ts`
+- `waveary-voice/src/doubao-tts-provider.test.ts`
+- `waveary-web/server/voice-config.ts`
+- `waveary-web/server/voice-routing-diagnostics.ts`
+- `waveary-web/server/voice-runtime.ts`
+- `waveary-web/server/provider-api.ts`
+- `waveary-web/server/provider-api.test.ts`
+- `waveary-web/src/App.tsx`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run test --workspace @waveary/voice`
+- `npm run test --workspace @waveary/web`
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run check:mojibake`
+- direct Node `fetch` probe against `https://openspeech.bytedance.com/api/v3/tts/unidirectional` using the provided key, `X-Api-Resource-Id: volc.service_type.10029`, and `speaker: zh_male_beijingxiaoye_emo_v2_mars_bigtts`
+
+Commit:
+
+- `15af25b` - `Migrate Doubao voice to OpenSpeech v3`
+
+Push:
+
+- pending
+
+## 2026-06-23
+
+Objective:
+
 Make Gemini TTS usable through Micu relay without regressing the existing dedicated Gemini voice flow.
 
 Summary:

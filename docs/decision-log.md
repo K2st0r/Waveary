@@ -1105,3 +1105,26 @@ Impact:
 - the voice console now includes a `Gemini TTS (Micu Relay)` preset with base URL `https://www.micuapi.ai/v1beta`
 - static Gemini model catalogs now branch by preset so Micu uses Micu-recognized `2.5` TTS preview names while the official Gemini preset keeps the earlier official-family list
 - future Gemini browser verification should explicitly test both the official route and the Micu relay route instead of assuming one static Gemini model list fits both
+
+## 2026-06-23 - Doubao Voice Must Move To OpenSpeech v3 Resource-ID Routing
+
+Status:
+
+- accepted
+
+Decision:
+
+Replace Waveary's earlier Doubao voice contract based on `/api/v1/tts` plus `appId / cluster` with OpenSpeech v3 `POST /api/v3/tts/unidirectional` using `x-api-key` and `X-Api-Resource-Id`.
+
+Reason:
+
+- the user provided a newer official Doubao sample that no longer uses the old `appId` request shape
+- direct probes with the provided real key showed the old Waveary route was failing at auth/grant level, while the v3 route advanced to a newer semantic validation error instead
+- keeping the old `App ID / Cluster` UX would keep future sessions debugging an obsolete contract
+
+Impact:
+
+- `@waveary/voice` now posts Doubao requests to `/api/v3/tts/unidirectional` with `x-api-key`, `X-Api-Resource-Id`, `X-Api-Request-Id`, `user.uid`, and `req_params`
+- saved voice config now carries `resourceId`, while compatibility normalization still reads legacy local `appId` values from older configs
+- the voice console, routing diagnostics, and dedicated Doubao guidance now surface `Resource ID` instead of `App ID / Cluster`
+- the remaining blocker on the provided real key is now upstream code `45002001` / `No readable text!`, which should be treated as request-semantics or account-side expectation work rather than a reason to revert Waveary back to the obsolete transport
