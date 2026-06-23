@@ -1,3 +1,4 @@
+import { createHmac, createHash } from "node:crypto";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
@@ -105,6 +106,8 @@ interface VoiceConfigRequest {
   provider?: string;
   baseURL?: string;
   apiKey?: string;
+  accessKeyId?: string;
+  secretAccessKey?: string;
   resourceId?: string;
   cluster?: string;
   endpointPath?: string;
@@ -124,6 +127,8 @@ interface VoiceCatalogRequest {
   provider?: string;
   baseURL?: string;
   apiKey?: string;
+  accessKeyId?: string;
+  secretAccessKey?: string;
 }
 
 interface VoiceTranscribeRequest {
@@ -473,6 +478,35 @@ export function createProviderApiMiddleware() {
             ...staticCatalog,
             models
           });
+          return;
+        }
+
+        if (staticCatalog.providerType === "doubao") {
+          const accessKeyId = payload.accessKeyId?.trim() ?? "";
+          const secretAccessKey = payload.secretAccessKey?.trim() ?? "";
+
+          if (accessKeyId && secretAccessKey) {
+            const liveCatalog = await fetchDoubaoSpeakerCatalog({
+              accessKeyId,
+              secretAccessKey,
+              resourceId: "seed-tts-2.0"
+            });
+
+            sendJson(response, 200, {
+              providerType: "doubao",
+              models: staticCatalog.models,
+              voices: liveCatalog.voices,
+              voiceFieldMode: "select",
+              defaultModel: staticCatalog.defaultModel,
+              defaultVoice: liveCatalog.defaultVoice ?? staticCatalog.defaultVoice,
+              notes:
+                "Loaded the live Doubao speaker catalog through Volcengine ListSpeakers. TTS still uses your OpenSpeech API key plus resource ID.",
+              source: "provider"
+            });
+            return;
+          }
+
+          sendJson(response, 200, staticCatalog);
           return;
         }
 
@@ -941,4 +975,149 @@ function readErrorMessage(value: unknown): string | null {
   }
 
   return null;
+}
+
+interface DoubaoSpeakerCatalogFetchOptions {
+  accessKeyId: string;
+  secretAccessKey: string;
+  resourceId?: string;
+}
+
+interface DoubaoSpeakerRecord {
+  id?: string;
+  ID?: string;
+  name?: string;
+  Name?: string;
+  resource_id?: string;
+  ResourceID?: string;
+  categories?: Array<{ Categories?: string[] }>;
+  Categories?: Array<{ Categories?: string[] }>;
+}
+
+async function fetchDoubaoSpeakerCatalog(
+  options: DoubaoSpeakerCatalogFetchOptions
+): Promise<{ voices: Array<{ id: string; label: string }>; defaultVoice?: string }> {
+  const host = "open.volcengineapi.com";
+  const path = "/";
+  const queryString = "Action=ListSpeakers&Version=2025-05-20";
+  const resourceId = options.resourceId?.trim() || "seed-tts-2.0";
+  const requestBody = JSON.stringify({
+    ResourceIDs: [resourceId],
+    VoiceTypes: [],
+    Page: 1,
+    Limit: 1000
+  });
+  const timestamp = new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z");
+  const date = timestamp.slice(0, 8);
+  const region = "cn-beijing";
+  const service = "speech_saas_prod";
+  const payloadHash = sha256Hex(requestBody);
+  const signedHeaders = "content-type;host;x-content-sha256;x-date";
+  const canonicalHeaders = [
+    "content-type:application/json; charset=UTF-8",
+    `host:${host}`,
+    `x-content-sha256:${payloadHash}`,
+    `x-date:${timestamp}`
+  ].join("\n");
+  const canonicalRequest = [
+    "POST",
+    path,
+    queryString,
+    `${canonicalHeaders}\n`,
+    signedHeaders,
+    payloadHash
+  ].join("\n");
+  const credentialScope = `${date}/${region}/${service}/request`;
+  const stringToSign = [
+    "HMAC-SHA256",
+    timestamp,
+    credentialScope,
+    sha256Hex(canonicalRequest)
+  ].join("\n");
+  const signingKey = getVolcengineSigningKey(
+    options.secretAccessKey,
+    date,
+    region,
+    service
+  );
+  const signature = hmacHex(signingKey, stringToSign);
+  const authorization = `HMAC-SHA256 Credential=${options.accessKeyId}/${credentialScope}, SignedHeaders=${signedHeaders}, Signature=${signature}`;
+
+  const response = await fetch(`https://${host}/?${queryString}`, {
+    method: "POST",
+    headers: {
+      Authorization: authorization,
+      "Content-Type": "application/json; charset=UTF-8",
+      "X-Date": timestamp,
+      "X-Content-Sha256": payloadHash
+    },
+    body: requestBody
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.text();
+    const suffix = errorBody ? ` Body: ${errorBody}` : "";
+    throw new Error(
+      `Doubao speaker catalog request failed with status ${response.status}.${suffix}`
+    );
+  }
+
+  const payload = (await response.json()) as {
+    ResponseMetadata?: { Error?: { Message?: string } };
+    Result?: { Speakers?: DoubaoSpeakerRecord[] };
+    Speakers?: DoubaoSpeakerRecord[];
+  };
+
+  if (payload.ResponseMetadata?.Error?.Message?.trim()) {
+    throw new Error(payload.ResponseMetadata.Error.Message.trim());
+  }
+
+  const speakers = payload.Result?.Speakers ?? payload.Speakers ?? [];
+  const voices = speakers.flatMap((speaker) => {
+    const id = speaker.id?.trim() || speaker.ID?.trim() || "";
+
+    if (!id) {
+      return [];
+    }
+
+    const label =
+      speaker.name?.trim() ||
+      speaker.Name?.trim() ||
+      id;
+
+    return [{ id, label }];
+  });
+
+  return voices[0]?.id
+    ? {
+        voices,
+        defaultVoice: voices[0].id
+      }
+    : {
+        voices
+      };
+}
+
+function sha256Hex(value: string): string {
+  return createHash("sha256").update(value, "utf8").digest("hex");
+}
+
+function hmacBuffer(key: Buffer | string, value: string): Buffer {
+  return createHmac("sha256", key).update(value, "utf8").digest();
+}
+
+function hmacHex(key: Buffer | string, value: string): string {
+  return createHmac("sha256", key).update(value, "utf8").digest("hex");
+}
+
+function getVolcengineSigningKey(
+  secretAccessKey: string,
+  date: string,
+  region: string,
+  service: string
+): Buffer {
+  const kDate = hmacBuffer(Buffer.from(secretAccessKey, "utf8"), date);
+  const kRegion = hmacBuffer(kDate, region);
+  const kService = hmacBuffer(kRegion, service);
+  return hmacBuffer(kService, "request");
 }

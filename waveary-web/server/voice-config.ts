@@ -21,6 +21,8 @@ export interface SavedVoiceConfig {
   provider: string;
   baseURL: string;
   apiKey: string;
+  accessKeyId: string;
+  secretAccessKey: string;
   resourceId: string;
   cluster: string;
   endpointPath: string;
@@ -61,6 +63,7 @@ export interface VoiceCatalogResponse {
   defaultModel?: string;
   defaultVoice?: string;
   notes?: string;
+  source?: "static" | "provider";
 }
 
 const CONFIG_PATH = join(getWavearyDataDir(), "voice-config.json");
@@ -230,7 +233,7 @@ const VOICE_PROVIDER_PRESETS: readonly VoiceProviderPreset[] = [
     defaultModel: "doubao-tts",
     defaultVoice: DOUBAO_DEFAULT_VOICE,
     notes:
-      "Doubao uses the OpenSpeech v3 route with an API key plus resource ID. Waveary exposes a curated built-in speaker list here instead of pretending there is a generic public /models voice directory."
+      "Doubao uses the OpenSpeech v3 route with an API key plus resource ID for TTS. If you also provide Volcengine AccessKey ID and Secret Access Key, Waveary can fetch the live speaker catalog through ListSpeakers; otherwise it falls back to a curated built-in list."
   },
   {
     id: "local",
@@ -258,6 +261,8 @@ export function getDefaultVoiceConfig(): SavedVoiceConfig {
     provider: "",
     baseURL: "",
     apiKey: "",
+    accessKeyId: "",
+    secretAccessKey: "",
     resourceId: DOUBAO_DEFAULT_RESOURCE_ID,
     cluster: "",
     endpointPath: "/tts",
@@ -309,9 +314,10 @@ export function buildStaticVoiceCatalog(providerOrPreset: string): VoiceCatalogR
       voiceFieldMode: "select",
       defaultModel: "doubao-tts",
       defaultVoice: DOUBAO_DEFAULT_VOICE,
+      source: "static",
       notes:
         matchedPreset?.notes ??
-        "Doubao does not expose a generic OpenAI-style voice-list route here. Waveary ships a curated speaker set for quick selection while the real route still runs through resource ID plus speaker ID."
+        "Doubao does not expose a generic OpenAI-style voice-list route here. Add Volcengine AccessKey ID and Secret Access Key to fetch the live ListSpeakers catalog; otherwise Waveary uses a curated local speaker set."
     };
   }
 
@@ -513,6 +519,8 @@ function normalizeVoiceConfig(config: Partial<SavedVoiceConfig>): SavedVoiceConf
     provider,
     baseURL: normalizedBaseURL,
     apiKey,
+    accessKeyId: config.accessKeyId?.trim() || "",
+    secretAccessKey: config.secretAccessKey?.trim() || "",
     resourceId: normalizedResourceId,
     cluster,
     endpointPath,
