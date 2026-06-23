@@ -2678,6 +2678,71 @@ textarea {
   flex-wrap: wrap;
 }
 
+.console-voice-controls {
+  width: 100%;
+}
+
+.voice-config-grid {
+  display: grid;
+  gap: 0.9rem;
+  width: 100%;
+}
+
+.voice-config-section {
+  display: grid;
+  gap: 0.8rem;
+  padding: 0.95rem 1rem;
+  border: 1.5px solid rgba(21, 18, 15, 0.12);
+  border-radius: var(--radius-card);
+  background: rgba(255, 251, 246, 0.74);
+}
+
+.voice-config-section-wide {
+  width: 100%;
+}
+
+.voice-config-section-head {
+  display: grid;
+  gap: 0.24rem;
+}
+
+.voice-config-section-head strong {
+  color: var(--text-strong);
+  font-size: 0.96rem;
+}
+
+.voice-config-section-head span {
+  color: var(--muted);
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+
+.voice-config-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.voice-console-sidepanel .signal-metrics {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.voice-guide-card {
+  background: rgba(255, 249, 241, 0.82);
+}
+
+.voice-guide-list {
+  margin: 0;
+  padding-left: 1.15rem;
+  color: var(--muted-strong);
+  display: grid;
+  gap: 0.55rem;
+}
+
+.voice-guide-list li {
+  line-height: 1.55;
+}
+
 .chat-voice-controls-compact {
   width: 100%;
   justify-content: space-between;
@@ -2771,6 +2836,11 @@ textarea {
 
 .chat-voice-select-wide {
   min-width: 15rem;
+}
+
+.voice-config-fields .chat-voice-select-wide,
+.voice-config-fields .chat-voice-select-block {
+  grid-column: 1 / -1;
 }
 
 .chat-voice-select-wide input {

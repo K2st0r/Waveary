@@ -41,8 +41,10 @@ export interface VoiceProviderPreset {
   provider: string;
   providerType: "openai-compatible" | "doubao" | "local";
   baseURL: string;
+  voiceFieldMode?: "select" | "input";
   defaultModel?: string;
   defaultVoice?: string;
+  notes?: string;
 }
 
 export interface VoiceOptionDescriptor {
@@ -82,17 +84,51 @@ const VOICE_PROVIDER_PRESETS: readonly VoiceProviderPreset[] = [
     provider: "openai",
     providerType: "openai-compatible",
     baseURL: "https://api.openai.com/v1",
+    voiceFieldMode: "select",
     defaultModel: OPENAI_COMPATIBLE_TTS_DEFAULT_MODEL,
-    defaultVoice: "marin"
+    defaultVoice: "marin",
+    notes:
+      "OpenAI can discover models through /models here, and the common built-in voice names stay selectable in the console."
   },
   {
     id: "openai-compatible",
-    label: "OpenAI-Compatible TTS",
+    label: "Custom OpenAI-Compatible",
     provider: "openai-compatible",
     providerType: "openai-compatible",
     baseURL: "https://api.example.com/v1",
-    defaultModel: OPENAI_COMPATIBLE_TTS_DEFAULT_MODEL,
-    defaultVoice: "alloy"
+    voiceFieldMode: "input",
+    notes:
+      "Use this when your vendor exposes an OpenAI-style speech route but does not share OpenAI's built-in voice directory. Fetch models, then enter the vendor-specific voice or speaker ID manually."
+  },
+  {
+    id: "siliconflow",
+    label: "SiliconFlow Speech",
+    provider: "openai-compatible",
+    providerType: "openai-compatible",
+    baseURL: "https://api.siliconflow.cn/v1",
+    voiceFieldMode: "input",
+    notes:
+      "SiliconFlow can usually expose OpenAI-compatible model discovery, but voice naming remains vendor-specific. Enter the voice or speaker ID manually after choosing a model."
+  },
+  {
+    id: "dashscope",
+    label: "Alibaba DashScope Speech",
+    provider: "openai-compatible",
+    providerType: "openai-compatible",
+    baseURL: "https://dashscope.aliyuncs.com/compatible-mode/v1",
+    voiceFieldMode: "input",
+    notes:
+      "Use DashScope through its compatible endpoint. Models can be discovered when the key is valid, while voice IDs should be entered manually."
+  },
+  {
+    id: "ark",
+    label: "Volcengine Ark Speech",
+    provider: "openai-compatible",
+    providerType: "openai-compatible",
+    baseURL: "https://ark.cn-beijing.volces.com/api/v3",
+    voiceFieldMode: "input",
+    notes:
+      "Ark-style compatible speech routes can share the model-discovery flow, but voice naming differs by vendor and should be entered manually."
   },
   {
     id: "doubao",
@@ -100,8 +136,11 @@ const VOICE_PROVIDER_PRESETS: readonly VoiceProviderPreset[] = [
     provider: "doubao",
     providerType: "doubao",
     baseURL: "https://openspeech.bytedance.com/api/v1",
+    voiceFieldMode: "input",
     defaultModel: "doubao-tts",
-    defaultVoice: "BV001_streaming"
+    defaultVoice: "BV001_streaming",
+    notes:
+      "Doubao needs its own app credentials and cluster. Voice selection here is manual because one shared public voice directory is not exposed by this route."
   },
   {
     id: "local",
@@ -109,7 +148,10 @@ const VOICE_PROVIDER_PRESETS: readonly VoiceProviderPreset[] = [
     provider: "local",
     providerType: "local",
     baseURL: "http://127.0.0.1:9880",
-    defaultModel: "local-bridge"
+    voiceFieldMode: "input",
+    defaultModel: "local-bridge",
+    notes:
+      "Use this for GPT-SoVITS, CosyVoice bridges, or any local HTTP speech adapter. Keep model and speaker identifiers explicit and local-engine-specific."
   }
 ] as const;
 
@@ -160,10 +202,15 @@ export function resolveVoiceProviderPreset(providerId: string): VoiceProviderPre
   return VOICE_PROVIDER_PRESETS.find((preset) => preset.id === providerId);
 }
 
-export function buildStaticVoiceCatalog(provider: string): VoiceCatalogResponse | null {
-  const normalizedProvider = provider.trim().toLowerCase();
+export function buildStaticVoiceCatalog(providerOrPreset: string): VoiceCatalogResponse | null {
+  const normalizedInput = providerOrPreset.trim().toLowerCase();
+  const matchedPreset =
+    VOICE_PROVIDER_PRESETS.find((preset) => preset.id === normalizedInput) ??
+    VOICE_PROVIDER_PRESETS.find((preset) => preset.provider === normalizedInput);
+  const providerType = matchedPreset?.providerType ?? "openai-compatible";
+  const voiceFieldMode = matchedPreset?.voiceFieldMode ?? "input";
 
-  if (normalizedProvider === "doubao") {
+  if (providerType === "doubao") {
     return {
       providerType: "doubao",
       models: [{ id: "doubao-tts", provider: "doubao", label: "Doubao TTS" }],
@@ -172,11 +219,12 @@ export function buildStaticVoiceCatalog(provider: string): VoiceCatalogResponse 
       defaultModel: "doubao-tts",
       defaultVoice: "BV001_streaming",
       notes:
+        matchedPreset?.notes ??
         "Doubao does not currently use a single OpenAI-style voice-list route here. Enter the voice_type you want after testing it."
     };
   }
 
-  if (normalizedProvider === "local") {
+  if (providerType === "local") {
     return {
       providerType: "local",
       models: [{ id: "local-bridge", provider: "local", label: "Local bridge" }],
@@ -184,6 +232,7 @@ export function buildStaticVoiceCatalog(provider: string): VoiceCatalogResponse 
       voiceFieldMode: "input",
       defaultModel: "local-bridge",
       notes:
+        matchedPreset?.notes ??
         "Local bridges usually do not expose one shared voice-directory standard. Enter the local speaker or voice identifier directly."
     };
   }
@@ -191,12 +240,18 @@ export function buildStaticVoiceCatalog(provider: string): VoiceCatalogResponse 
   return {
     providerType: "openai-compatible",
     models: [],
-    voices: OPENAI_COMPATIBLE_VOICE_OPTIONS.map((voice) => ({ ...voice })),
-    voiceFieldMode: "select",
+    voices:
+      voiceFieldMode === "select"
+        ? OPENAI_COMPATIBLE_VOICE_OPTIONS.map((voice) => ({ ...voice }))
+        : [],
+    voiceFieldMode,
     defaultModel: OPENAI_COMPATIBLE_TTS_DEFAULT_MODEL,
-    defaultVoice: "marin",
+    ...(voiceFieldMode === "select" ? { defaultVoice: matchedPreset?.defaultVoice ?? "marin" } : {}),
     notes:
-      "Model discovery comes from the provider's /models route. Voice names are mapped locally because OpenAI-compatible vendors do not expose one universal voice-list endpoint."
+      matchedPreset?.notes ??
+      (voiceFieldMode === "select"
+        ? "Model discovery comes from the provider's /models route. Voice names are mapped locally because OpenAI-compatible vendors do not expose one universal voice-list endpoint."
+        : "Model discovery comes from the provider's /models route. Enter the vendor-specific voice, speaker, or role ID manually after choosing a model.")
   };
 }
 
