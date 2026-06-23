@@ -4637,3 +4637,38 @@ Commit:
 Push:
 
 - succeeded: `git push origin main` pushed functional commit `591557e` to `origin/main`
+
+## 2026-06-23
+
+Objective:
+
+Run a focused browser verification pass for the chat-page local self-hosted voice controls before touching the next voice implementation step.
+
+Summary:
+
+- restarted the local `waveary-web` dev server and verified `http://127.0.0.1:4173/` was healthy again before opening the chat page
+- used Playwright against `http://127.0.0.1:4173/#chat` to confirm the live voice strip still renders correctly with the realtime voice button, dedicated voice mode, and compact chat layout intact
+- confirmed that switching the dedicated voice provider input to `local` expands the new local-only controls exactly as intended, including `engine`, `endpointPath`, `speaker`, `referenceVoiceId`, `textLanguage`, `promptLanguage`, `referenceTranscript`, `stylePrompt`, `styleStrength`, `temperature`, and `topP`
+- confirmed through `/api/voice/config` plus a refresh pass that edited local fields such as `provider`, `textLanguage`, `promptLanguage`, and `stylePrompt` persist correctly; the only observed browser-console error during the pass was an external Google Fonts timeout rather than a Waveary runtime failure
+
+Files changed:
+
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `curl.exe -I http://127.0.0.1:4173/`
+- `npx --yes --package @playwright/cli playwright-cli -s=waveary-voice-pass open http://127.0.0.1:4173/#chat --headed`
+- `npx --yes --package @playwright/cli playwright-cli -s=waveary-voice-pass resize 1440 1200`
+- `npx --yes --package @playwright/cli playwright-cli -s=waveary-voice-pass snapshot`
+- `curl.exe -s http://127.0.0.1:4173/api/voice/config`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending

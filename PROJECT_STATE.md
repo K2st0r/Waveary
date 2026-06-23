@@ -296,7 +296,7 @@ Brand line:
 ## Next Steps
 
 - run a focused browser pass for the chat-page voice surface so the new structured companion delivery hint is visually verified through provider audio playback, browser fallback playback, continuous live voice mode, microphone capture, and loop resume behavior together
-- run a focused browser pass for the local self-hosted voice path specifically, confirming the new local-only tuning controls in the chat voice strip persist correctly and shape actual playback against a real bridge
+- run a focused browser pass for the local self-hosted voice path specifically against a real bridge endpoint, now that the chat voice strip field expansion and persistence for `provider = local` have been browser-verified already
 - test the dedicated voice-provider path end-to-end in the browser by saving a separate真人语音 provider under the chat voice strip and confirming the delivery hint still shapes playback when chat stays on a different vendor
 - decide the next voice cut after this delivery-hint pass: provider-backed STT, or a truer realtime duplex / interruption pass first
 - verify the restored provider console end-to-end in the browser against the currently running local dev server, then decide whether to also harden the underlying voice route startup path so `/api/voice/config` stops returning `404`
