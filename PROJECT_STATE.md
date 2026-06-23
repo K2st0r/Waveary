@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `98d01c7` - `Align shared voice routing status`
+- `cee0224` - `Add provider-backed speech transcription path`
 
 ## Modules
 
@@ -219,6 +219,9 @@ Brand line:
   - can list provider presets, fetch models through the selected provider key, and save local config
   - can run a first browser chat flow and render memory, relationship, emotion, and timeline signals
   - can now capture microphone speech in supported browsers and turn it into the next local chat turn without leaving the chat page
+  - can now transcribe microphone audio through a provider-backed `/api/voice/transcribe` path whenever the active voice route is shared-compatible or dedicated-compatible, while honestly falling back to browser speech recognition when provider STT is unavailable
+  - saved voice config now also persists `sttModel`, so compatible speech transcription no longer has to be hardwired to one provider default
+  - the current provider-backed STT browser loop uses a bounded short recording window before upload/transcription rather than pretending full duplex or interruption handling already exists
   - now exposes a read-only `/api/chat/proactive/evaluate` route so the current `WPCE` decision path can be inspected from the local web runtime without generating outbound messages
   - now exposes `/api/chat/proactive/settings` so per-session proactive-care policy and care-state counters can be saved, reloaded, exported, imported, and reused by later `WPCE` evaluations
   - restores local chat history and latest runtime signals after dev server restart
@@ -289,6 +292,12 @@ Brand line:
 - PowerShell compiled-test verification for `waveary-core/dist/**/*.test.js` via `node --test`
 - `npm run test --workspace @waveary/core`
 - `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run check --workspace @waveary/voice`
+- `npm run test --workspace @waveary/voice`
+- `npm run build:server --workspace @waveary/web`
+- `npm run test --workspace @waveary/web`
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run check:mojibake`
 - `npx tsc --noEmit -p waveary-web/tsconfig.server.json`
 - `npm run test --workspace @waveary/web`
 - `npm run web:build`
@@ -311,7 +320,8 @@ Brand line:
 
 ## Next Steps
 
-- choose the next voice implementation cut now that the live browser pass is complete: provider-backed STT, or a truer realtime duplex / interruption pass first
+- replace the current fixed short capture window in provider-backed STT with a more truthful turn-end detector or streaming transport before claiming realtime voice is close to done
+- decide whether the next voice implementation cut after this first STT slice should be interruption/full duplex first, or wider provider-specific STT support such as Doubao/local
 - use the new repo-side mojibake guard whenever a future Waveary work block edits Chinese-facing copy, and keep broad historical Chinese cleanup isolated from unrelated feature work
 - keep future shell polish focused on the lower workspace stage and inner panel density; do not bloat the top workspace-tab strip when the real complaint is about the operational panels below
 - keep future voice-shell checks focused on true UI regressions now that shared, dedicated OpenAI-compatible, Doubao, and local branches have all been browser-verified against the routing card
@@ -384,3 +394,4 @@ Brand line:
 - the new `npm run check:mojibake` guard only scans changed added lines for obvious corruption patterns; it reduces repeat mistakes but does not replace a dedicated full-document Chinese cleanup pass
 - `npx tsc --noEmit -p waveary-web/tsconfig.server.json` is not a trustworthy verification command in this workspace right now because its standalone resolution still reports broader historical workspace-type issues even when the package build/test flow passes; prefer `npm run test --workspace @waveary/web` or `npm run build:server --workspace @waveary/web` for server-side voice verification until that separate tsconfig issue is deliberately cleaned up
 - `waveary-web/src/App.tsx` no longer has the newest visible mojibake in the dedicated voice credential block, but broader document-level cleanup is still outstanding and should stay isolated from active feature work
+- the first provider-backed STT browser path currently stops recording on a fixed short timer; it is a bounded honest step toward真人语音, but not yet a true turn-end detector, interruption-capable loop, or full duplex transport

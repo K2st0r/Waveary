@@ -4,6 +4,52 @@
 
 Objective:
 
+Add the first provider-backed STT path without breaking the current voice console or browser realtime-chat loop.
+
+Summary:
+
+- extended `@waveary/voice` with `OpenAICompatibleSpeechToTextProvider`, reusing the existing voice package boundary instead of hiding speech upload logic inside `waveary-web`
+- extended saved voice config with `sttModel` and added a new `/api/voice/transcribe` route in `waveary-web/server/provider-api.ts`, reusing the current shared/dedicated voice routing state instead of creating a second speech-provider settings system
+- kept the implementation honest about scope: compatible shared/dedicated voice routes can now transcribe uploaded microphone audio, while Doubao/local STT still return a clear “not implemented yet” error rather than pretending support exists
+- updated `waveary-web/src/App.tsx` so live voice input now prefers provider-backed microphone capture plus upload/transcription on compatible routes and falls back to browser `SpeechRecognition` when provider STT is unavailable or the browser cannot capture audio that way
+- kept the new browser-side provider STT loop intentionally bounded with a short capture window so the product moves forward without falsely claiming true interruption handling or full duplex already exists
+
+Files changed:
+
+- `waveary-voice/src/types.ts`
+- `waveary-voice/src/index.ts`
+- `waveary-voice/src/openai-compatible-stt-provider.ts`
+- `waveary-voice/src/openai-compatible-stt-provider.test.ts`
+- `waveary-web/server/voice-config.ts`
+- `waveary-web/server/provider-api.ts`
+- `waveary-web/server/provider-api.test.ts`
+- `waveary-web/src/App.tsx`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/voice`
+- `npm run test --workspace @waveary/voice`
+- `npm run build:server --workspace @waveary/web`
+- `npm run test --workspace @waveary/web`
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run check:mojibake`
+
+Commit:
+
+- `cee0224` - `Add provider-backed speech transcription path`
+
+Push:
+
+- succeeded: `git push origin main` pushed functional commit `cee0224` to `origin/main`
+
+## 2026-06-23
+
+Objective:
+
 Finish the live browser verification pass for the voice console routing card and fix the shared-mode UI regression discovered during that pass.
 
 Summary:
@@ -36,7 +82,7 @@ Commit:
 
 Push:
 
-- pending
+- succeeded later as part of the subsequent `git push origin main` that advanced `origin/main` to `6a857cb`
 
 ## 2026-06-23
 

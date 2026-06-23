@@ -841,6 +841,29 @@ Impact:
 - no-speech and playback-failure edges now stay inside the live loop more gracefully instead of always forcing the user to restart from scratch
 - the next voice cut should choose deliberately between provider-backed STT and a truer duplex / interruption model rather than rediscovering the live-loop step again
 
+## 2026-06-23 - Provider-Backed STT Should Reuse The Existing Voice Route First
+
+Status:
+
+- accepted
+
+Decision:
+
+Add the first provider-backed speech-to-text slice by extending the existing saved voice route and exposing `/api/voice/transcribe`, while keeping browser `SpeechRecognition` as the fallback path instead of inventing a second standalone speech-provider setup flow.
+
+Reason:
+
+- the user wants Waveary to move closer to real spoken conversation now, but the current product still needs a small honest step before full duplex and interruption handling
+- the voice console and routing diagnostics already define which provider family is active, so STT can reuse that route instead of adding another parallel settings system
+- an OpenAI-compatible transcription adapter gives immediate coverage for providers that already fit the current shared or dedicated compatible voice path, while Doubao/local STT can remain explicit later work instead of being faked now
+
+Impact:
+
+- `@waveary/voice` now exports `OpenAICompatibleSpeechToTextProvider` alongside the earlier TTS adapters
+- `waveary-web/server/provider-api.ts` now exposes `/api/voice/transcribe` and stores `sttModel` in the saved voice config
+- the chat page now prefers provider-backed microphone capture plus upload/transcription when the active voice route is shared-compatible or dedicated-compatible, and falls back honestly to browser `SpeechRecognition` otherwise
+- the current realtime voice loop is now closer to真人对话, but it is still a bounded short-window turn loop rather than true interruption-capable full duplex
+
 ## 2026-06-22 - Provider And Model Setup Must Stay Explicitly Reachable In The Console
 
 Status:
