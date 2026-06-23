@@ -4,6 +4,44 @@
 
 Objective:
 
+Finish the live browser verification pass for the voice console routing card and fix the shared-mode UI regression discovered during that pass.
+
+Summary:
+
+- browser-verified the live voice workspace across the four targeted route families: shared chat-provider voice, dedicated OpenAI-compatible voice, dedicated Doubao voice, and dedicated local bridge voice
+- confirmed via live `/api/voice/config` route responses that the routing evaluator already reported the correct readiness states for all four families, including shared-ready, Doubao-missing-app-id, compatible-missing-api-key, and local-missing-base-url
+- found one real frontend regression during that pass: the right-side voice status card kept using the last dedicated-provider preset metadata even when the route was in shared mode, so the UI could claim `doubao` while the actual active route was the shared chat provider
+- fixed `waveary-web/src/App.tsx` so the status card now reads provider type, provider label, guidance copy, and vendor-specific fill hints from the real routing state whenever voice is in shared mode
+- re-verified in the live browser that shared mode now shows `shared-chat-provider` plus shared guidance, while dedicated Doubao still shows its real missing `App ID` state; restored the saved local voice config back to shared mode after the verification pass
+
+Files changed:
+
+- `waveary-web/src/App.tsx`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run test --workspace @waveary/web`
+- `npm run check:mojibake`
+- `git diff -- waveary-web/src/App.tsx`
+- live Playwright verification on `http://127.0.0.1:4173/#console`
+- `Invoke-RestMethod -Method Post http://127.0.0.1:4173/api/voice/config` for shared, dedicated Doubao, dedicated OpenAI-compatible, and dedicated local routes
+
+Commit:
+
+- `98d01c7` - `Align shared voice routing status`
+
+Push:
+
+- pending
+
+## 2026-06-23
+
+Objective:
+
 Make the voice console and voice route tell the truth about provider-backed playback readiness instead of silently falling back to browser speech.
 
 Summary:

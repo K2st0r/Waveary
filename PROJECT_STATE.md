@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `442f9ec` - `Surface voice routing diagnostics`
+- `98d01c7` - `Align shared voice routing status`
 
 ## Modules
 
@@ -234,6 +234,7 @@ Brand line:
 - `docs/session-log.md` and `docs/decision-log.md` continue to serve as chronological execution and architecture records
 - the repository now also has a changed-files mojibake guard at `tools/check-mojibake.mjs`, exposed through `npm run check:mojibake`, so Chinese-copy edits can be validated mechanically instead of relying only on terminal rendering
 - the voice routes now also expose explicit routing diagnostics, so the console and playback layer can tell whether Waveary is ready for provider-backed audio, which required fields are still missing, and why the last playback fell back to browser speech
+- the voice console status card now reads shared-mode provider type, label, and guidance from the real routing diagnostics instead of accidentally reusing the last dedicated-provider preset, so shared chat-provider routing no longer gets mislabeled as Doubao in the right-side status panel
 
 ## Verified Commands
 
@@ -310,11 +311,10 @@ Brand line:
 
 ## Next Steps
 
-- continue the focused browser pass for the refreshed voice workspace against real provider endpoints, now that the stale preset-switch carryover bug has been removed and the local dev server has been re-verified on the updated server code
-- browser-verify the new voice routing diagnostics in the live console so missing Doubao `appId`, compatible-provider credential gaps, shared-mode fallback, and local-bridge readiness all read clearly before the next voice feature cut
+- choose the next voice implementation cut now that the live browser pass is complete: provider-backed STT, or a truer realtime duplex / interruption pass first
 - use the new repo-side mojibake guard whenever a future Waveary work block edits Chinese-facing copy, and keep broad historical Chinese cleanup isolated from unrelated feature work
 - keep future shell polish focused on the lower workspace stage and inner panel density; do not bloat the top workspace-tab strip when the real complaint is about the operational panels below
-- browser-verify the dedicated OpenAI-compatible, Doubao, and local self-hosted voice branches end-to-end from the console, including provider-specific form switching, manual voice-entry paths, live guidance copy, and post-switch persistence behavior after the new stale-field reset fix
+- keep future voice-shell checks focused on true UI regressions now that shared, dedicated OpenAI-compatible, Doubao, and local branches have all been browser-verified against the routing card
 - confirm the dedicated local-bridge voice path in-browser now that its optional auth slot stays visible in the same credential area instead of disappearing with the old conditional rendering
 - test the dedicated voice-provider path end-to-end in the browser by saving a separate真人语音 provider and confirming the delivery hint still shapes playback when chat stays on a different vendor
 - decide the next voice cut after this shell-stability pass: provider-backed STT, or a truer realtime duplex / interruption pass first
