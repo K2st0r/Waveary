@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `a632b89` - `Fix Doubao chunked TTS playback`
+- `bad9d85` - `Refine Doubao voice selection and chat controls`
 
 ## Modules
 

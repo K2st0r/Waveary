@@ -32,7 +32,7 @@ Verification:
 
 Commit:
 
-- pending
+- `bad9d85` - `Refine Doubao voice selection and chat controls`
 
 Push:
 
