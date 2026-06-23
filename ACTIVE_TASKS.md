@@ -34,8 +34,8 @@ Update it when:
 
 5. Preserve continuity discipline under high-frequency iteration.
    Status: ongoing
-   Current state: each meaningful step is being verified, committed, pushed, and written back into continuity files.
-   Next cut: keep repository-side state files aligned so session resets do not cause duplicate work or architectural drift, record any verification caveats like the current Windows `@waveary/core` dist-lock behavior, and preserve the doodle-generation constraints that avoid repeated `524` timeouts.
+   Current state: each meaningful step is being verified, committed, pushed, and written back into continuity files, and the repository now includes a narrow changed-files mojibake guard at `npm run check:mojibake` for Chinese-facing copy edits on this Windows / PowerShell setup.
+   Next cut: keep repository-side state files aligned so session resets do not cause duplicate work or architectural drift, keep using the mojibake guard plus `git diff` for Chinese-copy edits, record any verification caveats like the current Windows `@waveary/core` dist-lock behavior, and preserve the doodle-generation constraints that avoid repeated `524` timeouts.
 
 ## Deferred But Important
 

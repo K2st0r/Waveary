@@ -232,6 +232,7 @@ Brand line:
 - `ACTIVE_TASKS.md` now tracks the live implementation queue so a resumed session can continue the current cut without reconstructing it from chat history
 - `docs/product-preferences.md` now records durable product, tone, trust-boundary, and workflow preferences that should survive heavy context compression
 - `docs/session-log.md` and `docs/decision-log.md` continue to serve as chronological execution and architecture records
+- the repository now also has a changed-files mojibake guard at `tools/check-mojibake.mjs`, exposed through `npm run check:mojibake`, so Chinese-copy edits can be validated mechanically instead of relying only on terminal rendering
 
 ## Verified Commands
 
@@ -288,6 +289,7 @@ Brand line:
 - `npm run test --workspace @waveary/web`
 - `npm run web:build`
 - `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run check:mojibake`
 - `npm run web:build`
 - `npm run check --workspace @waveary/voice`
 - `npm run test --workspace @waveary/voice`
@@ -306,6 +308,7 @@ Brand line:
 ## Next Steps
 
 - continue the focused browser pass for the refreshed voice workspace against real provider endpoints, now that the stale preset-switch carryover bug has been removed and the local dev server has been re-verified on the updated server code
+- use the new repo-side mojibake guard whenever a future Waveary work block edits Chinese-facing copy, and keep broad historical Chinese cleanup isolated from unrelated feature work
 - keep future shell polish focused on the lower workspace stage and inner panel density; do not bloat the top workspace-tab strip when the real complaint is about the operational panels below
 - browser-verify the dedicated OpenAI-compatible, Doubao, and local self-hosted voice branches end-to-end from the console, including provider-specific form switching, manual voice-entry paths, live guidance copy, and post-switch persistence behavior after the new stale-field reset fix
 - confirm the dedicated local-bridge voice path in-browser now that its optional auth slot stays visible in the same credential area instead of disappearing with the old conditional rendering
@@ -374,4 +377,5 @@ Brand line:
 - `npm run web:build` can still fail on Windows with `EPERM` while removing `waveary-core/dist` if a prior build or process is holding the directory, even when narrower `@waveary/web` test and typecheck verification succeeds
 - a stale local dev server can still make browser verification lie about already-fixed voice-config behavior, because the browser may keep talking to older server code until the local `web:dev` process is restarted; recheck live voice-route conclusions against the running server version before assuming the repository fix failed
 - several repository files already contain historical mojibake in Chinese copy, and fresh PowerShell / Windows shell edits can make diagnosis misleading because console rendering is not byte-faithful; treat Chinese-text cleanup as a separate deliberate pass, and verify future Chinese copy edits with `git diff` instead of trusting raw terminal output alone
+- the new `npm run check:mojibake` guard only scans changed added lines for obvious corruption patterns; it reduces repeat mistakes but does not replace a dedicated full-document Chinese cleanup pass
 - `waveary-web/src/App.tsx` no longer has the newest visible mojibake in the dedicated voice credential block, but broader document-level cleanup is still outstanding and should stay isolated from active feature work

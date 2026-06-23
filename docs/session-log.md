@@ -4,6 +4,45 @@
 
 Objective:
 
+Add a repository-side mojibake guard so future Chinese-copy edits can be verified mechanically instead of relying only on Windows / PowerShell terminal rendering.
+
+Summary:
+
+- added `tools/check-mojibake.mjs` as a changed-files guard that inspects added lines in the current git diff for common mojibake patterns and fails fast when suspicious corruption appears
+- exposed that guard through the root script `npm run check:mojibake` so future Waveary work blocks have one stable verification entrypoint
+- updated repository workflow and continuity records plus the local `waveary-continuity-guard` skill so Chinese-facing copy edits now explicitly require `git diff` verification and the new mojibake check before commit
+- kept the guard intentionally narrow: it protects future edits without trying to rewrite the repository's older historical mojibake as part of an unrelated feature pass
+
+Files changed:
+
+- `tools/check-mojibake.mjs`
+- `package.json`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/workflow-rules.md`
+- `docs/product-preferences.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+- `C:\\Users\\13571\\.codex\\skills\\waveary-continuity-guard\\SKILL.md`
+
+Verification:
+
+- `npm run check:mojibake`
+- `git diff -- package.json docs\\workflow-rules.md docs\\product-preferences.md docs\\decision-log.md tools\\check-mojibake.mjs`
+- `git status --short -b`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-23
+
+Objective:
+
 Browser-verify the voice workspace across provider types and fix any real preset-switch regression discovered during the pass.
 
 Summary:

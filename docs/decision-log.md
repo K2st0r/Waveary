@@ -306,6 +306,28 @@ Impact:
 - `PROJECT_STATE.md` must include the next recommended step, not just current status
 - if a functional push succeeds after continuity files still show `pending`, a second small continuity-sync commit should be made immediately
 
+## 2026-06-23 - Chinese Copy Changes Need A Repo-Side Mojibake Check
+
+Status:
+
+- accepted
+
+Decision:
+
+When a Waveary work block changes Chinese-facing copy, verify the diff with `git diff` and run `npm run check:mojibake` before commit instead of trusting Windows / PowerShell terminal rendering alone.
+
+Reason:
+
+- this machine has already shown that console rendering is not byte-faithful enough to validate Chinese edits safely
+- the repository already contains historical mojibake, so future sessions need one repeatable mechanical guard instead of relying only on memory or manual caution
+- a changed-files check keeps the workflow narrow and cheap while still catching the most obvious corruption patterns before they are committed
+
+Impact:
+
+- the repository now includes `tools/check-mojibake.mjs` plus the root script `npm run check:mojibake`
+- workflow and continuity instructions should call that script whenever a diff adds or changes Chinese-facing copy
+- future broad Chinese cleanup can stay a separate deliberate task instead of being mixed into unrelated feature work
+
 ## 2026-06-21 - Emotion And Care Are Stateful Core Systems
 
 Status:

@@ -30,6 +30,11 @@ For every non-trivial work block:
 18. If state files still contain `pending` placeholders after the push result is known, update them immediately
 19. Commit and push that continuity sync as a separate follow-up record when needed
 
+When the current diff includes user-facing Chinese copy or touches files that already contain Chinese text, also:
+
+- verify the exact text with `git diff`, not terminal rendering alone
+- run `npm run check:mojibake` before closing the work block
+
 ## Completion Rule
 
 A work block is not considered complete until all of the following are true:
