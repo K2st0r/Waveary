@@ -16,6 +16,7 @@ export interface SavedVoiceConfig {
   voice: string;
   format: VoiceOutputFormat;
   qualityProfile: VoiceQualityProfile;
+  sttModel: string;
   providerMode: "shared" | "dedicated";
   provider: string;
   baseURL: string;
@@ -64,6 +65,7 @@ export interface VoiceCatalogResponse {
 
 const CONFIG_PATH = join(getWavearyDataDir(), "voice-config.json");
 const OPENAI_COMPATIBLE_TTS_DEFAULT_MODEL = "gpt-4o-mini-tts";
+const OPENAI_COMPATIBLE_STT_DEFAULT_MODEL = "gpt-4o-mini-transcribe";
 const OPENAI_COMPATIBLE_VOICE_OPTIONS: readonly VoiceOptionDescriptor[] = [
   { id: "alloy", label: "alloy" },
   { id: "ash", label: "ash" },
@@ -163,6 +165,7 @@ export function getDefaultVoiceConfig(): SavedVoiceConfig {
     voice: preset.voice,
     format: preset.format,
     qualityProfile: preset.id,
+    sttModel: OPENAI_COMPATIBLE_STT_DEFAULT_MODEL,
     providerMode: "shared",
     provider: "",
     baseURL: "",
@@ -276,6 +279,7 @@ function normalizeVoiceConfig(config: Partial<SavedVoiceConfig>): SavedVoiceConf
   const fallback = getDefaultVoiceConfig();
   const preset = resolveVoicePreset(config.qualityProfile ?? fallback.qualityProfile);
   const format = isVoiceFormat(config.format) ? config.format : preset.format;
+  const sttModel = config.sttModel?.trim() || OPENAI_COMPATIBLE_STT_DEFAULT_MODEL;
   const hasExplicitModel = Object.prototype.hasOwnProperty.call(config, "model");
   const hasExplicitVoice = Object.prototype.hasOwnProperty.call(config, "voice");
   const model = hasExplicitModel ? (config.model?.trim() ?? "") : preset.model;
@@ -306,6 +310,7 @@ function normalizeVoiceConfig(config: Partial<SavedVoiceConfig>): SavedVoiceConf
     voice,
     format,
     qualityProfile: preset.id,
+    sttModel,
     providerMode,
     provider,
     baseURL,
