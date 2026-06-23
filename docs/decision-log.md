@@ -992,7 +992,8 @@ Reason:
 Impact:
 
 - @waveary/voice now exports LocalHttpTextToSpeechProvider
-- saved voice config now also carries local-bridge-specific endpointPath, engine, speaker, and eferenceVoiceId fields
+- saved voice config now also carries local-bridge-specific endpointPath, engine, speaker, and 
+eferenceVoiceId fields
 - the chat voice strip can now switch to provider = local and send dedicated真人语音 requests through a self-hosted HTTP endpoint while leaving the chat model provider untouched
 ## 2026-06-22 - Chat Should Emit An Explicit Companion Delivery Hint For Voice
 
@@ -1172,3 +1173,25 @@ Impact:
 - `waveary-web/server/voice-config.ts` now defaults and normalizes dedicated Doubao config toward `seed-tts-2.0` plus `zh_female_gaolengyujie_uranus_bigtts`
 - `waveary-voice/src/doubao-tts-provider.ts` now concatenates chunked `data` payloads across multiple JSON events and tolerates the final `20000000 OK` completion marker
 - live local `/api/voice/speak` verification for dedicated Doubao now returns provider audio instead of browser fallback when the saved voice route uses the provided real key
+
+## 2026-06-23 - Doubao Speaker Selection Should Be Curated, Not Fake Discovery
+
+Status:
+
+- accepted
+
+Decision:
+
+For dedicated Doubao TTS in Waveary CE, expose a curated built-in speaker list in the console instead of pretending that the provider supports one generic OpenAI-style discoverable voice directory.
+
+Reason:
+
+- direct route checks already proved that Doubao voice does not expose a shared `/models`-style speaker discovery path that fits the existing compatible-vendor flow
+- the user still needs a usable way to switch among multiple real Doubao speakers rather than being trapped on one default
+- a curated list keeps the UI honest while still making the product materially easier to use
+
+Impact:
+
+- `waveary-web/server/voice-config.ts` now returns a curated Doubao speaker catalog with `voiceFieldMode = select`
+- the dedicated Doubao console path can switch among multiple current 2.0 speakers without changing the underlying `resourceId + speaker` route contract
+- future Doubao browser verification should treat this as curated local product data, not as provider-side discovery

@@ -327,7 +327,7 @@ Brand line:
 
 ## Next Steps
 
-- run one focused browser pass for the now-working dedicated Doubao voice route, especially the voice workspace saved values, real playback, and chat-page output behavior
+- run one focused browser pass for the now-working dedicated Doubao voice route, especially the curated speaker selector, saved values, real playback, and chat-page output behavior
 - decide whether the next voice implementation cut should prioritize wider provider-specific STT coverage such as Doubao/local or a truer realtime duplex / interruption pass
 - replace the current fixed short capture window in provider-backed STT with a more truthful turn-end detector or streaming transport before claiming realtime voice is close to done
 - add focused browser-side or component-level regression coverage for the new silence-based provider STT stop logic so later realtime voice work does not regress it silently

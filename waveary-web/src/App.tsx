@@ -4052,6 +4052,7 @@ export function App(): ReactElement {
   const voiceStatusProviderLabel = usesDedicatedVoiceProvider
     ? voiceConfig?.provider || "dedicated"
     : voiceRoutingStatus?.providerLabel || "shared";
+  const supportsProviderPresetSelection = usesDedicatedVoiceProvider;
   const preferredVoiceFieldMode =
     selectedVoiceProviderPreset?.voiceFieldMode ??
     (usesDoubaoVoiceProvider || usesLocalVoiceProvider ? "input" : "select");
@@ -4118,6 +4119,19 @@ export function App(): ReactElement {
       : locale === "zh"
         ? "共享模式会继续使用聊天模型的内容路径，但依然可单独调整语音风格。"
         : "Shared mode keeps the chat provider path, while still letting you tune the delivery profile separately.");
+  const showVoiceCatalogAction =
+    supportsProviderPresetSelection &&
+    activeVoiceProviderType !== "doubao" &&
+    activeVoiceProviderType !== "local" &&
+    activeVoiceProviderType !== "gemini";
+  const voiceCatalogActionLabel =
+    activeVoiceProviderType === "fish-audio"
+      ? locale === "zh"
+        ? "获取音色目录"
+        : "Fetch voice catalog"
+      : locale === "zh"
+        ? "获取模型目录"
+        : "Fetch model catalog";
   const voiceRoutingTargetLabel =
     voiceRoutingStatus?.target === "provider-audio"
       ? locale === "zh"
@@ -6603,39 +6617,68 @@ export function App(): ReactElement {
                   disabled={!chatReady || chatState === "loading"}
                 />
                 <div className="chat-composer-toolbar">
-                  <div className="chat-permission-controls">
-                    <div className="chat-permission-mode-switch" role="group" aria-label={copy.runtime.permissions}>
-                      <button
-                        className={`chat-permission-mode-button ${getPermissionPresetMode(permissionProfile) === "limited" ? "chat-permission-mode-button-active" : ""}`}
-                        onClick={() => handlePermissionPresetChange("limited")}
-                        type="button"
-                      >
-                        {locale === "zh" ? "受限" : "Limited"}
-                      </button>
-                      <button
-                        className={`chat-permission-mode-button ${getPermissionPresetMode(permissionProfile) === "elevated" ? "chat-permission-mode-button-active" : ""}`}
-                        onClick={() => handlePermissionPresetChange("elevated")}
-                        type="button"
-                      >
-                        {locale === "zh" ? "高权限" : "High"}
-                      </button>
-                      <button
-                        className={`chat-permission-mode-button ${getPermissionPresetMode(permissionProfile) === "full" ? "chat-permission-mode-button-active" : ""}`}
-                        onClick={() => handlePermissionPresetChange("full")}
-                        type="button"
-                      >
-                        {locale === "zh" ? "完全访问" : "Full"}
-                      </button>
-                    </div>
+                  <div className="chat-composer-main-actions">
+                    <button
+                      className={`button button-secondary chat-live-button ${voiceConversationMode ? "chat-voice-button-active" : ""}`}
+                      onClick={() => handleToggleSpeechInput()}
+                      disabled={
+                        !chatReady ||
+                        chatState === "loading" ||
+                        speechInputState === "processing" ||
+                        speechInputState === "unsupported"
+                      }
+                      type="button"
+                    >
+                      {voiceConversationMode ? "End live chat" : "Start live chat"}
+                    </button>
+                    <button
+                      className="button button-primary"
+                      onClick={() => void handleSendMessage()}
+                      disabled={!chatReady || !chatInput.trim() || chatState === "loading"}
+                    >
+                      {chatState === "loading" ? copy.runtime.sending : copy.runtime.send}
+                    </button>
+                  </div>
 
-                    <div className="chat-permission-tray">
+                  <div className="chat-composer-side-actions">
+                    <div className="chat-permission-controls">
                       <button
                         className={`button button-secondary chat-permission-trigger ${chatPermissionTrayOpen ? "chat-permission-trigger-active" : ""}`}
                         onClick={() => setChatPermissionTrayOpen((current) => !current)}
                         type="button"
                       >
-                        {locale === "zh" ? "细项" : "Details"}
+                        {`Permissions · ${
+                              getPermissionPresetMode(permissionProfile) === "full"
+                                ? "Full"
+                                : getPermissionPresetMode(permissionProfile) === "elevated"
+                                  ? "High"
+                                  : "Limited"
+                            }`}
                       </button>
+
+                      <div className="chat-permission-mode-switch" role="group" aria-label={copy.runtime.permissions}>
+                        <button
+                          className={`chat-permission-mode-button ${getPermissionPresetMode(permissionProfile) === "limited" ? "chat-permission-mode-button-active" : ""}`}
+                          onClick={() => handlePermissionPresetChange("limited")}
+                          type="button"
+                        >
+                          Limited
+                        </button>
+                        <button
+                          className={`chat-permission-mode-button ${getPermissionPresetMode(permissionProfile) === "elevated" ? "chat-permission-mode-button-active" : ""}`}
+                          onClick={() => handlePermissionPresetChange("elevated")}
+                          type="button"
+                        >
+                          High
+                        </button>
+                        <button
+                          className={`chat-permission-mode-button ${getPermissionPresetMode(permissionProfile) === "full" ? "chat-permission-mode-button-active" : ""}`}
+                          onClick={() => handlePermissionPresetChange("full")}
+                          type="button"
+                        >
+                          Full
+                        </button>
+                      </div>
 
                       {chatPermissionTrayOpen ? (
                         <div className="chat-permission-popover">
@@ -6681,422 +6724,8 @@ export function App(): ReactElement {
                         </div>
                       ) : null}
                     </div>
-                  </div>
 
-                  <div className="console-actions">
                     {renderVoiceConfigControls("chat")}
-                    <div className="chat-voice-controls chat-voice-controls-legacy">
-                      <button
-                        className={`button button-secondary ${voiceConversationMode ? "chat-voice-button-active" : ""}`}
-                        onClick={() => handleToggleSpeechInput()}
-                        disabled={
-                          !chatReady ||
-                          chatState === "loading" ||
-                          speechInputState === "processing" ||
-                          speechInputState === "unsupported"
-                        }
-                        type="button"
-                      >
-                        {voiceConversationMode
-                          ? locale === "zh"
-                            ? "结束实时对话"
-                            : "End live chat"
-                          : locale === "zh"
-                            ? "开始实时对话"
-                            : "Start live chat"}
-                      </button>
-                      <label className="chat-voice-select">
-                        <span>{locale === "zh" ? "风格" : "Profile"}</span>
-                        <select
-                          value={voiceConfig?.qualityProfile ?? ""}
-                          onChange={(event) => void handleVoiceProfileChange(event.target.value)}
-                          disabled={!canAdjustVoiceConfig}
-                        >
-                          {voicePresets.map((preset) => (
-                            <option key={preset.id} value={preset.id}>
-                              {preset.label}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                      <label className="chat-voice-select">
-                        <span>{locale === "zh" ? "来源" : "Source"}</span>
-                        <select
-                          value={voiceProviderMode}
-                          onChange={(event) =>
-                            void handleVoiceProviderModeChange(
-                              event.target.value === "dedicated" ? "dedicated" : "shared"
-                            )
-                          }
-                          disabled={!canAdjustVoiceConfig}
-                        >
-                          <option value="shared">
-                            {locale === "zh" ? "跟随聊天模型" : "Use chat provider"}
-                          </option>
-                          <option value="dedicated">
-                            {locale === "zh" ? "独立真人语音" : "Dedicated voice provider"}
-                          </option>
-                        </select>
-                      </label>
-                      <label className="chat-voice-select chat-voice-select-compact">
-                        <span>{locale === "zh" ? "模型" : "Model"}</span>
-                        <select
-                          value={voiceConfig?.model ?? ""}
-                          onChange={(event) => void handleVoiceModelChange(event.target.value)}
-                          disabled={!canAdjustVoiceConfig}
-                        >
-                          {availableVoiceModels.map((model) => (
-                            <option key={model} value={model}>
-                              {model}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                      <label className="chat-voice-select chat-voice-select-compact">
-                        <span>{locale === "zh" ? "声线" : "Voice"}</span>
-                        <select
-                          value={voiceConfig?.voice ?? ""}
-                          onChange={(event) => void handleVoiceNameChange(event.target.value)}
-                          disabled={!canAdjustVoiceConfig}
-                        >
-                          {availableVoices.map((voice) => (
-                            <option key={voice} value={voice}>
-                              {voice}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                      {usesDedicatedVoiceProvider ? (
-                        <>
-                          <label className="chat-voice-select">
-                            <span>{locale === "zh" ? "供应商" : "Provider"}</span>
-                            <input
-                              type="text"
-                              value={voiceConfig?.provider ?? ""}
-                              onChange={(event) =>
-                                setVoiceConfig((current) =>
-                                  current ? { ...current, provider: event.target.value } : current
-                                )
-                              }
-                              onBlur={(event) =>
-                                void handleVoiceProviderFieldChange("provider", event.target.value)
-                              }
-                              placeholder={locale === "zh" ? "例如 openai" : "e.g. openai"}
-                              disabled={!canAdjustVoiceConfig}
-                            />
-                          </label>
-                          <label className="chat-voice-select chat-voice-select-wide">
-                            <span>Base URL</span>
-                            <input
-                              type="text"
-                              value={voiceConfig?.baseURL ?? ""}
-                              onChange={(event) =>
-                                setVoiceConfig((current) =>
-                                  current ? { ...current, baseURL: event.target.value } : current
-                                )
-                              }
-                              onBlur={(event) =>
-                                void handleVoiceProviderFieldChange("baseURL", event.target.value)
-                              }
-                              placeholder="https://api.openai.com/v1"
-                              disabled={!canAdjustVoiceConfig}
-                            />
-                          </label>
-                          {usesDoubaoVoiceProvider ? (
-                            <>
-                              <label className="chat-voice-select">
-                                <span>Resource ID</span>
-                                <input
-                                  type="text"
-                                  value={voiceConfig?.resourceId ?? ""}
-                                  onChange={(event) =>
-                                    setVoiceConfig((current) =>
-                                      current ? { ...current, resourceId: event.target.value } : current
-                                    )
-                                  }
-                                  onBlur={(event) =>
-                                    void handleVoiceProviderFieldChange("resourceId", event.target.value)
-                                  }
-                                  placeholder="seed-tts-2.0"
-                                  disabled={!canAdjustVoiceConfig}
-                                />
-                              </label>
-                            </>
-                          ) : null}
-                          {usesLocalVoiceProvider ? (
-                            <>
-                              <label className="chat-voice-select">
-                                <span>{locale === "zh" ? "引擎" : "Engine"}</span>
-                                <input
-                                  type="text"
-                                  value={voiceConfig?.engine ?? ""}
-                                  onChange={(event) =>
-                                    setVoiceConfig((current) =>
-                                      current ? { ...current, engine: event.target.value } : current
-                                    )
-                                  }
-                                  onBlur={(event) =>
-                                    void handleVoiceProviderFieldChange("engine", event.target.value)
-                                  }
-                                  placeholder={locale === "zh" ? "例如 gpt-sovits" : "e.g. gpt-sovits"}
-                                  disabled={!canAdjustVoiceConfig}
-                                />
-                              </label>
-                              <label className="chat-voice-select">
-                                <span>{locale === "zh" ? "接口路径" : "Endpoint"}</span>
-                                <input
-                                  type="text"
-                                  value={voiceConfig?.endpointPath ?? ""}
-                                  onChange={(event) =>
-                                    setVoiceConfig((current) =>
-                                      current ? { ...current, endpointPath: event.target.value } : current
-                                    )
-                                  }
-                                  onBlur={(event) =>
-                                    void handleVoiceProviderFieldChange("endpointPath", event.target.value)
-                                  }
-                                  placeholder="/tts"
-                                  disabled={!canAdjustVoiceConfig}
-                                />
-                              </label>
-                              <label className="chat-voice-select">
-                                <span>{locale === "zh" ? "Speaker" : "Speaker"}</span>
-                                <input
-                                  type="text"
-                                  value={voiceConfig?.speaker ?? ""}
-                                  onChange={(event) =>
-                                    setVoiceConfig((current) =>
-                                      current ? { ...current, speaker: event.target.value } : current
-                                    )
-                                  }
-                                  onBlur={(event) =>
-                                    void handleVoiceProviderFieldChange("speaker", event.target.value)
-                                  }
-                                  placeholder={locale === "zh" ? "可选 speaker" : "Optional speaker"}
-                                  disabled={!canAdjustVoiceConfig}
-                                />
-                              </label>
-                              <label className="chat-voice-select chat-voice-select-wide">
-                                <span>{locale === "zh" ? "参考音色 ID" : "Reference Voice ID"}</span>
-                                <input
-                                  type="text"
-                                  value={voiceConfig?.referenceVoiceId ?? ""}
-                                  onChange={(event) =>
-                                    setVoiceConfig((current) =>
-                                      current
-                                        ? { ...current, referenceVoiceId: event.target.value }
-                                        : current
-                                    )
-                                  }
-                                  onBlur={(event) =>
-                                    void handleVoiceProviderFieldChange(
-                                      "referenceVoiceId",
-                                      event.target.value
-                                    )
-                                  }
-                                  placeholder={
-                                    locale === "zh" ? "可选参考音色或角色 ID" : "Optional reference voice or role ID"
-                                  }
-                                  disabled={!canAdjustVoiceConfig}
-                                />
-                              </label>
-                              <label className="chat-voice-select">
-                                <span>{locale === "zh" ? "文本语言" : "Text Lang"}</span>
-                                <input
-                                  type="text"
-                                  value={voiceConfig?.textLanguage ?? ""}
-                                  onChange={(event) =>
-                                    setVoiceConfig((current) =>
-                                      current ? { ...current, textLanguage: event.target.value } : current
-                                    )
-                                  }
-                                  onBlur={(event) =>
-                                    void handleVoiceProviderFieldChange("textLanguage", event.target.value)
-                                  }
-                                  placeholder={locale === "zh" ? "zh / en" : "zh / en"}
-                                  disabled={!canAdjustVoiceConfig}
-                                />
-                              </label>
-                              <label className="chat-voice-select">
-                                <span>{locale === "zh" ? "提示语言" : "Prompt Lang"}</span>
-                                <input
-                                  type="text"
-                                  value={voiceConfig?.promptLanguage ?? ""}
-                                  onChange={(event) =>
-                                    setVoiceConfig((current) =>
-                                      current ? { ...current, promptLanguage: event.target.value } : current
-                                    )
-                                  }
-                                  onBlur={(event) =>
-                                    void handleVoiceProviderFieldChange("promptLanguage", event.target.value)
-                                  }
-                                  placeholder={locale === "zh" ? "zh / en" : "zh / en"}
-                                  disabled={!canAdjustVoiceConfig}
-                                />
-                              </label>
-                              <label className="chat-voice-select">
-                                <span>{locale === "zh" ? "风格强度" : "Style"}</span>
-                                <input
-                                  type="number"
-                                  step="0.1"
-                                  value={voiceConfig?.styleStrength ?? ""}
-                                  onChange={(event) =>
-                                    setVoiceConfig((current) =>
-                                      current
-                                        ? {
-                                            ...current,
-                                            styleStrength:
-                                              event.target.value.trim().length === 0
-                                                ? null
-                                                : Number(event.target.value)
-                                          }
-                                        : current
-                                    )
-                                  }
-                                  onBlur={(event) =>
-                                    void handleVoiceProviderNumberFieldChange(
-                                      "styleStrength",
-                                      event.target.value
-                                    )
-                                  }
-                                  placeholder="0.7"
-                                  disabled={!canAdjustVoiceConfig}
-                                />
-                              </label>
-                              <label className="chat-voice-select">
-                                <span>Temp</span>
-                                <input
-                                  type="number"
-                                  step="0.1"
-                                  value={voiceConfig?.temperature ?? ""}
-                                  onChange={(event) =>
-                                    setVoiceConfig((current) =>
-                                      current
-                                        ? {
-                                            ...current,
-                                            temperature:
-                                              event.target.value.trim().length === 0
-                                                ? null
-                                                : Number(event.target.value)
-                                          }
-                                        : current
-                                    )
-                                  }
-                                  onBlur={(event) =>
-                                    void handleVoiceProviderNumberFieldChange(
-                                      "temperature",
-                                      event.target.value
-                                    )
-                                  }
-                                  placeholder="0.7"
-                                  disabled={!canAdjustVoiceConfig}
-                                />
-                              </label>
-                              <label className="chat-voice-select">
-                                <span>Top P</span>
-                                <input
-                                  type="number"
-                                  step="0.1"
-                                  value={voiceConfig?.topP ?? ""}
-                                  onChange={(event) =>
-                                    setVoiceConfig((current) =>
-                                      current
-                                        ? {
-                                            ...current,
-                                            topP:
-                                              event.target.value.trim().length === 0
-                                                ? null
-                                                : Number(event.target.value)
-                                          }
-                                        : current
-                                    )
-                                  }
-                                  onBlur={(event) =>
-                                    void handleVoiceProviderNumberFieldChange(
-                                      "topP",
-                                      event.target.value
-                                    )
-                                  }
-                                  placeholder="0.9"
-                                  disabled={!canAdjustVoiceConfig}
-                                />
-                              </label>
-                              <label className="chat-voice-select chat-voice-select-block chat-voice-select-wide">
-                                <span>{locale === "zh" ? "参考文本" : "Reference Text"}</span>
-                                <textarea
-                                  rows={2}
-                                  value={voiceConfig?.referenceTranscript ?? ""}
-                                  onChange={(event) =>
-                                    setVoiceConfig((current) =>
-                                      current
-                                        ? { ...current, referenceTranscript: event.target.value }
-                                        : current
-                                    )
-                                  }
-                                  onBlur={(event) =>
-                                    void handleVoiceProviderFieldChange(
-                                      "referenceTranscript",
-                                      event.target.value
-                                    )
-                                  }
-                                  placeholder={
-                                    locale === "zh"
-                                      ? "可选参考台词或参考音频对应文本"
-                                      : "Optional reference transcript"
-                                  }
-                                  disabled={!canAdjustVoiceConfig}
-                                />
-                              </label>
-                              <label className="chat-voice-select chat-voice-select-block chat-voice-select-wide">
-                                <span>{locale === "zh" ? "风格提示" : "Style Prompt"}</span>
-                                <textarea
-                                  rows={2}
-                                  value={voiceConfig?.stylePrompt ?? ""}
-                                  onChange={(event) =>
-                                    setVoiceConfig((current) =>
-                                      current ? { ...current, stylePrompt: event.target.value } : current
-                                    )
-                                  }
-                                  onBlur={(event) =>
-                                    void handleVoiceProviderFieldChange("stylePrompt", event.target.value)
-                                  }
-                                  placeholder={
-                                    locale === "zh"
-                                      ? "例如：更轻、更近、更像耳边低语"
-                                      : "e.g. gentle, intimate, diary-like"
-                                  }
-                                  disabled={!canAdjustVoiceConfig}
-                                />
-                              </label>
-                            </>
-                          ) : null}
-                          <label className="chat-voice-select chat-voice-select-wide">
-                            <span>{locale === "zh" ? "语音 Key" : "Voice Key"}</span>
-                            <input
-                              type="password"
-                              value={voiceConfig?.apiKey ?? ""}
-                              onChange={(event) =>
-                                setVoiceConfig((current) =>
-                                  current ? { ...current, apiKey: event.target.value } : current
-                                )
-                              }
-                              onBlur={(event) =>
-                                void handleVoiceProviderFieldChange("apiKey", event.target.value)
-                              }
-                              placeholder={locale === "zh" ? "填入真人语音 API Key" : "Enter dedicated voice API key"}
-                              disabled={!canAdjustVoiceConfig}
-                            />
-                          </label>
-                        </>
-                      ) : null}
-                    </div>
-                    <button
-                      className="button button-primary"
-                      onClick={() => void handleSendMessage()}
-                      disabled={!chatReady || !chatInput.trim() || chatState === "loading"}
-                    >
-                      {chatState === "loading" ? copy.runtime.sending : copy.runtime.send}
-                    </button>
                   </div>
                 </div>
                 <div className="chat-voice-status" aria-live="polite">

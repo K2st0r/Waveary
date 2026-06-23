@@ -1,3 +1,42 @@
+
+## 2026-06-23
+
+Objective:
+
+Tighten the visible chat/voice control surfaces and make dedicated Doubao TTS easier to use by exposing multiple curated speakers instead of only one default voice.
+
+Summary:
+
+- changed the dedicated Doubao voice catalog from manual-input-only into a curated built-in speaker selector while keeping the true OpenSpeech v3 `resourceId + speaker` route unchanged
+- added route coverage proving the Doubao voice catalog now returns selectable speakers and still keeps local bridges on manual input
+- tightened the chat composer action band so live chat, send, compact voice summary, and the permission tray fit more cleanly without the earlier oversized control strip
+- kept the implementation scoped to voice-config/catalog truth plus visible chat/layout polish, without touching the already-working provider-backed TTS runtime path
+
+Files changed:
+
+- `waveary-web/server/voice-config.ts`
+- `waveary-web/server/provider-api.test.ts`
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run test --workspace @waveary/web`
+- `npm run check:mojibake`
+- `git diff -- waveary-web/src/App.tsx waveary-web/src/styles.css waveary-web/server/voice-config.ts waveary-web/server/provider-api.test.ts`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
 # Session Log
 
 ## 2026-06-23
