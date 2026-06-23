@@ -1566,6 +1566,7 @@ export function App(): ReactElement {
   const speechInputErrorRef = useRef(false);
   const voiceConversationModeRef = useRef(false);
   const voiceConversationResumeTimerRef = useRef<number | null>(null);
+  const voicePlaybackRequestIdRef = useRef(0);
   const providerSpeechStopTimerRef = useRef<number | null>(null);
   const providerSpeechFrameRef = useRef<number | null>(null);
   const providerSpeechAudioContextRef = useRef<AudioContext | null>(null);
@@ -2897,6 +2898,7 @@ export function App(): ReactElement {
   ): Promise<void> {
     clearVoiceConversationResumeTimer();
     stopVoicePlayback();
+    const requestId = voicePlaybackRequestIdRef.current;
     setVoicePlaybackState("planning");
     setVoiceStatusMessage(locale === "zh" ? "正在准备语音…" : "Preparing voice…");
 
@@ -2919,10 +2921,14 @@ export function App(): ReactElement {
         })
       });
 
+      if (!isCurrentVoicePlaybackRequest(requestId)) {
+        return;
+      }
+
       setVoiceRoutingStatus(planResponse.routing);
 
       if (planResponse.mode === "audio" && planResponse.audio) {
-        await playProviderAudio(planResponse);
+        await playProviderAudio(planResponse, requestId);
         return;
       }
 
@@ -2954,6 +2960,9 @@ export function App(): ReactElement {
       }
 
       utterance.onstart = () => {
+        if (!isCurrentVoicePlaybackRequest(requestId)) {
+          return;
+        }
         setVoicePlaybackState("speaking");
         setVoiceStatusMessage(
           locale === "zh"
@@ -2962,6 +2971,9 @@ export function App(): ReactElement {
         );
       };
       utterance.onend = () => {
+        if (!isCurrentVoicePlaybackRequest(requestId)) {
+          return;
+        }
         activeUtteranceRef.current = null;
         setVoicePlaybackState("idle");
         setVoiceStatusMessage(
@@ -2978,6 +2990,9 @@ export function App(): ReactElement {
         }
       };
       utterance.onerror = () => {
+        if (!isCurrentVoicePlaybackRequest(requestId)) {
+          return;
+        }
         activeUtteranceRef.current = null;
         setVoicePlaybackState("error");
         setVoiceStatusMessage(
@@ -2990,9 +3005,15 @@ export function App(): ReactElement {
 
       activeUtteranceRef.current = utterance;
       window.setTimeout(() => {
+        if (!isCurrentVoicePlaybackRequest(requestId)) {
+          return;
+        }
         window.speechSynthesis.speak(utterance);
       }, plan.preDelayMs);
     } catch (error) {
+      if (!isCurrentVoicePlaybackRequest(requestId)) {
+        return;
+      }
       setVoicePlaybackState("error");
       setVoiceStatusMessage(getErrorMessage(error));
     }
@@ -3057,13 +3078,17 @@ export function App(): ReactElement {
     voiceConversationResumeTimerRef.current = null;
   }
 
+  function isCurrentVoicePlaybackRequest(requestId: number): boolean {
+    return voicePlaybackRequestIdRef.current === requestId;
+  }
+
   function scheduleVoiceConversationResume(reason: VoiceConversationResumeReason): void {
     if (typeof window === "undefined" || !voiceConversationModeRef.current) {
       return;
     }
 
     clearVoiceConversationResumeTimer();
-    const delayMs = reason === "retry-listening" ? 420 : 220;
+    const delayMs = reason === "retry-listening" ? 260 : 120;
 
     voiceConversationResumeTimerRef.current = window.setTimeout(() => {
       voiceConversationResumeTimerRef.current = null;
@@ -3076,8 +3101,36 @@ export function App(): ReactElement {
     }, delayMs);
   }
 
+  async function interruptVoiceConversationPlaybackAndListen(): Promise<void> {
+    if (!voiceConversationModeRef.current) {
+      return;
+    }
+
+    stopVoicePlayback();
+    stopSpeechRecognition({ markManualStop: true });
+    requestStopProviderSpeechCapture({ markManualStop: true, finalize: false });
+    setVoicePlaybackState("idle");
+    setVoiceStatusMessage(
+      locale === "zh"
+        ? "\u597d\uff0c\u6211\u5148\u505c\u4e0b\u6765\u542c\u4f60\u8bf4\u3002"
+        : "Okay. I will stop here and listen to you first."
+    );
+    setSpeechInputState("idle");
+    setSpeechInputStatusMessage(
+      locale === "zh"
+        ? "\u73b0\u5728\u5c31\u542c\u4f60\u8bf4\u3002"
+        : "Go ahead. I am listening now."
+    );
+    await startSpeechInput({ fromVoiceConversation: true });
+  }
+
   function handleToggleSpeechInput(): void {
     if (voiceConversationMode) {
+      if (voicePlaybackState === "planning" || voicePlaybackState === "speaking") {
+        void interruptVoiceConversationPlaybackAndListen();
+        return;
+      }
+
       stopVoiceConversation();
       return;
     }
@@ -3668,7 +3721,10 @@ export function App(): ReactElement {
     }
   }
 
-  async function playProviderAudio(planResponse: VoiceSpeakPlanResponse): Promise<void> {
+  async function playProviderAudio(
+    planResponse: VoiceSpeakPlanResponse,
+    requestId: number
+  ): Promise<void> {
     if (typeof window === "undefined" || !planResponse.audio) {
       throw new Error("Provider audio playback is not available in this environment.");
     }
@@ -3680,10 +3736,19 @@ export function App(): ReactElement {
     });
     const audioUrl = URL.createObjectURL(audioBlob);
     const audio = new Audio(audioUrl);
+
+    if (!isCurrentVoicePlaybackRequest(requestId)) {
+      URL.revokeObjectURL(audioUrl);
+      return;
+    }
+
     activeAudioRef.current = audio;
     activeAudioUrlRef.current = audioUrl;
 
     audio.onplay = () => {
+      if (!isCurrentVoicePlaybackRequest(requestId)) {
+        return;
+      }
       setVoicePlaybackState("speaking");
       setVoiceStatusMessage(
         locale === "zh"
@@ -3692,6 +3757,9 @@ export function App(): ReactElement {
       );
     };
     audio.onended = () => {
+      if (!isCurrentVoicePlaybackRequest(requestId)) {
+        return;
+      }
       if (activeAudioRef.current === audio) {
         activeAudioRef.current = null;
       }
@@ -3714,6 +3782,9 @@ export function App(): ReactElement {
       }
     };
     audio.onerror = () => {
+      if (!isCurrentVoicePlaybackRequest(requestId)) {
+        return;
+      }
       if (activeAudioRef.current === audio) {
         activeAudioRef.current = null;
       }
@@ -3730,11 +3801,24 @@ export function App(): ReactElement {
       }
     };
 
+    if (!isCurrentVoicePlaybackRequest(requestId)) {
+      audio.pause();
+      URL.revokeObjectURL(audioUrl);
+      if (activeAudioRef.current === audio) {
+        activeAudioRef.current = null;
+      }
+      if (activeAudioUrlRef.current === audioUrl) {
+        activeAudioUrlRef.current = null;
+      }
+      return;
+    }
+
     await audio.play();
   }
 
   function stopVoicePlayback(): void {
     clearVoiceConversationResumeTimer();
+    voicePlaybackRequestIdRef.current += 1;
 
     if (activeUtteranceRef.current) {
       activeUtteranceRef.current.onstart = null;
