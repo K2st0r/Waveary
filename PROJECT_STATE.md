@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `d430380` - `Add silence-based provider STT stop detection`
+- `94d2694` - `Add Fish Audio dedicated voice support`
 
 ## Modules
 
