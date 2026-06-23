@@ -2056,8 +2056,8 @@ export function App(): ReactElement {
         providerMode: "dedicated",
         provider: preset.provider,
         baseURL: preset.baseURL,
-        ...(preset.defaultModel ? { model: preset.defaultModel } : {}),
-        ...(preset.defaultVoice ? { voice: preset.defaultVoice } : {})
+        model: preset.defaultModel ?? "",
+        voice: preset.defaultVoice ?? ""
       },
       locale === "zh" ? "已应用语音供应商预设。" : "Voice provider preset applied."
     );
