@@ -207,6 +207,75 @@ test("voice config route returns saved config plus presets", async () => {
   assert.ok(response.body.presets.length >= 4);
 });
 
+test("voice provider presets route returns selectable voice vendors", async () => {
+  const middleware = createProviderApiMiddleware();
+  const response = await invokeJsonRoute(middleware, "GET", "/api/voice/presets");
+
+  assert.equal(response.statusCode, 200);
+  assert.ok(Array.isArray(response.body.presets));
+  assert.ok(response.body.presets.some((preset: { id: string }) => preset.id === "openai"));
+  assert.ok(response.body.presets.some((preset: { id: string }) => preset.id === "doubao"));
+  assert.ok(response.body.presets.some((preset: { id: string }) => preset.id === "local"));
+});
+
+test("voice catalog route returns discovered models plus mapped voices for openai-compatible vendors", async () => {
+  const middleware = createProviderApiMiddleware();
+
+  globalThis.fetch = (async (input) => {
+    if (String(input) === "https://api.openai.com/v1/models") {
+      return new Response(
+        JSON.stringify({
+          data: [
+            { id: "gpt-4o-mini-tts" },
+            { id: "gpt-4o-audio-preview", name: "gpt-4o-audio-preview" }
+          ]
+        }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json" }
+        }
+      );
+    }
+
+    throw new Error(`Unexpected fetch URL: ${String(input)}`);
+  }) as typeof fetch;
+
+  const response = await invokeJsonRoute(middleware, "POST", "/api/voice/catalog", {
+    provider: "openai",
+    baseURL: "https://api.openai.com/v1",
+    apiKey: "voice-key"
+  });
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.providerType, "openai-compatible");
+  assert.equal(response.body.voiceFieldMode, "select");
+  assert.ok(Array.isArray(response.body.models));
+  assert.ok(response.body.models.some((model: { id: string }) => model.id === "gpt-4o-mini-tts"));
+  assert.ok(Array.isArray(response.body.voices));
+  assert.ok(response.body.voices.some((voice: { id: string }) => voice.id === "marin"));
+});
+
+test("voice catalog route returns input-mode catalogs for doubao and local providers", async () => {
+  const middleware = createProviderApiMiddleware();
+
+  const doubaoResponse = await invokeJsonRoute(middleware, "POST", "/api/voice/catalog", {
+    provider: "doubao"
+  });
+  const localResponse = await invokeJsonRoute(middleware, "POST", "/api/voice/catalog", {
+    provider: "local"
+  });
+
+  assert.equal(doubaoResponse.statusCode, 200);
+  assert.equal(doubaoResponse.body.providerType, "doubao");
+  assert.equal(doubaoResponse.body.voiceFieldMode, "input");
+  assert.equal(doubaoResponse.body.defaultVoice, "BV001_streaming");
+
+  assert.equal(localResponse.statusCode, 200);
+  assert.equal(localResponse.body.providerType, "local");
+  assert.equal(localResponse.body.voiceFieldMode, "input");
+  assert.equal(localResponse.body.defaultModel, "local-bridge");
+});
+
 test("voice config route persists a selected preset", async () => {
   const middleware = createProviderApiMiddleware();
   const response = await invokeJsonRoute(middleware, "POST", "/api/voice/config", {

@@ -4708,3 +4708,40 @@ Commit:
 Push:
 
 - pending
+
+## 2026-06-23
+
+Objective:
+
+Make the console voice workspace follow a provider-onboarding flow closer to model setup, instead of relying only on local voice presets.
+
+Summary:
+
+- added dedicated voice-provider presets plus a new `/api/voice/presets` route so the voice console can start from known vendor paths such as OpenAI TTS, Doubao TTS, and the local voice bridge
+- added `/api/voice/catalog` so OpenAI-compatible voice vendors can now fetch real model catalogs from their `/models` endpoint while still using provider-mapped voice-name directories where no shared cross-vendor voice-list API exists
+- kept Doubao and local bridge behavior realistic instead of pretending they expose one universal discoverable voice-list contract: Doubao and local now return input-mode catalogs, while OpenAI-compatible vendors return discovered models plus mapped voice options
+- browser-verified that the voice console now shows a selectable voice-provider preset control and a `获取语音模型 / Fetch voice catalog` action without regressing the earlier compact chat-page voice surface
+
+Files changed:
+
+- `waveary-web/server/voice-config.ts`
+- `waveary-web/server/provider-api.ts`
+- `waveary-web/server/provider-api.test.ts`
+- `waveary-web/src/App.tsx`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run test --workspace @waveary/web`
+- Playwright DOM verification for `http://127.0.0.1:4173/#console` confirming a voice-provider preset select is present and the `获取语音模型 / Fetch voice catalog` button is visible inside the voice workspace
+
+Commit:
+
+- pending
+
+Push:
+
+- pending

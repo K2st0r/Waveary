@@ -7,6 +7,7 @@ import {
   type VoiceOutputFormat,
   type VoiceQualityProfile
 } from "@waveary/voice";
+import type { ModelDescriptor } from "@waveary/core";
 
 import { getWavearyDataDir } from "./data-dir.js";
 
@@ -34,7 +35,83 @@ export interface SavedVoiceConfig {
   topP: number | null;
 }
 
+export interface VoiceProviderPreset {
+  id: string;
+  label: string;
+  provider: string;
+  providerType: "openai-compatible" | "doubao" | "local";
+  baseURL: string;
+  defaultModel?: string;
+  defaultVoice?: string;
+}
+
+export interface VoiceOptionDescriptor {
+  id: string;
+  label: string;
+}
+
+export interface VoiceCatalogResponse {
+  providerType: VoiceProviderPreset["providerType"];
+  models: ModelDescriptor[];
+  voices: VoiceOptionDescriptor[];
+  voiceFieldMode: "select" | "input";
+  defaultModel?: string;
+  defaultVoice?: string;
+  notes?: string;
+}
+
 const CONFIG_PATH = join(getWavearyDataDir(), "voice-config.json");
+const OPENAI_COMPATIBLE_TTS_DEFAULT_MODEL = "gpt-4o-mini-tts";
+const OPENAI_COMPATIBLE_VOICE_OPTIONS: readonly VoiceOptionDescriptor[] = [
+  { id: "alloy", label: "alloy" },
+  { id: "ash", label: "ash" },
+  { id: "ballad", label: "ballad" },
+  { id: "cedar", label: "cedar" },
+  { id: "coral", label: "coral" },
+  { id: "echo", label: "echo" },
+  { id: "marin", label: "marin" },
+  { id: "sage", label: "sage" },
+  { id: "shimmer", label: "shimmer" },
+  { id: "verse", label: "verse" }
+];
+
+const VOICE_PROVIDER_PRESETS: readonly VoiceProviderPreset[] = [
+  {
+    id: "openai",
+    label: "OpenAI TTS",
+    provider: "openai",
+    providerType: "openai-compatible",
+    baseURL: "https://api.openai.com/v1",
+    defaultModel: OPENAI_COMPATIBLE_TTS_DEFAULT_MODEL,
+    defaultVoice: "marin"
+  },
+  {
+    id: "openai-compatible",
+    label: "OpenAI-Compatible TTS",
+    provider: "openai-compatible",
+    providerType: "openai-compatible",
+    baseURL: "https://api.example.com/v1",
+    defaultModel: OPENAI_COMPATIBLE_TTS_DEFAULT_MODEL,
+    defaultVoice: "alloy"
+  },
+  {
+    id: "doubao",
+    label: "Doubao TTS",
+    provider: "doubao",
+    providerType: "doubao",
+    baseURL: "https://openspeech.bytedance.com/api/v1",
+    defaultModel: "doubao-tts",
+    defaultVoice: "BV001_streaming"
+  },
+  {
+    id: "local",
+    label: "Local Voice Bridge",
+    provider: "local",
+    providerType: "local",
+    baseURL: "http://127.0.0.1:9880",
+    defaultModel: "local-bridge"
+  }
+] as const;
 
 export function getDefaultVoiceConfig(): SavedVoiceConfig {
   const preset = resolveVoicePreset("cinematic");
@@ -73,6 +150,54 @@ export function listVoicePresets() {
     voice: preset.voice,
     format: preset.format
   }));
+}
+
+export function listVoiceProviderPresets(): VoiceProviderPreset[] {
+  return VOICE_PROVIDER_PRESETS.map((preset) => ({ ...preset }));
+}
+
+export function resolveVoiceProviderPreset(providerId: string): VoiceProviderPreset | undefined {
+  return VOICE_PROVIDER_PRESETS.find((preset) => preset.id === providerId);
+}
+
+export function buildStaticVoiceCatalog(provider: string): VoiceCatalogResponse | null {
+  const normalizedProvider = provider.trim().toLowerCase();
+
+  if (normalizedProvider === "doubao") {
+    return {
+      providerType: "doubao",
+      models: [{ id: "doubao-tts", provider: "doubao", label: "Doubao TTS" }],
+      voices: [],
+      voiceFieldMode: "input",
+      defaultModel: "doubao-tts",
+      defaultVoice: "BV001_streaming",
+      notes:
+        "Doubao does not currently use a single OpenAI-style voice-list route here. Enter the voice_type you want after testing it."
+    };
+  }
+
+  if (normalizedProvider === "local") {
+    return {
+      providerType: "local",
+      models: [{ id: "local-bridge", provider: "local", label: "Local bridge" }],
+      voices: [],
+      voiceFieldMode: "input",
+      defaultModel: "local-bridge",
+      notes:
+        "Local bridges usually do not expose one shared voice-directory standard. Enter the local speaker or voice identifier directly."
+    };
+  }
+
+  return {
+    providerType: "openai-compatible",
+    models: [],
+    voices: OPENAI_COMPATIBLE_VOICE_OPTIONS.map((voice) => ({ ...voice })),
+    voiceFieldMode: "select",
+    defaultModel: OPENAI_COMPATIBLE_TTS_DEFAULT_MODEL,
+    defaultVoice: "marin",
+    notes:
+      "Model discovery comes from the provider's /models route. Voice names are mapped locally because OpenAI-compatible vendors do not expose one universal voice-list endpoint."
+  };
 }
 
 export function loadSavedVoiceConfig(): SavedVoiceConfig {
