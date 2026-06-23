@@ -98,6 +98,10 @@ const DOUBAO_VOICE_OPTIONS: readonly VoiceOptionDescriptor[] = [
     label: "Charming Girlfriend 2.0"
   },
   {
+    id: "multi_female_shuangkuaisisi_moon_bigtts",
+    label: "Shuangkuai Sisi"
+  },
+  {
     id: "zh_male_dayi_uranus_bigtts",
     label: "Dayi 2.0"
   },
