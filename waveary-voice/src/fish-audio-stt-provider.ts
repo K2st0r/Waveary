@@ -67,14 +67,22 @@ export class FishAudioSpeechToTextProvider implements SpeechToTextProvider {
       body.language = normalizedLanguage;
     }
 
-    const response = await this.fetchFn(`${this.baseURL}/v1/asr`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${this.apiKey}`
-      },
-      body: JSON.stringify(body)
-    });
+    let response: Response;
+
+    try {
+      response = await this.fetchFn(`${this.baseURL}/v1/asr`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${this.apiKey}`
+        },
+        body: JSON.stringify(body)
+      });
+    } catch (error) {
+      throw new Error(buildFishAudioFetchFailureMessage("STT", error), {
+        cause: error
+      });
+    }
 
     if (!response.ok) {
       const errorBody = await response.text();
@@ -113,4 +121,58 @@ function resolveLanguage(request: SpeechToTextRequest): string | undefined {
 
   const [language] = normalizedLocale.split("-");
   return language?.trim() || undefined;
+}
+
+function buildFishAudioFetchFailureMessage(
+  operation: "TTS" | "STT" | "catalog",
+  error: unknown
+): string {
+  const cause = extractErrorCause(error);
+  const code = readErrorCode(cause);
+  const causeMessage = readErrorMessage(cause);
+  const details = [
+    code ? `Code: ${code}.` : "",
+    causeMessage ? `Cause: ${causeMessage}` : ""
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  if (details) {
+    return `Fish Audio ${operation} request could not reach the upstream service. ${details}`.trim();
+  }
+
+  if (error instanceof Error && error.message.trim()) {
+    return `Fish Audio ${operation} request failed before a response was received. Cause: ${error.message.trim()}`;
+  }
+
+  return `Fish Audio ${operation} request failed before a response was received.`;
+}
+
+function extractErrorCause(error: unknown): unknown {
+  if (error instanceof Error && "cause" in error) {
+    return (error as Error & { cause?: unknown }).cause;
+  }
+
+  return undefined;
+}
+
+function readErrorCode(value: unknown): string | null {
+  if (
+    typeof value === "object" &&
+    value !== null &&
+    "code" in value &&
+    typeof (value as { code?: unknown }).code === "string"
+  ) {
+    return (value as { code: string }).code;
+  }
+
+  return null;
+}
+
+function readErrorMessage(value: unknown): string | null {
+  if (value instanceof Error && value.message.trim()) {
+    return value.message.trim();
+  }
+
+  return null;
 }

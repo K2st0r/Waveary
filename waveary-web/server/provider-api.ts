@@ -420,15 +420,23 @@ export function createProviderApiMiddleware() {
             "Voice base URL is required."
           );
           const apiKey = requireNonEmpty(payload.apiKey, "Voice API key is required.");
-          const catalogResponse = await fetch(
-            `${baseURL.replace(/\/+$/, "")}/model?self=false&page_size=20&page_number=1`,
-            {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${apiKey}`
-            }
-            }
-          );
+          let catalogResponse: Response;
+
+          try {
+            catalogResponse = await fetch(
+              `${baseURL.replace(/\/+$/, "")}/model?self=false&page_size=20&page_number=1`,
+              {
+                method: "GET",
+                headers: {
+                  Authorization: `Bearer ${apiKey}`
+                }
+              }
+            );
+          } catch (error) {
+            throw new Error(buildFishAudioFetchFailureMessage("catalog", error), {
+              cause: error
+            });
+          }
 
           if (!catalogResponse.ok) {
             const errorBody = await catalogResponse.text();
@@ -879,4 +887,58 @@ function resolveSessionPackageSamplePath(): string {
   }
 
   return matchedPath;
+}
+
+function buildFishAudioFetchFailureMessage(
+  operation: "TTS" | "STT" | "catalog",
+  error: unknown
+): string {
+  const cause = extractErrorCause(error);
+  const code = readErrorCode(cause);
+  const causeMessage = readErrorMessage(cause);
+  const details = [
+    code ? `Code: ${code}.` : "",
+    causeMessage ? `Cause: ${causeMessage}` : ""
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  if (details) {
+    return `Fish Audio ${operation} request could not reach the upstream service. ${details}`.trim();
+  }
+
+  if (error instanceof Error && error.message.trim()) {
+    return `Fish Audio ${operation} request failed before a response was received. Cause: ${error.message.trim()}`;
+  }
+
+  return `Fish Audio ${operation} request failed before a response was received.`;
+}
+
+function extractErrorCause(error: unknown): unknown {
+  if (error instanceof Error && "cause" in error) {
+    return (error as Error & { cause?: unknown }).cause;
+  }
+
+  return undefined;
+}
+
+function readErrorCode(value: unknown): string | null {
+  if (
+    typeof value === "object" &&
+    value !== null &&
+    "code" in value &&
+    typeof (value as { code?: unknown }).code === "string"
+  ) {
+    return (value as { code: string }).code;
+  }
+
+  return null;
+}
+
+function readErrorMessage(value: unknown): string | null {
+  if (value instanceof Error && value.message.trim()) {
+    return value.message.trim();
+  }
+
+  return null;
 }
