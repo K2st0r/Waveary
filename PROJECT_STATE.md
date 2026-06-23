@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `18d8dec` - `Add repo-side mojibake guard`
+- `442f9ec` - `Surface voice routing diagnostics`
 
 ## Modules
 

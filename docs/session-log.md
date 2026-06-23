@@ -35,11 +35,11 @@ Verification:
 
 Commit:
 
-- pending
+- `442f9ec` - `Surface voice routing diagnostics`
 
 Push:
 
-- pending
+- succeeded: `git push origin main` pushed functional commit `442f9ec` to `origin/main`
 
 ## 2026-06-23
 
