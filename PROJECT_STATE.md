@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `e2021ae` - `Lengthen console workspace tabs`
+- `caf2e56` - `Sync continuity after tab height update`
 
 ## Modules
 
@@ -188,7 +188,7 @@ Brand line:
   - the voice workspace onboarding is now tighter on the frontend too: provider presets reset stale catalog state, discovered voice models render with normalized labels, and dedicated vendors such as Doubao or local bridges now switch the voice field into explicit manual input instead of pretending a universal selectable voice list exists
   - the voice workspace now also exposes a broader preset roster for domestic and compatible voice vendors, switches the dedicated provider form by vendor type instead of showing one fixed block, and uses the right-side console area as a live guidance panel so users can see what the current provider path expects
   - the console workspaces now share one unified stage shell across provider, voice, sessions, care, and runtime views, with matched panel heights and internal scroll regions so workspace switching no longer feels like jumping between mismatched page layouts
-  - the console workspace tabs at the top now have a taller, calmer card height so the control-desk navigation reads less cramped without reopening the longer page-scroll problem
+  - the top workspace tabs have been restored to the tighter compact height, while the lower console workspace panels themselves are now taller so the operational surface has more room without inflating the navigation strip
 
 ## Provider Flow
 
@@ -303,7 +303,7 @@ Brand line:
 ## Next Steps
 
 - run a focused browser pass for the refreshed voice workspace against real provider endpoints, now that the shared console shell is stable and no longer obscures workspace-specific layout regressions
-- if the top workspace strip still feels tight after live usage, adjust only its card rhythm and line wrapping instead of shrinking the shared console stage back down
+- keep future shell polish focused on the lower workspace stage and inner panel density; do not bloat the top workspace-tab strip when the real complaint is about the operational panels below
 - browser-verify the dedicated OpenAI-compatible, Doubao, and local self-hosted voice branches end-to-end from the console, including provider-specific form switching, manual voice-entry paths, and live guidance copy
 - test the dedicated voice-provider path end-to-end in the browser by saving a separate真人语音 provider and confirming the delivery hint still shapes playback when chat stays on a different vendor
 - decide the next voice cut after this shell-stability pass: provider-backed STT, or a truer realtime duplex / interruption pass first

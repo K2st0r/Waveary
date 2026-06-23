@@ -4,6 +4,40 @@
 
 Objective:
 
+Undo the mistaken top-tab height increase and instead make the lower console workspace panels taller, which is what the user actually meant by the settings modules below.
+
+Summary:
+
+- restored the top `.console-workspace-tab` cards in `waveary-web/src/styles.css` to their earlier compact height and padding
+- increased the lower `.console-workspace-panel` stage height and matching inner scroll window so provider and other console workspaces have more vertical operating room without bloating the top navigation strip
+- browser-verified on the live local console that the top tabs are back to roughly `82px` height while the provider workspace panels now render at roughly `984px` height
+
+Files changed:
+
+- `waveary-web/src/styles.css`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/product-preferences.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run web:build`
+- browser DOM measurement on `http://127.0.0.1:4173/#console` confirming `.console-workspace-tab ≈ 82px` and provider `.console-workspace-panel ≈ 984px`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-23
+
+Objective:
+
 Make the top console workspace modules taller so the control-desk navigation feels less cramped without changing any underlying console logic or reopening long-page scrolling.
 
 Summary:
