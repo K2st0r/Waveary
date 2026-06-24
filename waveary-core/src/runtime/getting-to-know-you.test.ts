@@ -92,6 +92,106 @@ test("describeGettingToKnowYouGuidance keeps new-stage discovery natural and bou
   assert.match(guidance, /what you should call them in return/i);
 });
 
+test("deriveGettingToKnowYouState does not mistake emotional follow-ups for a user name", () => {
+  const englishState = deriveGettingToKnowYouState(
+    createRequest({
+      user: {
+        id: "user-1",
+        displayName: "User",
+        profileTraits: ["reflective"],
+        preferences: ["continuity"]
+      },
+      messages: [
+        {
+          id: "m1",
+          sessionId: "session-1",
+          role: "user",
+          content: "I am still scared about that, honestly.",
+          timestamp: new Date().toISOString(),
+          metadata: {}
+        },
+        {
+          id: "m2",
+          sessionId: "session-1",
+          role: "user",
+          content: "I am not over it yet.",
+          timestamp: new Date().toISOString(),
+          metadata: {}
+        },
+        {
+          id: "m3",
+          sessionId: "session-1",
+          role: "user",
+          content: "I am really tired tonight.",
+          timestamp: new Date().toISOString(),
+          metadata: {}
+        },
+        {
+          id: "m4",
+          sessionId: "session-1",
+          role: "user",
+          content: "I am so anxious lately.",
+          timestamp: new Date().toISOString(),
+          metadata: {}
+        }
+      ],
+      relevantMemories: []
+    })
+  );
+
+  const chineseState = deriveGettingToKnowYouState(
+    createRequest({
+      user: {
+        id: "user-1",
+        displayName: "User",
+        profileTraits: ["reflective"],
+        preferences: ["continuity"]
+      },
+      messages: [
+        {
+          id: "m1",
+          sessionId: "session-1",
+          role: "user",
+          content: "\u6211\u8fd8\u6ca1\u8fc7\u53bb\uff0c\u8fd8\u662f\u90a3\u4e2a\u611f\u89c9\u3002",
+          timestamp: new Date().toISOString(),
+          metadata: {}
+        }
+      ],
+      relevantMemories: []
+    })
+  );
+
+  assert.equal(englishState.userPreferredName, undefined);
+  assert.equal(chineseState.userPreferredName, undefined);
+  assert.equal(englishState.shouldInviteUserName, true);
+});
+
+test("deriveGettingToKnowYouState still accepts direct self-introductions", () => {
+  const state = deriveGettingToKnowYouState(
+    createRequest({
+      user: {
+        id: "user-1",
+        displayName: "User",
+        profileTraits: ["reflective"],
+        preferences: ["continuity"]
+      },
+      messages: [
+        {
+          id: "m1",
+          sessionId: "session-1",
+          role: "user",
+          content: "I am Aki.",
+          timestamp: new Date().toISOString(),
+          metadata: {}
+        }
+      ],
+      relevantMemories: []
+    })
+  );
+
+  assert.equal(state.userPreferredName, "Aki");
+});
+
 function createRequest(overrides: Partial<ChatProviderRequest> = {}): ChatProviderRequest {
   const base: ChatProviderRequest = {
     session: {
