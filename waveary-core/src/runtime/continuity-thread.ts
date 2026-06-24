@@ -382,6 +382,11 @@ function shouldBlendWithPreviousUserTurn(
     /(\u6211\u8fd8\u6ca1\u8fc7\u53bb|\u8fd8\u6ca1\u7f13\u8fc7\u6765|\u8fd8\u662f\u90a3\u4e2a\u611f\u89c9|\u8fd8\u662f\u90a3\u79cd\u611f\u89c9|\u90a3\u79cd\u611f\u89c9\u8fd8\u5728|\u90a3\u4e00\u5757\u8fd8\u5728\u75bc)/.test(
       compact
     );
+  const lowAffectPronounCarryover =
+    /^(it|that|this|things|everything)\b/i.test(compact) &&
+    /\b(feels?|felt|seems?|seemed|is|was|gets?|got)\b/i.test(compact) &&
+    /\b(just|still|now|kind of|kinda|a bit|a little)\b/i.test(compact) &&
+    /\b(strange|weird|off|different|heavy|hard|harder|unclear|odd)\b/i.test(compact);
   const genericReference =
     /\b(it|that|this|they|them)\b/i.test(compact) ||
     /(\u5b83|\u4ed6|\u5979|\u8fd9|\u90a3)/.test(compact);
@@ -391,6 +396,10 @@ function shouldBlendWithPreviousUserTurn(
   }
 
   if (emotionalCarryover && tokenCount <= 12) {
+    return true;
+  }
+
+  if (lowAffectPronounCarryover && tokenCount <= 10) {
     return true;
   }
 

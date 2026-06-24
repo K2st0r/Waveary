@@ -364,6 +364,100 @@ test("selectContinuityThread keeps an oblique emotional follow-up anchored to th
   );
 });
 
+test("selectContinuityThread keeps a low-affect pronoun follow-up anchored to the previous user topic", () => {
+  const messages: Message[] = [
+    {
+      id: "message-pronoun-1",
+      sessionId: "session-1",
+      role: "user",
+      content: "I keep thinking about moving back to my hometown after this summer.",
+      timestamp: "2026-06-24T13:00:00.000Z",
+      metadata: {}
+    },
+    {
+      id: "message-pronoun-2",
+      sessionId: "session-1",
+      role: "assistant",
+      content: "That is a big life turn. We can stay with it slowly.",
+      timestamp: "2026-06-24T13:00:10.000Z",
+      metadata: {}
+    },
+    {
+      id: "message-pronoun-3",
+      sessionId: "session-1",
+      role: "user",
+      content: "It just feels strange now.",
+      timestamp: "2026-06-24T13:00:20.000Z",
+      metadata: {}
+    }
+  ];
+
+  const selection = selectContinuityThread({
+    latestUserMessage: messages[2],
+    messageHistory: messages,
+    relevantMemories: [
+      createMemory(
+        "memory-hometown",
+        "life_event",
+        "The user keeps thinking about moving back to their hometown after this summer.",
+        "2026-06-20T10:00:00.000Z",
+        ["message-pronoun-1"]
+      ),
+      createMemory(
+        "memory-coffee",
+        "preference",
+        "The user likes trying new coffee shops on weekends.",
+        "2026-06-24T12:59:00.000Z",
+        ["older-message"]
+      )
+    ],
+    timeline: []
+  });
+
+  assert.equal(
+    selection.primaryLine,
+    "[memory:life_event] The user keeps thinking about moving back to their hometown after this summer."
+  );
+});
+
+test("summarizeCurrentTurnFocusWithHistory marks low-affect pronoun follow-ups as continuations", () => {
+  const messages: Message[] = [
+    {
+      id: "message-pronoun-focus-1",
+      sessionId: "session-1",
+      role: "user",
+      content: "I keep thinking about moving back to my hometown after this summer.",
+      timestamp: "2026-06-24T13:10:00.000Z",
+      metadata: {}
+    },
+    {
+      id: "message-pronoun-focus-2",
+      sessionId: "session-1",
+      role: "assistant",
+      content: "That is a big thing to carry around alone.",
+      timestamp: "2026-06-24T13:10:10.000Z",
+      metadata: {}
+    },
+    {
+      id: "message-pronoun-focus-3",
+      sessionId: "session-1",
+      role: "user",
+      content: "It just feels strange now.",
+      timestamp: "2026-06-24T13:10:20.000Z",
+      metadata: {}
+    }
+  ];
+
+  const focus = summarizeCurrentTurnFocusWithHistory(
+    messages[2]?.content ?? "",
+    messages
+  );
+
+  assert.match(focus, /^Continuing:/);
+  assert.match(focus, /moving back to my hometown after this summer/i);
+  assert.match(focus, /Follow-up now: It just feels strange now\./);
+});
+
 test("summarizeCurrentTurnFocusWithHistory marks Chinese emotional carry-over turns as continuations", () => {
   const messages: Message[] = [
     {

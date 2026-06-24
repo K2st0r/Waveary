@@ -530,6 +530,75 @@ test("OpenAICompatibleChatProvider treats oblique emotional follow-ups as contin
   );
 });
 
+test("OpenAICompatibleChatProvider treats low-affect pronoun follow-ups as continuation of the previous topic", async () => {
+  const instruction = await captureInstruction(
+    createRequest({
+      messages: [
+        {
+          id: "m1",
+          sessionId: "session-1",
+          role: "user",
+          content: "I keep thinking about moving back to my hometown after this summer.",
+          timestamp: new Date(Date.now() - 1000 * 60 * 2).toISOString(),
+          metadata: {}
+        },
+        {
+          id: "m2",
+          sessionId: "session-1",
+          role: "assistant",
+          content: "That is a big life turn. We can stay with it slowly.",
+          timestamp: new Date(Date.now() - 1000 * 60).toISOString(),
+          metadata: {}
+        },
+        {
+          id: "m3",
+          sessionId: "session-1",
+          role: "user",
+          content: "It just feels strange now.",
+          timestamp: new Date().toISOString(),
+          metadata: {}
+        }
+      ],
+      relevantMemories: [
+        {
+          id: "memory-1",
+          userId: "user-1",
+          type: "life_event",
+          content: "The user keeps thinking about moving back to their hometown after this summer.",
+          importance: 0.87,
+          confidence: 0.81,
+          sourceMessageIds: ["m1"],
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: "memory-2",
+          userId: "user-1",
+          type: "preference",
+          content: "The user likes trying new coffee shops on weekends.",
+          importance: 0.61,
+          confidence: 0.69,
+          sourceMessageIds: ["older-message"],
+          createdAt: new Date().toISOString()
+        }
+      ],
+      timeline: []
+    })
+  );
+
+  assert.match(
+    instruction,
+    /Current turn focus: Continuing: I keep thinking about moving back to my hometown after this summer\./
+  );
+  assert.match(
+    instruction,
+    /Follow-up now: It just feels strange now\./
+  );
+  assert.match(
+    instruction,
+    /Primary continuity thread: \[memory:life_event\] The user keeps thinking about moving back to their hometown after this summer\./
+  );
+});
+
 test("OpenAICompatibleChatProvider changes relationship-distance guidance across new, warming, and growing stages", async () => {
   const newInstruction = await captureInstruction(
     createRequest({
