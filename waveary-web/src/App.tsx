@@ -206,7 +206,8 @@ interface PendingLocalAction {
     | "browser_list_clickable"
     | "browser_click_text"
     | "browser_fill_text"
-    | "browser_fill_submit_text";
+    | "browser_fill_submit_text"
+    | "browser_open_first_result";
   label: string;
   target: string;
   targetLabel: string;

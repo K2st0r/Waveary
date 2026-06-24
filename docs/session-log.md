@@ -3,6 +3,50 @@
 
 Objective:
 
+Extend the permissioned managed-browser path with one next bounded interaction by letting Waveary open the first visible result link, or the closest visible result whose text matches a requested phrase.
+
+Summary:
+
+- extended `waveary-web/server/browser-automation.ts` so the existing `openManagedBrowserFirstVisibleLink(...)` primitive can now filter visible links by link text as well as href before navigating
+- added a new `browser_open_first_result` local action in `waveary-web/server/local-actions.ts`, so natural requests such as `open result for Waveary` can flow through the same `allow / ask / deny` permission path as the earlier browser read, click, fill, and fill-submit actions
+- refreshed `waveary-web/server/local-action-audit.ts` into an ASCII-safe version while preserving the existing audit-note behavior and adding the new result-opening action without re-touching unrelated browser or voice surfaces
+- added route-level regression coverage in `waveary-web/server/provider-api.test.ts` for both pending-action detection and approved execution of the new result-opening path
+- verified the new primitive with a direct compiled-module managed-browser pass against a synthetic result page: opening a page with a `Waveary official site` link and calling `openManagedBrowserFirstVisibleLink({ textIncludes: 'Waveary' })` navigates to the linked target page and reports the new page title correctly
+
+Files changed:
+
+- `waveary-web/server/browser-automation.ts`
+- `waveary-web/server/local-actions.ts`
+- `waveary-web/server/local-action-audit.ts`
+- `waveary-web/server/provider-api.test.ts`
+- `waveary-web/src/App.tsx`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run test --workspace @waveary/web`
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run check:mojibake`
+- direct compiled-module verification via `node --input-type=module -`, confirming:
+  - `openManagedBrowserPage(sourceUrl)` opens a synthetic search-result page
+  - `openManagedBrowserFirstVisibleLink({ textIncludes: 'Waveary', timeoutMs: 4000 })` navigates to the linked target page
+  - `getManagedBrowserPageInfo()` returns the target page title `Waveary Result`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-24
+
+Objective:
+
 Make the managed browser fill-submit path actually trigger real navigation and remove the `.waveary` path split between source and compiled server runs.
 
 Summary:

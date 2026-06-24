@@ -4,6 +4,28 @@ This file records important product, architecture, and workflow decisions for Pr
 
 Use it to preserve the reason behind major choices so future Codex sessions do not repeat or undo settled work.
 
+## 2026-06-24 - Next Browser Step Should Be Explicit Result Opening, Not Broad Link Automation
+
+Status:
+
+- accepted
+
+Decision:
+
+After bounded fill-and-submit support, the next browser-action primitive should be opening the first visible result link, with optional text filtering, instead of widening directly into generic link-ranking or broad autonomous navigation.
+
+Reason:
+
+- it completes a common real user loop: open page -> search/fill -> open result
+- it fits the existing permissioned local-action model and can be verified by real page navigation
+- it keeps Waveary's browser assistance explicit and auditable instead of drifting into a free-form web agent too early
+
+Impact:
+
+- `waveary-web/server/browser-automation.ts` now lets `openManagedBrowserFirstVisibleLink(...)` filter by visible link text as well as href
+- `waveary-web/server/local-actions.ts` now recognizes result-opening requests such as `open result for Waveary` and routes them through a new `browser_open_first_result` action kind
+- follow-up browser work should stay on similarly bounded primitives such as nth-result selection or richer form targeting, not a broad unconstrained browser planner
+
 ## 2026-06-24 - Managed Browser Submit Must Use Real Playwright Interaction, And Repo-Root Data State Must Stay Unified
 
 Status:

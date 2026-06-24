@@ -139,6 +139,7 @@ interface BrowserMatchedEditableTarget {
 
 export interface BrowserOpenFirstVisibleLinkOptions {
   hrefIncludes?: string;
+  textIncludes?: string;
   timeoutMs?: number;
 }
 
@@ -464,22 +465,33 @@ export async function openManagedBrowserFirstVisibleLink(
   const page = await requireManagedPage();
   const timeoutMs = normalizePositiveInteger(options.timeoutMs, 5000);
   const hrefIncludes = options.hrefIncludes?.trim().toLowerCase() || "";
+  const textIncludes = options.textIncludes?.trim().toLowerCase() || "";
 
   await page.waitForLoadState("domcontentloaded", {
     timeout: timeoutMs
   });
 
   await page.waitForFunction(
-    (hrefNeedle) => {
+    ({ hrefNeedle, textNeedle }) => {
       const matchesHref = (href: string) =>
         !hrefNeedle || href.toLowerCase().includes(hrefNeedle);
+      const matchesText = (text: string) =>
+        !textNeedle || text.toLowerCase().includes(textNeedle);
 
       return Array.from(document.querySelectorAll<HTMLAnchorElement>("a")).some((element) => {
         const rect = element.getBoundingClientRect();
         const style = window.getComputedStyle(element);
         const href = element.href || element.getAttribute("href") || "";
+        const text = (
+          element.innerText ||
+          element.textContent ||
+          element.getAttribute("aria-label") ||
+          ""
+        )
+          .replace(/\s+/g, " ")
+          .trim();
 
-        if (!href || !matchesHref(href)) {
+        if (!href || !matchesHref(href) || !matchesText(text)) {
           return false;
         }
 
@@ -491,15 +503,20 @@ export async function openManagedBrowserFirstVisibleLink(
         );
       });
     },
-    hrefIncludes,
+    {
+      hrefNeedle: hrefIncludes,
+      textNeedle: textIncludes
+    },
     {
       timeout: timeoutMs
     }
   );
 
-  const match = await page.evaluate((hrefNeedle) => {
+  const match = await page.evaluate(({ hrefNeedle, textNeedle }) => {
     const matchesHref = (href: string) =>
       !hrefNeedle || href.toLowerCase().includes(hrefNeedle);
+    const matchesText = (text: string) =>
+      !textNeedle || text.toLowerCase().includes(textNeedle);
 
     for (const element of Array.from(document.querySelectorAll<HTMLAnchorElement>("a"))) {
       const rect = element.getBoundingClientRect();
@@ -514,7 +531,7 @@ export async function openManagedBrowserFirstVisibleLink(
         .replace(/\s+/g, " ")
         .trim();
 
-      if (!href || !matchesHref(href)) {
+      if (!href || !matchesHref(href) || !matchesText(text)) {
         continue;
       }
 
@@ -534,7 +551,10 @@ export async function openManagedBrowserFirstVisibleLink(
     }
 
     return null;
-  }, hrefIncludes);
+  }, {
+    hrefNeedle: hrefIncludes,
+    textNeedle: textIncludes
+  });
 
   if (!match) {
     throw new Error("No visible matching link is currently available.");

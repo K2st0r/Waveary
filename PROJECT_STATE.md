@@ -136,6 +136,7 @@ Brand line:
   - the managed browser layer now also exposes bounded same-origin `/api/browser/*` routes for current-page inspection, visible-text extraction, and page-text search, so Waveary can begin reading and navigating the browser state it opened without jumping to a free-form web agent
   - the managed browser layer now also supports listing visible clickable elements and clicking a matched element by visible text through bounded `/api/browser/*` routes, so browser control can advance one stable interaction step beyond pure page reading while remaining explicit and auditable
   - those bounded browser read and click capabilities now also flow through the existing chat-side pending-action card and `full-access` auto-run path, so they are no longer trapped behind standalone browser routes with no conversation-level permission wiring
+  - the managed browser layer can now also open the first visible result link, or the first visible link whose text matches a requested phrase, through the same permissioned local-action path instead of requiring raw click-text phrasing every time
   - browser action execution notes can now return grounded companion-side summaries such as page-reading excerpts, page-search matches, clickable-target lists, and click-follow-up state instead of always reusing the older open-site wording
   - local-action reply wording now stays more companion-like after execution or dismissal, so successful browser opens no longer read like a sterile audit log or drift into made-up “virtual homepage” narration
   - Chinese open-site detection now recognizes broader Bilibili phrasing such as `打开哔哩哔哩` in addition to raw English `open bilibili`
@@ -343,7 +344,7 @@ Brand line:
 
 ## Next Steps
 
-- re-run one focused live `#chat` verification pass for the now-fixed managed browser fill-submit path against the current dev server, then decide whether the next bounded browser step should be explicit result-link opening or richer multi-field targeting
+- re-run one focused live `#chat` verification pass for the new result-opening path against the current dev server, then decide whether the next bounded browser step should be richer multi-field targeting or a more explicit "open nth result" primitive
 - keep extending the browser-action layer one auditable primitive at a time instead of widening into a broad free-form browser agent
 - start the next voice implementation cut by pushing the current browser voice loop closer to true realtime duplex, beginning with interruption-safe reply stop/resume behavior and a tighter listen-speak handoff instead of broadening vendor coverage first
 - after that interruption-focused pass, decide whether the next highest-value voice step is wider provider-specific STT coverage such as Doubao/local or a deeper transport upgrade beyond the current browser-side speech-activity heuristics
