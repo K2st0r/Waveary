@@ -50,6 +50,8 @@ const USER_NAME_STOPWORDS = new Set([
 const USER_NAME_PATTERNS = [
   /\bmy name is\s+([a-z][a-z0-9_-]{0,15})/i,
   /\bmy name is\s+["']?([a-z][a-z0-9_-]{0,15})["']?/i,
+  /\bmy name's\s+([a-z][a-z0-9_-]{0,15})/i,
+  /\bmy name's\s+["']?([a-z][a-z0-9_-]{0,15})["']?/i,
   /\bcall me\s+([a-z][a-z0-9_-]{0,15})/i,
   /\bcall me\s+["']?([a-z][a-z0-9_-]{0,15})["']?/i,
   /\bi(?:'m| am)\s+(?!going\b|gonna\b)([a-z][a-z0-9_-]{0,15})\b/i,
