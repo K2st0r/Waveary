@@ -4,6 +4,28 @@ This file records important product, architecture, and workflow decisions for Pr
 
 Use it to preserve the reason behind major choices so future Codex sessions do not repeat or undo settled work.
 
+## 2026-06-24 - Spoken I'm Called Introductions Should Count As Real Name Sharing
+
+Status:
+
+- accepted
+
+Decision:
+
+Waveary should treat natural spoken self-introductions such as `I'm called Aki.` as valid preferred-name evidence during early acquaintance, instead of letting the broader `I'm ...` fallback misread `called` as the user's name.
+
+Reason:
+
+- `I'm called ...` is a real lightweight introduction shape in ordinary chat, especially in casual English
+- without an explicit narrow rule, the existing broad `I'm / I am ...` path can degrade into the exact false-memory failure the parser-hardening pass is trying to avoid
+- companionship quality is better served by one precise true-positive rule than by broadening the parser and hoping stopwords catch every variant later
+
+Impact:
+
+- `waveary-core/src/runtime/getting-to-know-you.ts` now accepts explicit `I'm called ...` introductions and also rejects bare `called` as a plausible preferred name on the broader fallback path
+- regression coverage now includes both parser-level and live-provider prompt-level checks for `I'm called Aki.`
+- future parser work should keep extending explicit human introduction forms one bounded case at a time instead of widening into fuzzy identity inference
+
 ## 2026-06-24 - Short Follow-Up Turns Should Reuse The Previous User Topic
 
 Status:

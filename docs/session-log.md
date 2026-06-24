@@ -3,6 +3,45 @@
 
 Objective:
 
+Support natural `I'm called ...` self-introductions so early-acquaintance parsing catches another real human name-sharing form without widening into fuzzy identity inference.
+
+Summary:
+
+- updated `waveary-core/src/runtime/getting-to-know-you.ts` so preferred-name extraction now explicitly accepts `I'm called Aki.` style introductions
+- added `called` to the preferred-name stopword guard so the older broad `I'm ...` fallback cannot misread `called` itself as a fake preferred name
+- added focused parser regression in `waveary-core/src/runtime/getting-to-know-you.test.ts` to ensure `I'm called Aki.` becomes a preferred user name
+- added matching prompt-level regression in `waveary-core/src/adapters/openai-compatible-provider.test.ts` so live provider instructions now surface `Confirmed preferred user name from shared history: Aki.` for this spoken introduction form too
+- re-verified the full `@waveary/core` package through check, rebuild, and compiled tests; the package now passes `93` tests, and this pass stayed entirely inside the early-acquaintance dialogue-quality path without touching frontend, voice, or continuity-thread code
+
+Files changed:
+
+- `waveary-core/src/runtime/getting-to-know-you.ts`
+- `waveary-core/src/runtime/getting-to-know-you.test.ts`
+- `waveary-core/src/adapters/openai-compatible-provider.test.ts`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/core`
+- `npm run build --workspace @waveary/core`
+- PowerShell compiled-test verification via:
+  `$files = @(Get-ChildItem 'waveary-core\\dist' -Recurse -Filter '*.test.js' | ForEach-Object { $_.FullName }); & node --test @files`
+
+Commit:
+
+- `e3a557a` - `Support I'm called introductions`
+
+Push:
+
+- succeeded: `git push origin main` pushed functional commit `e3a557a` to `origin/main`
+
+## 2026-06-24
+
+Objective:
+
 Avoid `call me back ...` callback false positives so ordinary callback language does not get mistaken for preferred-name sharing.
 
 Summary:
