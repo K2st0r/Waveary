@@ -1,5 +1,6 @@
 import type { MemoryItem } from "../domain/memory.js";
 import type { EmotionState } from "../domain/emotion.js";
+import type { IdentitySummary } from "../domain/identity.js";
 import type { ProactiveCarePolicy, ProactiveCareState } from "../domain/proactive-care.js";
 import type { RelationshipProfile } from "../domain/relationship.js";
 import type { TimelineEvent } from "../domain/timeline.js";
@@ -9,6 +10,7 @@ export interface PersistedSessionState {
   context: RuntimeContext;
   memories: MemoryItem[];
   emotion?: EmotionState;
+  identitySummary?: IdentitySummary;
   proactiveCarePolicy?: ProactiveCarePolicy;
   proactiveCareState?: ProactiveCareState;
   relationship?: RelationshipProfile;

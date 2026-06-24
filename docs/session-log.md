@@ -7164,3 +7164,63 @@ Commit:
 Push:
 
 - succeeded: `git push origin main` pushed functional commit `ef798e7` to `origin/main`
+
+## 2026-06-24
+
+Objective:
+
+Add a bounded concept-level identity-summary layer so Waveary can persist higher-level understanding of the user and the bond instead of relying only on recalled fact fragments.
+
+Summary:
+
+- added `waveary-core/src/domain/identity.ts`, `InMemoryIdentityStore`, and `SimpleIdentityEngine` as the first explicit concept-level identity-memory layer
+- extended `waveary-core` provider/runtime contracts so `IdentitySummary` can be loaded before reply generation, injected into live-provider prompt assembly, updated after each turn, and persisted through repository-backed and SQLite session state
+- updated scripted fallback and live-provider prompt guidance so both paths can use stable bond and user-understanding cues rather than only raw memory snippets
+- wired the new runtime dependencies through `waveary-web/server/chat-runtime.ts`, `waveary-web/server/chat-session-store.ts`, and the example entrypoints without widening the browser export/import schema yet
+- added focused regression coverage for identity-summary derivation, persistence, prompt injection, runtime result shape, and web server integration, then re-verified both `@waveary/core` and `@waveary/web`
+- re-confirmed an existing workflow caveat during verification: `@waveary/core` compiled-test runs must stay serial with `build` on Windows because parallel `dist` use can make tests read a missing or stale build tree
+
+Files changed:
+
+- `examples/src/run-demo.ts`
+- `examples/src/run-openai-demo.ts`
+- `examples/src/verify-provider.ts`
+- `waveary-core/src/adapters/in-memory-identity-store.ts`
+- `waveary-core/src/adapters/openai-compatible-provider.test.ts`
+- `waveary-core/src/adapters/openai-compatible-provider.ts`
+- `waveary-core/src/adapters/scripted-chat-provider.ts`
+- `waveary-core/src/adapters/simple-identity-engine.test.ts`
+- `waveary-core/src/adapters/simple-identity-engine.ts`
+- `waveary-core/src/domain/identity.ts`
+- `waveary-core/src/index.ts`
+- `waveary-core/src/providers/interfaces.ts`
+- `waveary-core/src/runtime/types.ts`
+- `waveary-core/src/runtime/waveary-runtime.test.ts`
+- `waveary-core/src/runtime/waveary-runtime.ts`
+- `waveary-core/src/storage/repository-backed-session-state.test.ts`
+- `waveary-core/src/storage/repository-backed-session-state.ts`
+- `waveary-core/src/storage/session-state.ts`
+- `waveary-core/src/storage/sqlite-session-state-repository.test.ts`
+- `waveary-web/server/chat-runtime.ts`
+- `waveary-web/server/chat-session-store.ts`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/core`
+- `npm run build --workspace @waveary/core`
+- PowerShell compiled-test verification via:
+  `$files = @(Get-ChildItem 'waveary-core\\dist' -Recurse -Filter '*.test.js' | ForEach-Object { $_.FullName }); & node --test @files`
+- `npm run test --workspace @waveary/web`
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+
+Commit:
+
+- `pending`
+
+Push:
+
+- pending

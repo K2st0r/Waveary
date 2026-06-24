@@ -1999,3 +1999,27 @@ Impact:
 
 - `waveary-web/src/App.tsx` now renders the current selected voice summary plus the searchable voice list together for loaded select-mode catalogs
 - future select-mode voice-console refinements should preserve the invariant that loaded supported voices are plainly visible without relying on a hidden second click
+
+## 2026-06-24 - Concept-Level Identity Memory Should Be A Persisted Layer Separate From Raw Recall
+
+Status:
+
+- accepted
+
+Decision:
+
+Waveary should keep a small persisted concept-level identity-summary layer in addition to raw recalled memories, so the companion can carry forward a stable understanding of who the user is, what kind of bond is forming, what care tends to land well, and what emotional patterns repeat.
+
+Reason:
+
+- the user explicitly wants the system to remember not only facts but also "this person is who" and "what we feel like" at a higher level
+- current mature companion products consistently outperform shallow memory stacks by keeping layered identity continuity, not only keyword-based recall
+- this can be added safely as a bounded layer without rewriting the existing memory, relationship, or timeline systems
+
+Impact:
+
+- `waveary-core` now has an `IdentitySummary` domain object, `IdentityStore`, and `SimpleIdentityEngine`
+- session-backed runtime state now persists `identitySummary` beside memory, relationship, timeline, and emotion state
+- `WavearyRuntime` now loads the current summary before reply generation and saves an updated summary after each handled turn
+- `OpenAICompatibleChatProvider` prompt assembly now includes a dedicated concept-level identity-summary block so high-end models can reason from stable user/bond understanding instead of only raw recalled fragments
+- scripted fallback now lightly reuses that same summary layer so provider and fallback paths drift less

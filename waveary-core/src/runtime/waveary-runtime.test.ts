@@ -3,11 +3,13 @@ import assert from "node:assert/strict";
 
 import {
   InMemoryEmotionStore,
+  InMemoryIdentityStore,
   InMemoryRelationshipStore,
   InMemoryTimelineStore,
   ScriptedChatProvider,
   SimpleCompanionEmotionEngine,
   SimpleEmotionAnalyzer,
+  SimpleIdentityEngine,
   SimpleProactiveCareEngine,
   SimpleRelationshipEngine,
   SimpleTimelineEngine,
@@ -54,6 +56,8 @@ test("WavearyRuntime stores memories and recalls them on later turns", async () 
     emotionAnalyzer: new SimpleEmotionAnalyzer(),
     emotionStore: new InMemoryEmotionStore(),
     emotionEngine: new SimpleCompanionEmotionEngine(),
+    identityStore: new InMemoryIdentityStore(),
+    identityEngine: new SimpleIdentityEngine(),
     proactiveCareEngine: new SimpleProactiveCareEngine(),
     memoryStore,
     memoryExtractor: new TestMemoryExtractor(),
@@ -119,6 +123,8 @@ test("WavearyRuntime shifts companion emotion toward concern when the user is sa
     emotionAnalyzer: new SimpleEmotionAnalyzer(),
     emotionStore: new InMemoryEmotionStore(),
     emotionEngine: new SimpleCompanionEmotionEngine(),
+    identityStore: new InMemoryIdentityStore(),
+    identityEngine: new SimpleIdentityEngine(),
     proactiveCareEngine: new SimpleProactiveCareEngine(),
     memoryStore: new TestMemoryStore(),
     memoryExtractor: new TestMemoryExtractor(),
@@ -164,6 +170,8 @@ test("WavearyRuntime avoids forcing a weak recalled memory into an emotional tur
     emotionAnalyzer: new SimpleEmotionAnalyzer(),
     emotionStore: new InMemoryEmotionStore(),
     emotionEngine: new SimpleCompanionEmotionEngine(),
+    identityStore: new InMemoryIdentityStore(),
+    identityEngine: new SimpleIdentityEngine(),
     proactiveCareEngine: new SimpleProactiveCareEngine(),
     memoryStore,
     memoryExtractor: new TestMemoryExtractor(),
@@ -213,6 +221,8 @@ test("WavearyRuntime reflects warmer familiarity once the relationship is growin
     emotionAnalyzer: new SimpleEmotionAnalyzer(),
     emotionStore: new InMemoryEmotionStore(),
     emotionEngine: new SimpleCompanionEmotionEngine(),
+    identityStore: new InMemoryIdentityStore(),
+    identityEngine: new SimpleIdentityEngine(),
     proactiveCareEngine: new SimpleProactiveCareEngine(),
     memoryStore: new TestMemoryStore(),
     memoryExtractor: new TestMemoryExtractor(),
@@ -260,6 +270,8 @@ test("WavearyRuntime softens scripted replies during late-night local time when 
     emotionAnalyzer: new SimpleEmotionAnalyzer(),
     emotionStore: new InMemoryEmotionStore(),
     emotionEngine: new SimpleCompanionEmotionEngine(),
+    identityStore: new InMemoryIdentityStore(),
+    identityEngine: new SimpleIdentityEngine(),
     proactiveCareEngine: new SimpleProactiveCareEngine(),
     memoryStore: new TestMemoryStore(),
     memoryExtractor: new TestMemoryExtractor(),
@@ -299,6 +311,8 @@ test("WavearyRuntime lets new-stage scripted chat learn names naturally", async 
     emotionAnalyzer: new SimpleEmotionAnalyzer(),
     emotionStore: new InMemoryEmotionStore(),
     emotionEngine: new SimpleCompanionEmotionEngine(),
+    identityStore: new InMemoryIdentityStore(),
+    identityEngine: new SimpleIdentityEngine(),
     proactiveCareEngine: new SimpleProactiveCareEngine(),
     memoryStore: new TestMemoryStore(),
     memoryExtractor: new TestMemoryExtractor(),
@@ -334,12 +348,58 @@ test("WavearyRuntime lets new-stage scripted chat learn names naturally", async 
   );
 });
 
+test("WavearyRuntime forms a concept-level identity summary from repeated companion needs", async () => {
+  const identityStore = new InMemoryIdentityStore();
+  const runtime = new WavearyRuntime({
+    chatProvider: new ScriptedChatProvider(),
+    emotionAnalyzer: new SimpleEmotionAnalyzer(),
+    emotionStore: new InMemoryEmotionStore(),
+    emotionEngine: new SimpleCompanionEmotionEngine(),
+    identityStore,
+    identityEngine: new SimpleIdentityEngine(),
+    proactiveCareEngine: new SimpleProactiveCareEngine(),
+    memoryStore: new TestMemoryStore(),
+    memoryExtractor: new TestMemoryExtractor(),
+    relationshipStore: new InMemoryRelationshipStore(),
+    relationshipEngine: new SimpleRelationshipEngine(),
+    timelineStore: new InMemoryTimelineStore(),
+    timelineEngine: new SimpleTimelineEngine()
+  });
+
+  const context = createContext();
+  const message: Message = {
+    id: "turn-identity-1",
+    sessionId: context.session.id,
+    role: "user",
+    content:
+      "I want this to remember me long-term and feel emotionally real, not like a disposable chatbot.",
+    timestamp: new Date().toISOString(),
+    metadata: {}
+  };
+
+  const result = await runtime.handleTurn(context, message);
+  const storedSummary = await identityStore.getSummary(context.user.id);
+
+  assert.ok(result.identitySummary);
+  assert.ok(
+    result.identitySummary?.userSelfConcept.some((item) => item.includes("continuity")),
+    "runtime should infer a higher-level continuity-oriented self concept"
+  );
+  assert.ok(
+    result.identitySummary?.recurringNeeds.some((item) => item.includes("emotional presence")),
+    "runtime should infer a stable care preference from the user's wording"
+  );
+  assert.equal(storedSummary?.summaryText, result.identitySummary?.summaryText);
+});
+
 test("WavearyRuntime answers direct local-time questions deterministically before provider fallback", async () => {
   const runtime = new WavearyRuntime({
     chatProvider: new NeverUseThisTimeFallbackProvider(),
     emotionAnalyzer: new SimpleEmotionAnalyzer(),
     emotionStore: new InMemoryEmotionStore(),
     emotionEngine: new SimpleCompanionEmotionEngine(),
+    identityStore: new InMemoryIdentityStore(),
+    identityEngine: new SimpleIdentityEngine(),
     proactiveCareEngine: new SimpleProactiveCareEngine(),
     memoryStore: new TestMemoryStore(),
     memoryExtractor: new TestMemoryExtractor(),
@@ -377,6 +437,8 @@ test("WavearyRuntime does not mistake emotional turns mentioning today for a loc
     emotionAnalyzer: new SimpleEmotionAnalyzer(),
     emotionStore: new InMemoryEmotionStore(),
     emotionEngine: new SimpleCompanionEmotionEngine(),
+    identityStore: new InMemoryIdentityStore(),
+    identityEngine: new SimpleIdentityEngine(),
     proactiveCareEngine: new SimpleProactiveCareEngine(),
     memoryStore: new TestMemoryStore(),
     memoryExtractor: new TestMemoryExtractor(),
@@ -421,6 +483,8 @@ test("WavearyRuntime evaluates proactive care through relationship, emotion, and
     emotionAnalyzer: new SimpleEmotionAnalyzer(),
     emotionStore,
     emotionEngine: new SimpleCompanionEmotionEngine(),
+    identityStore: new InMemoryIdentityStore(),
+    identityEngine: new SimpleIdentityEngine(),
     proactiveCareEngine: new SimpleProactiveCareEngine(),
     memoryStore: new TestMemoryStore(),
     memoryExtractor: new TestMemoryExtractor(),

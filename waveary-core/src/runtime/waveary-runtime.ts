@@ -8,6 +8,8 @@ import type {
   EmotionAnalyzer,
   EmotionEngine,
   EmotionStore,
+  IdentityEngine,
+  IdentityStore,
   MemoryExtractor,
   MemoryStore,
   ProactiveCareEngine,
@@ -30,6 +32,8 @@ export interface WavearyRuntimeDependencies {
   emotionAnalyzer: EmotionAnalyzer;
   emotionStore: EmotionStore;
   emotionEngine: EmotionEngine;
+  identityStore: IdentityStore;
+  identityEngine: IdentityEngine;
   proactiveCareEngine: ProactiveCareEngine;
   memoryStore: MemoryStore;
   memoryExtractor: MemoryExtractor;
@@ -73,6 +77,7 @@ export class WavearyRuntime {
       context.user.id,
       input.content
     );
+    const currentIdentitySummary = await this.deps.identityStore.getSummary(context.user.id);
     const relationship = await this.deps.relationshipStore.getProfile(context.user.id);
     const timeline = await this.deps.timelineStore.getRelevantEvents(context.user.id);
     const currentEmotion = await this.deps.emotionStore.getState(context.user.id);
@@ -93,6 +98,7 @@ export class WavearyRuntime {
       persona: context.persona,
       messages: [...context.history, input],
       relevantMemories: recalledMemories,
+      ...(currentIdentitySummary ? { identitySummary: currentIdentitySummary } : {}),
       relationship,
       timeline,
       ...(options.localTime ? { localTime: options.localTime } : {}),
@@ -144,10 +150,26 @@ export class WavearyRuntime {
     const savedEmotion = emotion
       ? await this.deps.emotionStore.saveState(context.user.id, emotion)
       : undefined;
+    const identitySummary = await this.deps.identityEngine.summarize({
+      userId: context.user.id,
+      message: input,
+      reply,
+      history: context.history,
+      relevantMemories: recalledMemories,
+      storedMemories,
+      relationship: updatedRelationship,
+      timeline: updatedTimeline,
+      ...(savedEmotion ? { emotion: savedEmotion } : {}),
+      ...(currentIdentitySummary ? { currentSummary: currentIdentitySummary } : {})
+    });
+    const savedIdentitySummary = identitySummary
+      ? await this.deps.identityStore.saveSummary(context.user.id, identitySummary)
+      : undefined;
 
     const result = {
       reply,
       recalledMemories,
+      ...(savedIdentitySummary ? { identitySummary: savedIdentitySummary } : {}),
       relationship: updatedRelationship,
       timeline: updatedTimeline,
       storedMemories

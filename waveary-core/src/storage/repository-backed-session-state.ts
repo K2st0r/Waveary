@@ -1,6 +1,8 @@
 import type {
   EmotionState,
   EmotionStore,
+  IdentitySummary,
+  IdentityStore,
   MemoryCandidate,
   MemoryItem,
   MemoryStore,
@@ -34,12 +36,14 @@ export interface RepositoryBackedSessionStateDependencies<
 
 export class RepositoryBackedSessionState<TState extends PersistedSessionState = PersistedSessionState> {
   private readonly emotionStore: EmotionStore;
+  private readonly identityStore: IdentityStore;
   private readonly memoryStore: MemoryStore;
   private readonly relationshipStore: RelationshipStore;
   private readonly timelineStore: TimelineStore;
 
   constructor(private readonly deps: RepositoryBackedSessionStateDependencies<TState>) {
     this.emotionStore = new RepositoryBackedEmotionStore(this);
+    this.identityStore = new RepositoryBackedIdentityStore(this);
     this.memoryStore = new RepositoryBackedMemoryStore(this);
     this.relationshipStore = new RepositoryBackedRelationshipStore(this);
     this.timelineStore = new RepositoryBackedTimelineStore(this);
@@ -55,6 +59,10 @@ export class RepositoryBackedSessionState<TState extends PersistedSessionState =
 
   getEmotionStore(): EmotionStore {
     return this.emotionStore;
+  }
+
+  getIdentityStore(): IdentityStore {
+    return this.identityStore;
   }
 
   getRelationshipStore(): RelationshipStore {
@@ -254,6 +262,35 @@ class RepositoryBackedEmotionStore implements EmotionStore {
     this.sessionState.saveState((current) => ({
       ...current,
       emotion: next,
+      updatedAt: new Date().toISOString()
+    }));
+
+    return next;
+  }
+}
+
+class RepositoryBackedIdentityStore implements IdentityStore {
+  constructor(private readonly sessionState: RepositoryBackedSessionState) {}
+
+  async getSummary(userId: string): Promise<IdentitySummary | undefined> {
+    const state = this.sessionState.getState();
+
+    if (!state.identitySummary || state.identitySummary.userId !== userId) {
+      return undefined;
+    }
+
+    return state.identitySummary;
+  }
+
+  async saveSummary(userId: string, summary: IdentitySummary): Promise<IdentitySummary> {
+    const next = {
+      ...summary,
+      userId
+    };
+
+    this.sessionState.saveState((current) => ({
+      ...current,
+      identitySummary: next,
       updatedAt: new Date().toISOString()
     }));
 

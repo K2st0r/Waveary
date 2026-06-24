@@ -1,4 +1,5 @@
 import type { EmotionState } from "../domain/emotion.js";
+import type { IdentitySummary } from "../domain/identity.js";
 import type { MemoryItem } from "../domain/memory.js";
 import type {
   ProactiveCareDecision,
@@ -20,6 +21,7 @@ export interface RuntimeContext {
 export interface RuntimeTurnResult {
   reply: Message;
   recalledMemories: MemoryItem[];
+  identitySummary?: IdentitySummary;
   relationship: RelationshipProfile;
   emotion?: EmotionState;
   timeline: TimelineEvent[];

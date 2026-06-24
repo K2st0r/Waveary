@@ -1,12 +1,14 @@
 import {
   type ChatProvider,
   InMemoryEmotionStore,
+  InMemoryIdentityStore,
   type LocalTimeContext,
   OpenAICompatibleChatProvider,
   type ProactiveCarePolicy,
   type ProactiveCareState,
   SimpleEmotionAnalyzer,
   SimpleCompanionEmotionEngine,
+  SimpleIdentityEngine,
   SimpleProactiveCareEngine,
   SimpleRelationshipEngine,
   SimpleTimelineEngine,
@@ -270,6 +272,10 @@ function createSessionState(
       ? persistentState.getEmotionStore()
       : new InMemoryEmotionStore(),
     emotionEngine: new SimpleCompanionEmotionEngine(),
+    identityStore: persistentState.getIdentityStore
+      ? persistentState.getIdentityStore()
+      : new InMemoryIdentityStore(),
+    identityEngine: new SimpleIdentityEngine(),
     proactiveCareEngine: new SimpleProactiveCareEngine(),
     memoryStore: persistentState.getMemoryStore(),
     memoryExtractor: new SimpleMemoryExtractor(),

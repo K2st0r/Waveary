@@ -1,4 +1,5 @@
 import type { EmotionState } from "../domain/emotion.js";
+import type { IdentitySummary } from "../domain/identity.js";
 import type { MemoryCandidate, MemoryItem } from "../domain/memory.js";
 import type {
   ProactiveCareDecision,
@@ -22,6 +23,7 @@ export interface ChatProviderRequest {
   persona: PersonaProfile;
   messages: Message[];
   relevantMemories: MemoryItem[];
+  identitySummary?: IdentitySummary;
   relationship: RelationshipProfile;
   emotion?: EmotionState;
   detectedUserEmotion?: EmotionState;
@@ -69,6 +71,11 @@ export interface EmotionStore {
   saveState(userId: string, state: EmotionState): Promise<EmotionState>;
 }
 
+export interface IdentityStore {
+  getSummary(userId: string): Promise<IdentitySummary | undefined>;
+  saveSummary(userId: string, summary: IdentitySummary): Promise<IdentitySummary>;
+}
+
 export interface EmotionEngineInput {
   userId: string;
   message: Message;
@@ -82,6 +89,23 @@ export interface EmotionEngineInput {
 
 export interface EmotionEngine {
   transition(input: EmotionEngineInput): Promise<EmotionState | undefined>;
+}
+
+export interface IdentityEngineInput {
+  userId: string;
+  message: Message;
+  reply: Message;
+  history: Message[];
+  relevantMemories: MemoryItem[];
+  storedMemories: MemoryItem[];
+  relationship: RelationshipProfile;
+  timeline: TimelineEvent[];
+  emotion?: EmotionState;
+  currentSummary?: IdentitySummary;
+}
+
+export interface IdentityEngine {
+  summarize(input: IdentityEngineInput): Promise<IdentitySummary | undefined>;
 }
 
 export interface ProactiveCareEngineInput {
