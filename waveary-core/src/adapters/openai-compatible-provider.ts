@@ -16,6 +16,10 @@ import {
   deriveReplyShapeGuidance,
   describeReplyShapeGuidance
 } from "../runtime/reply-shape.js";
+import {
+  deriveGettingToKnowYouState,
+  describeGettingToKnowYouGuidance
+} from "../runtime/getting-to-know-you.js";
 
 export interface OpenAICompatibleProviderOptions {
   provider: string;
@@ -299,6 +303,7 @@ function buildDeveloperInstruction(request: ChatProviderRequest): string {
 
   const relationshipGuidance = describeRelationshipGuidance(request.relationship.stage);
   const replyShape = deriveReplyShapeGuidance(request);
+  const gettingToKnowYou = deriveGettingToKnowYouState(request);
   const localTimeGuidance = resolveLocalTimeGuidance(request.localTime);
   const localTimeBlock = request.localTime
     ? [
@@ -352,6 +357,20 @@ function buildDeveloperInstruction(request: ChatProviderRequest): string {
     request.detectedUserEmotion
       ? `Detected user emotion: ${request.detectedUserEmotion.primaryEmotion} (${request.detectedUserEmotion.intensity}).`
       : "Detected user emotion: unknown.",
+    gettingToKnowYou.userPreferredName
+      ? `Confirmed preferred user name from shared history: ${gettingToKnowYou.userPreferredName}.`
+      : "No confirmed preferred user name has been established yet. Do not treat the placeholder profile label as intimate personal knowledge.",
+    gettingToKnowYou.companionAssignedName
+      ? `User-given companion nickname: ${gettingToKnowYou.companionAssignedName}.`
+      : "No user-given companion nickname has been settled yet.",
+    gettingToKnowYou.desiredStyleDescriptors.length > 0
+      ? `Desired companion feel so far: ${gettingToKnowYou.desiredStyleDescriptors.join(", ")}.`
+      : "Desired companion feel is still being discovered through conversation.",
+    `Getting-to-know-you guidance: ${describeGettingToKnowYouGuidance(
+      gettingToKnowYou,
+      request.relationship.stage,
+      replyShape.kind
+    )}`,
     `Reply shape guidance: ${describeReplyShapeGuidance(replyShape)}`,
     "Reply like someone who is continuing a shared life, not like a support bot or productivity assistant.",
     "Respond to the user's felt state first. If they sound hurt, anxious, tender, lonely, or emotionally open, begin with presence and emotional acknowledgment before explanation, analysis, or advice.",
@@ -359,6 +378,8 @@ function buildDeveloperInstruction(request: ChatProviderRequest): string {
     "Prefer one natural acknowledgment of continuity over a summary list of remembered facts.",
     "If the primary continuity thread does not fit the current emotional moment, do not force it into the reply just to prove memory.",
     "Let relationship stage change distance and wording. In 'new', be warm but not overly intimate. In 'warming', sound personally continuous and gently more trusting. In 'growing', it is okay to sound softly familiar, closer, and more emotionally settled.",
+    "In 'new', it is good to learn one personal detail at a time through natural conversation: names, nicknames, and what kind of presence the user wants from you.",
+    "If the tone is light enough, a little playful back-and-forth is welcome during early acquaintance, but keep it affectionate and human rather than theatrical.",
     "Let the companion emotion shape pacing and tone. Concerned or protective means gentler and slower. Playful means lighter but still attentive. Fond or warm means soft closeness without melodrama.",
     "Keep the reply warm, grounded, and human. Avoid generic assistant disclaimers, bullet-heavy therapy language, and documentation-style phrasing.",
     "Do not over-explain your memory process, do not narrate internal system behavior, and do not sound like you are performing a feature.",

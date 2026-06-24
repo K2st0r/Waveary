@@ -293,6 +293,46 @@ test("WavearyRuntime softens scripted replies during late-night local time when 
   );
 });
 
+test("WavearyRuntime lets new-stage scripted chat learn names naturally", async () => {
+  const runtime = new WavearyRuntime({
+    chatProvider: new ScriptedChatProvider(),
+    emotionAnalyzer: new SimpleEmotionAnalyzer(),
+    emotionStore: new InMemoryEmotionStore(),
+    emotionEngine: new SimpleCompanionEmotionEngine(),
+    proactiveCareEngine: new SimpleProactiveCareEngine(),
+    memoryStore: new TestMemoryStore(),
+    memoryExtractor: new TestMemoryExtractor(),
+    relationshipStore: new InMemoryRelationshipStore(),
+    relationshipEngine: new SimpleRelationshipEngine(),
+    timelineStore: new InMemoryTimelineStore(),
+    timelineEngine: new SimpleTimelineEngine()
+  });
+
+  const context: RuntimeContext = {
+    ...createContext(),
+    user: {
+      ...createContext().user,
+      displayName: "User"
+    }
+  };
+  const message: Message = {
+    id: "turn-new-1",
+    sessionId: context.session.id,
+    role: "user",
+    content: "Hi. We just met, I think.",
+    timestamp: new Date().toISOString(),
+    metadata: {}
+  };
+
+  const result = await runtime.handleTurn(context, message);
+
+  assert.equal(result.relationship.stage, "new");
+  assert.ok(
+    result.reply.content.includes("What should I call you when I am thinking of you?"),
+    "new-stage scripted reply should invite the user's preferred name naturally"
+  );
+});
+
 test("WavearyRuntime answers direct local-time questions deterministically before provider fallback", async () => {
   const runtime = new WavearyRuntime({
     chatProvider: new NeverUseThisTimeFallbackProvider(),
