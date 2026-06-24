@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `e3a557a` - `Support I'm called introductions`
+- `ef798e7` - `Add local test memory reset flow`
 
 ## Latest Repository Surface
 
@@ -126,6 +126,8 @@ Brand line:
   - browser session import validation now also rejects `latestInsights.relationship` payloads that drift away from `snapshot.relationship`
   - current cross-structure import hardening pass is complete through relationship, memory, and timeline summary consistency; deeper content-level duplicate checks are deferred for later
   - non-default sessions can now be renamed and deleted through the web session layer
+  - all persisted chat sessions can now be cleared together through `POST /api/chat/sessions/reset-all`, while preserving the default session shell for the next live run
+  - the repository now includes a root `npm run reset:test-memory` command that prefers the local reset-all API and falls back to deleting only chat-memory files under `.waveary/`, preserving provider and voice config
   - Windows-safe local dev and preview entrypoints are implemented for the current workspace path setup
   - package boundary is documented for future provider setup and runtime UI work
   - homepage now supports direct Chinese and English switching through a local UI toggle
@@ -350,6 +352,7 @@ Brand line:
 - `npm run build:server --workspace @waveary/web`
 - `npm run test --workspace @waveary/web`
 - `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run reset:test-memory`
 - direct Node `fetch` probes against `https://openspeech.bytedance.com/api/v3/tts/unidirectional`
 - live browser verification on `http://127.0.0.1:4173/#console` for the dedicated Doubao voice workspace after restarting the local dev server
 - `npm run check:mojibake`
@@ -444,6 +447,7 @@ Brand line:
 - consider a follow-up web pass focused specifically on richer chat-page signal affordances that do not drag diagnostics clutter back into the conversation view
 - keep session import semantic hardening paused here unless a real malformed package reveals another high-value cross-structure gap
 - consider adding finer-grained session controls such as export/import or per-session persistence diagnostics after the current reset capability
+- keep using the new post-commit test-memory reset flow before live behavior checks so stale local chat history does not leak into fresh companion-quality verification
 - consider surfacing richer archive filtering or grouped recall views now that persisted session intelligence is visible in the browser
 - consider adding import or downloadable file export flows now that structured session export is available
 - consider validating downloadable file-based import/export or partial merge tools now that session migration is possible in-browser
@@ -464,6 +468,7 @@ Brand line:
 - the new `npm run check:mojibake` guard only scans changed added lines for obvious corruption patterns; it reduces repeat mistakes but does not replace a dedicated full-document Chinese cleanup pass
 - `npx tsc --noEmit -p waveary-web/tsconfig.server.json` is not a trustworthy verification command in this workspace right now because its standalone resolution still reports broader historical workspace-type issues even when the package build/test flow passes; prefer `npm run test --workspace @waveary/web` or `npm run build:server --workspace @waveary/web` for server-side voice verification until that separate tsconfig issue is deliberately cleaned up
 - `waveary-web/src/App.tsx` no longer has the newest visible mojibake in the dedicated voice credential block, but broader document-level cleanup is still outstanding and should stay isolated from active feature work
+- direct deletion of `.waveary/chat-sessions.db` is not a reliable live-reset strategy on Windows while the web server is running, because SQLite file locks can block removal; prefer the local reset API path first
 - the first provider-backed STT browser path now uses browser-side speech-activity heuristics rather than a fixed short timer, but it is still not a server-grounded VAD, interruption-capable loop, or full duplex transport
 - live Fish Audio verification is currently blocked by upstream reachability from this machine: direct requests to `api.fish.audio:443` time out before any HTTP response, so current failures reflect network access rather than a known Waveary route bug
 - Micu relay does not currently expose `gemini-3.1-flash-tts-preview` on the tested key path; direct probes returned `503 model_not_found`, while `gemini-2.5-flash-tts-preview` and `gemini-2.5-pro-tts-preview` were recognized by Micu but returned `403` on the provided key because that token does not currently have access to those models

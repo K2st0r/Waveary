@@ -6996,3 +6996,44 @@ Commit:
 Push:
 
 - succeeded: `git push origin main` pushed functional commit `932ffa1` to `origin/main`
+
+## 2026-06-24
+
+Objective:
+
+Add a reliable post-commit local test-memory reset flow so stale chat/session memory can be cleared before the next live Waveary verification pass without wiping saved provider or voice configuration.
+
+Summary:
+
+- added `POST /api/chat/sessions/reset-all` in `waveary-web/server/provider-api.ts` plus `resetAllChatSessions()` in `waveary-web/server/chat-session-store.ts` so the running local server can clear persisted chat memory and rebuild the default `waveary-main` shell in one step
+- added regression coverage in `waveary-web/server/provider-api.test.ts` proving the reset-all route clears both the default and extra sessions while preserving the default-session shell and returning file-backend persistence status
+- added the root `npm run reset:test-memory` command via `tools/reset-waveary-test-memory.mjs`, which first tries the running local API and falls back to deleting only chat-memory files under `.waveary/`
+- preserved `provider-config.json` and `voice-config.json` during the reset flow, matching the user's workflow requirement to clear stale remembered dialogue without redoing model and voice setup
+- recorded the durable workflow preference in `docs/product-preferences.md`, because this reset should survive future context compression and session restarts
+
+Files changed:
+
+- `docs/product-preferences.md`
+- `package.json`
+- `waveary-web/server/chat-session-store.ts`
+- `waveary-web/server/provider-api.ts`
+- `waveary-web/server/provider-api.test.ts`
+- `tools/reset-waveary-test-memory.mjs`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run test --workspace @waveary/web`
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run reset:test-memory`
+
+Commit:
+
+- `ef798e7` - `Add local test memory reset flow`
+
+Push:
+
+- succeeded: `git push origin main` pushed functional commit `ef798e7` to `origin/main`

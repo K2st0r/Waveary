@@ -4,6 +4,30 @@ This file records important product, architecture, and workflow decisions for Pr
 
 Use it to preserve the reason behind major choices so future Codex sessions do not repeat or undo settled work.
 
+## 2026-06-24 - Post-Commit Test-Memory Clearing Should Prefer The Local Reset API
+
+Status:
+
+- accepted
+
+Decision:
+
+After each code commit, Waveary should clear local test-session chat memory through a running local API route first, and only fall back to direct file deletion when that server-side reset path is unavailable.
+
+Reason:
+
+- the user explicitly wants stale remembered dialogue cleared before the next live verification pass so fresh behavior checks do not inherit old companion memory
+- direct deletion of `.waveary/chat-sessions.db` is unreliable on Windows while the local web server is running because SQLite file locks can block removal with `EPERM`
+- the server already owns the current persistence backend and runtime cache, so a first-party reset route can clear both persisted chat state and in-process session state more truthfully than blind file removal
+
+Impact:
+
+- `waveary-web/server/provider-api.ts` now exposes `POST /api/chat/sessions/reset-all`
+- `waveary-web/server/chat-session-store.ts` now supports resetting all persisted chat sessions while recreating the default session shell
+- the repository root now includes `npm run reset:test-memory`, which first tries the local reset API and only falls back to deleting `.waveary/chat-sessions.json`, `.waveary/chat-sessions.db`, and `.waveary/chat-persistence.json`
+- saved provider and voice config remain untouched during this reset flow, so live provider setup does not have to be re-entered after each commit
+- future live verification passes should use this reset flow instead of manually deleting `.waveary` files
+
 ## 2026-06-24 - Spoken I'm Called Introductions Should Count As Real Name Sharing
 
 Status:

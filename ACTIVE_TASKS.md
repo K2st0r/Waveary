@@ -39,8 +39,8 @@ Update it when:
 
 6. Preserve continuity discipline under high-frequency iteration.
    Status: ongoing
-   Current state: each meaningful step is being verified, committed, pushed, and written back into continuity files, and the repository now includes a narrow changed-files mojibake guard at `npm run check:mojibake` for Chinese-facing copy edits on this Windows / PowerShell setup.
-   Next cut: keep repository-side state files aligned so session resets do not cause duplicate work or architectural drift, keep using the mojibake guard plus `git diff` for Chinese-copy edits, record any verification caveats like the current Windows `@waveary/core` dist-lock behavior, and preserve the doodle-generation constraints that avoid repeated `524` timeouts.
+   Current state: each meaningful step is being verified, committed, pushed, and written back into continuity files, the repository now includes a narrow changed-files mojibake guard at `npm run check:mojibake` for Chinese-facing copy edits on this Windows / PowerShell setup, and there is now a root `npm run reset:test-memory` command that clears local chat/test-session memory through the running local API when available while preserving saved provider and voice config.
+   Next cut: keep using the post-commit test-memory reset flow before live verification, keep repository-side state files aligned so session resets do not cause duplicate work or architectural drift, keep using the mojibake guard plus `git diff` for Chinese-copy edits, record any verification caveats like the current Windows `@waveary/core` dist-lock behavior, and preserve the doodle-generation constraints that avoid repeated `524` timeouts.
 
 ## Deferred But Important
 
