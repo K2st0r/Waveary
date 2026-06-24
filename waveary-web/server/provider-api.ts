@@ -13,6 +13,7 @@ import {
 import {
   clickManagedBrowserElementByText,
   extractManagedBrowserPageText,
+  fillAndSubmitManagedBrowserInputByText,
   fillManagedBrowserInputByText,
   getManagedBrowserPageInfo,
   listManagedBrowserClickableElements,
@@ -170,6 +171,13 @@ interface BrowserClickTextRequest {
 }
 
 interface BrowserFillTextRequest {
+  fieldText?: string;
+  value?: string;
+  exact?: boolean;
+  timeoutMs?: number;
+}
+
+interface BrowserFillSubmitTextRequest {
   fieldText?: string;
   value?: string;
   exact?: boolean;
@@ -619,6 +627,23 @@ export function createProviderApiMiddleware() {
       if (request.method === "POST" && request.url === "/api/browser/fill-text") {
         const payload = (await readJsonBody(request)) as BrowserFillTextRequest;
         const result = await fillManagedBrowserInputByText(
+          requireNonEmpty(payload.fieldText, "Browser fill target text is required."),
+          requireNonEmpty(payload.value, "Browser fill value is required."),
+          {
+            ...(typeof payload.exact === "boolean" ? { exact: payload.exact } : {}),
+            ...(typeof payload.timeoutMs === "number"
+              ? { timeoutMs: payload.timeoutMs }
+              : {})
+          }
+        );
+
+        sendJson(response, 200, result);
+        return;
+      }
+
+      if (request.method === "POST" && request.url === "/api/browser/fill-submit") {
+        const payload = (await readJsonBody(request)) as BrowserFillSubmitTextRequest;
+        const result = await fillAndSubmitManagedBrowserInputByText(
           requireNonEmpty(payload.fieldText, "Browser fill target text is required."),
           requireNonEmpty(payload.value, "Browser fill value is required."),
           {

@@ -5,6 +5,7 @@ import { join } from "node:path";
 import {
   clickManagedBrowserElementByText,
   extractManagedBrowserPageText,
+  fillAndSubmitManagedBrowserInputByText,
   fillManagedBrowserInputByText,
   getManagedBrowserPageInfo,
   listManagedBrowserClickableElements,
@@ -24,6 +25,7 @@ export type LocalActionKind =
   | "browser_list_clickable"
   | "browser_click_text"
   | "browser_fill_text"
+  | "browser_fill_submit_text"
   | "browser_open_bilibili_video";
 export type LocalActionPermissionLevel = "allow" | "ask" | "deny";
 export type LocalActionLocale = "zh" | "en";
@@ -147,10 +149,14 @@ export async function detectPendingLocalAction(message: string): Promise<Pending
   const browserFillTarget = extractBrowserFillInstruction(trimmed);
   if (browserFillTarget) {
     return buildPendingLocalAction(
-      "browser_fill_text",
+      browserFillTarget.submitAfterFill
+        ? "browser_fill_submit_text"
+        : "browser_fill_text",
       browserFillTarget.field,
       browserFillTarget.field,
-      `Fill ${browserFillTarget.field} on the current page`,
+      browserFillTarget.submitAfterFill
+        ? `Fill ${browserFillTarget.field} and submit on the current page`
+        : `Fill ${browserFillTarget.field} on the current page`,
       browserFillTarget.value
     );
   }
@@ -309,26 +315,68 @@ function extractBrowserClickTarget(message: string): string | null {
 
 function extractBrowserFillInstruction(
   message: string
-): { field: string; value: string } | null {
+): { field: string; value: string; submitAfterFill: boolean } | null {
   const englishPatterns = [
-    /^(?:fill|type in|enter)\s+["“]?(.+?)["”]?\s+(?:with|as)\s+["“]?(.+?)["”]?$/i,
-    /^(?:set)\s+["“]?(.+?)["”]?\s+to\s+["“]?(.+?)["”]?$/i
+    {
+      pattern:
+        /^(?:fill|type in|enter)\s+["“]?(.+?)["”]?\s+(?:with|as)\s+["“]?(.+?)["”]?\s+(?:and\s+)?(?:submit|press enter)$/i,
+      submitAfterFill: true
+    },
+    {
+      pattern:
+        /^(?:set)\s+["“]?(.+?)["”]?\s+to\s+["“]?(.+?)["”]?\s+(?:and\s+)?(?:submit|press enter)$/i,
+      submitAfterFill: true
+    },
+    {
+      pattern:
+        /^(?:fill|type in|enter)\s+["“]?(.+?)["”]?\s+(?:with|as)\s+["“]?(.+?)["”]?$/i,
+      submitAfterFill: false
+    },
+    {
+      pattern: /^(?:set)\s+["“]?(.+?)["”]?\s+to\s+["“]?(.+?)["”]?$/i,
+      submitAfterFill: false
+    }
   ];
   const chinesePatterns = [
-    /^在["“]?(.+?)["”]?(?:里|中)?(?:输入|填写)["“]?(.+?)["”]?$/,
-    /^把["“]?(.+?)["”]?(?:设置为|改成|填成)["“]?(.+?)["”]?$/,
-    /^给["“]?(.+?)["”]?(?:输入|填写)["“]?(.+?)["”]?$/
+    {
+      pattern:
+        /^在["“]?(.+?)["”]?(?:里|中)?(?:输入|填写)["“]?(.+?)["”]?(?:然后|再)?(?:提交|回车|按回车)$/,
+      submitAfterFill: true
+    },
+    {
+      pattern:
+        /^把["“]?(.+?)["”]?(?:设置为|改成|填成)["“]?(.+?)["”]?(?:然后|再)?(?:提交|回车|按回车)$/,
+      submitAfterFill: true
+    },
+    {
+      pattern:
+        /^给["“]?(.+?)["”]?(?:输入|填写)["“]?(.+?)["”]?(?:然后|再)?(?:提交|回车|按回车)$/,
+      submitAfterFill: true
+    },
+    {
+      pattern: /^在["“]?(.+?)["”]?(?:里|中)?(?:输入|填写)["“]?(.+?)["”]?$/,
+      submitAfterFill: false
+    },
+    {
+      pattern: /^把["“]?(.+?)["”]?(?:设置为|改成|填成)["“]?(.+?)["”]?$/,
+      submitAfterFill: false
+    },
+    {
+      pattern: /^给["“]?(.+?)["”]?(?:输入|填写)["“]?(.+?)["”]?$/,
+      submitAfterFill: false
+    }
   ];
 
-  for (const pattern of [...englishPatterns, ...chinesePatterns]) {
-    const match = message.match(pattern);
+  for (const entry of [...englishPatterns, ...chinesePatterns]) {
+    const match = message.match(entry.pattern);
     const field = match?.[1]?.trim();
     const value = match?.[2]?.trim();
 
     if (field && value) {
       return {
         field: stripTrailingPunctuation(field),
-        value: stripTrailingPunctuation(value)
+        value: stripTrailingPunctuation(value),
+        submitAfterFill: entry.submitAfterFill
       };
     }
   }
@@ -400,6 +448,10 @@ function summarizeKind(kind: LocalActionKind): string {
 
   if (kind === "browser_fill_text") {
     return "Fill page input";
+  }
+
+  if (kind === "browser_fill_submit_text") {
+    return "Fill and submit page input";
   }
 
   if (kind === "browser_open_bilibili_video") {
@@ -540,6 +592,36 @@ async function executeLocalAction(
     };
   }
 
+  if (action.kind === "browser_fill_submit_text") {
+    const nextValue = action.value?.trim();
+
+    if (!nextValue) {
+      throw new Error("No input value was provided for this page field.");
+    }
+
+    const result = await fillAndSubmitManagedBrowserInputByText(
+      action.target,
+      nextValue,
+      {
+        timeoutMs: 4000
+      }
+    );
+
+    return {
+      status: "executed",
+      message:
+        locale === "zh"
+          ? `已填写并提交“${result.matchedText}”。`
+          : `Filled and submitted "${result.matchedText}".`,
+      assistantNote: buildBrowserFillSubmitAssistantNote(
+        result.page,
+        result.matchedText,
+        result.value,
+        locale
+      )
+    };
+  }
+
   if (action.kind === "browser_open_bilibili_video") {
     const query = action.targetLabel;
     const searchUrl = `https://search.bilibili.com/all?keyword=${encodeURIComponent(query)}`;
@@ -654,6 +736,19 @@ function buildBrowserFillAssistantNote(
   return locale === "zh"
     ? `我已经替你在${pageRef}里的“${matchedText}”填上了“${clipText(value, 40)}”。如果你愿意，我还可以继续帮你点下一步。`
     : `I filled "${matchedText}" on ${pageRef} with "${clipText(value, 40)}". If you want, I can keep going and handle the next step too.`;
+}
+
+function buildBrowserFillSubmitAssistantNote(
+  page: BrowserPageInfo,
+  matchedText: string,
+  value: string,
+  locale: LocalActionLocale
+): string {
+  const pageRef = describePage(page, locale);
+
+  return locale === "zh"
+    ? `我已经替你在${pageRef}里的“${matchedText}”填上了“${clipText(value, 40)}”，并顺手提交出去了。如果你愿意，我可以继续陪你看结果。`
+    : `I filled "${matchedText}" on ${pageRef} with "${clipText(value, 40)}" and submitted it for you. If you want, I can stay with you and look at the result next.`;
 }
 
 function buildBilibiliOpenAssistantNote(
