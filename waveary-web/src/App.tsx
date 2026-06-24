@@ -1559,6 +1559,7 @@ export function App(): ReactElement {
   const activeAudioRef = useRef<HTMLAudioElement | null>(null);
   const activeAudioUrlRef = useRef<string | null>(null);
   const voicePickerRef = useRef<HTMLDivElement | null>(null);
+  const chatLogEndRef = useRef<HTMLDivElement | null>(null);
   const speechRecognitionRef = useRef<BrowserSpeechRecognitionInstance | null>(null);
   const mediaRecorderRef = useRef<BrowserMediaRecorder | null>(null);
   const mediaRecorderStreamRef = useRef<MediaStream | null>(null);
@@ -4262,6 +4263,26 @@ export function App(): ReactElement {
           ? "输入音色名称"
           : "Enter a voice name";
   const selectedVoiceProviderPresetId = selectedVoiceProviderPreset?.id ?? null;
+  const activePermissionPresetMode = getPermissionPresetMode(permissionProfile);
+  const activePermissionPresetLabel =
+    activePermissionPresetMode === "full"
+      ? locale === "zh"
+        ? "完全访问"
+        : "Full"
+      : activePermissionPresetMode === "elevated"
+        ? locale === "zh"
+          ? "高权限"
+          : "High"
+        : locale === "zh"
+          ? "受限"
+          : "Limited";
+  const activeVoiceRoutingLabel = usesDedicatedVoiceProvider
+    ? locale === "zh"
+      ? "独立语音"
+      : "Dedicated voice"
+    : locale === "zh"
+      ? "跟随聊天模型"
+      : "Shared with chat";
   const activeVoiceCatalogNote =
     (selectedVoiceProviderPresetId === "gemini-micu" && locale !== "zh"
       ? "For Micu relay, prefer the Gemini TTS model names Micu actually recognizes. The current verified Micu-recognized names are `gemini-2.5-flash-tts-preview` and `gemini-2.5-pro-tts-preview`, while `gemini-3.1-flash-tts-preview` and the official `*-preview-tts` aliases currently return model_not_found on Micu."
@@ -4500,25 +4521,22 @@ export function App(): ReactElement {
     return () => window.removeEventListener("mousedown", handlePointerDown);
   }, [voicePickerOpen]);
 
+  useEffect(() => {
+    if (currentPage !== "chat") {
+      return;
+    }
+
+    chatLogEndRef.current?.scrollIntoView({
+      block: "end"
+    });
+  }, [chatMessages, pendingLocalAction, currentPage]);
+
   function renderVoiceConfigControls(mode: "chat" | "console"): ReactElement {
     const isConsole = mode === "console";
 
     if (!isConsole) {
       return (
         <div className="chat-voice-controls chat-voice-controls-compact">
-          <button
-            className={`button button-secondary ${voiceConversationMode ? "chat-voice-button-active" : ""}`}
-            onClick={() => handleToggleSpeechInput()}
-            disabled={
-              !chatReady ||
-              chatState === "loading" ||
-              speechInputState === "processing" ||
-              speechInputState === "unsupported"
-            }
-            type="button"
-          >
-            {voiceConversationMode ? (locale === "zh" ? "结束实时对话" : "End live chat") : locale === "zh" ? "开始实时对话" : "Start live chat"}
-          </button>
           <div className="chat-voice-compact-summary">
             <strong>
               {usesDedicatedVoiceProvider
@@ -6858,6 +6876,27 @@ export function App(): ReactElement {
               </div>
             </div>
 
+            <div className="chat-status-strip" aria-label={locale === "zh" ? "对话状态" : "Conversation status"}>
+              <div className="chat-status-card">
+                <span className="chat-status-label">{locale === "zh" ? "会话" : "Session"}</span>
+                <strong>{activeSession ? activeSession.title : copy.runtime.noLocalSession}</strong>
+                <span>{chatReady ? copy.runtime.runtimeReady : copy.runtime.setupRequired}</span>
+              </div>
+              <div className="chat-status-card">
+                <span className="chat-status-label">{locale === "zh" ? "语音路由" : "Voice routing"}</span>
+                <strong>{activeVoiceRoutingLabel}</strong>
+                <span>
+                  {selectedVoicePreset?.label ?? (locale === "zh" ? "默认预设" : "Default preset")}
+                  {voiceConfig?.voice ? ` · ${voiceConfig.voice}` : ""}
+                </span>
+              </div>
+              <div className="chat-status-card">
+                <span className="chat-status-label">{locale === "zh" ? "权限模式" : "Permission mode"}</span>
+                <strong>{activePermissionPresetLabel}</strong>
+                <span>{copy.runtime.permissionsHint}</span>
+              </div>
+            </div>
+
             <div className="panel chat-panel chat-panel-focused">
               <div className="panel-header">
                 <span>{copy.runtime.canvas}</span>
@@ -6884,6 +6923,7 @@ export function App(): ReactElement {
                     </article>
                   ))
                 )}
+                <div ref={chatLogEndRef} />
               </div>
 
               <div className="chat-composer">
@@ -6980,32 +7020,26 @@ export function App(): ReactElement {
                         onClick={() => setChatPermissionTrayOpen((current) => !current)}
                         type="button"
                       >
-                        {`Permissions · ${
-                              getPermissionPresetMode(permissionProfile) === "full"
-                                ? "Full"
-                                : getPermissionPresetMode(permissionProfile) === "elevated"
-                                  ? "High"
-                                  : "Limited"
-                            }`}
+                        {`${locale === "zh" ? "权限" : "Permissions"} · ${activePermissionPresetLabel}`}
                       </button>
 
                       <div className="chat-permission-mode-switch" role="group" aria-label={copy.runtime.permissions}>
                         <button
-                          className={`chat-permission-mode-button ${getPermissionPresetMode(permissionProfile) === "limited" ? "chat-permission-mode-button-active" : ""}`}
+                          className={`chat-permission-mode-button ${activePermissionPresetMode === "limited" ? "chat-permission-mode-button-active" : ""}`}
                           onClick={() => handlePermissionPresetChange("limited")}
                           type="button"
                         >
                           Limited
                         </button>
                         <button
-                          className={`chat-permission-mode-button ${getPermissionPresetMode(permissionProfile) === "elevated" ? "chat-permission-mode-button-active" : ""}`}
+                          className={`chat-permission-mode-button ${activePermissionPresetMode === "elevated" ? "chat-permission-mode-button-active" : ""}`}
                           onClick={() => handlePermissionPresetChange("elevated")}
                           type="button"
                         >
                           High
                         </button>
                         <button
-                          className={`chat-permission-mode-button ${getPermissionPresetMode(permissionProfile) === "full" ? "chat-permission-mode-button-active" : ""}`}
+                          className={`chat-permission-mode-button ${activePermissionPresetMode === "full" ? "chat-permission-mode-button-active" : ""}`}
                           onClick={() => handlePermissionPresetChange("full")}
                           type="button"
                         >
