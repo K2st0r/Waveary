@@ -81,6 +81,44 @@ Push:
 
 Objective:
 
+Strengthen dialogue continuity again so short inferential follow-ups still stay anchored to the previous user topic instead of flattening into isolated practical-sounding statements.
+
+Summary:
+
+- updated `waveary-core/src/runtime/continuity-thread.ts` so continuity matching now also treats a bounded class of short inferential carry-over turns such as `Maybe that's why I can't settle tonight.` as continuation of the immediately previous user topic
+- added focused core regression in `waveary-core/src/runtime/continuity-thread.test.ts` to lock both continuity-thread selection and history-aware focus summarization for that inferential follow-up case
+- added matching prompt-level regression in `waveary-core/src/adapters/openai-compatible-provider.test.ts` so live provider instructions now preserve `Continuing ... Follow-up now ...` wording for this subtler continuation style too
+- re-verified `@waveary/core` through check, rebuild, and compiled tests; the package now passes `69` tests, and this pass stayed entirely inside the dialogue-quality path without touching frontend or voice code
+
+Files changed:
+
+- `waveary-core/src/runtime/continuity-thread.ts`
+- `waveary-core/src/runtime/continuity-thread.test.ts`
+- `waveary-core/src/adapters/openai-compatible-provider.test.ts`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/core`
+- `npm run build --workspace @waveary/core`
+- PowerShell compiled-test verification via:
+  `$files = @(Get-ChildItem 'waveary-core\\dist' -Recurse -Filter '*.test.js' | ForEach-Object { $_.FullName }); & node --test @files`
+
+Commit:
+
+- `pending` - `Handle inferential continuity carry-over`
+
+Push:
+
+- pending
+
+## 2026-06-24
+
+Objective:
+
 Stop the new getting-to-know-you layer from misreading emotional self-description as a confirmed preferred user name, which was degrading provider prompt realism with fake names like `still` and `not`.
 
 Summary:

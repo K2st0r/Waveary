@@ -458,6 +458,100 @@ test("summarizeCurrentTurnFocusWithHistory marks low-affect pronoun follow-ups a
   assert.match(focus, /Follow-up now: It just feels strange now\./);
 });
 
+test("selectContinuityThread keeps a short inferential follow-up anchored to the previous user topic", () => {
+  const messages: Message[] = [
+    {
+      id: "message-inferential-1",
+      sessionId: "session-1",
+      role: "user",
+      content: "I keep thinking about leaving this city, but I still cannot tell if I really mean it.",
+      timestamp: "2026-06-24T14:00:00.000Z",
+      metadata: {}
+    },
+    {
+      id: "message-inferential-2",
+      sessionId: "session-1",
+      role: "assistant",
+      content: "That sounds like it has been sitting heavily with you for a while.",
+      timestamp: "2026-06-24T14:00:10.000Z",
+      metadata: {}
+    },
+    {
+      id: "message-inferential-3",
+      sessionId: "session-1",
+      role: "user",
+      content: "Maybe that's why I can't settle tonight.",
+      timestamp: "2026-06-24T14:00:20.000Z",
+      metadata: {}
+    }
+  ];
+
+  const selection = selectContinuityThread({
+    latestUserMessage: messages[2],
+    messageHistory: messages,
+    relevantMemories: [
+      createMemory(
+        "memory-city",
+        "life_event",
+        "The user keeps thinking about leaving this city but is still unsure whether they really mean it.",
+        "2026-06-22T10:00:00.000Z",
+        ["message-inferential-1"]
+      ),
+      createMemory(
+        "memory-music",
+        "preference",
+        "The user likes listening to soft piano late at night.",
+        "2026-06-24T13:59:00.000Z",
+        ["older-message"]
+      )
+    ],
+    timeline: []
+  });
+
+  assert.equal(
+    selection.primaryLine,
+    "[memory:life_event] The user keeps thinking about leaving this city but is still unsure whether they really mean it."
+  );
+});
+
+test("summarizeCurrentTurnFocusWithHistory marks short inferential follow-ups as continuations", () => {
+  const messages: Message[] = [
+    {
+      id: "message-inferential-focus-1",
+      sessionId: "session-1",
+      role: "user",
+      content: "I keep thinking about leaving this city, but I still cannot tell if I really mean it.",
+      timestamp: "2026-06-24T14:10:00.000Z",
+      metadata: {}
+    },
+    {
+      id: "message-inferential-focus-2",
+      sessionId: "session-1",
+      role: "assistant",
+      content: "That sounds like a lot to carry around quietly.",
+      timestamp: "2026-06-24T14:10:10.000Z",
+      metadata: {}
+    },
+    {
+      id: "message-inferential-focus-3",
+      sessionId: "session-1",
+      role: "user",
+      content: "Maybe that's why I can't settle tonight.",
+      timestamp: "2026-06-24T14:10:20.000Z",
+      metadata: {}
+    }
+  ];
+
+  const focus = summarizeCurrentTurnFocusWithHistory(
+    messages[2]?.content ?? "",
+    messages
+  );
+
+  assert.match(focus, /^Continuing:/);
+  assert.match(focus, /leaving this city/i);
+  assert.match(focus, /Follow-up now: Maybe that's why I can't settle tonight\./);
+});
+
 test("summarizeCurrentTurnFocusWithHistory marks Chinese emotional carry-over turns as continuations", () => {
   const messages: Message[] = [
     {

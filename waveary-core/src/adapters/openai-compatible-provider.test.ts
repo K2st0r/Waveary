@@ -599,6 +599,75 @@ test("OpenAICompatibleChatProvider treats low-affect pronoun follow-ups as conti
   );
 });
 
+test("OpenAICompatibleChatProvider treats short inferential follow-ups as continuation of the previous topic", async () => {
+  const instruction = await captureInstruction(
+    createRequest({
+      messages: [
+        {
+          id: "m1",
+          sessionId: "session-1",
+          role: "user",
+          content: "I keep thinking about leaving this city, but I still cannot tell if I really mean it.",
+          timestamp: new Date(Date.now() - 1000 * 60 * 2).toISOString(),
+          metadata: {}
+        },
+        {
+          id: "m2",
+          sessionId: "session-1",
+          role: "assistant",
+          content: "That sounds like it has been sitting heavily with you for a while.",
+          timestamp: new Date(Date.now() - 1000 * 60).toISOString(),
+          metadata: {}
+        },
+        {
+          id: "m3",
+          sessionId: "session-1",
+          role: "user",
+          content: "Maybe that's why I can't settle tonight.",
+          timestamp: new Date().toISOString(),
+          metadata: {}
+        }
+      ],
+      relevantMemories: [
+        {
+          id: "memory-1",
+          userId: "user-1",
+          type: "life_event",
+          content: "The user keeps thinking about leaving this city but is still unsure whether they really mean it.",
+          importance: 0.86,
+          confidence: 0.79,
+          sourceMessageIds: ["m1"],
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: "memory-2",
+          userId: "user-1",
+          type: "preference",
+          content: "The user likes listening to soft piano late at night.",
+          importance: 0.6,
+          confidence: 0.68,
+          sourceMessageIds: ["older-message"],
+          createdAt: new Date().toISOString()
+        }
+      ],
+      timeline: []
+    })
+  );
+
+  assert.match(
+    instruction,
+    /Current turn focus: Continuing: I keep thinking about leaving this city, but I still cannot tell if I really mean it\./
+  );
+  assert.match(
+    instruction,
+    /Follow-up now: Maybe that's why I can't settle tonight\./
+  );
+  assert.match(
+    instruction,
+    /Primary continuity thread: \[memory:life_event\] The user keeps thinking about leaving this city but is still unsure whether they really mean it\./
+  );
+});
+
 test("OpenAICompatibleChatProvider changes relationship-distance guidance across new, warming, and growing stages", async () => {
   const newInstruction = await captureInstruction(
     createRequest({

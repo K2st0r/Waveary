@@ -93,6 +93,28 @@ Impact:
 - regression coverage now includes both direct continuity selection and live-provider prompt checks for `It just feels strange now.` style follow-ups
 - future continuity work should keep extending this path carefully into weaker multi-turn drift cases without turning every short pronoun sentence into an automatic continuation
 
+## 2026-06-24 - Short Inferential Follow-Ups Should Also Stay Anchored
+
+Status:
+
+- accepted
+
+Decision:
+
+Waveary should also treat short inferential carry-over turns such as `Maybe that's why I can't settle tonight.` as continuation of the immediately previous user topic when the new wording is still clearly drawing a causal line from that unresolved thread instead of introducing a new subject.
+
+Reason:
+
+- real companion conversations often soften from direct emotional residue into inference; the user stops naming the original topic and instead points to the consequence it is still causing
+- if continuity only catches explicit carry-over words and low-affect pronoun mood lines, the system can still drop the thread on realistic follow-ups that a person would hear as "still about the same thing"
+- this remains narrow enough to be safe because the heuristic only fires on short turns with explicit inferential framing such as `maybe`, `probably`, or `that's why`
+
+Impact:
+
+- `waveary-core/src/runtime/continuity-thread.ts` now recognizes one bounded class of short inferential carry-over wording
+- regression coverage now includes both direct continuity selection and live-provider prompt checks for `Maybe that's why I can't settle tonight.` style follow-ups
+- future continuity work should keep advancing one bounded follow-up class at a time instead of broadening all vague short turns into automatic continuation
+
 ## 2026-06-24 - Companion Replies Should Default To Human-Scale Cadence
 
 Status:
