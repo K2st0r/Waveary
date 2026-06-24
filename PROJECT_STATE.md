@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `f0fa76c` - `Sync repository continuity records`
+- `0edf8b7` - `Refresh public README homepage`
 
 ## Latest Repository Surface
 
