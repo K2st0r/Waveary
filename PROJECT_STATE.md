@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `c380a5a` - `Blend short follow-up turns into continuity matching`
+- `7adeace` - `Handle oblique emotional follow-up continuity`
 
 ## Latest Repository Surface
 
@@ -47,6 +47,7 @@ Brand line:
   - shared continuity-thread selection now also gives a small recency bonus to newer memory candidates, so near-tied relevance cases favor fresher remembered threads instead of being decided by retrieval order alone
   - shared continuity-thread selection now also gives a very light source-turn bonus to memories tied to more recent user turns, so semantically tied same-age memories follow the live conversation arc instead of falling back to array order
   - shared continuity-thread selection now also blends short carry-over user follow-ups such as "still scared about that" with the immediately previous user turn, so continuity matching and prompt focus can stay on the live underlying topic instead of treating the follow-up fragment as a fresh isolated request
+  - shared continuity-thread selection now also treats more oblique emotional carry-over turns such as "that part still hurts", "I am not over it yet", and `我还没过去，还是那个感觉` as continuation of the immediately previous user topic when the new message is short, elliptical, and still emotionally attached to the same thread
   - shared reply-shape guidance now classifies current turns into practical / ordinary / playful / reconnection / emotional modes so Waveary can control reply length, emotional lead-in, and follow-up count through one runtime-facing layer instead of ad hoc prompt wording
   - live-provider prompt assembly now also incorporates richer persona defaults including speaking style, emotional style, humor style, conversation-length preference, and follow-up style, making the companion feel more consistently person-like without broad architecture changes
   - scripted fallback replies now also consume that same reply-shape layer, so ordinary turns stop drifting back into fixed three-part speeches when the real provider path is unavailable
@@ -365,6 +366,7 @@ Brand line:
 - keep extending the browser-action layer one auditable primitive at a time instead of widening into a broad free-form browser agent
 - continue the live-provider dialogue regression pass beyond the new prompt-body coverage into richer emotional-stress, reconnection, practical-question cadence, and multi-turn mutual-discovery competition cases
 - continue the continuity-thread quality pass beyond short carry-over follow-ups into pronoun-heavy multi-turn topic persistence, so turns like "that part still hurts" or "I am not over it yet" can stay anchored even when the user is more oblique
+- continue the continuity-thread quality pass beyond short and emotional carry-over follow-ups into weaker low-affect pronoun references and multi-turn drift cases, so the system can stay anchored without over-blending unrelated nearby topics
 - decide whether the next truthful web-facing companion-quality surface should show remembered names / vibe continuity lightly, without regressing into a required persona setup form
 - start the next voice implementation cut by pushing the current browser voice loop closer to true realtime duplex, beginning with interruption-safe reply stop/resume behavior and a tighter listen-speak handoff instead of broadening vendor coverage first
 - after that interruption-focused pass, decide whether the next highest-value voice step is wider provider-specific STT coverage such as Doubao/local or a deeper transport upgrade beyond the current browser-side speech-activity heuristics

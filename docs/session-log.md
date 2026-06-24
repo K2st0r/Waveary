@@ -6367,6 +6367,40 @@ Push:
 
 Objective:
 
+Strengthen dialogue continuity again so more oblique emotional follow-ups still stay anchored to the previous user topic instead of reading like isolated fragments.
+
+Summary:
+
+- rebuilt `waveary-core/src/runtime/continuity-thread.ts` into a cleaner ASCII-safe version around the carry-over detection block, preserving the earlier short-follow-up logic while adding explicit support for oblique emotional residue turns such as `that part still hurts`, `I am not over it yet`, and `我还没过去，还是那个感觉`
+- adjusted the history-aware focus summary path so provider prompts now preserve the previous topic plus the new emotional carry-over line together, instead of accidentally collapsing the focus back onto the new fragment alone
+- added focused regression coverage in both `waveary-core/src/runtime/continuity-thread.test.ts` and `waveary-core/src/adapters/openai-compatible-provider.test.ts` for English and Chinese emotional carry-over follow-ups
+- verified the full `@waveary/core` package again after the continuity-file rebuild, including check, build, and compiled tests
+
+Files changed:
+
+- `waveary-core/src/runtime/continuity-thread.ts`
+- `waveary-core/src/runtime/continuity-thread.test.ts`
+- `waveary-core/src/adapters/openai-compatible-provider.test.ts`
+
+Verification:
+
+- `npm run check --workspace @waveary/core`
+- `npm run build --workspace @waveary/core`
+- PowerShell compiled-test verification via:
+  `$files = @(Get-ChildItem 'waveary-core\\dist' -Recurse -Filter '*.test.js' | ForEach-Object { $_.FullName }); & node --test @files`
+
+Commit:
+
+- `7adeace` - `Handle oblique emotional follow-up continuity`
+
+Push:
+
+- pending
+
+## 2026-06-24
+
+Objective:
+
 Strengthen dialogue continuity so short carry-over user follow-ups still stay anchored to the immediately previous topic instead of being treated like isolated new requests.
 
 Summary:

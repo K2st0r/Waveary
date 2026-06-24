@@ -27,6 +27,28 @@ Impact:
 - regression coverage now includes both core continuity selection and live-provider prompt-body checks for short carry-over follow-ups around the same topic
 - future dialogue-quality work should extend this path into more oblique multi-turn anchoring cases before adding broader memory-surface UX
 
+## 2026-06-24 - Oblique Emotional Carry-Over Turns Should Also Stay Anchored
+
+Status:
+
+- accepted
+
+Decision:
+
+Waveary should treat short emotionally attached follow-up turns such as `that part still hurts`, `I am not over it yet`, and `我还没过去，还是那个感觉` as continuation of the immediately previous user topic when the new message is still elliptical and clearly emotionally linked, even if it does not restate the topic nouns directly.
+
+Reason:
+
+- real companion conversations often shift from explicit topic naming into emotional residue; users stop repeating the subject and instead refer to the feeling that remains
+- stopping at only explicit carry-over phrases like `that` or `还是这件事` would still make the system feel forgetful during the exact kind of vulnerable follow-up where companionship quality matters most
+- this is a higher-value improvement than adding more surface features because it reduces the "you forgot what we were just talking about" failure mode on emotionally important turns
+
+Impact:
+
+- `waveary-core/src/runtime/continuity-thread.ts` now recognizes an additional small set of emotional carry-over patterns in English and Chinese for short elliptical follow-ups
+- `summarizeCurrentTurnFocusWithHistory(...)` now preserves the previous topic plus the new emotional residue in one focus string for provider prompts instead of collapsing the turn back into an isolated fragment
+- regression coverage now includes both direct continuity selection and live-provider prompt guidance for oblique emotional carry-over turns
+
 ## 2026-06-24 - Companion Replies Should Default To Human-Scale Cadence
 
 Status:
