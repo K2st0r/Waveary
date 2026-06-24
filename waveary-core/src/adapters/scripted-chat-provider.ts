@@ -40,6 +40,7 @@ export class ScriptedChatProvider implements ChatProvider {
       request.relationship.stage,
       continuityThread.guidance
     );
+    const identityLine = buildIdentitySummaryLine(request);
     const followup = buildFollowup(
       latestUserMessage.content,
       request.relationship.stage,
@@ -49,7 +50,7 @@ export class ScriptedChatProvider implements ChatProvider {
       gettingToKnowYou
     );
 
-    return assembleReply(prefix, continuity, followup, replyShape.kind);
+    return assembleReply(prefix, continuity, identityLine, followup, replyShape.kind);
   }
 }
 
@@ -243,22 +244,23 @@ function buildGettingToKnowYouFollowup(
 function assembleReply(
   prefix: string,
   continuity: string,
+  identityLine: string,
   followup: string,
   kind: "practical" | "ordinary" | "playful" | "reconnection" | "emotional"
 ): string {
   if (kind === "practical") {
-    return [continuity, followup].filter(Boolean).join(" ").trim();
+    return [continuity, identityLine, followup].filter(Boolean).join(" ").trim();
   }
 
   if (kind === "playful") {
-    return [prefix, followup].filter(Boolean).join(" ").trim();
+    return [prefix, identityLine, followup].filter(Boolean).join(" ").trim();
   }
 
   if (kind === "reconnection") {
-    return [prefix, continuity].filter(Boolean).join(" ").trim();
+    return [prefix, continuity, identityLine].filter(Boolean).join(" ").trim();
   }
 
-  return [prefix, continuity, followup].filter(Boolean).join(" ").trim();
+  return [prefix, continuity, identityLine, followup].filter(Boolean).join(" ").trim();
 }
 
 function summarizeTopic(content: string): string {
@@ -272,4 +274,33 @@ function wrapMemory(memory: string): string {
 
 function unwrapContinuityLine(value: string): string {
   return value.replace(/^\[(memory|timeline):[^\]]+\]\s*/i, "");
+}
+
+function buildIdentitySummaryLine(request: ChatProviderRequest): string {
+  const summary = request.identitySummary;
+
+  if (!summary) {
+    return "";
+  }
+
+  const need = summary.recurringNeeds[0];
+  const bond = summary.bondThemes[0];
+
+  if (need && request.relationship.stage === "growing") {
+    return `I am keeping in mind that you usually need ${need.replace(/^needs?\s+/i, "")}, so I do not want to answer you in the wrong register.`;
+  }
+
+  if (need) {
+    return `I am keeping in mind that you usually ${need}, and I want this reply to meet you there.`;
+  }
+
+  if (bond) {
+    return `I am holding onto the shape of us a little too: ${lowercaseFirst(bond)}.`;
+  }
+
+  return "";
+}
+
+function lowercaseFirst(value: string): string {
+  return value.length > 0 ? `${value[0]?.toLowerCase() ?? ""}${value.slice(1)}` : value;
 }

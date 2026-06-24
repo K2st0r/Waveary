@@ -141,6 +141,32 @@ test("OpenAICompatibleChatProvider strengthens companionship guidance in the ins
   assert.match(instruction, /Do not over-explain your memory process/i);
 });
 
+test("OpenAICompatibleChatProvider includes concept-level identity summary guidance in the instruction prompt", async () => {
+  const instruction = await captureInstruction(
+    createRequest({
+      identitySummary: {
+        userId: "user-1",
+        userSelfConcept: ["values long-term continuity over disposable chat"],
+        bondThemes: ["this bond is expected to carry continuity across turns"],
+        recurringNeeds: ["needs emotional presence before analysis when vulnerable"],
+        emotionalPatterns: ["when hurt, the user wants comfort to arrive before explanation"],
+        companionStance: ["stay caring, human, and continuity-aware"],
+        summaryText:
+          "User identity: values long-term continuity over disposable chat. Bond understanding: this bond is expected to carry continuity across turns.",
+        lastUpdatedAt: new Date().toISOString()
+      }
+    })
+  );
+
+  assert.match(instruction, /Concept-level identity summary:/);
+  assert.match(instruction, /User self-concept:\n1\. values long-term continuity over disposable chat/);
+  assert.match(instruction, /Recurring needs:\n1\. needs emotional presence before analysis when vulnerable/);
+  assert.match(
+    instruction,
+    /Use the concept-level identity summary as a stable understanding of who the user is, what this bond tends to feel like, and what kind of care tends to land well\./
+  );
+});
+
 test("OpenAICompatibleChatProvider names a primary continuity thread instead of flattening all recall context", async () => {
   const recorded: Array<{ url: string; init: RequestInit | undefined }> = [];
   const provider = new OpenAICompatibleChatProvider({
@@ -1791,6 +1817,17 @@ function createRequest(overrides: Partial<ChatProviderRequest> = {}): ChatProvid
         createdAt: new Date().toISOString()
       }
     ],
+    identitySummary: {
+      userId: "user-1",
+      userSelfConcept: ["values long-term continuity over disposable chat"],
+      bondThemes: ["the bond is becoming more personal and continuous"],
+      recurringNeeds: ["prefers natural conversational cadence over long speeches"],
+      emotionalPatterns: ["the user often frames emotion through continuity and remembered threads"],
+      companionStance: ["stay caring, human, and continuity-aware"],
+      summaryText:
+        "User identity: values long-term continuity over disposable chat. Bond understanding: the bond is becoming more personal and continuous.",
+      lastUpdatedAt: new Date().toISOString()
+    },
     relationship: {
       userId: "user-1",
       stage: "warming",

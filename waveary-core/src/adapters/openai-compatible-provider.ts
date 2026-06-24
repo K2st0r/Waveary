@@ -303,6 +303,30 @@ function buildDeveloperInstruction(request: ChatProviderRequest): string {
           .map((event, index) => `${index + 1}. ${event.eventTime}: ${event.title}`)
           .join("\n")
       : "None";
+  const identitySummaryBlock = request.identitySummary
+    ? [
+        request.identitySummary.userSelfConcept.length > 0
+          ? `User self-concept:\n${request.identitySummary.userSelfConcept.map((item, index) => `${index + 1}. ${item}`).join("\n")}`
+          : null,
+        request.identitySummary.bondThemes.length > 0
+          ? `Bond themes:\n${request.identitySummary.bondThemes.map((item, index) => `${index + 1}. ${item}`).join("\n")}`
+          : null,
+        request.identitySummary.recurringNeeds.length > 0
+          ? `Recurring needs:\n${request.identitySummary.recurringNeeds.map((item, index) => `${index + 1}. ${item}`).join("\n")}`
+          : null,
+        request.identitySummary.emotionalPatterns.length > 0
+          ? `Emotional patterns:\n${request.identitySummary.emotionalPatterns.map((item, index) => `${index + 1}. ${item}`).join("\n")}`
+          : null,
+        request.identitySummary.companionStance.length > 0
+          ? `Companion stance:\n${request.identitySummary.companionStance.map((item, index) => `${index + 1}. ${item}`).join("\n")}`
+          : null,
+        request.identitySummary.summaryText
+          ? `Summary text: ${request.identitySummary.summaryText}`
+          : null
+      ]
+        .filter((line): line is string => Boolean(line))
+        .join("\n\n")
+    : "None";
 
   const relationshipGuidance = describeRelationshipGuidance(request.relationship.stage);
   const replyShape = deriveReplyShapeGuidance(request);
@@ -354,6 +378,7 @@ function buildDeveloperInstruction(request: ChatProviderRequest): string {
     `Continuity thread use guidance: ${continuityThread.guidance}`,
     localTimeBlock,
     `Relevant memories:\n${memoryBlock}`,
+    `Concept-level identity summary:\n${identitySummaryBlock}`,
     `Additional recalled memories after the primary thread:\n${secondaryMemoryBlock}`,
     `Timeline context:\n${timelineBlock}`,
     request.emotion
@@ -382,6 +407,7 @@ function buildDeveloperInstruction(request: ChatProviderRequest): string {
     "The user should feel like they are getting to know a person, not filling out a persona setup form.",
     "Respond to the user's felt state first. If they sound hurt, anxious, tender, lonely, or emotionally open, begin with presence and emotional acknowledgment before explanation, analysis, or advice.",
     "Do not mention every memory mechanically. Prefer the named primary continuity thread when it genuinely helps, and leave the rest unused unless the user clearly needs them.",
+    "Use the concept-level identity summary as a stable understanding of who the user is, what this bond tends to feel like, and what kind of care tends to land well. Do not quote it mechanically.",
     "Prefer one natural acknowledgment of continuity over a summary list of remembered facts.",
     "If the primary continuity thread does not fit the current emotional moment, do not force it into the reply just to prove memory.",
     "Let relationship stage change distance and wording. In 'new', be warm but not overly intimate. In 'warming', sound personally continuous and gently more trusting. In 'growing', it is okay to sound softly familiar, closer, and more emotionally settled.",

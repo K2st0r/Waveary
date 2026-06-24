@@ -74,6 +74,16 @@ test("SqliteSessionStateRepository saves, loads, and deletes persisted session s
       decayHint: "medium",
       detectedUserEmotion: "joy"
     },
+    identitySummary: {
+      userId: "user-1",
+      userSelfConcept: ["values long-term continuity over disposable chat"],
+      bondThemes: ["the bond is becoming more personal and continuous"],
+      recurringNeeds: ["prefers natural conversational cadence over long speeches"],
+      emotionalPatterns: ["the user often frames emotion through continuity and remembered threads"],
+      companionStance: ["stay caring, human, and continuity-aware"],
+      summaryText: "User identity: values long-term continuity over disposable chat.",
+      lastUpdatedAt: new Date().toISOString()
+    },
     relationship: {
       userId: "user-1",
       stage: "warming",
@@ -105,6 +115,7 @@ test("SqliteSessionStateRepository saves, loads, and deletes persisted session s
   assert.equal(loaded?.context.session.id, "session-sqlite-1");
   assert.equal(loaded?.memories[0]?.content, "Persist this in SQLite.");
   assert.equal(loaded?.emotion?.primaryEmotion, "warm");
+  assert.equal(loaded?.identitySummary?.bondThemes[0], "the bond is becoming more personal and continuous");
   assert.equal(loaded?.relationship?.stage, "warming");
   assert.equal(loaded?.timeline[0]?.title, "SQLite test event");
 

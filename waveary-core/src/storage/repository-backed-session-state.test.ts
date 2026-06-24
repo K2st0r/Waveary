@@ -91,6 +91,7 @@ test("RepositoryBackedSessionState persists context, memories, relationship, and
   assert.equal(saved?.context.history.length, 1);
   assert.equal(saved?.memories.length, 1);
   assert.equal(saved?.emotion?.primaryEmotion, "warm");
+  assert.equal(saved?.identitySummary, undefined);
   assert.equal(saved?.proactiveCarePolicy?.enabled, true);
   assert.equal(saved?.proactiveCarePolicy?.maxDailyReachouts, 3);
   assert.equal(saved?.proactiveCareState?.dailyReachoutsSent, 1);
@@ -156,6 +157,35 @@ test("RepositoryBackedSessionState recalls only context-relevant memories and up
 
   assert.ok(recalledMemory?.lastRecalledAt);
   assert.equal(untouchedMemory?.lastRecalledAt, undefined);
+});
+
+test("RepositoryBackedSessionState persists concept-level identity summaries", async () => {
+  const repository = new TestSessionStateRepository();
+  const sessionState = new RepositoryBackedSessionState({
+    sessionId: "session-identity-summary",
+    repository,
+    createInitialState
+  });
+  const context = sessionState.getContext();
+
+  await sessionState.getIdentityStore().saveSummary(context.user.id, {
+    userId: context.user.id,
+    userSelfConcept: ["values long-term continuity over disposable chat"],
+    bondThemes: ["this bond is expected to carry continuity across turns"],
+    recurringNeeds: ["needs emotional presence before analysis when vulnerable"],
+    emotionalPatterns: ["when hurt, the user wants comfort to arrive before explanation"],
+    companionStance: ["stay caring, human, and continuity-aware"],
+    summaryText:
+      "User identity: values long-term continuity over disposable chat. Bond understanding: this bond is expected to carry continuity across turns.",
+    lastUpdatedAt: "2026-06-24T12:00:00.000Z"
+  });
+
+  const saved = repository.load("session-identity-summary");
+  const loaded = await sessionState.getIdentityStore().getSummary(context.user.id);
+
+  assert.equal(saved?.identitySummary?.userSelfConcept[0], "values long-term continuity over disposable chat");
+  assert.equal(loaded?.bondThemes[0], "this bond is expected to carry continuity across turns");
+  assert.match(loaded?.summaryText ?? "", /Bond understanding:/);
 });
 
 function createInitialState(sessionId: string): PersistedSessionState {
