@@ -17,6 +17,9 @@
 [![GitHub last commit](https://img.shields.io/github/last-commit/K2st0r/Waveary)](https://github.com/K2st0r/Waveary/commits/main)
 [![Visitors](https://komarev.com/ghpvc/?username=K2st0r&repo=Waveary&color=111111&label=views)](https://github.com/K2st0r/Waveary)
 
+**Quick Links**  
+[`Quick Start`](#quick-start--快速开始) · [`Project Status`](#project-status--项目状态) · [`Architecture`](#architecture-glance--架构一览) · [`Roadmap`](#roadmap--路线图) · [`Contributing`](#contributing--参与贡献)
+
 </div>
 
 ---
@@ -132,6 +135,49 @@ The goal is not occasional surprise. The goal is long-term presence.
 
 ---
 
+## Who Is It For | 它适合谁
+
+- builders creating companion-native AI products  
+  正在做陪伴型 AI 产品的开发者
+- teams that want to add memory and relationship continuity to existing LLM applications  
+  想给现有 LLM 产品补上记忆与关系连续性的团队
+- researchers exploring long-term interaction, emotional continuity, and memory-driven systems  
+  研究长期交互、情绪连续性和记忆驱动系统的研究者
+- open source contributors who want a practical companion-runtime foundation instead of a roleplay shell  
+  想参与一个真正的陪伴运行时开源底座，而不是角色扮演壳子的贡献者
+
+---
+
+## Feature Matrix | 能力矩阵
+
+| Capability | Current Direction | Notes |
+| --- | --- | --- |
+| Chat runtime | Available | Browser-first runtime shell is usable |
+| Multi-provider access | Available | OpenAI-compatible provider abstraction exists |
+| Model discovery | Available | Provider-side `/models` discovery exists |
+| Long-term memory | Available baseline | Extraction, storage, retrieval scaffold exists |
+| Relationship growth | Available baseline | Stateful continuity layer exists |
+| Timeline continuity | Available baseline | Timeline-aware session structure exists |
+| Emotional continuity | In progress | Runtime emotion layer is being expanded |
+| Voice routing | Available baseline | Dedicated voice path and realtime base exist |
+| Full duplex voice | In progress | Realtime voice is still under active development |
+| Proactive care | In progress | Direction is defined and partially scaffolded |
+
+| 能力 | 当前方向 | 说明 |
+| --- | --- | --- |
+| 对话运行时 | 已可用 | 浏览器优先的运行时外壳已可使用 |
+| 多供应商接入 | 已可用 | OpenAI-compatible 抽象已存在 |
+| 模型检索 | 已可用 | 已支持供应商 `/models` 检索 |
+| 长期记忆 | 基线已具备 | 提取、存储、检索骨架已存在 |
+| 关系成长 | 基线已具备 | 有状态连续性层已存在 |
+| 时间轴连续性 | 基线已具备 | 时间轴会话结构已存在 |
+| 情绪连续性 | 进行中 | 运行时情绪层正在继续扩展 |
+| 语音路由 | 基线已具备 | 独立语音链路与实时基础已存在 |
+| 全双工语音 | 进行中 | 实时语音仍在持续推进 |
+| 主动关怀 | 进行中 | 方向已明确并已有部分骨架 |
+
+---
+
 ## Core Engines | 核心引擎
 
 | Engine | Name | Responsibility |
@@ -149,6 +195,29 @@ The goal is not occasional surprise. The goal is long-term presence.
 | `WTE` | Waveary Timeline Engine | 时间轴与回忆 |
 | `WEE` | Waveary Emotion Engine | 情绪连续性 |
 | `WVE` | Waveary Voice Engine | 语音交互 |
+
+---
+
+## Architecture Glance | 架构一览
+
+```mermaid
+flowchart TD
+    UI["Web / Mobile UI<br/>Web / 移动端界面"] --> Runtime["Waveary Runtime<br/>运行时编排层"]
+    Runtime --> Memory["WME<br/>Memory Engine"]
+    Runtime --> Relationship["WRE<br/>Relationship Engine"]
+    Runtime --> Timeline["WTE<br/>Timeline Engine"]
+    Runtime --> Emotion["WEE<br/>Emotion Engine"]
+    Runtime --> Voice["WVE<br/>Voice Engine"]
+    Runtime --> Providers["Model / Voice Providers<br/>模型与语音供应商"]
+```
+
+Waveary sits between product interfaces and model vendors.
+
+Waveary 位于产品界面和模型供应商之间。
+
+It is the layer that turns short-term model interaction into long-term companion continuity.
+
+它负责把短期模型交互提升为长期陪伴连续性。
 
 ---
 
@@ -255,6 +324,21 @@ npm run verify:provider
    选择要使用的模型。
 5. Start chatting with memory, relationship, timeline, and voice capabilities layered on top.  
    在记忆、关系、时间轴与语音能力的加持下开始对话。
+
+---
+
+## Design Principles | 设计原则
+
+- framework first, product shell second  
+  先做框架，再做产品壳
+- continuity over novelty  
+  连续性优先于新奇感
+- stateful systems over prompt tricks  
+  系统状态优先于 prompt 技巧
+- explicit permissions over silent power  
+  显式权限优先于隐式能力
+- extensibility over vendor lock-in  
+  可扩展性优先于供应商绑定
 
 ---
 
