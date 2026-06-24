@@ -225,6 +225,28 @@ Impact:
 - regression coverage now includes both parser-level and live-provider prompt-level checks for parenthesized name-sharing
 - future parser work should keep supporting only punctuation wrappers that still leave a direct, explicit self-introduction structure intact
 
+## 2026-06-24 - Call Me Follow-Ups Must Not Pollute Preferred-Name Memory
+
+Status:
+
+- accepted
+
+Decision:
+
+Waveary should not treat follow-up phrasing such as `Call me if you get worried later.` or `Call me when you are free.` as preferred-name evidence, even though those lines begin with `call me`.
+
+Reason:
+
+- this is a clear false-positive class: the user is asking for future contact, not naming themselves
+- false identity memory is worse for companionship quality than being slightly conservative about edge-case introductions
+- once the system "remembers" a fake name like `if`, the prompt quality drops in exactly the kind of caring follow-up context where trust matters most
+
+Impact:
+
+- `waveary-core/src/runtime/getting-to-know-you.ts` now explicitly blocks this false-positive family through tightened stopword filtering for the captured follow-up token
+- regression coverage now includes both parser-level and live-provider prompt-level checks proving `call me if/when ...` does not become a confirmed preferred user name
+- future parser work should keep prioritizing false-positive prevention whenever a more relaxed rule would risk corrupting durable identity memory
+
 ## 2026-06-24 - Companion Replies Should Default To Human-Scale Cadence
 
 Status:

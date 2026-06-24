@@ -14,6 +14,8 @@ export interface GettingToKnowYouState {
 
 const DEFAULT_USER_PLACEHOLDERS = new Set(["waveary user", "user", "friend"]);
 const USER_NAME_STOPWORDS = new Set([
+  "if",
+  "when",
   "still",
   "not",
   "really",
