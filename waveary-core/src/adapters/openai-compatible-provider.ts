@@ -10,7 +10,7 @@ import {
 } from "./local-time-guidance.js";
 import {
   selectContinuityThread,
-  summarizeCurrentTurnFocus
+  summarizeCurrentTurnFocusWithHistory
 } from "../runtime/continuity-thread.js";
 import {
   deriveReplyShapeGuidance,
@@ -274,7 +274,10 @@ function buildResponsesBody(
 function buildDeveloperInstruction(request: ChatProviderRequest): string {
   const latestUserMessage = [...request.messages].reverse().find((message) => message.role === "user");
   const turnFocus = latestUserMessage
-    ? summarizeCurrentTurnFocus(latestUserMessage.content)
+    ? summarizeCurrentTurnFocusWithHistory(
+        latestUserMessage.content,
+        request.messages
+      )
     : "No explicit user-turn focus was available.";
   const continuityThread = selectContinuityThread({
     latestUserMessage,

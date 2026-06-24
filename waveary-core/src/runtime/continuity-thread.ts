@@ -18,7 +18,11 @@ export interface ContinuityThreadSelectionInput {
 export function selectContinuityThread(
   input: ContinuityThreadSelectionInput
 ): ContinuityThreadSelection {
-  const turnText = input.latestUserMessage?.content ?? "";
+  const continuityQuery = resolveContinuityQuery(
+    input.latestUserMessage,
+    input.messageHistory
+  );
+  const turnText = continuityQuery.queryText;
   const emotionalTurn = hasHighEmotionalTurnSignal(turnText);
   const sortedMemoryCandidates = [...input.relevantMemories]
     .map((memory) => ({
@@ -201,6 +205,27 @@ export function summarizeCurrentTurnFocus(content: string): string {
   return compact.length > 120 ? `${compact.slice(0, 120).trim()}...` : compact;
 }
 
+export function summarizeCurrentTurnFocusWithHistory(
+  latestContent: string,
+  messageHistory?: Message[]
+): string {
+  const continuityQuery = resolveContinuityQuery(
+    latestContent
+      ? {
+          id: "focus-latest",
+          sessionId: "focus-session",
+          role: "user",
+          content: latestContent,
+          timestamp: new Date(0).toISOString(),
+          metadata: {}
+        }
+      : undefined,
+    messageHistory
+  );
+
+  return summarizeCurrentTurnFocus(continuityQuery.focusText);
+}
+
 function scoreContinuityMatch(candidateText: string, turnText: string): number {
   const candidate = normalizePromptScoringText(candidateText);
   const turn = normalizePromptScoringText(turnText);
@@ -214,6 +239,102 @@ function scoreContinuityMatch(candidateText: string, turnText: string): number {
   const phraseBonus = turn.length >= 10 && candidate.includes(turn) ? 0.35 : 0;
 
   return tokenHits / turnTokens.length + phraseBonus;
+}
+
+function resolveContinuityQuery(
+  latestUserMessage: Message | undefined,
+  messageHistory?: Message[]
+): { queryText: string; focusText: string } {
+  const latestContent = latestUserMessage?.content.trim() ?? "";
+
+  if (!latestContent) {
+    return {
+      queryText: "",
+      focusText: ""
+    };
+  }
+
+  const previousUserMessage = findPreviousUserMessage(latestUserMessage, messageHistory);
+
+  if (!previousUserMessage) {
+    return {
+      queryText: latestContent,
+      focusText: latestContent
+    };
+  }
+
+  if (!shouldBlendWithPreviousUserTurn(latestContent, previousUserMessage.content)) {
+    return {
+      queryText: latestContent,
+      focusText: latestContent
+    };
+  }
+
+  const previousCompact = summarizeCurrentTurnFocus(previousUserMessage.content);
+  const latestCompact = summarizeCurrentTurnFocus(latestContent);
+
+  return {
+    queryText: `${previousUserMessage.content.trim()} ${latestContent}`.trim(),
+    focusText: `Continuing: ${previousCompact} Follow-up now: ${latestCompact}`
+  };
+}
+
+function findPreviousUserMessage(
+  latestUserMessage: Message | undefined,
+  messageHistory?: Message[]
+): Message | undefined {
+  if (!latestUserMessage || !messageHistory || messageHistory.length === 0) {
+    return undefined;
+  }
+
+  for (let index = messageHistory.length - 1; index >= 0; index -= 1) {
+    const message = messageHistory[index];
+
+    if (!message || message.role !== "user" || message.id === latestUserMessage.id) {
+      continue;
+    }
+
+    return message;
+  }
+
+  return undefined;
+}
+
+function shouldBlendWithPreviousUserTurn(
+  latestContent: string,
+  previousContent: string
+): boolean {
+  const compact = latestContent.replace(/\s+/g, " ").trim();
+
+  if (!compact || compact.length > 96 || previousContent.trim().length < 12) {
+    return false;
+  }
+
+  const tokenCount = extractPromptScoringTokens(normalizePromptScoringText(compact)).length;
+  const startsLikeContinuation =
+    /^(and|but|so|still|also|then|just|well|actually|yeah|yes|no|其实|还是|然后|而且|但是|不过|所以|就|那|这)/i.test(
+      compact
+    );
+  const explicitCarryover =
+    /\b(still|same thing|about that|about it|that part|this part|that one|this one|again)\b/i.test(
+      compact
+    ) ||
+    /(那个|这个|这件事|那件事|这一点|那一点|还是这个|还是那个|还是这件事|还是那件事|这部分|那部分)/.test(
+      compact
+    );
+  const genericReference =
+    /\b(it|that|this|they|them)\b/i.test(compact) ||
+    /(它|他|她|这|那)/.test(compact);
+
+  if (explicitCarryover) {
+    return true;
+  }
+
+  if (startsLikeContinuation && tokenCount <= 10) {
+    return true;
+  }
+
+  return genericReference && startsLikeContinuation && tokenCount <= 12;
 }
 
 function normalizePromptScoringText(value: string): string {
