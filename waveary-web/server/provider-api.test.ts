@@ -1875,6 +1875,46 @@ test("chat turn proposes a pending browser fill-submit action for page input req
   assert.equal(response.body.pendingLocalAction.value, "Waveary");
 });
 
+test("chat turn proposes a pending browser open-result action for result-opening requests", async () => {
+  const middleware = createProviderApiMiddleware();
+
+  saveProviderConfig({
+    provider: "provider-a",
+    baseURL: "https://provider-a.example/v1",
+    apiKey: "key-a",
+    model: "model-a"
+  });
+
+  globalThis.fetch = (async () =>
+    new Response(
+      JSON.stringify({
+        choices: [
+          {
+            message: {
+              content: "I can open that result for you."
+            }
+          }
+        ]
+      }),
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json"
+        }
+      }
+    )) as typeof fetch;
+
+  const response = await invokeJsonRoute(middleware, "POST", "/api/chat/turn", {
+    sessionId: DEFAULT_CHAT_SESSION_ID,
+    message: 'open result for Waveary'
+  });
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.pendingLocalAction.kind, "browser_open_first_result");
+  assert.equal(response.body.pendingLocalAction.target, "Waveary");
+  assert.equal(response.body.pendingLocalAction.targetLabel, "Waveary");
+});
+
 test("chat turn auto-executes browser search actions in full-access mode with grounded page feedback", async () => {
   const middleware = createProviderApiMiddleware();
 
@@ -2278,6 +2318,84 @@ test("local action execution route records browser fill-submit notes after appro
   assert.match(
     approvedResponse.body.session.messages[2]?.content,
     /I filled "Search" on "Search" with "Waveary" and submitted it/
+  );
+});
+
+test("local action execution route records browser result-opening notes after approval", async () => {
+  const middleware = createProviderApiMiddleware();
+
+  saveProviderConfig({
+    provider: "provider-a",
+    baseURL: "https://provider-a.example/v1",
+    apiKey: "key-a",
+    model: "model-a"
+  });
+
+  globalThis.fetch = (async () =>
+    new Response(
+      JSON.stringify({
+        choices: [
+          {
+            message: {
+              content: "Action prepared."
+            }
+          }
+        ]
+      }),
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json"
+        }
+      }
+    )) as typeof fetch;
+
+  setBrowserAutomationOverridesForTests({
+    async openFirstVisibleLink(options) {
+      assert.equal(options?.textIncludes, "Waveary");
+      assert.equal(options?.timeoutMs, 4000);
+      return {
+        page: {
+          url: "https://example.com/waveary",
+          title: "Waveary Result"
+        },
+        matchedText: "Waveary official site",
+        href: "https://example.com/waveary",
+        openedAt: "2026-06-24T09:00:00.000Z"
+      };
+    }
+  });
+
+  const turnResponse = await invokeJsonRoute(middleware, "POST", "/api/chat/turn", {
+    sessionId: DEFAULT_CHAT_SESSION_ID,
+    message: "open result for Waveary"
+  });
+
+  assert.equal(turnResponse.statusCode, 200);
+  assert.equal(turnResponse.body.pendingLocalAction.kind, "browser_open_first_result");
+
+  const approvedResponse = await invokeJsonRoute(
+    middleware,
+    "POST",
+    "/api/chat/local-action/execute",
+    {
+      sessionId: DEFAULT_CHAT_SESSION_ID,
+      actionId: turnResponse.body.pendingLocalAction.id,
+      permission: "ask",
+      approved: true,
+      locale: "en"
+    }
+  );
+
+  assert.equal(approvedResponse.statusCode, 200);
+  assert.equal(
+    approvedResponse.body.result.message,
+    'Opened the closest visible result for "Waveary".'
+  );
+  assert.equal(approvedResponse.body.session.latestInsights.pendingLocalAction, null);
+  assert.match(
+    approvedResponse.body.session.messages[2]?.content,
+    /I opened the visible result that best matched "Waveary" for you/
   );
 });
 

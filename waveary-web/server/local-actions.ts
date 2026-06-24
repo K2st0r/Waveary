@@ -26,6 +26,7 @@ export type LocalActionKind =
   | "browser_click_text"
   | "browser_fill_text"
   | "browser_fill_submit_text"
+  | "browser_open_first_result"
   | "browser_open_bilibili_video";
 export type LocalActionPermissionLevel = "allow" | "ask" | "deny";
 export type LocalActionLocale = "zh" | "en";
@@ -158,6 +159,18 @@ export async function detectPendingLocalAction(message: string): Promise<Pending
         ? `Fill ${browserFillTarget.field} and submit on the current page`
         : `Fill ${browserFillTarget.field} on the current page`,
       browserFillTarget.value
+    );
+  }
+
+  const browserOpenResultTarget = extractBrowserOpenResultInstruction(trimmed);
+  if (browserOpenResultTarget) {
+    return buildPendingLocalAction(
+      "browser_open_first_result",
+      browserOpenResultTarget,
+      browserOpenResultTarget,
+      browserOpenResultTarget === "__first_visible_result__"
+        ? "Open the first visible result"
+        : `Open the first visible result for ${browserOpenResultTarget}`
     );
   }
 
@@ -384,6 +397,47 @@ function extractBrowserFillInstruction(
   return null;
 }
 
+function extractBrowserOpenResultInstruction(message: string): string | null {
+  const englishPatterns = [
+    /^(?:open|click)\s+(?:the\s+)?first\s+(?:search\s+)?result(?:\s+for\s+["“]?(.+?)["”]?)?$/i,
+    /^(?:open|click)\s+(?:the\s+)?result\s+for\s+["“]?(.+?)["”]?$/i
+  ];
+  const chinesePatterns = [
+    /^打开(?:第一个)?(?:搜索)?结果(?:，|,| )?(?:关于|有关)?["“]?(.+?)["”]?$/,
+    /^点开(?:第一个)?(?:搜索)?结果(?:，|,| )?(?:关于|有关)?["“]?(.+?)["”]?$/,
+    /^打开第一个结果$/,
+    /^点开第一个结果$/
+  ];
+
+  for (const pattern of englishPatterns) {
+    const match = message.match(pattern);
+    const query = match?.[1]?.trim();
+
+    if (query) {
+      return stripTrailingPunctuation(query);
+    }
+
+    if (/first\s+(?:search\s+)?result/i.test(message)) {
+      return "__first_visible_result__";
+    }
+  }
+
+  for (const pattern of chinesePatterns) {
+    const match = message.match(pattern);
+    const query = match?.[1]?.trim();
+
+    if (query) {
+      return stripTrailingPunctuation(query);
+    }
+
+    if (/第一个结果/.test(message)) {
+      return "__first_visible_result__";
+    }
+  }
+
+  return null;
+}
+
 async function extractBilibiliFollowupQuery(message: string): Promise<string | null> {
   const match =
     message.match(/^(?:看|搜|找|查)(.+)$/) ||
@@ -452,6 +506,10 @@ function summarizeKind(kind: LocalActionKind): string {
 
   if (kind === "browser_fill_submit_text") {
     return "Fill and submit page input";
+  }
+
+  if (kind === "browser_open_first_result") {
+    return "Open page result";
   }
 
   if (kind === "browser_open_bilibili_video") {
@@ -622,6 +680,34 @@ async function executeLocalAction(
     };
   }
 
+  if (action.kind === "browser_open_first_result") {
+    const result = await openManagedBrowserFirstVisibleLink({
+      hrefIncludes: "",
+      ...(action.target !== "__first_visible_result__"
+        ? { textIncludes: action.target }
+        : {}),
+      timeoutMs: 4000
+    });
+
+    return {
+      status: "executed",
+      message:
+        locale === "zh"
+          ? action.target === "__first_visible_result__"
+            ? "已替你打开当前页面里的第一个结果。"
+            : `已替你打开和“${action.targetLabel}”最贴近的结果。`
+          : action.target === "__first_visible_result__"
+            ? "Opened the first visible result."
+            : `Opened the closest visible result for "${action.targetLabel}".`,
+      assistantNote: buildBrowserOpenResultAssistantNote(
+        result.page,
+        result.matchedText,
+        action.targetLabel,
+        locale
+      )
+    };
+  }
+
   if (action.kind === "browser_open_bilibili_video") {
     const query = action.targetLabel;
     const searchUrl = `https://search.bilibili.com/all?keyword=${encodeURIComponent(query)}`;
@@ -749,6 +835,24 @@ function buildBrowserFillSubmitAssistantNote(
   return locale === "zh"
     ? `我已经替你在${pageRef}里的“${matchedText}”填上了“${clipText(value, 40)}”，并顺手提交出去了。如果你愿意，我可以继续陪你看结果。`
     : `I filled "${matchedText}" on ${pageRef} with "${clipText(value, 40)}" and submitted it for you. If you want, I can stay with you and look at the result next.`;
+}
+
+function buildBrowserOpenResultAssistantNote(
+  page: BrowserPageInfo,
+  matchedText: string,
+  targetLabel: string,
+  locale: LocalActionLocale
+): string {
+  const pageRef = describePage(page, locale);
+  const isGenericFirstResult = targetLabel === "__first_visible_result__";
+
+  return locale === "zh"
+    ? isGenericFirstResult
+      ? `我已经替你点开了当前结果页里最先出现的那一项，打开的是「${matchedText}」。现在页面来到${pageRef}，如果你愿意，我可以继续陪你往下看。`
+      : `我已经替你点开了和「${targetLabel}」最贴近的结果，打开的是「${matchedText}」。现在页面来到${pageRef}，如果你愿意，我可以继续陪你往下看。`
+    : isGenericFirstResult
+      ? `I opened the first visible result for you, and it led to "${matchedText}". We are at ${pageRef} now, and I can keep going with you if you want.`
+      : `I opened the visible result that best matched "${targetLabel}" for you, and it led to "${matchedText}". We are at ${pageRef} now, and I can keep going with you if you want.`;
 }
 
 function buildBilibiliOpenAssistantNote(
