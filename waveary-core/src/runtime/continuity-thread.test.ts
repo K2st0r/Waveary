@@ -4,7 +4,11 @@ import assert from "node:assert/strict";
 import type { Message } from "../domain/session.js";
 import type { MemoryItem } from "../domain/memory.js";
 import type { TimelineEvent } from "../domain/timeline.js";
-import { selectContinuityThread, summarizeCurrentTurnFocus } from "./continuity-thread.js";
+import {
+  selectContinuityThread,
+  summarizeCurrentTurnFocus,
+  summarizeCurrentTurnFocusWithHistory
+} from "./continuity-thread.js";
 
 test("selectContinuityThread prefers a strong matching memory as the primary thread", () => {
   const latestUserMessage: Message = {
@@ -216,6 +220,96 @@ test("selectContinuityThread prefers the memory tied to the more recent source t
     "[memory:preference] The user wants relationship growth to feel real and emotionally continuous."
   );
   assert.equal(selection.secondaryMemories[0]?.id, "memory-older-source");
+});
+
+test("selectContinuityThread blends a short carry-over follow-up with the previous user turn", () => {
+  const messages: Message[] = [
+    {
+      id: "message-topic-1",
+      sessionId: "session-1",
+      role: "user",
+      content: "I keep thinking about the interview tomorrow and I want to feel steadier before it.",
+      timestamp: "2026-06-24T10:00:00.000Z",
+      metadata: {}
+    },
+    {
+      id: "message-assistant-topic-1",
+      sessionId: "session-1",
+      role: "assistant",
+      content: "I am here with you. We can take that slowly.",
+      timestamp: "2026-06-24T10:00:10.000Z",
+      metadata: {}
+    },
+    {
+      id: "message-topic-2",
+      sessionId: "session-1",
+      role: "user",
+      content: "I am still scared about that, honestly.",
+      timestamp: "2026-06-24T10:00:20.000Z",
+      metadata: {}
+    }
+  ];
+
+  const selection = selectContinuityThread({
+    latestUserMessage: messages[2],
+    messageHistory: messages,
+    relevantMemories: [
+      createMemory(
+        "memory-interview",
+        "life_event",
+        "The user has an interview tomorrow and wants to feel steadier before it."
+      ),
+      createMemory(
+        "memory-clouds",
+        "preference",
+        "The user likes cloudy afternoons."
+      )
+    ],
+    timeline: []
+  });
+
+  assert.equal(
+    selection.primaryLine,
+    "[memory:life_event] The user has an interview tomorrow and wants to feel steadier before it."
+  );
+});
+
+test("summarizeCurrentTurnFocusWithHistory marks short continuation turns as follow-ups instead of isolated fragments", () => {
+  const messages: Message[] = [
+    {
+      id: "message-focus-1",
+      sessionId: "session-1",
+      role: "user",
+      content: "I keep thinking about the interview tomorrow and I want to feel steadier before it.",
+      timestamp: "2026-06-24T10:00:00.000Z",
+      metadata: {}
+    },
+    {
+      id: "message-focus-2",
+      sessionId: "session-1",
+      role: "assistant",
+      content: "I am here with you.",
+      timestamp: "2026-06-24T10:00:10.000Z",
+      metadata: {}
+    },
+    {
+      id: "message-focus-3",
+      sessionId: "session-1",
+      role: "user",
+      content: "Still scared about that, honestly.",
+      timestamp: "2026-06-24T10:00:20.000Z",
+      metadata: {}
+    }
+  ];
+
+  const focus = summarizeCurrentTurnFocusWithHistory(
+    messages[2]?.content ?? "",
+    messages
+  );
+
+  assert.match(focus, /^Continuing:/);
+  assert.match(focus, /Follow-up now:/);
+  assert.match(focus, /interview tomorrow/i);
 });
 
 function createMemory(
