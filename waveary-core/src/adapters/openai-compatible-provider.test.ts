@@ -1197,6 +1197,40 @@ test("OpenAICompatibleChatProvider does not treat call me sequencing follow-ups 
   );
 });
 
+test("OpenAICompatibleChatProvider does not treat call me back follow-ups as a confirmed user name", async () => {
+  const instruction = await captureInstruction(
+    createRequest({
+      user: {
+        id: "user-1",
+        displayName: "User",
+        profileTraits: ["reflective"],
+        preferences: ["continuity"]
+      },
+      relationship: createRelationship("new"),
+      messages: [
+        {
+          id: "m1",
+          sessionId: "session-1",
+          role: "user",
+          content: "Call me back when you can.",
+          timestamp: new Date().toISOString(),
+          metadata: {}
+        }
+      ],
+      relevantMemories: []
+    })
+  );
+
+  assert.doesNotMatch(
+    instruction,
+    /Confirmed preferred user name from shared history: back\./i
+  );
+  assert.match(
+    instruction,
+    /No confirmed preferred user name has been established yet\. Do not treat the placeholder profile label as intimate personal knowledge\./
+  );
+});
+
 test("OpenAICompatibleChatProvider marks reconnection turns as short emotion-led replies", async () => {
   const instruction = await captureInstruction(
     createRequest({

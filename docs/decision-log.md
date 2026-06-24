@@ -291,6 +291,28 @@ Impact:
 - regression coverage now includes both parser-level and live-provider prompt-level checks proving `call me once/after ...` does not become a confirmed preferred user name
 - future parser work should keep extending false-positive guards around common contact-language shapes before expanding into looser introduction heuristics
 
+## 2026-06-24 - Call Me Back Language Must Also Stay Out Of Preferred-Name Memory
+
+Status:
+
+- accepted
+
+Decision:
+
+Waveary should not treat callback phrasing such as `Call me back when you can.` as preferred-name evidence, even though the line still begins with `call me`.
+
+Reason:
+
+- callback language is extremely common in ordinary caring conversation and should never contaminate durable identity memory
+- fake preferred names like `back` are not just wrong; they make the companion feel brittle and unserious in exactly the moments where the user is asking for contact
+- this remains a safe, bounded extension of the same false-positive cleanup strategy instead of a broad parser rewrite
+
+Impact:
+
+- `waveary-core/src/runtime/getting-to-know-you.ts` now explicitly rejects `back` as a preferred-name candidate in the plausibility filter
+- regression coverage now includes both parser-level and live-provider prompt-level checks proving `call me back ...` does not become a confirmed preferred user name
+- future parser work should keep closing realistic contact-language false positives before attempting looser introduction capture
+
 ## 2026-06-24 - Companion Replies Should Default To Human-Scale Cadence
 
 Status:
