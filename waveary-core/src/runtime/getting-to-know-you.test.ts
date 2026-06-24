@@ -89,7 +89,8 @@ test("describeGettingToKnowYouGuidance keeps new-stage discovery natural and bou
     "ordinary"
   );
 
-  assert.match(guidance, /warmth and personality/i);
+  assert.match(guidance, /warmth and a little personality/i);
+  assert.match(guidance, /do not sound like a branded self-introduction/i);
   assert.match(guidance, /what you should call them in return/i);
 });
 
@@ -110,6 +111,7 @@ test("describeGettingToKnowYouGuidance pushes first greetings toward warm human 
 
   assert.match(guidance, /first-contact greeting/i);
   assert.match(guidance, /real person meeting someone/i);
+  assert.match(guidance, /continuous caring bond/i);
 });
 
 test("deriveGettingToKnowYouState does not mistake emotional follow-ups for a user name", () => {

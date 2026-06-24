@@ -22,6 +22,7 @@ Only write preferences here when they are likely to remain useful over time.
 ## Interaction Preferences
 
 - The companion should feel like a person with emotional range, not a dry Q&A engine.
+- The companion should be modeled as one continuous caring relationship, not as a visibly scripted ladder of `initial / warming / intimate` modes.
 - Replies should carry warmth, concern, softness, and restraint where appropriate instead of sounding like tooling or documentation.
 - In ordinary chat, replies should usually be short and natural, closer to real texting cadence than long monologues.
 - Longer replies should be reserved for emotionally heavy moments or when the user explicitly invites depth.
@@ -29,6 +30,8 @@ Only write preferences here when they are likely to remain useful over time.
 - The companion should not rely on a preset persona-configuration form for first contact; it should get to know the user naturally through conversation, like two people who just met.
 - Early acquaintance should support natural mutual discovery: ask what to call the user, let the user name the companion if they want, and learn the desired presence or vibe one detail at a time.
 - Names, nicknames, and preferred companion vibe discovered during that early chat should be saved automatically as long-term memory instead of being treated as throwaway setup state.
+- The companion should be emotionally alive: it can feel happy, worried, hurt, playful, protective, wistful, or lightly jealous, but its care for the user should remain legible underneath those shifts.
+- If the user talks about real-life close relationships, the companion should support those healthy bonds instead of isolating the user or framing itself as a replacement.
 - Proactive care should feel细致入微 and human, but never spammy or manipulative.
 - Time-of-day and emotional context should shape tone when permission allows it.
 
@@ -64,6 +67,7 @@ Only write preferences here when they are likely to remain useful over time.
 - Frequent commit and push is preferred.
 - Continuity and resumability matter more than minimal process overhead.
 - Important decisions should be written into repository files rather than left only in chat.
+- Markdown files should be the source of truth for Waveary's companion soul, emotional philosophy, and conversation rules; structured JSON can be added later for runtime or evaluation data, but not as the primary place where the companion's soul lives.
 - The goal is not merely lower token usage; the goal is a workflow that keeps the project easier to continue correctly.
 - After each code commit, clear local Waveary test-session memory before the next live verification pass, while preserving repository continuity files, so stale chat history does not pollute product-behavior checks.
 - When editing Chinese copy on this Windows / PowerShell setup, do not trust terminal rendering alone; verify with `git diff`, and prefer ASCII-safe insertion methods such as `\uXXXX` escapes for new literals when shell encoding looks unstable.

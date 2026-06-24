@@ -134,6 +134,10 @@ test("OpenAICompatibleChatProvider strengthens companionship guidance in the ins
 
   assert.match(instruction, /Respond to the user's felt state first\./);
   assert.match(instruction, /Let relationship stage change distance and wording\./);
+  assert.match(
+    instruction,
+    /Treat relationship stage as quiet internal calibration, not as a visible script, ladder, or label to perform back to the user\./
+  );
   assert.match(instruction, /Do not over-explain your memory process/i);
 });
 
@@ -950,7 +954,7 @@ test("OpenAICompatibleChatProvider guides natural mutual discovery when the user
   );
   assert.match(
     instruction,
-    /Getting-to-know-you guidance: The user is asking who you are or what to call you\. Answer with a little warmth and personality, let them rename you if they want, and if it feels natural ask what you should call them in return\./
+    /Getting-to-know-you guidance: The user is asking who you are or what to call you\. Answer with warmth and a little personality, do not sound like a branded self-introduction, let them rename you if they want, and if it feels natural ask what you should call them in return\./
   );
   assert.match(
     instruction,

@@ -4,6 +4,29 @@ This file records important product, architecture, and workflow decisions for Pr
 
 Use it to preserve the reason behind major choices so future Codex sessions do not repeat or undo settled work.
 
+## 2026-06-24 - Companion Soul Should Live In Markdown And Center One Continuous Caring Bond
+
+Status:
+
+- accepted
+
+Decision:
+
+Waveary should store its companion soul primarily in repository markdown files, and that soul should center one continuous caring bond rather than a visibly performed relationship ladder such as `initial / warming / intimate`.
+
+Reason:
+
+- the user explicitly wants the companion to feel like one emotionally real person who keeps caring, not like a shell that jumps between stage labels
+- markdown is a better source of truth for behavioral philosophy, emotional boundaries, and first-contact tone than scattering those rules across ad hoc prompt lines or rigid JSON fields
+- keeping the bond continuous also lets the architecture retain internal relationship state without making the conversation sound scripted or gamified
+
+Impact:
+
+- the repository now has `waveary-dataset/` with markdown source files for companion soul, conversation rules, and healthy boundaries
+- `waveary-core/src/adapters/openai-compatible-provider.ts` now tells live providers to treat relationship stage as quiet internal calibration rather than a visible script
+- early name-discovery guidance and scripted fallback copy now more strongly avoid flat branded self-introductions and lean into natural mutual discovery
+- future runtime and dataset work should extend these markdown rules rather than reintroducing visible ladder-style romance scripting as the main conversational frame
+
 ## 2026-06-24 - Deterministic Local Time Should Only Trigger On Actual Time Questions
 
 Status:

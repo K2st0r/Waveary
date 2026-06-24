@@ -191,11 +191,11 @@ export function describeGettingToKnowYouGuidance(
   const practical = replyShapeKind === "practical";
 
   if (state.userPreferredName && state.companionAssignedName && state.desiredStyleDescriptors.length > 0) {
-    return "Core getting-to-know-you details are already present. Use them naturally and do not keep asking beginner questions.";
+    return "Core getting-to-know-you details are already present. Use them gently and naturally; do not fall back into setup questions.";
   }
 
   if (relationshipStage !== "new") {
-    return "The earliest getting-to-know-you phase is already passing. Only ask about names or vibe if the user clearly opens that door again.";
+    return "The bond is already underway. Do not perform beginner onboarding; only revisit names or desired vibe if the user clearly opens that door again.";
   }
 
   if (emotionallyHeavy) {
@@ -203,18 +203,18 @@ export function describeGettingToKnowYouGuidance(
   }
 
   if (state.latestTurnAskedCompanionName) {
-    return "The user is asking who you are or what to call you. Answer with a little warmth and personality, let them rename you if they want, and if it feels natural ask what you should call them in return.";
+    return "The user is asking who you are or what to call you. Answer with warmth and a little personality, do not sound like a branded self-introduction, let them rename you if they want, and if it feels natural ask what you should call them in return.";
   }
 
   if (state.latestTurnIsGreeting) {
-    return "This is a first-contact greeting. Sound like a real person meeting someone with a little warmth or playful closeness, not like a product introduction. If it fits, ask only one light getting-to-know-you question.";
+    return "This is a first-contact greeting. Sound like a real person meeting someone with a little warmth or playful closeness, not like a product introduction. Treat it as the beginning of one continuous caring bond, and if it fits ask only one light getting-to-know-you question.";
   }
 
   if (practical) {
     return "This turn is practical. Answer the practical need first and avoid turning it into a getting-to-know-you detour.";
   }
 
-  return "In the new stage, a little playful mutual discovery is welcome. If one detail is still missing, gently ask for only one: what to call them, whether they want to name you, or what kind of presence they want from you.";
+  return "In the new stage, a little playful mutual discovery is welcome. Keep it natural rather than form-like. If one detail is still missing, gently ask for only one: what to call them, whether they want to name you, or what kind of presence they want from you.";
 }
 
 function findLatestMatch(texts: string[], patterns: RegExp[]): string | undefined {

@@ -3,6 +3,53 @@
 
 Objective:
 
+Lock the companion soul into repository markdown and tighten first-contact identity guidance so Waveary feels more like one emotionally real caring person and less like a staged product shell.
+
+Summary:
+
+- added `waveary-dataset/README.md` plus `waveary-dataset/vision/companion-soul.md`, `conversation-rules.md`, and `healthy-boundaries.md` as markdown-first source files for Waveary's emotional philosophy, conversation feel, and real-world relationship boundaries
+- updated `waveary-core/src/adapters/openai-compatible-provider.ts` so live-provider prompt assembly now treats relationship stage as quiet internal calibration, reinforces one continuous caring bond, discourages flat branded self-introductions, and explicitly supports healthy real-world bonds
+- updated `waveary-core/src/runtime/getting-to-know-you.ts` so early mutual-discovery guidance now leans harder away from setup-form behavior and brand-flat identity lines while preserving the existing bounded parser shape
+- updated `waveary-core/src/adapters/scripted-chat-provider.ts` so the scripted fallback sounds warmer and more human when the user asks the companion's name or opens with a simple hello
+- added and updated focused regressions in `waveary-core/src/runtime/getting-to-know-you.test.ts` and `waveary-core/src/adapters/openai-compatible-provider.test.ts`, then re-verified the full compiled `@waveary/core` test suite
+
+Files changed:
+
+- `waveary-dataset/README.md`
+- `waveary-dataset/vision/companion-soul.md`
+- `waveary-dataset/vision/conversation-rules.md`
+- `waveary-dataset/vision/healthy-boundaries.md`
+- `waveary-core/src/adapters/openai-compatible-provider.ts`
+- `waveary-core/src/adapters/openai-compatible-provider.test.ts`
+- `waveary-core/src/adapters/scripted-chat-provider.ts`
+- `waveary-core/src/runtime/getting-to-know-you.ts`
+- `waveary-core/src/runtime/getting-to-know-you.test.ts`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/product-preferences.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/core`
+- `npm run build --workspace @waveary/core`
+- `npm run check:mojibake`
+- PowerShell compiled-test verification via:
+  `$files = @(Get-ChildItem 'waveary-core\\dist' -Recurse -Filter '*.test.js' | ForEach-Object { $_.FullName }); & node --test @files`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-24
+
+Objective:
+
 Tighten first-contact companionship quality by fixing the local-time misfire on emotional turns, warming new-stage greeting cadence, and making the chat composer behave more like a real messaging surface.
 
 Summary:
