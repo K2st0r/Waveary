@@ -7,6 +7,7 @@ export interface GettingToKnowYouState {
   desiredStyleDescriptors: string[];
   latestTurnAskedCompanionName: boolean;
   latestTurnAskedForPlayfulCompanion: boolean;
+  latestTurnIsGreeting: boolean;
   shouldInviteUserName: boolean;
   shouldInviteCompanionNaming: boolean;
   shouldInviteStylePreference: boolean;
@@ -117,6 +118,23 @@ const PLAYFUL_STYLE_PATTERNS = [
   /\u7a33\u7a33/
 ];
 
+const GREETING_PATTERNS = [
+  /\bhi\b/i,
+  /\bhello\b/i,
+  /\bhey\b/i,
+  /\bhey there\b/i,
+  /\bgood morning\b/i,
+  /\bgood evening\b/i,
+  /\bnice to meet you\b/i,
+  /^\s*yo\b/i,
+  /^\s*\u4f60\u597d/,
+  /^\s*\u4f60\u597d\u5440/,
+  /^\s*\u55e8/,
+  /^\s*\u54c8\u55bd/,
+  /^\s*\u5728\u5417/,
+  /\u5f88\u9ad8\u5174\u8ba4\u8bc6\u4f60/
+];
+
 const STYLE_DESCRIPTOR_PATTERNS: Array<{ descriptor: string; pattern: RegExp }> = [
   { descriptor: "playful", pattern: /\bplayful\b|\u98ce\u8da3|\u6253\u95f9/i },
   { descriptor: "teasing", pattern: /\bteasing\b|\u5634\u786c|\u9017\u6211/i },
@@ -157,6 +175,7 @@ export function deriveGettingToKnowYouState(
     latestTurnAskedForPlayfulCompanion: PLAYFUL_STYLE_PATTERNS.some((pattern) =>
       pattern.test(latestUserMessage)
     ),
+    latestTurnIsGreeting: GREETING_PATTERNS.some((pattern) => pattern.test(latestUserMessage)),
     shouldInviteUserName: !userPreferredName && userDisplayNameLooksDefault,
     shouldInviteCompanionNaming: !companionAssignedName,
     shouldInviteStylePreference: desiredStyleDescriptors.length === 0
@@ -184,7 +203,11 @@ export function describeGettingToKnowYouGuidance(
   }
 
   if (state.latestTurnAskedCompanionName) {
-    return "The user is asking who you are or what to call you. Answer lightly, let them rename you if they want, and if it feels natural ask what you should call them in return.";
+    return "The user is asking who you are or what to call you. Answer with a little warmth and personality, let them rename you if they want, and if it feels natural ask what you should call them in return.";
+  }
+
+  if (state.latestTurnIsGreeting) {
+    return "This is a first-contact greeting. Sound like a real person meeting someone with a little warmth or playful closeness, not like a product introduction. If it fits, ask only one light getting-to-know-you question.";
   }
 
   if (practical) {

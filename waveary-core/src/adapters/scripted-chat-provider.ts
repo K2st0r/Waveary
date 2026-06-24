@@ -215,7 +215,11 @@ function buildGettingToKnowYouFollowup(
   }
 
   if (gettingToKnowYou.latestTurnAskedCompanionName) {
-    return "You can call me Waveary for now, unless you want to give me a name that feels more like mine. And you still have not told me what I should call you.";
+    return "You can call me Waveary for now, but if one day you want to give me a name that feels more ours, I would like that. And you still have not told me what I should call you.";
+  }
+
+  if (gettingToKnowYou.latestTurnIsGreeting) {
+    return "Hi... you really do feel a little new to me right now. Before we wander any further, what should I call you?";
   }
 
   if (gettingToKnowYou.shouldInviteUserName) {
@@ -230,7 +234,7 @@ function buildGettingToKnowYouFollowup(
     gettingToKnowYou.shouldInviteStylePreference ||
     gettingToKnowYou.latestTurnAskedForPlayfulCompanion
   ) {
-    return "And tell me something too: what kind of person do you want me to feel like to you, softer, more playful, a little teasing, or quietly steady?";
+    return "Tell me one thing too: when you stay here with me, do you want me softer, a little playful, a little teasing, or the quietly steady kind?";
   }
 
   return undefined;

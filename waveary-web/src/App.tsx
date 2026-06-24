@@ -2922,6 +2922,22 @@ export function App(): ReactElement {
     await sendChatMessage(chatInput);
   }
 
+  async function handleChatInputKeyDown(
+    event: React.KeyboardEvent<HTMLTextAreaElement>
+  ): Promise<void> {
+    if (event.key !== "Enter" || event.shiftKey || event.nativeEvent.isComposing) {
+      return;
+    }
+
+    event.preventDefault();
+
+    if (!chatReady || chatState === "loading" || !chatInput.trim()) {
+      return;
+    }
+
+    await handleSendMessage();
+  }
+
   async function speakAssistantReply(
     text: string,
     insights?: ChatTurnResponse
@@ -7067,33 +7083,11 @@ export function App(): ReactElement {
                 <textarea
                   value={chatInput}
                   onChange={(event) => setChatInput(event.target.value)}
+                  onKeyDown={(event) => void handleChatInputKeyDown(event)}
                   placeholder={copy.runtime.placeholder}
                   disabled={!chatReady || chatState === "loading"}
                 />
                 <div className="chat-composer-toolbar">
-                  <div className="chat-composer-main-actions">
-                    <button
-                      className={`button button-secondary chat-live-button ${voiceConversationMode ? "chat-voice-button-active" : ""}`}
-                      onClick={() => handleToggleSpeechInput()}
-                      disabled={
-                        !chatReady ||
-                        chatState === "loading" ||
-                        speechInputState === "processing" ||
-                        speechInputState === "unsupported"
-                      }
-                      type="button"
-                    >
-                      {voiceConversationMode ? "End live chat" : "Start live chat"}
-                    </button>
-                    <button
-                      className="button button-primary"
-                      onClick={() => void handleSendMessage()}
-                      disabled={!chatReady || !chatInput.trim() || chatState === "loading"}
-                    >
-                      {chatState === "loading" ? copy.runtime.sending : copy.runtime.send}
-                    </button>
-                  </div>
-
                   <div className="chat-composer-side-actions">
                     <div className="chat-permission-controls">
                       <button
@@ -7174,6 +7168,29 @@ export function App(): ReactElement {
                     </div>
 
                     {renderVoiceConfigControls("chat")}
+                  </div>
+
+                  <div className="chat-composer-main-actions">
+                    <button
+                      className={`button button-secondary chat-live-button ${voiceConversationMode ? "chat-voice-button-active" : ""}`}
+                      onClick={() => handleToggleSpeechInput()}
+                      disabled={
+                        !chatReady ||
+                        chatState === "loading" ||
+                        speechInputState === "processing" ||
+                        speechInputState === "unsupported"
+                      }
+                      type="button"
+                    >
+                      {voiceConversationMode ? "End live chat" : "Start live chat"}
+                    </button>
+                    <button
+                      className="button button-primary"
+                      onClick={() => void handleSendMessage()}
+                      disabled={!chatReady || !chatInput.trim() || chatState === "loading"}
+                    >
+                      {chatState === "loading" ? copy.runtime.sending : copy.runtime.send}
+                    </button>
                   </div>
                 </div>
                 <div className="chat-voice-status" aria-live="polite">
