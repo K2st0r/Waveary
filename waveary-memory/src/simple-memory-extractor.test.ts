@@ -54,3 +54,49 @@ test("SimpleMemoryExtractor ignores short low-signal user input", async () => {
 
   assert.deepEqual(candidates, []);
 });
+
+test("SimpleMemoryExtractor preserves early name-sharing details as durable memories", async () => {
+  const extractor = new SimpleMemoryExtractor();
+  const message = createMessage(
+    "turn-3",
+    "You can call me Aki, and if you want, I am going to call you Echo."
+  );
+  const reply: Message = {
+    id: "reply-3",
+    sessionId: "session-1",
+    role: "assistant",
+    content: "That is unfairly cute, but I am accepting it.",
+    timestamp: new Date().toISOString(),
+    metadata: {}
+  };
+
+  const candidates = await extractor.extractCandidates(message, reply);
+
+  assert.equal(candidates.length, 2);
+  assert.equal(candidates[0]?.type, "preference");
+  assert.match(candidates[0]?.content ?? "", /call me Aki/i);
+  assert.equal(candidates[1]?.type, "preference");
+  assert.match(candidates[1]?.content ?? "", /call you Echo/i);
+});
+
+test("SimpleMemoryExtractor preserves desired companion vibe from early conversation", async () => {
+  const extractor = new SimpleMemoryExtractor();
+  const message = createMessage(
+    "turn-4",
+    "I want you to feel playful, a little teasing, but still caring with me."
+  );
+  const reply: Message = {
+    id: "reply-4",
+    sessionId: "session-1",
+    role: "assistant",
+    content: "That sounds dangerously specific, but I am listening.",
+    timestamp: new Date().toISOString(),
+    metadata: {}
+  };
+
+  const candidates = await extractor.extractCandidates(message, reply);
+
+  assert.equal(candidates.length, 1);
+  assert.equal(candidates[0]?.type, "reflection");
+  assert.match(candidates[0]?.content ?? "", /playful/i);
+});

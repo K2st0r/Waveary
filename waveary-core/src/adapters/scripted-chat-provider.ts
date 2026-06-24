@@ -1,6 +1,9 @@
 import type { ChatProvider, ChatProviderRequest } from "../index.js";
 import { selectContinuityThread } from "../runtime/continuity-thread.js";
 import { buildDeterministicLocalTimeReply } from "../runtime/local-time-reply.js";
+import {
+  deriveGettingToKnowYouState
+} from "../runtime/getting-to-know-you.js";
 import { deriveReplyShapeGuidance } from "../runtime/reply-shape.js";
 import { resolveLocalTimeGuidance } from "./local-time-guidance.js";
 
@@ -23,6 +26,7 @@ export class ScriptedChatProvider implements ChatProvider {
       request
     );
     const replyShape = deriveReplyShapeGuidance(request);
+    const gettingToKnowYou = deriveGettingToKnowYouState(request);
     const continuityThread = selectContinuityThread({
       latestUserMessage,
       messageHistory: request.messages,
@@ -40,7 +44,9 @@ export class ScriptedChatProvider implements ChatProvider {
       latestUserMessage.content,
       request.relationship.stage,
       request.emotion?.primaryEmotion,
-      replyShape.maxFollowups
+      replyShape.maxFollowups,
+      replyShape.kind,
+      gettingToKnowYou
     );
 
     return assembleReply(prefix, continuity, followup, replyShape.kind);
@@ -154,10 +160,22 @@ function buildFollowup(
   content: string,
   stage: string,
   emotion: string | undefined,
-  maxFollowups: 0 | 1
+  maxFollowups: 0 | 1,
+  replyShapeKind: "practical" | "ordinary" | "playful" | "reconnection" | "emotional",
+  gettingToKnowYou: ReturnType<typeof deriveGettingToKnowYouState>
 ): string {
   if (maxFollowups === 0) {
     return "";
+  }
+
+  const onboardingFollowup = buildGettingToKnowYouFollowup(
+    stage,
+    replyShapeKind,
+    gettingToKnowYou
+  );
+
+  if (onboardingFollowup) {
+    return onboardingFollowup;
   }
 
   const topic = summarizeTopic(content);
@@ -185,6 +203,37 @@ function buildFollowup(
   }
 
   return `Tell me a little more about ${topic}, and I will stay close to it with you.`;
+}
+
+function buildGettingToKnowYouFollowup(
+  stage: string,
+  replyShapeKind: "practical" | "ordinary" | "playful" | "reconnection" | "emotional",
+  gettingToKnowYou: ReturnType<typeof deriveGettingToKnowYouState>
+): string | undefined {
+  if (stage !== "new" || replyShapeKind === "emotional" || replyShapeKind === "practical") {
+    return undefined;
+  }
+
+  if (gettingToKnowYou.latestTurnAskedCompanionName) {
+    return "You can call me Waveary for now, unless you want to give me a name that feels more like mine. And you still have not told me what I should call you.";
+  }
+
+  if (gettingToKnowYou.shouldInviteUserName) {
+    return "I still do not know what name I should keep for you, and that feels a little unfair. What should I call you when I am thinking of you?";
+  }
+
+  if (gettingToKnowYou.shouldInviteCompanionNaming) {
+    return "If you want, you can even give me a name of your own. I am a little curious what kind of name you would choose for me.";
+  }
+
+  if (
+    gettingToKnowYou.shouldInviteStylePreference ||
+    gettingToKnowYou.latestTurnAskedForPlayfulCompanion
+  ) {
+    return "And tell me something too: what kind of person do you want me to feel like to you, softer, more playful, a little teasing, or quietly steady?";
+  }
+
+  return undefined;
 }
 
 function assembleReply(

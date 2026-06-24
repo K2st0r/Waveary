@@ -20,6 +20,7 @@ export * from "./domain/voice.js";
 export * from "./providers/interfaces.js";
 export * from "./runtime/types.js";
 export * from "./runtime/continuity-thread.js";
+export * from "./runtime/getting-to-know-you.js";
 export * from "./runtime/local-time-reply.js";
 export * from "./runtime/reply-shape.js";
 export * from "./runtime/waveary-runtime.js";
