@@ -23,6 +23,9 @@ const USER_NAME_STOPWORDS = new Set([
   "kind",
   "kinda",
   "sorta",
+  "the",
+  "a",
+  "an",
   "feeling",
   "scared",
   "afraid",
@@ -38,7 +41,10 @@ const USER_NAME_STOPWORDS = new Set([
   "here",
   "back",
   "going",
-  "gonna"
+  "gonna",
+  "someone",
+  "somebody",
+  "person"
 ]);
 
 const USER_NAME_PATTERNS = [
@@ -204,6 +210,10 @@ function isProbableUserName(value: string): boolean {
   }
 
   if (USER_NAME_STOPWORDS.has(lowered)) {
+    return false;
+  }
+
+  if (/^(the|a|an|someone|somebody|person)\b/i.test(lowered)) {
     return false;
   }
 

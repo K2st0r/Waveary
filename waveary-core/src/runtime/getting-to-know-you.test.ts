@@ -192,6 +192,41 @@ test("deriveGettingToKnowYouState still accepts direct self-introductions", () =
   assert.equal(state.userPreferredName, "Aki");
 });
 
+test("deriveGettingToKnowYouState does not mistake identity-style self-description for a user name", () => {
+  const state = deriveGettingToKnowYouState(
+    createRequest({
+      user: {
+        id: "user-1",
+        displayName: "User",
+        profileTraits: ["reflective"],
+        preferences: ["continuity"]
+      },
+      messages: [
+        {
+          id: "m1",
+          sessionId: "session-1",
+          role: "user",
+          content: "I'm the kind of person who takes a while to trust people.",
+          timestamp: new Date().toISOString(),
+          metadata: {}
+        },
+        {
+          id: "m2",
+          sessionId: "session-1",
+          role: "user",
+          content: "I'm someone who still wants things to feel real.",
+          timestamp: new Date().toISOString(),
+          metadata: {}
+        }
+      ],
+      relevantMemories: []
+    })
+  );
+
+  assert.equal(state.userPreferredName, undefined);
+  assert.equal(state.shouldInviteUserName, true);
+});
+
 function createRequest(overrides: Partial<ChatProviderRequest> = {}): ChatProviderRequest {
   const base: ChatProviderRequest = {
     session: {
