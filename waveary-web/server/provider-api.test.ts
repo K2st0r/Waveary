@@ -1607,6 +1607,86 @@ test("chat turn recognizes Chinese bilibili aliases as local open actions", asyn
   assert.equal(response.body.pendingLocalAction.target, "https://www.bilibili.com/");
 });
 
+test("chat turn routes open google to Bing for the local browser flow", async () => {
+  const middleware = createProviderApiMiddleware();
+
+  saveProviderConfig({
+    provider: "provider-a",
+    baseURL: "https://provider-a.example/v1",
+    apiKey: "key-a",
+    model: "model-a"
+  });
+
+  globalThis.fetch = (async () =>
+    new Response(
+      JSON.stringify({
+        choices: [
+          {
+            message: {
+              content: "I can prepare that action for you."
+            }
+          }
+        ]
+      }),
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json"
+        }
+      }
+    )) as typeof fetch;
+
+  const response = await invokeJsonRoute(middleware, "POST", "/api/chat/turn", {
+    sessionId: DEFAULT_CHAT_SESSION_ID,
+    message: "open google"
+  });
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.pendingLocalAction.kind, "open_url");
+  assert.equal(response.body.pendingLocalAction.targetLabel, "Bing");
+  assert.equal(response.body.pendingLocalAction.target, "https://www.bing.com/");
+});
+
+test("chat turn recognizes Bing directly as a local open action", async () => {
+  const middleware = createProviderApiMiddleware();
+
+  saveProviderConfig({
+    provider: "provider-a",
+    baseURL: "https://provider-a.example/v1",
+    apiKey: "key-a",
+    model: "model-a"
+  });
+
+  globalThis.fetch = (async () =>
+    new Response(
+      JSON.stringify({
+        choices: [
+          {
+            message: {
+              content: "I can prepare that action for you."
+            }
+          }
+        ]
+      }),
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json"
+        }
+      }
+    )) as typeof fetch;
+
+  const response = await invokeJsonRoute(middleware, "POST", "/api/chat/turn", {
+    sessionId: DEFAULT_CHAT_SESSION_ID,
+    message: "open bing"
+  });
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.pendingLocalAction.kind, "open_url");
+  assert.equal(response.body.pendingLocalAction.targetLabel, "Bing");
+  assert.equal(response.body.pendingLocalAction.target, "https://www.bing.com/");
+});
+
 test("chat turn auto-executes local actions in full-access mode and returns an execution-consistent reply", async () => {
   const middleware = createProviderApiMiddleware();
 

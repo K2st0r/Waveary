@@ -35,6 +35,7 @@ Only write preferences here when they are likely to remain useful over time.
 - Future desktop reading, local control, or automation should stay clearly separated from ordinary chat behavior.
 - The companion should not feel inert by default; proactive care can start from an enabled baseline as long as quiet hours, unanswered-reachout suppression, and revocable permissions still constrain it.
 - For higher-trust powers, the preferred default is `ask` before action rather than a silent hidden enablement or an architecture that can never graduate beyond `deny`.
+- For browser search entrypoints in mainland China, default search-site opens should prefer `Bing` over `Google` unless the user provides an explicit URL.
 
 ## UX And Presentation
 

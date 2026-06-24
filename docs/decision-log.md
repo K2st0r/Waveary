@@ -4,6 +4,28 @@ This file records important product, architecture, and workflow decisions for Pr
 
 Use it to preserve the reason behind major choices so future Codex sessions do not repeat or undo settled work.
 
+## 2026-06-24 - Default Search-Site Opens Should Prefer Bing In Mainland China
+
+Status:
+
+- accepted
+
+Decision:
+
+For Waveary's natural-language open-site mapping, requests such as `open google` should resolve to `https://www.bing.com/` and label `Bing` by default on the local browser path, while explicit user-provided URLs should still open exactly as written.
+
+Reason:
+
+- the user's target environment is mainland China, where Google is not a reliable default search entrypoint
+- the current open-site mapping is meant to be practical local assistance, not a literal brand-preserving redirect table
+- keeping explicit URLs untouched preserves user intent while making the default conversational open flow actually usable
+
+Impact:
+
+- `waveary-web/server/local-actions.ts` now recognizes both `bing` and `google` natural-language open requests as `Bing` opens
+- route-level tests now cover both `open google` -> `Bing` and direct `open bing`
+- future browser-search or search-provider defaults should preserve domestic usability first instead of assuming Google availability
+
 ## 2026-06-24 - Next Browser Step Should Be Explicit Result Opening, Not Broad Link Automation
 
 Status:

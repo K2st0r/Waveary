@@ -63,7 +63,8 @@ const KNOWN_URLS: Array<{
     label: "Bilibili"
   },
   { pattern: /\bgithub\b/i, target: "https://github.com/", label: "GitHub" },
-  { pattern: /(\bgoogle\b|谷歌)/i, target: "https://www.google.com/", label: "Google" },
+  { pattern: /(\bbing\b|必应)/i, target: "https://www.bing.com/", label: "Bing" },
+  { pattern: /(\bgoogle\b|谷歌)/i, target: "https://www.bing.com/", label: "Bing" },
   { pattern: /知乎/i, target: "https://www.zhihu.com/", label: "知乎" },
   { pattern: /(\bweibo\b|微博)/i, target: "https://weibo.com/", label: "微博" },
   { pattern: /(\bwechat\b|微信)/i, target: "https://weixin.qq.com/", label: "WeChat" },

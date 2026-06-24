@@ -3,6 +3,42 @@
 
 Objective:
 
+Prefer Bing over Google for default natural-language search-site opens in the managed local browser flow, while keeping explicit URLs untouched.
+
+Summary:
+
+- changed `waveary-web/server/local-actions.ts` so direct natural-language open requests now recognize both `bing` and `google`, but route both defaults to `https://www.bing.com/` with label `Bing`
+- added focused route-level regression coverage in `waveary-web/server/provider-api.test.ts` for both `open google` -> `Bing` and direct `open bing`
+- recorded the mainland-China search-default preference in `docs/product-preferences.md`, `docs/decision-log.md`, `PROJECT_STATE.md`, and `ACTIVE_TASKS.md` so later sessions do not drift back to Google-by-default behavior
+
+Files changed:
+
+- `waveary-web/server/local-actions.ts`
+- `waveary-web/server/provider-api.test.ts`
+- `docs/product-preferences.md`
+- `docs/decision-log.md`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+
+Verification:
+
+- `npm run test --workspace @waveary/web`
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run check:mojibake`
+- `git diff -- waveary-web/server/local-actions.ts waveary-web/server/provider-api.test.ts docs/product-preferences.md docs/decision-log.md PROJECT_STATE.md ACTIVE_TASKS.md`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-24
+
+Objective:
+
 Extend the permissioned managed-browser path with one next bounded interaction by letting Waveary open the first visible result link, or the closest visible result whose text matches a requested phrase.
 
 Summary:
