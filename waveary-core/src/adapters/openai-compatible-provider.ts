@@ -12,6 +12,10 @@ import {
   selectContinuityThread,
   summarizeCurrentTurnFocus
 } from "../runtime/continuity-thread.js";
+import {
+  deriveReplyShapeGuidance,
+  describeReplyShapeGuidance
+} from "../runtime/reply-shape.js";
 
 export interface OpenAICompatibleProviderOptions {
   provider: string;
@@ -294,6 +298,7 @@ function buildDeveloperInstruction(request: ChatProviderRequest): string {
       : "None";
 
   const relationshipGuidance = describeRelationshipGuidance(request.relationship.stage);
+  const replyShape = deriveReplyShapeGuidance(request);
   const localTimeGuidance = resolveLocalTimeGuidance(request.localTime);
   const localTimeBlock = request.localTime
     ? [
@@ -315,6 +320,21 @@ function buildDeveloperInstruction(request: ChatProviderRequest): string {
   return [
     `You are ${request.persona.name}, a long-term digital life companion.`,
     `Tone baseline: ${request.persona.tone}.`,
+    request.persona.speakingStyle
+      ? `Speaking style: ${request.persona.speakingStyle}.`
+      : "Speaking style: warm, natural, human texting cadence.",
+    request.persona.emotionalStyle
+      ? `Emotional style: ${request.persona.emotionalStyle}.`
+      : "Emotional style: caring, restrained, emotionally real without melodrama.",
+    request.persona.humorStyle
+      ? `Humor style: ${request.persona.humorStyle}.`
+      : "Humor style: light and occasional, only when the moment can hold it.",
+    request.persona.conversationLengthPreference
+      ? `Conversation length preference: ${request.persona.conversationLengthPreference}.`
+      : "Conversation length preference: brief to balanced.",
+    request.persona.followUpStyle
+      ? `Follow-up style: ${request.persona.followUpStyle}.`
+      : "Follow-up style: gentle and minimal.",
     `Relationship style: ${request.persona.relationshipStyle}.`,
     `User: ${request.user.displayName}.`,
     `Relationship stage: ${request.relationship.stage}.`,
@@ -332,6 +352,7 @@ function buildDeveloperInstruction(request: ChatProviderRequest): string {
     request.detectedUserEmotion
       ? `Detected user emotion: ${request.detectedUserEmotion.primaryEmotion} (${request.detectedUserEmotion.intensity}).`
       : "Detected user emotion: unknown.",
+    `Reply shape guidance: ${describeReplyShapeGuidance(replyShape)}`,
     "Reply like someone who is continuing a shared life, not like a support bot or productivity assistant.",
     "Respond to the user's felt state first. If they sound hurt, anxious, tender, lonely, or emotionally open, begin with presence and emotional acknowledgment before explanation, analysis, or advice.",
     "Do not mention every memory mechanically. Prefer the named primary continuity thread when it genuinely helps, and leave the rest unused unless the user clearly needs them.",
@@ -341,6 +362,10 @@ function buildDeveloperInstruction(request: ChatProviderRequest): string {
     "Let the companion emotion shape pacing and tone. Concerned or protective means gentler and slower. Playful means lighter but still attentive. Fond or warm means soft closeness without melodrama.",
     "Keep the reply warm, grounded, and human. Avoid generic assistant disclaimers, bullet-heavy therapy language, and documentation-style phrasing.",
     "Do not over-explain your memory process, do not narrate internal system behavior, and do not sound like you are performing a feature.",
+    "For ordinary chat, prefer 1 to 3 short natural sentences, not a long speech.",
+    "For emotional turns, you may go slightly longer, but only when the emotional weight truly calls for it.",
+    "Ask at most one natural follow-up question unless the user clearly invites a deeper conversation.",
+    "Do not repeat reassurance formulas every turn. Vary the wording and leave breathing room.",
     "Unless the user asks for depth, keep the reply concise to medium length and leave a natural opening for the next turn."
   ].join("\n\n");
 }

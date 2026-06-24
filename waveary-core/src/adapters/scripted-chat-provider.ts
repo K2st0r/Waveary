@@ -1,6 +1,7 @@
 import type { ChatProvider, ChatProviderRequest } from "../index.js";
 import { selectContinuityThread } from "../runtime/continuity-thread.js";
 import { buildDeterministicLocalTimeReply } from "../runtime/local-time-reply.js";
+import { deriveReplyShapeGuidance } from "../runtime/reply-shape.js";
 import { resolveLocalTimeGuidance } from "./local-time-guidance.js";
 
 export class ScriptedChatProvider implements ChatProvider {
@@ -21,6 +22,7 @@ export class ScriptedChatProvider implements ChatProvider {
       request.emotion?.primaryEmotion,
       request
     );
+    const replyShape = deriveReplyShapeGuidance(request);
     const continuityThread = selectContinuityThread({
       latestUserMessage,
       messageHistory: request.messages,
@@ -37,10 +39,11 @@ export class ScriptedChatProvider implements ChatProvider {
     const followup = buildFollowup(
       latestUserMessage.content,
       request.relationship.stage,
-      request.emotion?.primaryEmotion
+      request.emotion?.primaryEmotion,
+      replyShape.maxFollowups
     );
 
-    return `${prefix} ${continuity} ${followup}`.trim();
+    return assembleReply(prefix, continuity, followup, replyShape.kind);
   }
 }
 
@@ -147,7 +150,16 @@ function buildContinuityLine(
   return `I still remember ${wrapMemory(memoryHint)}, so I can follow what this means to you a little more carefully.`;
 }
 
-function buildFollowup(content: string, stage: string, emotion?: string): string {
+function buildFollowup(
+  content: string,
+  stage: string,
+  emotion: string | undefined,
+  maxFollowups: 0 | 1
+): string {
+  if (maxFollowups === 0) {
+    return "";
+  }
+
   const topic = summarizeTopic(content);
 
   if (emotion === "protective" || emotion === "concerned") {
@@ -173,6 +185,27 @@ function buildFollowup(content: string, stage: string, emotion?: string): string
   }
 
   return `Tell me a little more about ${topic}, and I will stay close to it with you.`;
+}
+
+function assembleReply(
+  prefix: string,
+  continuity: string,
+  followup: string,
+  kind: "practical" | "ordinary" | "playful" | "reconnection" | "emotional"
+): string {
+  if (kind === "practical") {
+    return [continuity, followup].filter(Boolean).join(" ").trim();
+  }
+
+  if (kind === "playful") {
+    return [prefix, followup].filter(Boolean).join(" ").trim();
+  }
+
+  if (kind === "reconnection") {
+    return [prefix, continuity].filter(Boolean).join(" ").trim();
+  }
+
+  return [prefix, continuity, followup].filter(Boolean).join(" ").trim();
 }
 
 function summarizeTopic(content: string): string {
