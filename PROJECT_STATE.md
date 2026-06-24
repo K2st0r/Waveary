@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `fafd231` - `Fix managed browser fill submit verification`
+- `c86b765` - `Add bounded browser result opening`
 
 ## Latest Repository Surface
 
