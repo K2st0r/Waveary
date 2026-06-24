@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `0451652` - `Add markdown companion soul spec`
+- `59ce742` - `Add companion market benchmark`
 
 ## Latest Repository Surface
 
