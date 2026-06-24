@@ -325,6 +325,44 @@ Push:
 
 - succeeded: `git push origin main` pushed verification commit `a2d207e` to `origin/main`
 
+## 2026-06-24
+
+Objective:
+
+Polish the dedicated `#chat` page so the conversation surface feels cleaner and stays anchored on the latest exchange without touching backend runtime behavior.
+
+Summary:
+
+- updated `waveary-web/src/App.tsx` so the chat page now derives one compact set of permission and voice-routing labels, renders a dedicated three-card status strip above the journal canvas, removes the duplicated live-chat button from the compact voice summary, and auto-scrolls the active conversation to the latest turn
+- updated `waveary-web/src/styles.css` so the focused chat panel uses a more stable vertical layout, the composer reads more like a bottom control band, the compact voice summary has its own contained treatment, and the new status strip collapses cleanly on smaller screens
+- live-browser verified the running `http://127.0.0.1:4173/#chat` page: the dedicated chat surface now shows only one realtime entry button, the top status strip renders session / voice / permission state correctly, and sending one real message keeps the view anchored at the bottom of the message log
+
+Files changed:
+
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+
+Verification:
+
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run test --workspace @waveary/web`
+- `npm run check:mojibake`
+- `curl.exe -I http://127.0.0.1:4173/`
+- `npx --yes --package @playwright/cli playwright-cli -s=waveary-chat-polish open http://127.0.0.1:4173/#chat --headed`
+- `npx --yes --package @playwright/cli playwright-cli -s=waveary-chat-polish resize 1440 1200`
+- `npx --yes --package @playwright/cli playwright-cli -s=waveary-chat-polish snapshot`
+- `npx --yes --package @playwright/cli playwright-cli -s=waveary-chat-polish fill e155 "测试一下自动滚动。"`
+- `npx --yes --package @playwright/cli playwright-cli -s=waveary-chat-polish click e159`
+- `Start-Sleep -Seconds 4; npx --yes --package @playwright/cli playwright-cli -s=waveary-chat-polish snapshot`
+
+Commit:
+
+- `d11cb39` - `Polish chat page status and flow`
+
+Push:
+
+- succeeded: `git push origin main` pushed functional commit `d11cb39` to `origin/main`
+
 ## 2026-06-23
 
 Objective:

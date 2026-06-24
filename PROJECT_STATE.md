@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `0ab9e9b` - `Prefer Bing for default search-site opens`
+- `d11cb39` - `Polish chat page status and flow`
 
 ## Latest Repository Surface
 
@@ -129,6 +129,7 @@ Brand line:
   - the live conversation experience now has its own dedicated chat page with a stripped-down journal-style canvas and composer
   - the chat page now also surfaces a compact permission tray beside the composer, so time awareness, proactive notifications, desktop presence, and local-action intent can be adjusted in conversation without sending users back to the console
   - the chat composer now also exposes direct `limited / high-permission / full-access` mode switches beside send controls, mapping the live conversation surface onto the existing permission model without removing the lower-level detail popover
+  - the chat page now also consolidates session, voice-routing, and permission state into a dedicated top status strip, removes the redundant extra live-chat entry from the compact voice summary, and auto-scrolls to the newest turn so the conversation stays anchored on the latest exchange
   - `localActions` has now graduated from a UI-only preference slot into the first real ask-first execution path: chat turns can propose a pending local action card for simple open-url / open-folder / launch-app intents, and the user must explicitly confirm before any local execution happens
   - the chat page now also auto-executes detected local actions immediately when the active conversation permission is `full-access`, while `high-permission` and lower modes still preserve the explicit confirmation card
   - same-turn local action handling is now reply-consistent under `full-access`: `/api/chat/turn` receives the current local-action permission, auto-runs supported actions server-side when permission is `allow`, and returns an execution-consistent assistant reply instead of leaving a contradictory model disclaimer beside a successful local action
@@ -345,7 +346,7 @@ Brand line:
 
 ## Next Steps
 
-- re-run one focused live `#chat` verification pass for the new result-opening path against the current dev server, then decide whether the next bounded browser step should be richer multi-field targeting or a more explicit "open nth result" primitive
+- extend the bounded browser layer into one next explicit interaction such as richer multi-field targeting or an `open nth result` primitive, now that the live `#chat` result-opening path has been re-verified against the current dev server
 - keep extending the browser-action layer one auditable primitive at a time instead of widening into a broad free-form browser agent
 - start the next voice implementation cut by pushing the current browser voice loop closer to true realtime duplex, beginning with interruption-safe reply stop/resume behavior and a tighter listen-speak handoff instead of broadening vendor coverage first
 - after that interruption-focused pass, decide whether the next highest-value voice step is wider provider-specific STT coverage such as Doubao/local or a deeper transport upgrade beyond the current browser-side speech-activity heuristics

@@ -4,6 +4,28 @@ This file records important product, architecture, and workflow decisions for Pr
 
 Use it to preserve the reason behind major choices so future Codex sessions do not repeat or undo settled work.
 
+## 2026-06-24 - The Chat Page Should Collapse Runtime Status Into One Compact Strip
+
+Status:
+
+- accepted
+
+Decision:
+
+The dedicated `#chat` page should surface session, voice-routing, and permission state in one compact top status strip, remove duplicated live-conversation entry points from the compact voice summary, and keep the conversation anchored to the newest turn automatically.
+
+Reason:
+
+- the chat page is supposed to feel companion-first, so repeated status labels and duplicate realtime controls create unnecessary UI noise
+- the voice summary should summarize routing and handoff to settings, not compete with the primary live-chat action
+- on a journal-style conversation surface, staying pinned to the latest exchange matters more than preserving older scroll position by default
+
+Impact:
+
+- `waveary-web/src/App.tsx` now derives compact chat status labels, renders a dedicated three-card status strip, removes the redundant second live-chat button from the voice summary, and scrolls to the bottom when the active chat state changes
+- `waveary-web/src/styles.css` now gives the focused chat panel more stable vertical layout, a clearer composer boundary, and responsive styling for the new chat-status strip
+- future chat-page polish should keep prioritizing one clear live action, compact summarized state, and bottom-anchored conversation flow instead of reintroducing scattered diagnostics
+
 ## 2026-06-24 - Default Search-Site Opens Should Prefer Bing In Mainland China
 
 Status:
