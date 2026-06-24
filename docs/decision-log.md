@@ -49,6 +49,28 @@ Impact:
 - `summarizeCurrentTurnFocusWithHistory(...)` now preserves the previous topic plus the new emotional residue in one focus string for provider prompts instead of collapsing the turn back into an isolated fragment
 - regression coverage now includes both direct continuity selection and live-provider prompt guidance for oblique emotional carry-over turns
 
+## 2026-06-24 - Early Name Inference Must Stay Narrower Than Emotional Self-Description
+
+Status:
+
+- accepted
+
+Decision:
+
+Waveary should only treat `I'm / I am ...` wording as a preferred-name signal when the captured word still looks like an actual self-introduction, and it must reject obvious emotional-state or discourse words such as `still`, `not`, `really`, `so`, `scared`, or similar non-name continuations.
+
+Reason:
+
+- the new getting-to-know-you layer improved companionship realism, but a broad `I am X` pattern started polluting prompt guidance with fake names like `still` and `not`
+- this is especially damaging because it breaks the exact illusion the feature is meant to strengthen: the companion sounds like it "remembered" the wrong thing from vulnerable follow-up turns
+- companionship quality is better served by slightly conservative name extraction than by over-eager inference that turns ordinary emotional sentences into false personal facts
+
+Impact:
+
+- `waveary-core/src/runtime/getting-to-know-you.ts` now routes preferred-name extraction through an explicit plausibility filter instead of trusting every `I am X` capture
+- regression coverage now includes direct parser tests for emotional follow-up lines plus prompt-level checks that the OpenAI-compatible provider guidance falls back to `No confirmed preferred user name...` instead of surfacing fake names
+- future parser work should keep this invariant: early-acquaintance inference can be extended, but ordinary emotional self-description must never be promoted into confirmed identity memory
+
 ## 2026-06-24 - Companion Replies Should Default To Human-Scale Cadence
 
 Status:

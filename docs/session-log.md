@@ -44,6 +44,40 @@ Push:
 
 Objective:
 
+Stop the new getting-to-know-you layer from misreading emotional self-description as a confirmed preferred user name, which was degrading provider prompt realism with fake names like `still` and `not`.
+
+Summary:
+
+- tightened `waveary-core/src/runtime/getting-to-know-you.ts` so the broad `I am X` name pattern now passes through a narrow plausibility filter instead of automatically accepting every captured word as a name
+- added focused parser regression in `waveary-core/src/runtime/getting-to-know-you.test.ts` to ensure emotional follow-up lines such as `I am still scared about that`, `I am not over it yet`, `I am really tired tonight`, `I am so anxious lately`, and `我还没过去，还是那个感觉。` no longer become preferred names, while direct introductions like `I am Aki.` still work
+- added provider-prompt regression in `waveary-core/src/adapters/openai-compatible-provider.test.ts` to ensure the live instruction body falls back to `No confirmed preferred user name...` instead of emitting fake shared-history names from ordinary emotional turns
+- re-verified the `@waveary/core` package through typecheck, rebuild, and compiled tests; no frontend, voice, or broader continuity logic changed in this pass
+
+Files changed:
+
+- `waveary-core/src/runtime/getting-to-know-you.ts`
+- `waveary-core/src/runtime/getting-to-know-you.test.ts`
+- `waveary-core/src/adapters/openai-compatible-provider.test.ts`
+
+Verification:
+
+- `npm run check --workspace @waveary/core`
+- `npm run build --workspace @waveary/core`
+- PowerShell compiled-test verification via:
+  `$files = @(Get-ChildItem 'waveary-core\\dist' -Recurse -Filter '*.test.js' | ForEach-Object { $_.FullName }); & node --test @files`
+
+Commit:
+
+- `ddf4711` - `Tighten getting-to-know-you name inference`
+
+Push:
+
+- succeeded: `git push origin main` pushed functional commit `ddf4711` to `origin/main`
+
+## 2026-06-24
+
+Objective:
+
 Make the companion feel more like a real caring person by tightening reply cadence and enriching the default persona contract, without broad refactors or frontend churn.
 
 Summary:
