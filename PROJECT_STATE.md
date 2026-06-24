@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `pending` - `pending`
+- `f8c7bae` - `Polish first-contact chat cadence`
 
 ## Latest Repository Surface
 
