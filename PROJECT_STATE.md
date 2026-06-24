@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `ddf4711` - `Tighten getting-to-know-you name inference`
+- `244f105` - `Handle low-affect pronoun continuity carry-over`
 
 ## Latest Repository Surface
 
@@ -48,6 +48,7 @@ Brand line:
   - shared continuity-thread selection now also gives a very light source-turn bonus to memories tied to more recent user turns, so semantically tied same-age memories follow the live conversation arc instead of falling back to array order
   - shared continuity-thread selection now also blends short carry-over user follow-ups such as "still scared about that" with the immediately previous user turn, so continuity matching and prompt focus can stay on the live underlying topic instead of treating the follow-up fragment as a fresh isolated request
   - shared continuity-thread selection now also treats more oblique emotional carry-over turns such as "that part still hurts", "I am not over it yet", and `我还没过去，还是那个感觉` as continuation of the immediately previous user topic when the new message is short, elliptical, and still emotionally attached to the same thread
+  - shared continuity-thread selection now also treats low-affect pronoun follow-ups such as `It just feels strange now.` as continuation of the immediately previous user topic when the message is short, referential, and still describing the same unresolved thread
   - shared reply-shape guidance now classifies current turns into practical / ordinary / playful / reconnection / emotional modes so Waveary can control reply length, emotional lead-in, and follow-up count through one runtime-facing layer instead of ad hoc prompt wording
   - live-provider prompt assembly now also incorporates richer persona defaults including speaking style, emotional style, humor style, conversation-length preference, and follow-up style, making the companion feel more consistently person-like without broad architecture changes
   - scripted fallback replies now also consume that same reply-shape layer, so ordinary turns stop drifting back into fixed three-part speeches when the real provider path is unavailable
@@ -367,7 +368,7 @@ Brand line:
 - keep extending the browser-action layer one auditable primitive at a time instead of widening into a broad free-form browser agent
 - continue the live-provider dialogue regression pass beyond the new prompt-body coverage into richer emotional-stress, reconnection, practical-question cadence, and multi-turn mutual-discovery competition cases
 - continue the continuity-thread quality pass beyond short carry-over follow-ups into pronoun-heavy multi-turn topic persistence, so turns like "that part still hurts" or "I am not over it yet" can stay anchored even when the user is more oblique
-- continue the continuity-thread quality pass beyond short and emotional carry-over follow-ups into weaker low-affect pronoun references and multi-turn drift cases, so the system can stay anchored without over-blending unrelated nearby topics
+- continue the continuity-thread quality pass beyond short, emotional, and low-affect pronoun carry-over follow-ups into weaker multi-turn drift cases, so the system can stay anchored without over-blending unrelated nearby topics
 - continue hardening early-acquaintance inference beyond this stopword-style fix into weaker ambiguous self-description cases, but keep the parser narrow enough that ordinary emotional sentences are never treated as confirmed names
 - decide whether the next truthful web-facing companion-quality surface should show remembered names / vibe continuity lightly, without regressing into a required persona setup form
 - start the next voice implementation cut by pushing the current browser voice loop closer to true realtime duplex, beginning with interruption-safe reply stop/resume behavior and a tighter listen-speak handoff instead of broadening vendor coverage first

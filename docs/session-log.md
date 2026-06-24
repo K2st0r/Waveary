@@ -44,6 +44,43 @@ Push:
 
 Objective:
 
+Strengthen dialogue continuity again so low-affect pronoun follow-ups still stay anchored to the previous user topic instead of flattening into isolated present-tense statements.
+
+Summary:
+
+- updated `waveary-core/src/runtime/continuity-thread.ts` so continuity matching now also treats a bounded class of short, referential, low-affect follow-ups such as `It just feels strange now.` as carry-over from the immediately previous user topic
+- added focused core regression in `waveary-core/src/runtime/continuity-thread.test.ts` to lock both continuity-thread selection and history-aware focus summarization for that low-affect pronoun case
+- added matching prompt-level regression in `waveary-core/src/adapters/openai-compatible-provider.test.ts` so live provider instructions now preserve `Continuing ... Follow-up now ...` wording for this lighter continuation style too
+- re-verified `@waveary/core` through check, rebuild, and compiled tests; the package now passes `66` tests, and this pass stayed entirely inside the dialogue-quality path without touching frontend or voice code
+
+Files changed:
+
+- `waveary-core/src/runtime/continuity-thread.ts`
+- `waveary-core/src/runtime/continuity-thread.test.ts`
+- `waveary-core/src/adapters/openai-compatible-provider.test.ts`
+
+Verification:
+
+- `npm run check --workspace @waveary/core`
+- `npm run build --workspace @waveary/core`
+- PowerShell compiled-test verification via:
+  `$files = @(Get-ChildItem 'waveary-core\\dist' -Recurse -Filter '*.test.js' | ForEach-Object { $_.FullName }); & node --test @files`
+- focused confirmation on the new test surfaces via:
+  `node --test 'waveary-core\\dist\\runtime\\continuity-thread.test.js'`
+  `node --test 'waveary-core\\dist\\adapters\\openai-compatible-provider.test.js'`
+
+Commit:
+
+- `244f105` - `Handle low-affect pronoun continuity carry-over`
+
+Push:
+
+- succeeded: `git push origin main` pushed functional commit `244f105` to `origin/main`
+
+## 2026-06-24
+
+Objective:
+
 Stop the new getting-to-know-you layer from misreading emotional self-description as a confirmed preferred user name, which was degrading provider prompt realism with fake names like `still` and `not`.
 
 Summary:

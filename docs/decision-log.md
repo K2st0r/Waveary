@@ -71,6 +71,28 @@ Impact:
 - regression coverage now includes direct parser tests for emotional follow-up lines plus prompt-level checks that the OpenAI-compatible provider guidance falls back to `No confirmed preferred user name...` instead of surfacing fake names
 - future parser work should keep this invariant: early-acquaintance inference can be extended, but ordinary emotional self-description must never be promoted into confirmed identity memory
 
+## 2026-06-24 - Low-Affect Pronoun Follow-Ups Should Also Reuse The Previous User Topic
+
+Status:
+
+- accepted
+
+Decision:
+
+Waveary should also treat short, low-affect, pronoun-led follow-ups such as `It just feels strange now.` as continuation of the immediately previous user topic when the wording is still referential and clearly describing the same unresolved thread, even if the user is no longer naming the topic directly.
+
+Reason:
+
+- emotionally important continuity gaps do not only appear in explicitly hurt or intense follow-ups; users often soften into lower-affect wording once the topic is already on the table
+- if the runtime only catches explicit carry-over phrases and stronger emotional residue, it can still drift on realistic second-step follow-ups that humans clearly hear as "still about that same thing"
+- this is a better next refinement than broadening memory surfaces, because it directly reduces "you lost the thread again" failures in ordinary companionship chat
+
+Impact:
+
+- `waveary-core/src/runtime/continuity-thread.ts` now recognizes one bounded class of low-affect pronoun carry-over wording instead of relying only on stronger continuation markers
+- regression coverage now includes both direct continuity selection and live-provider prompt checks for `It just feels strange now.` style follow-ups
+- future continuity work should keep extending this path carefully into weaker multi-turn drift cases without turning every short pronoun sentence into an automatic continuation
+
 ## 2026-06-24 - Companion Replies Should Default To Human-Scale Cadence
 
 Status:
