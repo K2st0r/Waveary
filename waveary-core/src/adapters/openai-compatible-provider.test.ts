@@ -416,6 +416,149 @@ test("OpenAICompatibleChatProvider changes relationship-distance guidance across
   );
 });
 
+test("OpenAICompatibleChatProvider keeps practical new-stage turns short and does not turn them into onboarding detours", async () => {
+  const instruction = await captureInstruction(
+    createRequest({
+      user: {
+        id: "user-1",
+        displayName: "User",
+        profileTraits: ["reflective"],
+        preferences: ["continuity"]
+      },
+      relationship: createRelationship("new"),
+      messages: [
+        {
+          id: "m1",
+          sessionId: "session-1",
+          role: "user",
+          content: "How should we structure the memory engine next?",
+          timestamp: new Date().toISOString(),
+          metadata: {}
+        }
+      ],
+      relevantMemories: [],
+      timeline: []
+    })
+  );
+
+  assert.match(instruction, /Current reply mode: practical\./);
+  assert.match(instruction, /Default reply length: short\./);
+  assert.match(instruction, /Do not expand into multiple dense paragraphs for this turn\./);
+  assert.match(
+    instruction,
+    /This turn is practical\. Answer the practical need first and avoid turning it into a getting-to-know-you detour\./
+  );
+});
+
+test("OpenAICompatibleChatProvider keeps emotional new-stage turns focused on presence before onboarding", async () => {
+  const instruction = await captureInstruction(
+    createRequest({
+      user: {
+        id: "user-1",
+        displayName: "User",
+        profileTraits: ["reflective"],
+        preferences: ["continuity"]
+      },
+      relationship: createRelationship("new"),
+      messages: [
+        {
+          id: "m1",
+          sessionId: "session-1",
+          role: "user",
+          content: "I feel anxious tonight and I really do not want to be alone with this.",
+          timestamp: new Date().toISOString(),
+          metadata: {}
+        }
+      ],
+      relevantMemories: [],
+      timeline: [],
+      detectedUserEmotion: {
+        userId: "user-1",
+        primaryEmotion: "sadness",
+        intensity: 0.82,
+        confidence: 0.77,
+        windowStart: new Date().toISOString(),
+        windowEnd: new Date().toISOString()
+      }
+    })
+  );
+
+  assert.match(instruction, /Current reply mode: emotional\./);
+  assert.match(
+    instruction,
+    /Lead with emotional presence first, then add only one next helpful thought if needed\./
+  );
+  assert.match(
+    instruction,
+    /This turn is emotionally heavier\. Do not switch into playful onboarding questions; stay with the feeling first\./
+  );
+});
+
+test("OpenAICompatibleChatProvider guides natural mutual discovery when the user asks the companion's name", async () => {
+  const instruction = await captureInstruction(
+    createRequest({
+      user: {
+        id: "user-1",
+        displayName: "User",
+        profileTraits: ["reflective"],
+        preferences: ["continuity"]
+      },
+      relationship: createRelationship("new"),
+      messages: [
+        {
+          id: "m1",
+          sessionId: "session-1",
+          role: "user",
+          content: "What should I call you?",
+          timestamp: new Date().toISOString(),
+          metadata: {}
+        }
+      ],
+      relevantMemories: [],
+      timeline: []
+    })
+  );
+
+  assert.match(
+    instruction,
+    /No confirmed preferred user name has been established yet\. Do not treat the placeholder profile label as intimate personal knowledge\./
+  );
+  assert.match(
+    instruction,
+    /Getting-to-know-you guidance: The user is asking who you are or what to call you\. Answer lightly, let them rename you if they want, and if it feels natural ask what you should call them in return\./
+  );
+  assert.match(
+    instruction,
+    /In 'new', it is good to learn one personal detail at a time through natural conversation: names, nicknames, and what kind of presence the user wants from you\./
+  );
+});
+
+test("OpenAICompatibleChatProvider marks reconnection turns as short emotion-led replies", async () => {
+  const instruction = await captureInstruction(
+    createRequest({
+      messages: [
+        {
+          id: "m1",
+          sessionId: "session-1",
+          role: "user",
+          content: "I am back. Are you there? I missed you.",
+          timestamp: new Date().toISOString(),
+          metadata: {}
+        }
+      ],
+      relevantMemories: [],
+      timeline: []
+    })
+  );
+
+  assert.match(instruction, /Current reply mode: reconnection\./);
+  assert.match(instruction, /Default reply length: short\./);
+  assert.match(
+    instruction,
+    /Lead with emotional presence first, then add only one next helpful thought if needed\./
+  );
+});
+
 test("OpenAICompatibleChatProvider keeps emotional-turn continuity guidance restrained when only a weak timeline thread is available", async () => {
   const instruction = await captureInstruction(
     createRequest({
