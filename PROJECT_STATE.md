@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `pending` - `Support quoted name sharing`
+- `9028fc6` - `Support quoted name sharing`
 
 ## Latest Repository Surface
 
