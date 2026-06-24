@@ -181,6 +181,28 @@ Impact:
 - regression coverage now includes both direct parser checks and live-provider prompt checks for quoted shared-name phrasing
 - future parser work should keep balancing conservatism against false positives with equally narrow support for natural human phrasing variants
 
+## 2026-06-24 - Spoken My Name's Introductions Should Count As Real Name Sharing
+
+Status:
+
+- accepted
+
+Decision:
+
+Waveary should treat natural spoken self-introductions such as `My name's Aki.` as valid preferred-name evidence during early acquaintance, instead of only recognizing the more formal `My name is Aki.` form.
+
+Reason:
+
+- `my name's ...` is one of the most common natural self-introduction forms in ordinary chat and spoken English
+- missing that form makes the companion feel stiffer than the users it is meant to accompany, especially in the earliest turns where naturalness matters most
+- this is a high-value true positive that can be added without broadening the parser into risky fuzzy identity inference
+
+Impact:
+
+- `waveary-core/src/runtime/getting-to-know-you.ts` now accepts both plain and quoted `my name's ...` variants alongside the earlier `my name is`, `call me`, and direct `I'm / I am` paths
+- regression coverage now includes both parser-level and live-provider prompt-level checks for `My name's Aki`
+- future parser work should keep extending only clearly human, clearly intentional self-introduction variants rather than broadening into speculative identity extraction
+
 ## 2026-06-24 - Companion Replies Should Default To Human-Scale Cadence
 
 Status:

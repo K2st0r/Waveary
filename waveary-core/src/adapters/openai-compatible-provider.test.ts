@@ -1027,6 +1027,40 @@ test("OpenAICompatibleChatProvider carries quoted shared user names into prompt 
   );
 });
 
+test("OpenAICompatibleChatProvider carries my name's introductions into prompt guidance", async () => {
+  const instruction = await captureInstruction(
+    createRequest({
+      user: {
+        id: "user-1",
+        displayName: "User",
+        profileTraits: ["reflective"],
+        preferences: ["continuity"]
+      },
+      relationship: createRelationship("new"),
+      messages: [
+        {
+          id: "m1",
+          sessionId: "session-1",
+          role: "user",
+          content: "My name's Aki, by the way.",
+          timestamp: new Date().toISOString(),
+          metadata: {}
+        }
+      ],
+      relevantMemories: []
+    })
+  );
+
+  assert.match(
+    instruction,
+    /Confirmed preferred user name from shared history: Aki\./
+  );
+  assert.doesNotMatch(
+    instruction,
+    /No confirmed preferred user name has been established yet\./
+  );
+});
+
 test("OpenAICompatibleChatProvider marks reconnection turns as short emotion-led replies", async () => {
   const instruction = await captureInstruction(
     createRequest({
