@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `f8c7bae` - `Polish first-contact chat cadence`
+- `0451652` - `Add markdown companion soul spec`
 
 ## Latest Repository Surface
 
