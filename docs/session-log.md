@@ -3,6 +3,39 @@
 
 Objective:
 
+Finalize the public GitHub repository surface after the rename by setting the formal public metadata, default branch, and discovery topics to match Waveary's current positioning.
+
+Summary:
+
+- changed the GitHub repository from the older private `K2st0r/-Waveary-` surface to the public `K2st0r/Waveary` surface and confirmed the renamed remote now resolves correctly
+- rewrote the root `README.md` into a cleaner bilingual open-source homepage version centered on `Waveary / 回响之境`, `Digital Life Companion Framework`, and `念念不忘，终有回响`
+- finalized the GitHub repository metadata through the GitHub API so the public surface now uses the formal description, `main` as the default branch, the README anchor as homepage, and Waveary-aligned discovery topics such as `digital-companion`, `llm-framework`, `long-term-memory`, `relationship-engine`, and `voice-agent`
+
+Files changed:
+
+- `README.md`
+- `PROJECT_STATE.md`
+
+Verification:
+
+- `gh repo view K2st0r/Waveary --json name,nameWithOwner,visibility,url,description,homepageUrl,defaultBranchRef,repositoryTopics`
+- `gh api -X PATCH repos/K2st0r/Waveary -f default_branch=main -f description=\"Open source digital life companion framework for memory, relationship, timeline, emotion, and voice.\" -f homepage=\"https://github.com/K2st0r/Waveary#readme\"`
+- `gh api -X PUT repos/K2st0r/Waveary/topics -H \"Accept: application/vnd.github+json\" ...`
+- `git remote -v`
+- `npm run check:mojibake`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-24
+
+Objective:
+
 Make the live chat voice loop interruption-safe so pressing the live-chat control during assistant playback stops the current reply and returns to listening immediately instead of ending the whole realtime session.
 
 Summary:

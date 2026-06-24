@@ -17,6 +17,13 @@ Brand line:
 
 - `09ff921` - `Handle live voice interruption resume`
 
+## Latest Repository Surface
+
+- GitHub repository: `https://github.com/K2st0r/Waveary`
+- visibility: `public`
+- default branch: `main`
+- homepage: `https://github.com/K2st0r/Waveary#readme`
+
 ## Modules
 
 - `waveary-core`
