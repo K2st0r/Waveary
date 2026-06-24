@@ -192,6 +192,33 @@ test("deriveGettingToKnowYouState still accepts direct self-introductions", () =
   assert.equal(state.userPreferredName, "Aki");
 });
 
+test("deriveGettingToKnowYouState accepts I'm called introductions", () => {
+  const state = deriveGettingToKnowYouState(
+    createRequest({
+      user: {
+        id: "user-1",
+        displayName: "User",
+        profileTraits: ["reflective"],
+        preferences: ["continuity"]
+      },
+      messages: [
+        {
+          id: "m1",
+          sessionId: "session-1",
+          role: "user",
+          content: "I'm called Aki.",
+          timestamp: new Date().toISOString(),
+          metadata: {}
+        }
+      ],
+      relevantMemories: []
+    })
+  );
+
+  assert.equal(state.userPreferredName, "Aki");
+  assert.equal(state.shouldInviteUserName, false);
+});
+
 test("deriveGettingToKnowYouState does not mistake identity-style self-description for a user name", () => {
   const state = deriveGettingToKnowYouState(
     createRequest({
