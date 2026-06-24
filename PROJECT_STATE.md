@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `09ff921` - `Handle live voice interruption resume`
+- `1fb0b0f` - `Record public repository surface`
 
 ## Latest Repository Surface
 
