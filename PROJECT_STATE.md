@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `pending` - `Support parenthesized name sharing`
+- `80038ae` - `Support parenthesized name sharing`
 
 ## Latest Repository Surface
 
