@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `pending` - `Handle weaker unsettled continuity carry-over`
+- `5be0a46` - `Handle weaker unsettled continuity carry-over`
 
 ## Latest Repository Surface
 
