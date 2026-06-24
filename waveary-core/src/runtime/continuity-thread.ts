@@ -382,6 +382,11 @@ function shouldBlendWithPreviousUserTurn(
     /(\u6211\u8fd8\u6ca1\u8fc7\u53bb|\u8fd8\u6ca1\u7f13\u8fc7\u6765|\u8fd8\u662f\u90a3\u4e2a\u611f\u89c9|\u8fd8\u662f\u90a3\u79cd\u611f\u89c9|\u90a3\u79cd\u611f\u89c9\u8fd8\u5728|\u90a3\u4e00\u5757\u8fd8\u5728\u75bc)/.test(
       compact
     );
+  const inferentialCarryover =
+    /^(maybe|perhaps|probably|i guess|i think)\b/i.test(compact) &&
+    /\b(that's why|that is why|part of the same thing|part of it|why i can't|why i cannot|why i still can't|why i still cannot)\b/i.test(
+      compact
+    );
   const lowAffectPronounCarryover =
     /^(it|that|this|things|everything)\b/i.test(compact) &&
     /\b(feels?|felt|seems?|seemed|is|was|gets?|got)\b/i.test(compact) &&
@@ -396,6 +401,10 @@ function shouldBlendWithPreviousUserTurn(
   }
 
   if (emotionalCarryover && tokenCount <= 12) {
+    return true;
+  }
+
+  if (inferentialCarryover && tokenCount <= 12) {
     return true;
   }
 
