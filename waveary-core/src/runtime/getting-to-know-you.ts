@@ -14,6 +14,7 @@ export interface GettingToKnowYouState {
 
 const DEFAULT_USER_PLACEHOLDERS = new Set(["waveary user", "user", "friend"]);
 const USER_NAME_STOPWORDS = new Set([
+  "called",
   "if",
   "when",
   "once",
@@ -71,6 +72,9 @@ const USER_NAME_PATTERNS = [
   /\bcall me\s+([a-z][a-z0-9_-]{0,15})/i,
   /\bcall me\s+["']?([a-z][a-z0-9_-]{0,15})["']?/i,
   /\bcall me\s+\(?([a-z][a-z0-9_-]{0,15})\)?/i,
+  /\bi(?:'m| am)\s+called\s+([a-z][a-z0-9_-]{0,15})\b/i,
+  /\bi(?:'m| am)\s+called\s+["']?([a-z][a-z0-9_-]{0,15})["']?\b/i,
+  /\bi(?:'m| am)\s+called\s+\(?([a-z][a-z0-9_-]{0,15})\)?\b/i,
   /\bi(?:'m| am)\s+(?!going\b|gonna\b)([a-z][a-z0-9_-]{0,15})\b/i,
   /\bi(?:'m| am)\s+["']?([a-z][a-z0-9_-]{0,15})["']?\b/i,
   /\bi(?:'m| am)\s+\(?([a-z][a-z0-9_-]{0,15})\)?\b/i,
