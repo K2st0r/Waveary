@@ -21,6 +21,7 @@ export * from "./providers/interfaces.js";
 export * from "./runtime/types.js";
 export * from "./runtime/continuity-thread.js";
 export * from "./runtime/local-time-reply.js";
+export * from "./runtime/reply-shape.js";
 export * from "./runtime/waveary-runtime.js";
 export * from "./storage/repository-backed-session-state.js";
 export * from "./storage/session-state.js";

@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `d11cb39` - `Polish chat page status and flow`
+- `pending` - `Improve companion reply cadence and persona defaults`
 
 ## Latest Repository Surface
 
@@ -46,6 +46,9 @@ Brand line:
   - when a timeline event becomes the primary continuity thread, the secondary recalled-memory list now reflects current-turn relevance order rather than raw retrieval order, so supporting memories stay aligned with the user's immediate concern
   - shared continuity-thread selection now also gives a small recency bonus to newer memory candidates, so near-tied relevance cases favor fresher remembered threads instead of being decided by retrieval order alone
   - shared continuity-thread selection now also gives a very light source-turn bonus to memories tied to more recent user turns, so semantically tied same-age memories follow the live conversation arc instead of falling back to array order
+  - shared reply-shape guidance now classifies current turns into practical / ordinary / playful / reconnection / emotional modes so Waveary can control reply length, emotional lead-in, and follow-up count through one runtime-facing layer instead of ad hoc prompt wording
+  - live-provider prompt assembly now also incorporates richer persona defaults including speaking style, emotional style, humor style, conversation-length preference, and follow-up style, making the companion feel more consistently person-like without broad architecture changes
+  - scripted fallback replies now also consume that same reply-shape layer, so ordinary turns stop drifting back into fixed three-part speeches when the real provider path is unavailable
   - permissioned local time context can now be injected into normal chat turns so the companion can answer time/date-style questions from the user's device-local clock without claiming it lacks real-time awareness
   - local time context now also resolves a bounded daypart hint so late-night and evening turns can bias toward softer companion tone without expanding into broader desktop-awareness inputs
   - direct local time/date/day questions now also short-circuit inside `WavearyRuntime` through a shared deterministic reply helper before provider generation, so real providers can no longer ignore the supplied local clock context and fall back to generic "I do not know the time" disclaimers
@@ -348,6 +351,8 @@ Brand line:
 
 - extend the bounded browser layer into one next explicit interaction such as richer multi-field targeting or an `open nth result` primitive, now that the live `#chat` result-opening path has been re-verified against the current dev server
 - keep extending the browser-action layer one auditable primitive at a time instead of widening into a broad free-form browser agent
+- expose the richer companion persona-definition fields through a small truthful web surface so users can shape name / speaking style / emotional style / humor / reply length directly instead of relying only on server defaults
+- add stronger live-provider dialogue regression for emotional-stress, reconnection, and practical-question cadence now that shared reply-shape guidance exists in `waveary-core`
 - start the next voice implementation cut by pushing the current browser voice loop closer to true realtime duplex, beginning with interruption-safe reply stop/resume behavior and a tighter listen-speak handoff instead of broadening vendor coverage first
 - after that interruption-focused pass, decide whether the next highest-value voice step is wider provider-specific STT coverage such as Doubao/local or a deeper transport upgrade beyond the current browser-side speech-activity heuristics
 - replace the current fixed short capture window in provider-backed STT with a more truthful turn-end detector or streaming transport before claiming realtime voice is close to done

@@ -14,6 +14,12 @@ export interface PersonaProfile {
   tone: string;
   personaTraits: string[];
   relationshipStyle: string;
+  speakingStyle?: string;
+  emotionalStyle?: string;
+  humorStyle?: string;
+  conversationLengthPreference?: "brief" | "balanced" | "expansive";
+  followUpStyle?: "gentle" | "curious" | "minimal";
+  boundaries?: string[];
   voiceStyle?: string;
 }
 

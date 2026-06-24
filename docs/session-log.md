@@ -3,6 +3,51 @@
 
 Objective:
 
+Make the companion feel more like a real caring person by tightening reply cadence and enriching the default persona contract, without broad refactors or frontend churn.
+
+Summary:
+
+- extended `PersonaProfile` with optional long-lived companionship fields such as `speakingStyle`, `emotionalStyle`, `humorStyle`, `conversationLengthPreference`, `followUpStyle`, and `boundaries`
+- added `waveary-core/src/runtime/reply-shape.ts` plus tests as a small shared layer that classifies the current turn into bounded reply modes like `practical`, `ordinary`, `playful`, `reconnection`, and `emotional`
+- updated `waveary-core/src/adapters/openai-compatible-provider.ts` so live-provider prompts now carry explicit cadence and follow-up constraints, keeping ordinary chat short and natural while allowing slightly longer replies only when the emotional moment truly calls for it
+- updated `waveary-core/src/adapters/scripted-chat-provider.ts` so the fallback path consumes the same reply-shape guidance and stops defaulting to one mechanical three-part response shape for every turn
+- enriched the default companion persona seeded by `waveary-web/server/chat-session-store.ts` so new sessions start from a more clearly defined human-like speaking style without forcing a broad new frontend settings flow yet
+- verified the real source path through `check -> build -> compiled tests`, and confirmed again that the current `@waveary/core` npm test script is still unreliable on Windows because it passes compiled test-file arguments incorrectly unless run through a manual file expansion step
+
+Files changed:
+
+- `waveary-core/src/domain/session.ts`
+- `waveary-core/src/runtime/reply-shape.ts`
+- `waveary-core/src/runtime/reply-shape.test.ts`
+- `waveary-core/src/adapters/openai-compatible-provider.ts`
+- `waveary-core/src/adapters/scripted-chat-provider.ts`
+- `waveary-core/src/index.ts`
+- `waveary-web/server/chat-session-store.ts`
+- `docs/product-preferences.md`
+- `docs/decision-log.md`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/core`
+- `npm run build --workspace @waveary/core`
+- manual compiled-test run via PowerShell-expanded file list:
+  `$files = Get-ChildItem 'waveary-core\\dist' -Recurse -Filter '*.test.js' | ForEach-Object { $_.FullName }; & node --test @files`
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+
+Commit:
+
+- `pending` - `Improve companion reply cadence and persona defaults`
+
+Push:
+
+- pending
+
+## 2026-06-24
+
+Objective:
+
 Prefer Bing over Google for default natural-language search-site opens in the managed local browser flow, while keeping explicit URLs untouched.
 
 Summary:

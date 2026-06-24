@@ -4,6 +4,30 @@ This file records important product, architecture, and workflow decisions for Pr
 
 Use it to preserve the reason behind major choices so future Codex sessions do not repeat or undo settled work.
 
+## 2026-06-24 - Companion Replies Should Default To Human-Scale Cadence
+
+Status:
+
+- accepted
+
+Decision:
+
+Waveary's companion reply shaping should default to short, natural, human-scale cadence in ordinary chat, while allowing slightly longer replies only when the emotional weight is genuinely higher or the user explicitly invites depth.
+
+Reason:
+
+- the product goal is companionship that feels real, not an assistant that answers every ordinary message with a polished paragraph
+- emotional realism depends on pacing as much as wording; replying too long too often breaks the illusion of a caring person and feels model-generated
+- the current runtime already carries relationship, memory, and emotion state, so the missing layer was a reply-shape policy that turns those signals into concise-vs-expanded cadence rules
+
+Impact:
+
+- `waveary-core/src/runtime/reply-shape.ts` now classifies the current turn into bounded modes such as `practical`, `ordinary`, `playful`, `reconnection`, and `emotional`
+- `waveary-core/src/adapters/openai-compatible-provider.ts` now injects stronger cadence, follow-up-count, and persona-style guidance into the live-provider instruction prompt
+- `waveary-core/src/adapters/scripted-chat-provider.ts` now uses that same shared reply-shape layer so fallback behavior does not drift back into fixed multi-part speeches
+- `waveary-web/server/chat-session-store.ts` now seeds a richer default companion persona with speaking style, emotional style, humor style, conversation-length preference, and follow-up style defaults
+- future dialogue-quality work should keep strengthening this shared reply-shape layer rather than adding one-off prompt lines in only one provider path
+
 ## 2026-06-24 - The Chat Page Should Collapse Runtime Status Into One Compact Strip
 
 Status:
