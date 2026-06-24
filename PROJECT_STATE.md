@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `3cfa1ae` - `Polish home chat and console layout containment`
+- `e704c09` - `Move project route into homepage close`
 
 ## Latest Repository Surface
 
