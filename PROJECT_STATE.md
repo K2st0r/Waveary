@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `pending` - verified local browser automation fixes are ready to commit
+- `fafd231` - `Fix managed browser fill submit verification`
 
 ## Latest Repository Surface
 
