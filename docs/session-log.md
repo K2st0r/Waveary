@@ -3,6 +3,47 @@
 
 Objective:
 
+Tighten the public web shell's layout containment so chat, homepage hero, and console cards stop producing obvious overflow or clipped-composition problems before further feature work.
+
+Summary:
+
+- updated `waveary-web/src/styles.css` only, keeping runtime logic untouched while fixing the three specific UX complaints from the live site
+- constrained the dedicated `#chat` journal canvas so long assistant replies and long metadata labels now wrap inside the bubble/card instead of forcing horizontal scrolling to read the tail of a sentence
+- enlarged the homepage hero memory stage, drifting portrait frames, and active burn card so the burn-photo vignette reads as a complete first-screen composition rather than a cramped side module
+- strengthened console-panel containment by letting headers, badges, status strips, saved-config snippets, and metadata rows shrink and wrap inside their panels, while keeping the existing inner-scroll control-desk model intact
+- browser-verified the result live on `http://127.0.0.1:4173/` across `#home`, `#chat`, and `#console`
+
+Files changed:
+
+- `waveary-web/src/styles.css`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `curl.exe -I http://127.0.0.1:4173/`
+- `npx --yes --package @playwright/cli playwright-cli -s waveary-layout-polish open http://127.0.0.1:4173/#home --headed`
+- `npx --yes --package @playwright/cli playwright-cli -s waveary-layout-polish resize 1440 1200`
+- `npx --yes --package @playwright/cli playwright-cli -s waveary-layout-polish snapshot`
+- `npx --yes --package @playwright/cli playwright-cli -s waveary-layout-polish open http://127.0.0.1:4173/#chat`
+- `npx --yes --package @playwright/cli playwright-cli -s waveary-layout-polish snapshot`
+- `npx --yes --package @playwright/cli playwright-cli -s waveary-layout-polish open http://127.0.0.1:4173/#console`
+- `npx --yes --package @playwright/cli playwright-cli -s waveary-layout-polish snapshot`
+
+Commit:
+
+- `3cfa1ae` - `Polish home chat and console layout containment`
+
+Push:
+
+- succeeded: `git push origin main` pushed functional commit `3cfa1ae` to `origin/main`
+
+## 2026-06-24
+
+Objective:
+
 Make the companion feel more like a real caring person by tightening reply cadence and enriching the default persona contract, without broad refactors or frontend churn.
 
 Summary:

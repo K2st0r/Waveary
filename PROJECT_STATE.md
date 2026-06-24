@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `86fc75c` - `Add provider dialogue regression coverage`
+- `3cfa1ae` - `Polish home chat and console layout containment`
 
 ## Latest Repository Surface
 
@@ -211,6 +211,9 @@ Brand line:
   - homepage hero and top doodle layer are now compressed further so the opening screen fits more comfortably on common desktop heights without immediately feeling below-the-fold
   - the console shell is now tighter again through denser workspace tabs, a compact status strip, reduced shell padding, and shorter viewport-based panel heights so the operational surface stays closer to one-screen use
   - the console now also keeps provider/model setup explicitly reachable through a fixed toolbar shortcut back to `模型接入 / Model setup`, separate provider/model status pills, and an automatic return to the provider workspace whenever the runtime is not fully configured, so the model selector can no longer feel like it disappeared behind another workspace
+  - the latest shell-polish pass now keeps long chat replies, status labels, saved config snippets, and console metadata inside their cards through stronger shrink-and-wrap rules instead of forcing awkward horizontal overflow
+  - the dedicated `#chat` canvas now constrains message bubbles with internal wrapping and hidden horizontal overflow, so long companion replies no longer require dragging sideways to read the end of a sentence
+  - the homepage burn-photo stage is now larger on desktop and mobile, with bigger drifting polaroids and a larger active burn card so the hero memory composition reads as one complete first-screen vignette instead of a clipped side module
   - the console now also has a dedicated voice workspace, so realtime voice controls, provider routing, local bridge tuning, and current voice state no longer have to live inside the chat page
   - the chat page voice surface is now compact again: it keeps only the live-voice entry, a small current-voice summary, and a direct jump back to the console voice workspace instead of exposing the full provider form inline
   - the voice workspace now also starts moving toward provider-style onboarding: it can list dedicated voice-provider presets, fetch real voice-model catalogs for OpenAI-compatible vendors through `/api/voice/catalog`, and fall back to provider-mapped or manual voice entry where no shared cross-vendor voice-list API exists
@@ -404,6 +407,7 @@ Brand line:
 - continue polishing the split web shell by tightening session-management density below the console fold and improving message rhythm plus mixed-language balance in the dedicated chat page
 - visually verify and tune the new compact console toolbar plus non-session workspace flow in-browser, especially the internal scrolling behavior now that the marketing-style console intro has been suppressed
 - continue refining the homepage hero so the first screen feels complete across more desktop and laptop heights, with no further scroll-first regression after future copy or asset additions
+- if another shell-polish pass is needed, prefer targeted fixes for specific overflowing metadata rows or mobile breakpoints instead of broad console restructuring, because the current containment baseline for `#home`, `#chat`, and `#console` has now been browser-verified
 - keep iterating on the compact console shell only after visual verification shows a remaining real usability gap, instead of re-expanding it into explanatory blocks
 - run a focused browser pass for homepage doodle density, fade rhythm, and overall visual balance now that the doodle set includes both the original study objects and the new paper-memory objects
 - visually verify and, only if needed, tighten any remaining console workspace that still forces awkward external page scrolling after the latest compact-shell pass
