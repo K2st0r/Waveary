@@ -3,6 +3,44 @@
 
 Objective:
 
+Support parenthesized name-sharing so early-acquaintance parsing still catches explicit introductions like `You can call me (Aki).` without broadening into fuzzy identity inference.
+
+Summary:
+
+- updated `waveary-core/src/runtime/getting-to-know-you.ts` so preferred-name extraction now also accepts parenthesized variants of explicit self-introduction patterns such as `call me`, `my name is`, `my name's`, and direct `I'm / I am`
+- added focused parser regression in `waveary-core/src/runtime/getting-to-know-you.test.ts` to ensure `You can call me (Aki) if you want.` becomes a preferred user name instead of being missed
+- added matching prompt-level regression in `waveary-core/src/adapters/openai-compatible-provider.test.ts` so live provider instructions now surface `Confirmed preferred user name from shared history: Aki.` for this parenthesized form too
+- re-verified the full `@waveary/core` package through check, rebuild, and compiled tests; the package now passes `83` tests, and this pass stayed entirely inside the early-acquaintance dialogue-quality path without touching frontend, voice, or continuity-thread code
+
+Files changed:
+
+- `waveary-core/src/runtime/getting-to-know-you.ts`
+- `waveary-core/src/runtime/getting-to-know-you.test.ts`
+- `waveary-core/src/adapters/openai-compatible-provider.test.ts`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/core`
+- `npm run build --workspace @waveary/core`
+- PowerShell compiled-test verification via:
+  `$files = @(Get-ChildItem 'waveary-core\\dist' -Recurse -Filter '*.test.js' | ForEach-Object { $_.FullName }); & node --test @files`
+
+Commit:
+
+- `pending` - `Support parenthesized name sharing`
+
+Push:
+
+- pending
+
+## 2026-06-24
+
+Objective:
+
 Support natural `my name's ...` self-introductions so early-acquaintance parsing catches a common spoken name-sharing form without widening into fuzzy identity inference.
 
 Summary:

@@ -316,6 +316,33 @@ test("deriveGettingToKnowYouState accepts natural my name's introductions", () =
   assert.equal(state.shouldInviteUserName, false);
 });
 
+test("deriveGettingToKnowYouState accepts parenthesized name-sharing phrasing", () => {
+  const state = deriveGettingToKnowYouState(
+    createRequest({
+      user: {
+        id: "user-1",
+        displayName: "User",
+        profileTraits: ["reflective"],
+        preferences: ["continuity"]
+      },
+      messages: [
+        {
+          id: "m1",
+          sessionId: "session-1",
+          role: "user",
+          content: "You can call me (Aki) if you want.",
+          timestamp: new Date().toISOString(),
+          metadata: {}
+        }
+      ],
+      relevantMemories: []
+    })
+  );
+
+  assert.equal(state.userPreferredName, "Aki");
+  assert.equal(state.shouldInviteUserName, false);
+});
+
 function createRequest(overrides: Partial<ChatProviderRequest> = {}): ChatProviderRequest {
   const base: ChatProviderRequest = {
     session: {

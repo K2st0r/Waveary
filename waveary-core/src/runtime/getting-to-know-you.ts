@@ -50,12 +50,16 @@ const USER_NAME_STOPWORDS = new Set([
 const USER_NAME_PATTERNS = [
   /\bmy name is\s+([a-z][a-z0-9_-]{0,15})/i,
   /\bmy name is\s+["']?([a-z][a-z0-9_-]{0,15})["']?/i,
+  /\bmy name is\s+\(?([a-z][a-z0-9_-]{0,15})\)?/i,
   /\bmy name's\s+([a-z][a-z0-9_-]{0,15})/i,
   /\bmy name's\s+["']?([a-z][a-z0-9_-]{0,15})["']?/i,
+  /\bmy name's\s+\(?([a-z][a-z0-9_-]{0,15})\)?/i,
   /\bcall me\s+([a-z][a-z0-9_-]{0,15})/i,
   /\bcall me\s+["']?([a-z][a-z0-9_-]{0,15})["']?/i,
+  /\bcall me\s+\(?([a-z][a-z0-9_-]{0,15})\)?/i,
   /\bi(?:'m| am)\s+(?!going\b|gonna\b)([a-z][a-z0-9_-]{0,15})\b/i,
   /\bi(?:'m| am)\s+["']?([a-z][a-z0-9_-]{0,15})["']?\b/i,
+  /\bi(?:'m| am)\s+\(?([a-z][a-z0-9_-]{0,15})\)?\b/i,
   /(?:\u6211\u53eb|\u53eb\u6211|\u4f60\u53ef\u4ee5\u53eb\u6211)([\p{Script=Han}A-Za-z0-9_-]{1,16})/u
 ];
 

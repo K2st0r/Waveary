@@ -203,6 +203,28 @@ Impact:
 - regression coverage now includes both parser-level and live-provider prompt-level checks for `My name's Aki`
 - future parser work should keep extending only clearly human, clearly intentional self-introduction variants rather than broadening into speculative identity extraction
 
+## 2026-06-24 - Parenthesized Name Sharing Should Still Count As Real Name Sharing
+
+Status:
+
+- accepted
+
+Decision:
+
+Waveary should treat explicit parenthesized name-sharing phrasing such as `You can call me (Aki).` as valid preferred-name evidence during early acquaintance, instead of missing it because the user framed the name like a small aside.
+
+Reason:
+
+- real chat often uses parentheses to soften or stylize an aside without changing the underlying intent
+- when the sentence still directly says `call me`, the parser should preserve the clear true positive rather than forcing the user into one rigid punctuation style
+- this keeps the companion feeling attentive to ordinary human phrasing while staying far narrower than fuzzy identity inference
+
+Impact:
+
+- `waveary-core/src/runtime/getting-to-know-you.ts` now accepts parenthesized variants for `my name is`, `my name's`, `call me`, and direct `I'm / I am` introductions
+- regression coverage now includes both parser-level and live-provider prompt-level checks for parenthesized name-sharing
+- future parser work should keep supporting only punctuation wrappers that still leave a direct, explicit self-introduction structure intact
+
 ## 2026-06-24 - Companion Replies Should Default To Human-Scale Cadence
 
 Status:
