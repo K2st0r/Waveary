@@ -25,6 +25,10 @@ export function buildLocalActionAuditNote(
         return `我已经替你点了“${action.targetLabel}”。如果你想继续下一步，我也可以接着来。`;
       }
 
+      if (action.kind === "browser_fill_text") {
+        return `我已经替你在“${action.targetLabel}”里填好了内容。如果你想，我也可以继续替你往下操作。`;
+      }
+
       if (action.kind === "open_url") {
         return `我已经替你打开 ${action.targetLabel} 了。你要是想继续看什么，我也可以陪你一起慢慢找。`;
       }
@@ -50,6 +54,10 @@ export function buildLocalActionAuditNote(
 
     if (action.kind === "browser_click_text") {
       return `这次我先不替你点“${action.targetLabel}”。等你确定了，我再继续。`;
+    }
+
+    if (action.kind === "browser_fill_text") {
+      return `这次我先不替你填写“${action.targetLabel}”。等你确定了，我再继续。`;
     }
 
     if (action.kind === "open_url") {
@@ -80,6 +88,10 @@ export function buildLocalActionAuditNote(
       return `I clicked "${action.targetLabel}" for you. If you want, I can keep going from here too.`;
     }
 
+    if (action.kind === "browser_fill_text") {
+      return `I filled "${action.targetLabel}" for you. If you want, I can keep going from there too.`;
+    }
+
     if (action.kind === "open_url") {
       return `I opened ${action.targetLabel} for you. If you want, I can stay with you and help with the next step too.`;
     }
@@ -105,6 +117,10 @@ export function buildLocalActionAuditNote(
 
   if (action.kind === "browser_click_text") {
     return `I did not click "${action.targetLabel}" this time. Ask me again when you want me to.`;
+  }
+
+  if (action.kind === "browser_fill_text") {
+    return `I did not fill "${action.targetLabel}" this time. Ask me again when you want me to.`;
   }
 
   if (action.kind === "open_url") {
@@ -134,9 +150,11 @@ export function buildLocalActionFailureNote(
           : action.kind === "browser_list_clickable"
             ? "我刚刚试着替你看看当前页面能点什么"
             : action.kind === "browser_click_text"
-              ? `我刚刚试着替你点“${action.targetLabel}”`
-              : action.kind === "open_folder"
-                ? `我刚刚试着替你打开 ${action.targetLabel} 文件夹`
+            ? `我刚刚试着替你点“${action.targetLabel}”`
+            : action.kind === "browser_fill_text"
+              ? `我刚刚试着替你填写“${action.targetLabel}”`
+            : action.kind === "open_folder"
+              ? `我刚刚试着替你打开 ${action.targetLabel} 文件夹`
                 : action.kind === "launch_app"
                   ? `我刚刚试着替你启动 ${action.targetLabel}`
                   : `我刚刚试着替你打开 ${action.targetLabel}`;
@@ -152,9 +170,11 @@ export function buildLocalActionFailureNote(
         : action.kind === "browser_list_clickable"
           ? "I just tried to inspect the clickable items on the current page for you"
           : action.kind === "browser_click_text"
-            ? `I just tried to click "${action.targetLabel}" for you`
-            : action.kind === "open_folder"
-              ? `I just tried to open the ${action.targetLabel} folder for you`
+          ? `I just tried to click "${action.targetLabel}" for you`
+          : action.kind === "browser_fill_text"
+            ? `I just tried to fill "${action.targetLabel}" for you`
+          : action.kind === "open_folder"
+            ? `I just tried to open the ${action.targetLabel} folder for you`
               : action.kind === "launch_app"
                 ? `I just tried to launch ${action.targetLabel} for you`
                 : `I just tried to open ${action.targetLabel} for you`;

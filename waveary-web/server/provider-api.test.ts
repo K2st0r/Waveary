@@ -1441,6 +1441,49 @@ test("browser click-text route clicks a matching visible element by text", async
   assert.equal(response.body.clickedAt, "2026-06-22T08:25:00.000Z");
 });
 
+test("browser fill-text route fills a matching visible input by text", async () => {
+  const middleware = createProviderApiMiddleware();
+
+  setBrowserAutomationOverridesForTests({
+    async fillByText(fieldText, value, options) {
+      assert.equal(fieldText, "Search");
+      assert.equal(value, "Waveary");
+      assert.equal(options?.exact, true);
+      assert.equal(options?.timeoutMs, 2200);
+
+      return {
+        page: {
+          url: "https://example.com/search",
+          title: "Search"
+        },
+        matchedText: "Search",
+        value: "Waveary",
+        exact: true,
+        filledAt: "2026-06-24T08:30:00.000Z"
+      };
+    }
+  });
+
+  const response = await invokeJsonRoute(
+    middleware,
+    "POST",
+    "/api/browser/fill-text",
+    {
+      fieldText: "Search",
+      value: "Waveary",
+      exact: true,
+      timeoutMs: 2200
+    }
+  );
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.page.url, "https://example.com/search");
+  assert.equal(response.body.matchedText, "Search");
+  assert.equal(response.body.value, "Waveary");
+  assert.equal(response.body.exact, true);
+  assert.equal(response.body.filledAt, "2026-06-24T08:30:00.000Z");
+});
+
 test("chat turn proposes a pending local action for explicit open requests", async () => {
   const middleware = createProviderApiMiddleware();
 
@@ -1706,6 +1749,48 @@ test("chat turn proposes a pending browser read action for current-page reading 
   assert.equal(response.body.pendingLocalAction.target, "__current_page__");
 });
 
+test("chat turn proposes a pending browser fill action for page input requests", async () => {
+  const middleware = createProviderApiMiddleware();
+
+  saveProviderConfig({
+    provider: "provider-a",
+    baseURL: "https://provider-a.example/v1",
+    apiKey: "key-a",
+    model: "model-a"
+  });
+
+  globalThis.fetch = (async () =>
+    new Response(
+      JSON.stringify({
+        choices: [
+          {
+            message: {
+              content: "I can set that up for you."
+            }
+          }
+        ]
+      }),
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json"
+        }
+      }
+    )) as typeof fetch;
+
+  const response = await invokeJsonRoute(middleware, "POST", "/api/chat/turn", {
+    sessionId: DEFAULT_CHAT_SESSION_ID,
+    message: 'fill search with Waveary'
+  });
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.reply, "I can set that up for you.");
+  assert.equal(response.body.pendingLocalAction.kind, "browser_fill_text");
+  assert.equal(response.body.pendingLocalAction.target, "search");
+  assert.equal(response.body.pendingLocalAction.targetLabel, "search");
+  assert.equal(response.body.pendingLocalAction.value, "Waveary");
+});
+
 test("chat turn auto-executes browser search actions in full-access mode with grounded page feedback", async () => {
   const middleware = createProviderApiMiddleware();
 
@@ -1949,6 +2034,86 @@ test("local action execution route records browser clickable-list notes after ap
   assert.match(
     approvedResponse.body.session.messages[2]?.content,
     /The clearest clickable options right now are/
+  );
+});
+
+test("local action execution route records browser fill notes after approval", async () => {
+  const middleware = createProviderApiMiddleware();
+
+  saveProviderConfig({
+    provider: "provider-a",
+    baseURL: "https://provider-a.example/v1",
+    apiKey: "key-a",
+    model: "model-a"
+  });
+
+  globalThis.fetch = (async () =>
+    new Response(
+      JSON.stringify({
+        choices: [
+          {
+            message: {
+              content: "Action prepared."
+            }
+          }
+        ]
+      }),
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json"
+        }
+      }
+    )) as typeof fetch;
+
+  setBrowserAutomationOverridesForTests({
+    async fillByText(fieldText, value, options) {
+      assert.equal(fieldText, "search");
+      assert.equal(value, "Waveary");
+      assert.equal(options?.timeoutMs, 4000);
+      return {
+        page: {
+          url: "https://example.com/search",
+          title: "Search"
+        },
+        matchedText: "Search",
+        value: "Waveary",
+        exact: false,
+        filledAt: "2026-06-24T08:40:00.000Z"
+      };
+    }
+  });
+
+  const turnResponse = await invokeJsonRoute(middleware, "POST", "/api/chat/turn", {
+    sessionId: DEFAULT_CHAT_SESSION_ID,
+    message: "fill search with Waveary"
+  });
+
+  assert.equal(turnResponse.statusCode, 200);
+  assert.equal(turnResponse.body.pendingLocalAction.kind, "browser_fill_text");
+
+  const approvedResponse = await invokeJsonRoute(
+    middleware,
+    "POST",
+    "/api/chat/local-action/execute",
+    {
+      sessionId: DEFAULT_CHAT_SESSION_ID,
+      actionId: turnResponse.body.pendingLocalAction.id,
+      permission: "ask",
+      approved: true,
+      locale: "en"
+    }
+  );
+
+  assert.equal(approvedResponse.statusCode, 200);
+  assert.equal(
+    approvedResponse.body.result.message,
+    'Filled "Search".'
+  );
+  assert.equal(approvedResponse.body.session.latestInsights.pendingLocalAction, null);
+  assert.match(
+    approvedResponse.body.session.messages[2]?.content,
+    /I filled "Search" on "Search" with "Waveary"/
   );
 });
 

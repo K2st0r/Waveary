@@ -33,6 +33,11 @@ type BrowserAutomationOverrides = {
     text: string,
     options?: BrowserClickByTextOptions
   ) => Promise<BrowserClickByTextResult>;
+  fillByText?: (
+    fieldText: string,
+    value: string,
+    options?: BrowserFillByTextOptions
+  ) => Promise<BrowserFillByTextResult>;
   openFirstVisibleLink?: (
     options?: BrowserOpenFirstVisibleLinkOptions
   ) => Promise<BrowserOpenFirstVisibleLinkResult>;
@@ -106,6 +111,19 @@ export interface BrowserClickByTextResult {
   matchedText: string;
   exact: boolean;
   clickedAt: string;
+}
+
+export interface BrowserFillByTextOptions {
+  exact?: boolean;
+  timeoutMs?: number;
+}
+
+export interface BrowserFillByTextResult {
+  page: BrowserPageInfo;
+  matchedText: string;
+  value: string;
+  exact: boolean;
+  filledAt: string;
 }
 
 export interface BrowserOpenFirstVisibleLinkOptions {
@@ -399,6 +417,176 @@ export async function clickManagedBrowserElementByText(
     matchedText: clicked,
     exact,
     clickedAt: new Date().toISOString()
+  };
+}
+
+export async function fillManagedBrowserInputByText(
+  fieldText: string,
+  value: string,
+  options: BrowserFillByTextOptions = {}
+): Promise<BrowserFillByTextResult> {
+  if (browserAutomationOverrides?.fillByText) {
+    return browserAutomationOverrides.fillByText(fieldText, value, options);
+  }
+
+  const normalizedFieldText = fieldText.trim();
+  if (!normalizedFieldText) {
+    throw new Error("A non-empty fill target text is required.");
+  }
+
+  const page = await requireManagedPage();
+  const exact = options.exact ?? false;
+  const timeoutMs = normalizePositiveInteger(options.timeoutMs, 5000);
+
+  const filled = await page.evaluate(
+    async ({ targetText, nextValue, exactMatch, timeout }) => {
+      const editableSelector =
+        "input:not([type='hidden']):not([type='checkbox']):not([type='radio']):not([type='button']):not([type='submit']):not([type='reset']), textarea, [contenteditable='true'], [role='textbox']";
+      const editableElements = Array.from(
+        document.querySelectorAll<HTMLElement>(editableSelector)
+      );
+      const normalize = (input: string) => input.replace(/\s+/g, " ").trim();
+      const wanted = normalize(targetText).toLowerCase();
+
+      const findAssociatedLabel = (element: HTMLElement): string => {
+        const id = element.getAttribute("id");
+        const directLabel =
+          id && typeof document.querySelector === "function"
+            ? document.querySelector(`label[for="${CSS.escape(id)}"]`)
+            : null;
+        const wrappedLabel = element.closest("label");
+        const describedBy = element.getAttribute("aria-describedby");
+        const describedText = describedBy
+          ? describedBy
+              .split(/\s+/)
+              .map((entry) => document.getElementById(entry)?.textContent || "")
+              .join(" ")
+          : "";
+
+        return normalize(
+          (directLabel?.textContent || "") +
+            " " +
+            (wrappedLabel?.textContent || "") +
+            " " +
+            describedText
+        );
+      };
+
+      const collectCandidateTexts = (element: HTMLElement): string[] => {
+        const placeholder =
+          element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement
+            ? element.placeholder
+            : "";
+        const ariaLabel = element.getAttribute("aria-label") || "";
+        const name = element.getAttribute("name") || "";
+        const title = element.getAttribute("title") || "";
+        const label = findAssociatedLabel(element);
+        const textContent = element.textContent || "";
+
+        return [label, ariaLabel, placeholder, name, title, textContent]
+          .map((entry) => normalize(entry))
+          .filter(Boolean);
+      };
+
+      const visibleMatches = editableElements
+        .map((element) => {
+          const rect = element.getBoundingClientRect();
+          const style = window.getComputedStyle(element);
+          const texts = collectCandidateTexts(element);
+
+          if (
+            rect.width <= 0 ||
+            rect.height <= 0 ||
+            style.visibility === "hidden" ||
+            style.display === "none" ||
+            element.hasAttribute("disabled")
+          ) {
+            return null;
+          }
+
+          return {
+            element,
+            texts
+          };
+        })
+        .filter((entry): entry is { element: HTMLElement; texts: string[] } => Boolean(entry))
+        .filter(({ texts }) =>
+          texts.some((entry) =>
+            exactMatch
+              ? entry.toLowerCase() === wanted
+              : entry.toLowerCase().includes(wanted)
+          )
+        );
+
+      const match = visibleMatches[0];
+      if (!match) {
+        return null;
+      }
+
+      const { element, texts } = match;
+      const preferredLabel =
+        texts.find((entry) =>
+          exactMatch ? entry.toLowerCase() === wanted : entry.toLowerCase().includes(wanted)
+        ) ||
+        texts[0] ||
+        targetText;
+
+      element.scrollIntoView({
+        behavior: "instant",
+        block: "center",
+        inline: "center"
+      });
+
+      await new Promise((resolve) => window.setTimeout(resolve, 60));
+      element.focus();
+
+      if (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement) {
+        const setter =
+          element instanceof HTMLInputElement
+            ? Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set
+            : Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value")?.set;
+
+        if (setter) {
+          setter.call(element, nextValue);
+        } else {
+          element.value = nextValue;
+        }
+
+        element.dispatchEvent(new Event("input", { bubbles: true }));
+        element.dispatchEvent(new Event("change", { bubbles: true }));
+      } else {
+        element.textContent = nextValue;
+        element.dispatchEvent(new Event("input", { bubbles: true }));
+        element.dispatchEvent(new Event("change", { bubbles: true }));
+      }
+
+      await new Promise((resolve) => window.setTimeout(resolve, Math.min(timeout, 300)));
+
+      return {
+        matchedText: preferredLabel
+      };
+    },
+    {
+      targetText: normalizedFieldText,
+      nextValue: value,
+      exactMatch: exact,
+      timeout: timeoutMs
+    }
+  );
+
+  if (!filled) {
+    throw new Error(`No fillable input matched "${normalizedFieldText}".`);
+  }
+
+  markPageActive(page);
+  const pageInfo = await describePage(page);
+
+  return {
+    page: pageInfo,
+    matchedText: filled.matchedText,
+    value,
+    exact,
+    filledAt: new Date().toISOString()
   };
 }
 

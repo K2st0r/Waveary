@@ -5,6 +5,7 @@ import { join } from "node:path";
 import {
   clickManagedBrowserElementByText,
   extractManagedBrowserPageText,
+  fillManagedBrowserInputByText,
   getManagedBrowserPageInfo,
   listManagedBrowserClickableElements,
   openManagedBrowserFirstVisibleLink,
@@ -22,6 +23,7 @@ export type LocalActionKind =
   | "browser_search_text"
   | "browser_list_clickable"
   | "browser_click_text"
+  | "browser_fill_text"
   | "browser_open_bilibili_video";
 export type LocalActionPermissionLevel = "allow" | "ask" | "deny";
 export type LocalActionLocale = "zh" | "en";
@@ -33,6 +35,7 @@ export interface PendingLocalAction {
   target: string;
   targetLabel: string;
   summary: string;
+  value?: string;
 }
 
 export interface ExecutedLocalAction {
@@ -138,6 +141,17 @@ export async function detectPendingLocalAction(message: string): Promise<Pending
       browserClickTarget,
       browserClickTarget,
       `Click ${browserClickTarget} on the current page`
+    );
+  }
+
+  const browserFillTarget = extractBrowserFillInstruction(trimmed);
+  if (browserFillTarget) {
+    return buildPendingLocalAction(
+      "browser_fill_text",
+      browserFillTarget.field,
+      browserFillTarget.field,
+      `Fill ${browserFillTarget.field} on the current page`,
+      browserFillTarget.value
     );
   }
 
@@ -293,6 +307,35 @@ function extractBrowserClickTarget(message: string): string | null {
   return null;
 }
 
+function extractBrowserFillInstruction(
+  message: string
+): { field: string; value: string } | null {
+  const englishPatterns = [
+    /^(?:fill|type in|enter)\s+["“]?(.+?)["”]?\s+(?:with|as)\s+["“]?(.+?)["”]?$/i,
+    /^(?:set)\s+["“]?(.+?)["”]?\s+to\s+["“]?(.+?)["”]?$/i
+  ];
+  const chinesePatterns = [
+    /^在["“]?(.+?)["”]?(?:里|中)?(?:输入|填写)["“]?(.+?)["”]?$/,
+    /^把["“]?(.+?)["”]?(?:设置为|改成|填成)["“]?(.+?)["”]?$/,
+    /^给["“]?(.+?)["”]?(?:输入|填写)["“]?(.+?)["”]?$/
+  ];
+
+  for (const pattern of [...englishPatterns, ...chinesePatterns]) {
+    const match = message.match(pattern);
+    const field = match?.[1]?.trim();
+    const value = match?.[2]?.trim();
+
+    if (field && value) {
+      return {
+        field: stripTrailingPunctuation(field),
+        value: stripTrailingPunctuation(value)
+      };
+    }
+  }
+
+  return null;
+}
+
 async function extractBilibiliFollowupQuery(message: string): Promise<string | null> {
   const match =
     message.match(/^(?:看|搜|找|查)(.+)$/) ||
@@ -316,7 +359,8 @@ function buildPendingLocalAction(
   kind: LocalActionKind,
   target: string,
   targetLabel: string,
-  summary: string
+  summary: string,
+  value?: string
 ): PendingLocalAction {
   return {
     id: `local-action-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
@@ -324,7 +368,8 @@ function buildPendingLocalAction(
     label: summarizeKind(kind),
     target,
     targetLabel,
-    summary
+    summary,
+    ...(value !== undefined ? { value } : {})
   };
 }
 
@@ -351,6 +396,10 @@ function summarizeKind(kind: LocalActionKind): string {
 
   if (kind === "browser_list_clickable") {
     return "Inspect clickable items";
+  }
+
+  if (kind === "browser_fill_text") {
+    return "Fill page input";
   }
 
   if (kind === "browser_open_bilibili_video") {
@@ -465,6 +514,32 @@ async function executeLocalAction(
     };
   }
 
+  if (action.kind === "browser_fill_text") {
+    const nextValue = action.value?.trim();
+
+    if (!nextValue) {
+      throw new Error("No input value was provided for this page field.");
+    }
+
+    const result = await fillManagedBrowserInputByText(action.target, nextValue, {
+      timeoutMs: 4000
+    });
+
+    return {
+      status: "executed",
+      message:
+        locale === "zh"
+          ? `已在“${result.matchedText}”中填写内容。`
+          : `Filled "${result.matchedText}".`,
+      assistantNote: buildBrowserFillAssistantNote(
+        result.page,
+        result.matchedText,
+        result.value,
+        locale
+      )
+    };
+  }
+
   if (action.kind === "browser_open_bilibili_video") {
     const query = action.targetLabel;
     const searchUrl = `https://search.bilibili.com/all?keyword=${encodeURIComponent(query)}`;
@@ -566,6 +641,19 @@ function buildBrowserClickAssistantNote(
   return locale === "zh"
     ? `我已经替你点了“${matchedText}”。现在页面来到了${pageRef}，如果你想，我可以继续陪你往下走。`
     : `I clicked "${matchedText}" for you. The page is now at ${pageRef}, and I can keep going with you if you want.`;
+}
+
+function buildBrowserFillAssistantNote(
+  page: BrowserPageInfo,
+  matchedText: string,
+  value: string,
+  locale: LocalActionLocale
+): string {
+  const pageRef = describePage(page, locale);
+
+  return locale === "zh"
+    ? `我已经替你在${pageRef}里的“${matchedText}”填上了“${clipText(value, 40)}”。如果你愿意，我还可以继续帮你点下一步。`
+    : `I filled "${matchedText}" on ${pageRef} with "${clipText(value, 40)}". If you want, I can keep going and handle the next step too.`;
 }
 
 function buildBilibiliOpenAssistantNote(
