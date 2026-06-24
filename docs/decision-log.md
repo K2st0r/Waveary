@@ -1512,3 +1512,25 @@ Impact:
 - `waveary-web/src/App.tsx` now renders the searchable voice control as a block-level `voice-picker-field` and keeps the active panel inline
 - `waveary-web/src/styles.css` now forces the voice output-selection area into a single-column layout for the searchable picker path, removes the earlier width pressure, and keeps the loaded voice list visible inside the panel
 - future console voice refinements should preserve the invariant that searchable supported voice lists remain visibly in-panel and do not reintroduce awkward sideways overflow
+
+## 2026-06-24 - Homepage Project Route Should Replace The Standalone Roadmap Page
+
+Status:
+
+- accepted
+
+Decision:
+
+Retire the standalone `roadmap` page and move that material into a stronger homepage-ending `Project Route / 项目路线` section that reads as a formal project close rather than a future-facing roadmap.
+
+Reason:
+
+- the user explicitly wanted the route material folded into the homepage and presented as "what we have already built, layer by layer" instead of a separate page of expectations
+- the homepage is the correct place for project positioning and promotional closure, while the console and chat pages should stay operational
+- leaving the old route content as a separate page kept the public surface feeling more like a documentation sitemap than a deliberate open source project homepage
+
+Impact:
+
+- top navigation now stays focused on `home / console / chat`
+- the homepage closing section now owns the route narrative through `projectRouteContent`
+- the legacy `#roadmap` hash remains a compatibility redirect into the homepage section so old links and buttons still resolve

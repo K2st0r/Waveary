@@ -114,9 +114,11 @@ Brand line:
   - Windows-safe local dev and preview entrypoints are implemented for the current workspace path setup
   - package boundary is documented for future provider setup and runtime UI work
   - homepage now supports direct Chinese and English switching through a local UI toggle
-  - homepage copy, console labels, provider setup flow labels, session management labels, runtime panels, and roadmap are now bilingual
+  - homepage copy, console labels, provider setup flow labels, session management labels, runtime panels, and the homepage project-route close are now bilingual
   - language switching now stays local to presentation state and does not reset the user's in-progress provider form input or current runtime page state
-  - the public web surface is now split into shorter hash-routed views for home, console, chat, and roadmap instead of one very long landing page
+  - the public web surface is now split into shorter hash-routed views for home, console, and chat instead of one very long landing page
+  - the old standalone roadmap page has now been retired in favor of a stronger homepage-closing `Project Route / 项目路线` section that reads as completed product progression rather than a future wishlist
+  - the old `#roadmap` hash is still preserved as a compatibility redirect into the homepage closing section, so earlier links and buttons do not break
   - framework and positioning explanation is now fully absorbed into the homepage instead of living on a separate framework page
   - the management console now focuses on provider setup, session controls, persistence switching, import/export, and runtime diagnostics
   - the management console now also exposes persisted `WPCE` policy/state controls and read-only evaluation output for the active session
@@ -407,6 +409,7 @@ Brand line:
 - continue polishing the split web shell by tightening session-management density below the console fold and improving message rhythm plus mixed-language balance in the dedicated chat page
 - visually verify and tune the new compact console toolbar plus non-session workspace flow in-browser, especially the internal scrolling behavior now that the marketing-style console intro has been suppressed
 - continue refining the homepage hero so the first screen feels complete across more desktop and laptop heights, with no further scroll-first regression after future copy or asset additions
+- if future homepage polish touches the closing route section again, keep it as a homepage-ending promotional recap and do not reintroduce a separate roadmap page
 - if another shell-polish pass is needed, prefer targeted fixes for specific overflowing metadata rows or mobile breakpoints instead of broad console restructuring, because the current containment baseline for `#home`, `#chat`, and `#console` has now been browser-verified
 - keep iterating on the compact console shell only after visual verification shows a remaining real usability gap, instead of re-expanding it into explanatory blocks
 - run a focused browser pass for homepage doodle density, fade rhythm, and overall visual balance now that the doodle set includes both the original study objects and the new paper-memory objects

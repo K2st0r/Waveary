@@ -6362,3 +6362,45 @@ Commit:
 Push:
 
 - pending
+
+## 2026-06-24
+
+Objective:
+
+Remove the separate roadmap page from the public web surface and turn it into a stronger homepage-ending project-route section without disturbing the console or chat flows.
+
+Summary:
+
+- removed the standalone top-nav roadmap destination from the live homepage shell and kept only `home / console / chat` in the public top navigation
+- kept old `#roadmap` links truthful by redirecting that hash into the homepage closing section instead of breaking existing anchors and CTA buttons
+- replaced the old future-roadmap framing with a stronger `Project Route / 项目路线` close that presents Waveary as an already-built progression from framework substrate, to continuity systems, to presence, to voice
+- removed the leftover duplicated route paragraph from `waveary-web/src/App.tsx` and deleted the temporary CSS hide-rule that had only been masking that stale text
+- polished the closing route cards into a more formal end-of-homepage promo block with clearer `step / track` hierarchy and a stronger full-width section heading treatment
+
+Files changed:
+
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run check:mojibake`
+- `npm run web:build`
+- `curl.exe -I http://127.0.0.1:4173/`
+- `npx --yes --package @playwright/cli playwright-cli -s waveary-route-polish open http://127.0.0.1:4173/#home --headed`
+- `npx --yes --package @playwright/cli playwright-cli -s waveary-route-polish resize 1440 1200`
+- `npx --yes --package @playwright/cli playwright-cli -s waveary-route-polish snapshot`
+- `npx --yes --package @playwright/cli playwright-cli -s waveary-route-polish eval "window.location.hash = '#roadmap'"`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
