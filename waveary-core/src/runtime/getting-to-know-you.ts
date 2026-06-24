@@ -123,12 +123,12 @@ export function describeGettingToKnowYouGuidance(
     return "This turn is emotionally heavier. Do not switch into playful onboarding questions; stay with the feeling first.";
   }
 
-  if (practical) {
-    return "This turn is practical. Answer the practical need first and avoid turning it into a getting-to-know-you detour.";
-  }
-
   if (state.latestTurnAskedCompanionName) {
     return "The user is asking who you are or what to call you. Answer lightly, let them rename you if they want, and if it feels natural ask what you should call them in return.";
+  }
+
+  if (practical) {
+    return "This turn is practical. Answer the practical need first and avoid turning it into a getting-to-know-you detour.";
   }
 
   return "In the new stage, a little playful mutual discovery is welcome. If one detail is still missing, gently ask for only one: what to call them, whether they want to name you, or what kind of presence they want from you.";
