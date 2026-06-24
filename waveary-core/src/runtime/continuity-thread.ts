@@ -387,6 +387,12 @@ function shouldBlendWithPreviousUserTurn(
     /\b(that's why|that is why|part of the same thing|part of it|why i can't|why i cannot|why i still can't|why i still cannot)\b/i.test(
       compact
     );
+  const softInferentialCarryover =
+    /^(maybe|perhaps|probably|i guess|i think)\b/i.test(compact) &&
+    /\b(part of why|why)\b/i.test(compact) &&
+    /\b(feels?|felt|seems?|seemed)\b/i.test(compact) &&
+    /\b(off|unsettled|strange|weird|heavy|hard|wrong)\b/i.test(compact) &&
+    /\b(it|that|this|things|everything)\b/i.test(compact);
   const lowAffectPronounCarryover =
     /^(it|that|this|things|everything)\b/i.test(compact) &&
     /\b(feels?|felt|seems?|seemed|is|was|gets?|got)\b/i.test(compact) &&
@@ -405,6 +411,10 @@ function shouldBlendWithPreviousUserTurn(
   }
 
   if (inferentialCarryover && tokenCount <= 12) {
+    return true;
+  }
+
+  if (softInferentialCarryover && tokenCount <= 12) {
     return true;
   }
 
