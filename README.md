@@ -10,6 +10,13 @@
 **念念不忘，终有回响。**  
 **What is remembered returns as an echo.**
 
+[![License: MIT](https://img.shields.io/badge/license-MIT-black.svg)](./LICENSE)
+[![GitHub stars](https://img.shields.io/github/stars/K2st0r/Waveary?style=social)](https://github.com/K2st0r/Waveary/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/K2st0r/Waveary?style=social)](https://github.com/K2st0r/Waveary/network/members)
+[![GitHub issues](https://img.shields.io/github/issues/K2st0r/Waveary)](https://github.com/K2st0r/Waveary/issues)
+[![GitHub last commit](https://img.shields.io/github/last-commit/K2st0r/Waveary)](https://github.com/K2st0r/Waveary/commits/main)
+[![Visitors](https://komarev.com/ghpvc/?username=K2st0r&repo=Waveary&color=111111&label=views)](https://github.com/K2st0r/Waveary)
+
 </div>
 
 ---
@@ -104,18 +111,24 @@ The goal is not occasional surprise. The goal is long-term presence.
 
 ---
 
-## What Waveary Adds To Any Model | Waveary 能为任意模型补上的能力
+## Highlights | 项目亮点
 
-- **Long-term memory continuity**  
-  长期记忆连续性
-- **Relationship growth continuity**  
-  关系成长连续性
-- **Life timeline continuity**  
-  人生时间轴连续性
-- **Emotional companionship continuity**  
-  情感陪伴连续性
-- **Voice interaction continuity**  
-  语音交互连续性
+- Multi-provider model access  
+  多供应商模型接入
+- Provider model discovery  
+  供应商模型检索
+- Browser-based runtime chat shell  
+  浏览器内运行时对话
+- Long-term memory and relationship scaffolding  
+  长期记忆与关系成长骨架
+- Timeline-oriented session continuity  
+  面向时间轴的会话连续性
+- Permissioned local time awareness  
+  有权限边界的本地时间感知
+- Permissioned local actions  
+  有权限边界的本地动作执行
+- Dedicated voice routing and realtime voice foundation  
+  独立语音路由与实时语音基础
 
 ---
 
@@ -167,16 +180,81 @@ Current repository modules:
 
 ---
 
-## Current Capabilities | 当前已实现方向
+## Project Status | 项目状态
 
-- multi-provider model access
-- provider-side model discovery
-- browser-based chat runtime
-- local session persistence
-- memory / relationship / timeline runtime scaffolding
-- permissioned local time awareness
-- permissioned local actions
-- dedicated voice routing and realtime voice foundation
+| Area | Status | Notes |
+| --- | --- | --- |
+| Core runtime | In progress | Multi-provider runtime skeleton is in place |
+| Memory | In progress | Extraction, storage, retrieval baseline exists |
+| Relationship | In progress | Stateful continuity scaffolding exists |
+| Timeline | In progress | Timeline-aware session continuity exists |
+| Voice | In progress | Dedicated routing and realtime foundation exist |
+| Web surface | In progress | Official product shell is already usable |
+
+| 模块 | 状态 | 说明 |
+| --- | --- | --- |
+| Core runtime | 进行中 | 多供应商运行时骨架已建立 |
+| Memory | 进行中 | 提取、存储、检索基线已落地 |
+| Relationship | 进行中 | 有状态关系连续性骨架已存在 |
+| Timeline | 进行中 | 面向时间轴的会话连续性已存在 |
+| Voice | 进行中 | 独立语音路由与实时基础已存在 |
+| Web surface | 进行中 | 官方产品外壳已可使用 |
+
+---
+
+## Quick Start | 快速开始
+
+### Requirements | 环境要求
+
+- `Node.js 20+`
+- `npm 10+`
+
+### Install | 安装
+
+```bash
+git clone https://github.com/K2st0r/Waveary.git
+cd Waveary
+npm install
+```
+
+### Run the web app | 启动 Web 界面
+
+```bash
+npm run web:dev
+```
+
+### Build the web app | 构建 Web 界面
+
+```bash
+npm run web:build
+```
+
+### Run tests | 运行测试
+
+```bash
+npm run test
+```
+
+### Verify provider integration | 验证供应商接入
+
+```bash
+npm run verify:provider
+```
+
+---
+
+## Usage Flow | 使用流程
+
+1. Choose a provider.  
+   选择模型供应商。
+2. Fill in base URL and API key.  
+   填写 Base URL 和 API Key。
+3. Discover available models.  
+   检索可用模型。
+4. Select the model you want to use.  
+   选择要使用的模型。
+5. Start chatting with memory, relationship, timeline, and voice capabilities layered on top.  
+   在记忆、关系、时间轴与语音能力的加持下开始对话。
 
 ---
 
@@ -244,18 +322,6 @@ That means the open source version should genuinely include:
 
 ---
 
-## Status | 当前状态
-
-Waveary is in its foundation stage.
-
-The immediate goal is not to ship the flashiest companion demo, but to make the framework real, stable, extensible, and worth building on.
-
-Waveary 目前处于基础建设阶段。
-
-现阶段目标不是做一个噱头式的“最强陪伴 AI 演示”，而是把这个开源数字陪伴框架真正做实、做稳、做成可持续扩展的底座。
-
----
-
 ## Documentation | 文档
 
 - `docs/vision.md`
@@ -263,6 +329,28 @@ Waveary 目前处于基础建设阶段。
 - `docs/product-invariants.md`
 - `docs/product-preferences.md`
 - `waveary-web/README.md`
+
+---
+
+## Contributing | 参与贡献
+
+Issues, ideas, architecture discussion, and feature proposals are welcome.
+
+欢迎提交 issue、想法、架构讨论与功能提案。
+
+If you want to contribute:
+
+1. fork the repository
+2. create a branch
+3. make a focused change
+4. open a pull request
+
+如果你想参与贡献：
+
+1. fork 仓库
+2. 新建分支
+3. 做一个聚焦的小改动
+4. 发起 pull request
 
 ---
 
