@@ -378,6 +378,41 @@ test("deriveGettingToKnowYouState does not mistake call me if or when follow-ups
   assert.equal(state.shouldInviteUserName, true);
 });
 
+test("deriveGettingToKnowYouState does not mistake call me scheduling follow-ups for a user name", () => {
+  const state = deriveGettingToKnowYouState(
+    createRequest({
+      user: {
+        id: "user-1",
+        displayName: "User",
+        profileTraits: ["reflective"],
+        preferences: ["continuity"]
+      },
+      messages: [
+        {
+          id: "m1",
+          sessionId: "session-1",
+          role: "user",
+          content: "Call me later tonight.",
+          timestamp: new Date().toISOString(),
+          metadata: {}
+        },
+        {
+          id: "m2",
+          sessionId: "session-1",
+          role: "user",
+          content: "Call me tomorrow when you can.",
+          timestamp: new Date().toISOString(),
+          metadata: {}
+        }
+      ],
+      relevantMemories: []
+    })
+  );
+
+  assert.equal(state.userPreferredName, undefined);
+  assert.equal(state.shouldInviteUserName, true);
+});
+
 function createRequest(overrides: Partial<ChatProviderRequest> = {}): ChatProviderRequest {
   const base: ChatProviderRequest = {
     session: {
