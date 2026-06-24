@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `pending` - `Refine identity summary derivation`
+- `8fb3f8d` - `Refine identity summary derivation`
 
 ## Latest Repository Surface
 
