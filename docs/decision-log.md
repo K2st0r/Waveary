@@ -2023,3 +2023,26 @@ Impact:
 - `WavearyRuntime` now loads the current summary before reply generation and saves an updated summary after each handled turn
 - `OpenAICompatibleChatProvider` prompt assembly now includes a dedicated concept-level identity-summary block so high-end models can reason from stable user/bond understanding instead of only raw recalled fragments
 - scripted fallback now lightly reuses that same summary layer so provider and fallback paths drift less
+
+## 2026-06-24 - Identity Summaries Should Prefer Specific Care And Bond Signals Over Generic Broad Labels
+
+Status:
+
+- accepted
+
+Decision:
+
+When `SimpleIdentityEngine` derives concept-level summaries, it should prefer more specific bounded signals such as cadence preference, loneliness, overwhelm, naming, reconnection, and rituals over broad generic labels whenever those more precise cues are present.
+
+Reason:
+
+- the first identity-summary cut was useful, but it still over-promoted some ordinary style turns into generic vulnerability cues and flattened some warming bond turns back into generic continuity language
+- companionship quality improves when the concept layer retains what kind of care lands best and what exactly is making the bond feel more real, instead of collapsing everything into one soft summary sentence
+- this remains a bounded rules-layer refinement rather than a broader architecture change, so it fits the current `waveary-core` quality pass cleanly
+
+Impact:
+
+- ordinary short-natural-texting preferences now stay legible as cadence/tone needs instead of being misfiled as emotional vulnerability
+- emotional summary derivation now distinguishes loneliness and overwhelm from generic sadness/anxiety comfort needs
+- relationship-warming summaries now preserve trust-building signals such as remembered naming, repeated return, and small rituals when those are the real reason the bond feels more real
+- the next identity-summary step should either expose this higher-fidelity layer to the user lightly, or refine conflict handling between old stable themes and newer high-signal themes before exposure

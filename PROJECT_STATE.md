@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `c999e6d` - `Add concept-level identity summaries`
+- `pending` - `Refine identity summary derivation`
 
 ## Latest Repository Surface
 
@@ -74,6 +74,7 @@ Brand line:
   - scripted first-contact fallback copy is now warmer and less brand-flat when the user asks the companion's name or opens with a simple hello, keeping mutual naming more natural
   - a first bounded concept-level identity-summary layer now exists through a persisted `IdentitySummary` domain object plus `SimpleIdentityEngine`, so Waveary can retain a stable higher-level understanding of the user's self-concept, recurring needs, bond themes, and companion stance instead of relying only on raw memory fragments
   - concept-level identity summaries are now persisted with session state, injected into the live-provider prompt as a dedicated understanding block, and lightly reused by the scripted fallback path so real-provider and fallback continuity drift less
+  - the concept-level identity-summary derivation is now more precise across ordinary chat, emotional turns, and relationship-warming turns: casual cadence preferences no longer get over-promoted into vulnerability, emotional support needs now distinguish loneliness and overwhelm from generic sadness/anxiety, and bond summaries can preserve naming/ritual/reconnection trust cues instead of collapsing back to only generic continuity
   - permissioned local time context can now be injected into normal chat turns so the companion can answer time/date-style questions from the user's device-local clock without claiming it lacks real-time awareness
   - local time context now also resolves a bounded daypart hint so late-night and evening turns can bias toward softer companion tone without expanding into broader desktop-awareness inputs
   - direct local time/date/day questions now also short-circuit inside `WavearyRuntime` through a shared deterministic reply helper before provider generation, so real providers can no longer ignore the supplied local clock context and fall back to generic "I do not know the time" disclaimers
@@ -396,7 +397,7 @@ Brand line:
 - continue the continuity-thread quality pass beyond short, emotional, low-affect pronoun, inferential, and weaker unsettled carry-over follow-ups into the next bounded drift cases, so the system can stay anchored without over-blending unrelated nearby topics
 - continue hardening early-acquaintance inference beyond emotional-state false positives, identity-style self-description, quoted name-sharing, `my name's` introductions, `I'm called` introductions, parenthesized name-sharing, and `call me` follow-up/scheduling/sequencing/callback false positives into the next bounded ambiguous introduction cases, but keep the parser narrow enough that ordinary emotional sentences are never treated as confirmed names
 - decide whether the next truthful web-facing companion-quality surface should show remembered names / vibe continuity lightly, without regressing into a required persona setup form
-- decide whether the new concept-level identity summary should next be surfaced as a light inspect/edit CE memory panel or refined further as an internal runtime-only layer before exposure
+- decide whether the next identity-summary cut should surface a light inspect/edit CE memory panel first, or stay internal for one more bounded refinement around conflict resolution between old stable themes and newly detected higher-signal care needs
 - start the next voice implementation cut by pushing the current browser voice loop closer to true realtime duplex, beginning with interruption-safe reply stop/resume behavior and a tighter listen-speak handoff instead of broadening vendor coverage first
 - after that interruption-focused pass, decide whether the next highest-value voice step is wider provider-specific STT coverage such as Doubao/local or a deeper transport upgrade beyond the current browser-side speech-activity heuristics
 - replace the current fixed short capture window in provider-backed STT with a more truthful turn-end detector or streaming transport before claiming realtime voice is close to done

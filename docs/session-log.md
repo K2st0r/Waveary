@@ -7224,3 +7224,41 @@ Commit:
 Push:
 
 - succeeded: `git push origin main` pushed functional commit `c999e6d` to `origin/main`
+
+## 2026-06-24
+
+Objective:
+
+Refine concept-level identity-summary derivation so ordinary chat, emotional turns, and relationship-warming turns produce more precise higher-level understanding instead of flattening into generic continuity or comfort labels.
+
+Summary:
+
+- refined `waveary-core/src/adapters/simple-identity-engine.ts` into a more signal-aware bounded rules layer that separates continuity, emotional-truth, cadence, tone, loneliness, overwhelm, naming, reconnection, and ritual cues instead of relying on a few broad keyword buckets
+- kept stable identity themes merged conservatively, but now favor newer higher-signal entries for recurring needs and emotional patterns so fresh loneliness / overwhelm care requirements are not buried behind older generic comfort lines
+- made relationship-warming bond summaries more specific by preserving remembered naming, repeated return, and small rituals when those are what actually make the bond feel more real
+- added focused regression coverage in `waveary-core/src/adapters/simple-identity-engine.test.ts` for three failure-prone buckets: ordinary short-natural cadence preference without false vulnerability, emotional loneliness/overwhelm differentiation, and warming-stage naming/ritual trust inference
+- re-verified `@waveary/core` serially on Windows through typecheck, rebuild, and compiled tests after one real failing test exposed a priority-order bug in bond-theme trimming
+
+Files changed:
+
+- `waveary-core/src/adapters/simple-identity-engine.ts`
+- `waveary-core/src/adapters/simple-identity-engine.test.ts`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/core`
+- `npm run build --workspace @waveary/core`
+- PowerShell compiled-test verification via:
+  `$files = @(Get-ChildItem 'waveary-core\\dist' -Recurse -Filter '*.test.js' | ForEach-Object { $_.FullName }); & node --test @files`
+
+Commit:
+
+- `pending` - `Refine identity summary derivation`
+
+Push:
+
+- pending
