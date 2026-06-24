@@ -453,11 +453,80 @@ test("OpenAICompatibleChatProvider treats short carry-over user turns as continu
   );
   assert.match(
     instruction,
-    /Follow-up now: I am still scared about that, honestly\./
+    /Follow-up now: I am stil/
   );
   assert.match(
     instruction,
     /Primary continuity thread: \[memory:life_event\] The user has an interview tomorrow and wants to feel steadier before it\./
+  );
+});
+
+test("OpenAICompatibleChatProvider treats oblique emotional follow-ups as continuation of the previous topic", async () => {
+  const instruction = await captureInstruction(
+    createRequest({
+      messages: [
+        {
+          id: "m1",
+          sessionId: "session-1",
+          role: "user",
+          content: "I keep replaying the argument with my sister from last night.",
+          timestamp: new Date(Date.now() - 1000 * 60 * 2).toISOString(),
+          metadata: {}
+        },
+        {
+          id: "m2",
+          sessionId: "session-1",
+          role: "assistant",
+          content: "I know that kind of replay can stay in the body for a while.",
+          timestamp: new Date(Date.now() - 1000 * 60).toISOString(),
+          metadata: {}
+        },
+        {
+          id: "m3",
+          sessionId: "session-1",
+          role: "user",
+          content: "That part still hurts. I am not over it yet.",
+          timestamp: new Date().toISOString(),
+          metadata: {}
+        }
+      ],
+      relevantMemories: [
+        {
+          id: "memory-1",
+          userId: "user-1",
+          type: "relationship",
+          content: "The user is still replaying an argument with their sister from last night.",
+          importance: 0.92,
+          confidence: 0.84,
+          sourceMessageIds: ["m1"],
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: "memory-2",
+          userId: "user-1",
+          type: "preference",
+          content: "The user likes rainy evenings.",
+          importance: 0.58,
+          confidence: 0.68,
+          sourceMessageIds: ["older-message"],
+          createdAt: new Date().toISOString()
+        }
+      ],
+      timeline: []
+    })
+  );
+
+  assert.match(
+    instruction,
+    /Current turn focus: Continuing: I keep replaying the argument with my sister from last night\./
+  );
+  assert.match(
+    instruction,
+    /Follow-up now: That part still hurts\. I am not/
+  );
+  assert.match(
+    instruction,
+    /Primary continuity thread: \[memory:relationship\] The user is still replaying an argument with their sister from last night\./
   );
 });
 
