@@ -3,6 +3,44 @@
 
 Objective:
 
+Support quoted natural name-sharing so early-acquaintance parsing still catches real preferred names when users wrap them in quotes.
+
+Summary:
+
+- updated `waveary-core/src/runtime/getting-to-know-you.ts` so the existing `my name is`, `call me`, and direct `I'm / I am` name-sharing patterns now tolerate optional surrounding single or double quotes
+- added focused parser regression in `waveary-core/src/runtime/getting-to-know-you.test.ts` to ensure `You can call me "Aki".` becomes a preferred user name instead of being missed
+- added matching prompt-level regression in `waveary-core/src/adapters/openai-compatible-provider.test.ts` so live provider instructions now surface `Confirmed preferred user name from shared history: Aki.` for quoted name-sharing too
+- re-verified the full `@waveary/core` package through check, rebuild, and compiled tests; the package now passes `79` tests, and this pass stayed entirely inside the early-acquaintance dialogue-quality path without touching frontend, voice, or continuity-thread code
+
+Files changed:
+
+- `waveary-core/src/runtime/getting-to-know-you.ts`
+- `waveary-core/src/runtime/getting-to-know-you.test.ts`
+- `waveary-core/src/adapters/openai-compatible-provider.test.ts`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/core`
+- `npm run build --workspace @waveary/core`
+- PowerShell compiled-test verification via:
+  `$files = @(Get-ChildItem 'waveary-core\\dist' -Recurse -Filter '*.test.js' | ForEach-Object { $_.FullName }); & node --test @files`
+
+Commit:
+
+- `pending` - `Support quoted name sharing`
+
+Push:
+
+- pending
+
+## 2026-06-24
+
+Objective:
+
 Tighten early-acquaintance parsing so identity-style self-description does not get promoted into fake preferred-name memory.
 
 Summary:

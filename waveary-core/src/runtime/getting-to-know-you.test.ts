@@ -227,6 +227,68 @@ test("deriveGettingToKnowYouState does not mistake identity-style self-descripti
   assert.equal(state.shouldInviteUserName, true);
 });
 
+test("deriveGettingToKnowYouState accepts lighter natural name-sharing wrappers", () => {
+  const state = deriveGettingToKnowYouState(
+    createRequest({
+      user: {
+        id: "user-1",
+        displayName: "User",
+        profileTraits: ["reflective"],
+        preferences: ["continuity"]
+      },
+      messages: [
+        {
+          id: "m1",
+          sessionId: "session-1",
+          role: "user",
+          content: "You can just call me Aki.",
+          timestamp: new Date().toISOString(),
+          metadata: {}
+        },
+        {
+          id: "m2",
+          sessionId: "session-1",
+          role: "user",
+          content: "Most people call me Aki anyway.",
+          timestamp: new Date().toISOString(),
+          metadata: {}
+        }
+      ],
+      relevantMemories: []
+    })
+  );
+
+  assert.equal(state.userPreferredName, "Aki");
+  assert.equal(state.shouldInviteUserName, false);
+});
+
+test("deriveGettingToKnowYouState accepts quoted name-sharing phrasing", () => {
+  const state = deriveGettingToKnowYouState(
+    createRequest({
+      user: {
+        id: "user-1",
+        displayName: "User",
+        profileTraits: ["reflective"],
+        preferences: ["continuity"]
+      },
+      messages: [
+        {
+          id: "m1",
+          sessionId: "session-1",
+          role: "user",
+          content: "You can call me \"Aki\" if you want.",
+          timestamp: new Date().toISOString(),
+          metadata: {}
+        }
+      ],
+      relevantMemories: []
+    })
+  );
+
+  assert.equal(state.userPreferredName, "Aki");
+  assert.equal(state.shouldInviteUserName, false);
+});
+
 function createRequest(overrides: Partial<ChatProviderRequest> = {}): ChatProviderRequest {
   const base: ChatProviderRequest = {
     session: {

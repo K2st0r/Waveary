@@ -159,6 +159,28 @@ Impact:
 - regression coverage now includes identity-style self-description so future parser work does not regress back into fake preferred names from broader self-description
 - the next parser-hardening pass should stay on similarly narrow ambiguous-introduction cases instead of broadening into a heavy NLP layer
 
+## 2026-06-24 - Quoted Name Sharing Should Still Count As Real Name Sharing
+
+Status:
+
+- accepted
+
+Decision:
+
+Waveary should treat quoted natural name-sharing phrasing such as `You can call me "Aki".` or similar quoted `call me` / `my name is` wrappers as valid preferred-name evidence, instead of missing them just because the user wrapped the shared name in quotes.
+
+Reason:
+
+- real chat often uses quoted names for tone, emphasis, or a slightly playful cadence, especially in early acquaintance
+- the parser had already become more conservative against false positives, but that conservatism should not cost obvious true positives where the user is directly naming themselves
+- companionship quality improves when the system catches these light, natural name-sharing turns without making the user repeat themselves in a stiffer format
+
+Impact:
+
+- `waveary-core/src/runtime/getting-to-know-you.ts` now tolerates optional surrounding single or double quotes in its `my name is`, `call me`, and direct `I'm / I am` name-sharing patterns
+- regression coverage now includes both direct parser checks and live-provider prompt checks for quoted shared-name phrasing
+- future parser work should keep balancing conservatism against false positives with equally narrow support for natural human phrasing variants
+
 ## 2026-06-24 - Companion Replies Should Default To Human-Scale Cadence
 
 Status:
