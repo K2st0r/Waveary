@@ -269,6 +269,28 @@ Impact:
 - regression coverage now includes both parser-level and live-provider prompt-level checks proving `call me later/tomorrow ...` does not become a confirmed preferred user name
 - future parser work should keep extending false-positive guards one realistic phrase family at a time instead of broadening extraction heuristics first
 
+## 2026-06-24 - Call Me Sequencing Language Must Also Stay Out Of Preferred-Name Memory
+
+Status:
+
+- accepted
+
+Decision:
+
+Waveary should not treat sequencing phrasing such as `Call me once you get there.` or `Call me after work if you want.` as preferred-name evidence, even though those lines also begin with `call me`.
+
+Reason:
+
+- this is another realistic coordination pattern that appears naturally in caring conversation and should not pollute identity memory
+- fake preferred names like `once` or `after` are as harmful as earlier `if`, `when`, `later`, or `tomorrow` false positives because they make the companion sound absurdly inattentive
+- the safest progression is still to close one realistic false-positive family at a time rather than broadening extraction rules
+
+Impact:
+
+- `waveary-core/src/runtime/getting-to-know-you.ts` now also rejects sequencing continuation words such as `once`, `after`, `before`, `whenever`, `soon`, and `again` in the preferred-name plausibility filter
+- regression coverage now includes both parser-level and live-provider prompt-level checks proving `call me once/after ...` does not become a confirmed preferred user name
+- future parser work should keep extending false-positive guards around common contact-language shapes before expanding into looser introduction heuristics
+
 ## 2026-06-24 - Companion Replies Should Default To Human-Scale Cadence
 
 Status:
