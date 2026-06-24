@@ -137,6 +137,28 @@ Impact:
 - regression coverage now includes both direct continuity selection and live-provider prompt checks for `Probably why everything feels a bit unsettled tonight.` style follow-ups
 - the next dialogue-quality pass should move away from continuity broadening and back toward parser hardening, unless a new clearly bounded carry-over miss is discovered
 
+## 2026-06-24 - Identity-Style Self-Description Must Not Become A Preferred Name
+
+Status:
+
+- accepted
+
+Decision:
+
+Waveary should not treat identity-style self-description starters such as `I'm the kind of person who...`, `I'm someone who...`, or similar broad self-descriptive framing as preferred-name evidence, even though they match the surface shape of `I'm X`.
+
+Reason:
+
+- after the earlier emotional-state hardening, the next realistic false-positive class was broader identity self-description, where the parser could still lift fake names like `the` or `someone`
+- companionship quality is hurt more by false identity memory than by slightly conservative name capture, because a fake remembered name makes the companion feel less human right at the moment it is supposed to feel more observant
+- this is still a bounded fix: it narrows only obvious article / generic-person starters and leaves direct introductions like `I am Aki` intact
+
+Impact:
+
+- `waveary-core/src/runtime/getting-to-know-you.ts` now rejects article-led and generic-person captures such as `the`, `a`, `an`, `someone`, `somebody`, and `person` in the preferred-name plausibility filter
+- regression coverage now includes identity-style self-description so future parser work does not regress back into fake preferred names from broader self-description
+- the next parser-hardening pass should stay on similarly narrow ambiguous-introduction cases instead of broadening into a heavy NLP layer
+
 ## 2026-06-24 - Companion Replies Should Default To Human-Scale Cadence
 
 Status:

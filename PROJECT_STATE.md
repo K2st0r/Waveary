@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `5be0a46` - `Handle weaker unsettled continuity carry-over`
+- `pending` - `Tighten identity-style name inference`
 
 ## Latest Repository Surface
 
@@ -59,6 +59,7 @@ Brand line:
   - live-provider regression now explicitly covers practical new-stage turns, emotional new-stage turns, reconnection cadence, and `what should I call you` mutual-discovery prompts so prompt-shape drift is less likely to silently reintroduce long assistant-style replies or block early natural acquaintance
   - getting-to-know-you guidance now prioritizes direct companion-name questions ahead of generic practical-turn deflection, fixing the earlier bug where `What should I call you?` was misclassified as a plain practical request and lost the mutual-discovery path
   - getting-to-know-you name inference now rejects obvious emotional-state false positives such as `I am still scared about that`, `I am not over it yet`, and similar non-introduction wording, so shared-history prompt guidance no longer degrades into fake preferred names like `still` or `not`
+  - getting-to-know-you name inference now also rejects identity-style self-description starters such as `I'm the kind of person...` and `I'm someone who...`, so broader self-description no longer pollutes preferred-name memory with fake names like `the` or `someone`
   - scripted fallback replies now also mirror that early-acquaintance behavior by naturally asking what to call the user, letting the user name the companion, or learning desired presence style when the turn is light enough
   - permissioned local time context can now be injected into normal chat turns so the companion can answer time/date-style questions from the user's device-local clock without claiming it lacks real-time awareness
   - local time context now also resolves a bounded daypart hint so late-night and evening turns can bias toward softer companion tone without expanding into broader desktop-awareness inputs
@@ -371,7 +372,7 @@ Brand line:
 - continue the live-provider dialogue regression pass beyond the new prompt-body coverage into richer emotional-stress, reconnection, practical-question cadence, and multi-turn mutual-discovery competition cases
 - continue the continuity-thread quality pass beyond short carry-over follow-ups into pronoun-heavy multi-turn topic persistence, so turns like "that part still hurts" or "I am not over it yet" can stay anchored even when the user is more oblique
 - continue the continuity-thread quality pass beyond short, emotional, low-affect pronoun, inferential, and weaker unsettled carry-over follow-ups into the next bounded drift cases, so the system can stay anchored without over-blending unrelated nearby topics
-- continue hardening early-acquaintance inference beyond this stopword-style fix into weaker ambiguous self-description cases, but keep the parser narrow enough that ordinary emotional sentences are never treated as confirmed names
+- continue hardening early-acquaintance inference beyond emotional-state and identity-style self-description false positives into the next bounded ambiguous introduction cases, but keep the parser narrow enough that ordinary emotional sentences are never treated as confirmed names
 - decide whether the next truthful web-facing companion-quality surface should show remembered names / vibe continuity lightly, without regressing into a required persona setup form
 - start the next voice implementation cut by pushing the current browser voice loop closer to true realtime duplex, beginning with interruption-safe reply stop/resume behavior and a tighter listen-speak handoff instead of broadening vendor coverage first
 - after that interruption-focused pass, decide whether the next highest-value voice step is wider provider-specific STT coverage such as Doubao/local or a deeper transport upgrade beyond the current browser-side speech-activity heuristics

@@ -3,6 +3,42 @@
 
 Objective:
 
+Tighten early-acquaintance parsing so identity-style self-description does not get promoted into fake preferred-name memory.
+
+Summary:
+
+- updated `waveary-core/src/runtime/getting-to-know-you.ts` so preferred-name plausibility now also rejects identity-style self-description starters such as `the`, `a`, `an`, `someone`, `somebody`, and `person`
+- added focused parser regression in `waveary-core/src/runtime/getting-to-know-you.test.ts` to ensure lines such as `I'm the kind of person who...` and `I'm someone who...` no longer become fake names while direct introductions like `I am Aki.` still work
+- re-verified the full `@waveary/core` package through check, rebuild, and compiled tests; the package now passes `76` tests, and this pass stayed entirely inside the early-acquaintance dialogue-quality path without touching frontend, voice, or continuity-thread code
+
+Files changed:
+
+- `waveary-core/src/runtime/getting-to-know-you.ts`
+- `waveary-core/src/runtime/getting-to-know-you.test.ts`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/core`
+- `npm run build --workspace @waveary/core`
+- PowerShell compiled-test verification via:
+  `$files = @(Get-ChildItem 'waveary-core\\dist' -Recurse -Filter '*.test.js' | ForEach-Object { $_.FullName }); & node --test @files`
+
+Commit:
+
+- `pending` - `Tighten identity-style name inference`
+
+Push:
+
+- pending
+
+## 2026-06-24
+
+Objective:
+
 Extend dialogue continuity one more bounded step so weaker unsettled inferential follow-ups still stay anchored to the previous user topic instead of flattening into isolated practical-sounding statements.
 
 Summary:
