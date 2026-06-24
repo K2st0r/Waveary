@@ -15,6 +15,7 @@
     "build": "npm run build --workspaces",
     "check": "npm run build --workspaces && npm run check --workspaces",
     "check:mojibake": "node tools/check-mojibake.mjs",
+    "reset:test-memory": "node tools/reset-waveary-test-memory.mjs",
     "demo": "npm run demo:build && node examples/dist/run-demo.js",
     "demo:provider": "npm run demo:build && node examples/dist/run-openai-demo.js",
     "models:provider": "npm run demo:build && node examples/dist/list-provider-models.js",

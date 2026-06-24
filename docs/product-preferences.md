@@ -65,5 +65,6 @@ Only write preferences here when they are likely to remain useful over time.
 - Continuity and resumability matter more than minimal process overhead.
 - Important decisions should be written into repository files rather than left only in chat.
 - The goal is not merely lower token usage; the goal is a workflow that keeps the project easier to continue correctly.
+- After each code commit, clear local Waveary test-session memory before the next live verification pass, while preserving repository continuity files, so stale chat history does not pollute product-behavior checks.
 - When editing Chinese copy on this Windows / PowerShell setup, do not trust terminal rendering alone; verify with `git diff`, and prefer ASCII-safe insertion methods such as `\uXXXX` escapes for new literals when shell encoding looks unstable.
 - When a work block changes Chinese-facing copy, run `npm run check:mojibake` before commit so obvious mojibake patterns are caught mechanically instead of only by eye.

@@ -3888,6 +3888,81 @@ test("chat session reset route clears the active session while preserving it in 
   assert.equal(restored.body.session.timelineEvents.length, 0);
 });
 
+test("chat session reset-all route clears all persisted chat memory while preserving the default session shell", async () => {
+  saveProviderConfig({
+    provider: "provider-a",
+    baseURL: "https://provider-a.example/v1",
+    apiKey: "key-a",
+    model: "model-a"
+  });
+
+  globalThis.fetch = (async () =>
+    new Response(
+      JSON.stringify({
+        choices: [
+          {
+            message: {
+              content: "still here"
+            }
+          }
+        ]
+      }),
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json"
+        }
+      }
+    )) as typeof fetch;
+
+  const middleware = createProviderApiMiddleware();
+
+  await invokeJsonRoute(middleware, "POST", "/api/chat/turn", {
+    sessionId: DEFAULT_CHAT_SESSION_ID,
+    message: "Please create some memory before the full reset."
+  });
+
+  await invokeJsonRoute(middleware, "POST", "/api/chat/sessions", {
+    sessionId: "session-extra",
+    title: "Extra Session"
+  });
+
+  await invokeJsonRoute(middleware, "POST", "/api/chat/turn", {
+    sessionId: "session-extra",
+    message: "This second session should be cleared too."
+  });
+
+  const response = await invokeJsonRoute(middleware, "POST", "/api/chat/sessions/reset-all", {});
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.defaultSessionId, DEFAULT_CHAT_SESSION_ID);
+  assert.equal(response.body.persistence.backend, "file");
+  assert.equal(response.body.session.sessionId, DEFAULT_CHAT_SESSION_ID);
+  assert.equal(response.body.session.messages.length, 0);
+  assert.equal(response.body.session.latestInsights, null);
+  assert.equal(response.body.session.memoryArchive.length, 0);
+  assert.equal(response.body.session.relationship, null);
+  assert.equal(response.body.session.timelineEvents.length, 0);
+  assert.equal(response.body.resetSessionCount, 2);
+  assert.deepEqual(
+    response.body.sessions.map((session: { sessionId: string }) => session.sessionId),
+    [DEFAULT_CHAT_SESSION_ID]
+  );
+
+  const restoredDefault = await invokeJsonRoute(middleware, "POST", "/api/chat/session", {
+    sessionId: DEFAULT_CHAT_SESSION_ID
+  });
+  const restoredExtra = await invokeJsonRoute(middleware, "POST", "/api/chat/session", {
+    sessionId: "session-extra"
+  });
+
+  assert.equal(restoredDefault.statusCode, 200);
+  assert.equal(restoredDefault.body.session.messages.length, 0);
+  assert.equal(restoredDefault.body.session.latestInsights, null);
+  assert.equal(restoredExtra.statusCode, 200);
+  assert.equal(restoredExtra.body.session, null);
+});
+
 test("provider models route returns normalized provider models for the browser flow", async () => {
   globalThis.fetch = (async () =>
     new Response(
