@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `pending` - `Prefer Bing for default search-site opens`
+- `0ab9e9b` - `Prefer Bing for default search-site opens`
 
 ## Latest Repository Surface
 

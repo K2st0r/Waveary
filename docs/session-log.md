@@ -29,11 +29,11 @@ Verification:
 
 Commit:
 
-- pending
+- `0ab9e9b` - `Prefer Bing for default search-site opens`
 
 Push:
 
-- pending
+- succeeded: `git push origin main` pushed functional commit `0ab9e9b` to `origin/main`
 
 ## 2026-06-24
 
