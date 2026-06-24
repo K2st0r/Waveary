@@ -365,7 +365,7 @@ interface ChatMessage {
 }
 
 type LoadState = "idle" | "loading" | "success" | "error";
-type AppPage = "home" | "console" | "chat" | "roadmap";
+type AppPage = "home" | "console" | "chat";
 type BrowserNotificationPermissionState = NotificationPermission | "unsupported";
 type PermissionLevel = WavearyPermissionProfile["browserNotifications"];
 type PermissionPresetMode = "limited" | "elevated" | "full";
@@ -444,7 +444,7 @@ const zhCopy = {
   brandSubtitle: "回响之境",
   brandCaption: "数字生命陪伴框架",
   slogan: "念念不忘，终有回响。",
-  nav: ["首页", "介绍", "引擎", "结构", "控制台", "路线图"] as const,
+  nav: ["首页", "介绍", "引擎", "结构", "控制台"] as const,
   hero: {
     eyebrow: "Project Waveary",
     chip: "Waveary CE",
@@ -815,7 +815,7 @@ const enCopy = {
   brandSubtitle: "Waveary",
   brandCaption: "Digital Life Companion Framework",
   slogan: "What is remembered returns as an echo.",
-  nav: ["Home", "Intro", "Engines", "Structure", "Console", "Roadmap"] as const,
+  nav: ["Home", "Intro", "Engines", "Structure", "Console"] as const,
   hero: {
     eyebrow: "Project Waveary",
     chip: "Waveary CE",
@@ -1143,12 +1143,35 @@ const enCopy = {
     archiveHint: "Send a message worth remembering. This area will show the session's persisted memory archive, relationship snapshot, and timeline after reloads."
   },
   roadmap: {
-    caption: "Execution Roadmap",
-    title: "Build the companion layer first. Expand the experience second.",
+    caption: "Project Route",
+    title: "We did not start with promises. We built the companion system layer by layer.",
+    description:
+      "This is not a future wishlist. It is the route already taken: from chat, to memory, to relationship, to timeline, then onward into voice, realtime presence, and bounded local action.",
     phases: [
-      { version: "V0.1", timeframe: "30 Days", goal: "Establish the first usable open source digital companion framework.", items: ["Chat", "Long-term memory", "Timeline", "Relationship growth"] },
-      { version: "V0.2", timeframe: "60 Days", goal: "Expand the framework from continuity into emotional presence.", items: ["Voice", "Emotion analysis", "Proactive care"] },
-      { version: "V0.3", timeframe: "90 Days", goal: "Move from asynchronous interaction to live companionship.", items: ["Real-time voice", "Interruptions", "Full duplex conversation"] }
+      {
+        version: "01",
+        timeframe: "Foundation",
+        goal: "Build the framework substrate first so Waveary stops being just a chat wrapper.",
+        items: ["Multi-provider access", "Model discovery", "Browser chat runtime", "Local config and session storage"]
+      },
+      {
+        version: "02",
+        timeframe: "Continuity",
+        goal: "Add the continuity systems that actually define companionship.",
+        items: ["Long-term memory recall", "Relationship-state growth", "Life timeline", "Persistent import/export archives"]
+      },
+      {
+        version: "03",
+        timeframe: "Presence",
+        goal: "Push it from answering toward staying present and responding like a companion.",
+        items: ["Emotion state and proactive care", "Permissioned local time awareness", "Permissioned local actions", "More human reply cadence"]
+      },
+      {
+        version: "04",
+        timeframe: "Voice",
+        goal: "Layer in voice, realtime interaction, and a more truthful sense of presence.",
+        items: ["Dedicated voice routing", "Domestic voice providers", "Realtime conversation loop", "Interruption and duplex groundwork"]
+      }
     ] as const
   },
   statuses: {
@@ -1313,7 +1336,7 @@ function parsePageLocation(hash: string): PageLocation {
     case "chat":
       return withSection("chat");
     case "roadmap":
-      return withSection("roadmap");
+      return { page: "home", sectionId: "roadmap" };
     case "framework":
       return withSection("home");
     case "home":
@@ -4405,11 +4428,76 @@ export function App(): ReactElement {
   const runtimeStateLabel = chatReady ? copy.formatting.ready : copy.formatting.waiting;
   const configuredProviderLabel = savedConfig?.provider ?? (locale === "zh" ? "未配置供应商" : "No provider");
   const configuredModelLabel = savedConfig?.model ?? (locale === "zh" ? "未选择模型" : "No model selected");
+  const projectRouteContent =
+    locale === "zh"
+      ? {
+          caption: "项目路线",
+          title: "我们不是先写概念，而是一步步把数字陪伴真正做成了系统。",
+          description:
+            "这不是一张未来许愿单，而是一条已经被做出来的推进路径：从对话，到记忆，到关系，到时间轴，再到语音、实时交互与本地执行边界。",
+          phases: [
+            {
+              version: "01",
+              timeframe: "Foundation",
+              goal: "先把框架底座做出来，让 Waveary 不再只是一个聊天壳。",
+              items: ["多供应商接入", "模型发现", "浏览器内聊天运行时", "本地配置与会话保存"]
+            },
+            {
+              version: "02",
+              timeframe: "Continuity",
+              goal: "再把真正属于陪伴系统的连续性能力做进去。",
+              items: ["长期记忆提取与召回", "关系状态成长", "人生时间轴", "导入导出与持久化档案"]
+            },
+            {
+              version: "03",
+              timeframe: "Presence",
+              goal: "继续把它从会聊天，推进到会陪伴、会回应、会留在场。",
+              items: ["情绪状态与主动关怀", "本地时间感知", "权限化本地动作", "更像真人的对话节奏"]
+            },
+            {
+              version: "04",
+              timeframe: "Voice",
+              goal: "最后把语音层、实时交互和真实使用感一层层接上去。",
+              items: ["独立语音路由", "国内语音供应商接入", "实时对话循环", "中断恢复与双工基础"]
+            }
+          ] as const
+        }
+      : {
+          caption: "Project Route",
+          title: "We did not start with promises. We built the companion system layer by layer.",
+          description:
+            "This is not a future wishlist. It is the route already taken: from chat, to memory, to relationship, to timeline, then onward into voice, realtime presence, and bounded local action.",
+          phases: [
+            {
+              version: "01",
+              timeframe: "Foundation",
+              goal: "Build the framework substrate first so Waveary stops being just a chat wrapper.",
+              items: ["Multi-provider access", "Model discovery", "Browser chat runtime", "Local config and session storage"]
+            },
+            {
+              version: "02",
+              timeframe: "Continuity",
+              goal: "Add the continuity systems that actually define companionship.",
+              items: ["Long-term memory recall", "Relationship-state growth", "Life timeline", "Persistent import/export archives"]
+            },
+            {
+              version: "03",
+              timeframe: "Presence",
+              goal: "Push it from answering toward staying present and responding like a companion.",
+              items: ["Emotion state and proactive care", "Permissioned local time awareness", "Permissioned local actions", "More human reply cadence"]
+            },
+            {
+              version: "04",
+              timeframe: "Voice",
+              goal: "Layer in voice, realtime interaction, and a more truthful sense of presence.",
+              items: ["Dedicated voice routing", "Domestic voice providers", "Realtime conversation loop", "Interruption and duplex groundwork"]
+            }
+          ] as const
+        };
   const navigationItems: ReadonlyArray<{ page: AppPage; label: string }> = [
     { page: "home", label: copy.nav[0] },
     { page: "console", label: copy.nav[4] },
     { page: "chat", label: locale === "zh" ? "对话" : "Chat" },
-    { page: "roadmap", label: copy.nav[5] }
   ];
   const consoleWorkspaceLabels: Record<Exclude<ConsoleWorkspace, "voice">, string> =
     locale === "zh"
@@ -5445,8 +5533,8 @@ export function App(): ReactElement {
                     <button className="button button-primary" onClick={() => navigateTo("chat")} type="button">
                       {locale === "zh" ? "进入对话页" : "Open chat"}
                     </button>
-                    <button className="button button-secondary" onClick={() => navigateTo("roadmap")} type="button">
-                      {locale === "zh" ? "查看路线图" : "View roadmap"}
+                    <button className="button button-secondary" onClick={() => navigateTo("home", "roadmap")} type="button">
+                      {locale === "zh" ? "查看项目路线" : "View project route"}
                     </button>
                   </div>
                 </div>
@@ -7152,23 +7240,19 @@ export function App(): ReactElement {
         </section>
         ) : null}
 
-        {currentPage === "roadmap" ? (
-        <section className="section-grid section-block" id="roadmap">
-          <div className="section-heading">
-            <span className="section-caption">{copy.roadmap.caption}</span>
-            <h2>{copy.roadmap.title}</h2>
-            <p>
-              {locale === "zh"
-                ? "先把聊天、长期记忆、时间轴与关系成长做稳，再逐步推进语音、情绪和实时双工能力。"
-                : "Stabilize chat, long-term memory, timeline, and relationship growth first, then expand into voice, emotion, and real-time duplex interaction."}
-            </p>
+        {currentPage === "home" ? (
+        <section className="section-grid section-block roadmap-home-section" id="roadmap">
+          <div className="section-heading roadmap-heading">
+            <span className="section-caption">{projectRouteContent.caption}</span>
+            <h2>{projectRouteContent.title}</h2>
+            <p className="roadmap-lead">{projectRouteContent.description}</p>
           </div>
           <div className="roadmap-grid">
-            {copy.roadmap.phases.map((phase) => (
+            {projectRouteContent.phases.map((phase) => (
               <article className="panel roadmap-card" key={phase.version}>
                 <div className="roadmap-topline">
-                  <span>{phase.version}</span>
-                  <span>{phase.timeframe}</span>
+                  <span className="roadmap-step">{phase.version}</span>
+                  <span className="roadmap-track">{phase.timeframe}</span>
                 </div>
                 <h3>{phase.goal}</h3>
                 <ul>
