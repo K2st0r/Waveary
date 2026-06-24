@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `35e0c64` - `Add natural getting-to-know-you dialogue guidance`
+- `86fc75c` - `Add provider dialogue regression coverage`
 
 ## Latest Repository Surface
 
@@ -51,6 +51,8 @@ Brand line:
   - scripted fallback replies now also consume that same reply-shape layer, so ordinary turns stop drifting back into fixed three-part speeches when the real provider path is unavailable
   - the `new` relationship stage now also has a dedicated getting-to-know-you helper that can infer preferred user name, user-given companion nickname, and desired companion vibe from chat history plus recalled memories
   - live-provider prompt assembly now also injects explicit getting-to-know-you guidance so early turns can ask one natural discovery question at a time instead of sounding like a configured persona form
+  - live-provider regression now explicitly covers practical new-stage turns, emotional new-stage turns, reconnection cadence, and `what should I call you` mutual-discovery prompts so prompt-shape drift is less likely to silently reintroduce long assistant-style replies or block early natural acquaintance
+  - getting-to-know-you guidance now prioritizes direct companion-name questions ahead of generic practical-turn deflection, fixing the earlier bug where `What should I call you?` was misclassified as a plain practical request and lost the mutual-discovery path
   - scripted fallback replies now also mirror that early-acquaintance behavior by naturally asking what to call the user, letting the user name the companion, or learning desired presence style when the turn is light enough
   - permissioned local time context can now be injected into normal chat turns so the companion can answer time/date-style questions from the user's device-local clock without claiming it lacks real-time awareness
   - local time context now also resolves a bounded daypart hint so late-night and evening turns can bias toward softer companion tone without expanding into broader desktop-awareness inputs
@@ -355,7 +357,7 @@ Brand line:
 
 - extend the bounded browser layer into one next explicit interaction such as richer multi-field targeting or an `open nth result` primitive, now that the live `#chat` result-opening path has been re-verified against the current dev server
 - keep extending the browser-action layer one auditable primitive at a time instead of widening into a broad free-form browser agent
-- add stronger live-provider dialogue regression for emotional-stress, reconnection, practical-question cadence, and new-stage mutual-discovery behavior now that shared reply-shape and getting-to-know-you guidance both exist in `waveary-core`
+- continue the live-provider dialogue regression pass beyond the new prompt-body coverage into richer emotional-stress, reconnection, practical-question cadence, and multi-turn mutual-discovery competition cases
 - decide whether the next truthful web-facing companion-quality surface should show remembered names / vibe continuity lightly, without regressing into a required persona setup form
 - start the next voice implementation cut by pushing the current browser voice loop closer to true realtime duplex, beginning with interruption-safe reply stop/resume behavior and a tighter listen-speak handoff instead of broadening vendor coverage first
 - after that interruption-focused pass, decide whether the next highest-value voice step is wider provider-specific STT coverage such as Doubao/local or a deeper transport upgrade beyond the current browser-side speech-activity heuristics

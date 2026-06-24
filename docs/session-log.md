@@ -6288,3 +6288,36 @@ Commit:
 Push:
 
 - pending
+## 2026-06-24
+
+Objective:
+
+Strengthen live-provider dialogue regression for companionship cadence and early-acquaintance prompts without widening the frontend or changing unrelated runtime behavior.
+
+Summary:
+
+- extended `waveary-core/src/adapters/openai-compatible-provider.test.ts` with focused prompt-body regression for four high-value cases: practical new-stage turns staying short, emotional new-stage turns staying presence-first, reconnection turns staying short and emotion-led, and `What should I call you?` correctly entering mutual-discovery guidance
+- while adding those tests, found one real bug: the current getting-to-know-you guidance treated direct companion-name questions as generic practical requests because `reply-shape` marked `what` questions as `practical` first
+- fixed that bug with a minimal runtime change in `waveary-core/src/runtime/getting-to-know-you.ts` by prioritizing `latestTurnAskedCompanionName` ahead of the generic practical-turn deflection, so the system now preserves natural mutual discovery when the user asks the companion's name
+- re-verified the whole `@waveary/core` package through typecheck, rebuild, and compiled tests after the fix; no frontend or memory-layer changes were needed for this pass
+
+Files changed:
+
+- `waveary-core/src/adapters/openai-compatible-provider.test.ts`
+- `waveary-core/src/runtime/getting-to-know-you.ts`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/core`
+- `npm run build --workspace @waveary/core; npm run test --workspace @waveary/core`
+
+Commit:
+
+- `86fc75c` - `Add provider dialogue regression coverage`
+
+Push:
+
+- pending
