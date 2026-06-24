@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `ef798e7` - `Add local test memory reset flow`
+- `pending` - `pending`
 
 ## Latest Repository Surface
 
@@ -73,6 +73,8 @@ Brand line:
   - local time context now also resolves a bounded daypart hint so late-night and evening turns can bias toward softer companion tone without expanding into broader desktop-awareness inputs
   - direct local time/date/day questions now also short-circuit inside `WavearyRuntime` through a shared deterministic reply helper before provider generation, so real providers can no longer ignore the supplied local clock context and fall back to generic "I do not know the time" disclaimers
   - deterministic local-time question detection now also catches more indirect Chinese complaint-style phrasings such as asking why the companion still cannot tell the exact time, so those turns no longer slip past the runtime short-circuit and fall back to provider disclaimers
+  - deterministic local-time detection is now narrower around actual clock/date questions, so emotional turns that merely mention `today` or `tonight` no longer collapse into time replies
+  - early-acquaintance guidance now explicitly recognizes first-contact greetings and pushes both scripted and live-provider replies toward warm human introduction cadence instead of flat product-style self-introduction
   - first voice-domain contracts now exist through `VoiceSession`, `SpeechInput`, and `SpeechOutput`, so the framework boundary no longer leaves voice only at the architecture-document level
   - first formal product and architecture draft for companion emotional continuity and proactive care now exists in `docs/emotion-proactive-care.md`, defining `Waveary Emotion Engine (WEE)` and `Waveary Proactive Care Engine (WPCE)` as the next major runtime-facing design targets
   - first companion-side emotion runtime layer is now implemented through a persisted `EmotionStore`, a `SimpleCompanionEmotionEngine`, and runtime wiring that updates and returns companion emotion state on each turn
@@ -381,6 +383,7 @@ Brand line:
 - extend the bounded browser layer into one next explicit interaction such as richer multi-field targeting or an `open nth result` primitive, now that the live `#chat` result-opening path has been re-verified against the current dev server
 - keep extending the browser-action layer one auditable primitive at a time instead of widening into a broad free-form browser agent
 - continue the live-provider dialogue regression pass beyond the new prompt-body coverage into richer emotional-stress, reconnection, practical-question cadence, and multi-turn mutual-discovery competition cases
+- visually verify the chat composer reorder and new `Enter`-to-send flow in-browser, then keep tightening the dedicated chat surface around shorter everyday cadence and warmer first-contact behavior
 - continue the continuity-thread quality pass beyond short carry-over follow-ups into pronoun-heavy multi-turn topic persistence, so turns like "that part still hurts" or "I am not over it yet" can stay anchored even when the user is more oblique
 - continue the continuity-thread quality pass beyond short, emotional, low-affect pronoun, inferential, and weaker unsettled carry-over follow-ups into the next bounded drift cases, so the system can stay anchored without over-blending unrelated nearby topics
 - continue hardening early-acquaintance inference beyond emotional-state false positives, identity-style self-description, quoted name-sharing, `my name's` introductions, `I'm called` introductions, parenthesized name-sharing, and `call me` follow-up/scheduling/sequencing/callback false positives into the next bounded ambiguous introduction cases, but keep the parser narrow enough that ordinary emotional sentences are never treated as confirmed names

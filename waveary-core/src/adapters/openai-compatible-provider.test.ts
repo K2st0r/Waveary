@@ -950,11 +950,42 @@ test("OpenAICompatibleChatProvider guides natural mutual discovery when the user
   );
   assert.match(
     instruction,
-    /Getting-to-know-you guidance: The user is asking who you are or what to call you\. Answer lightly, let them rename you if they want, and if it feels natural ask what you should call them in return\./
+    /Getting-to-know-you guidance: The user is asking who you are or what to call you\. Answer with a little warmth and personality, let them rename you if they want, and if it feels natural ask what you should call them in return\./
   );
   assert.match(
     instruction,
     /In 'new', it is good to learn one personal detail at a time through natural conversation: names, nicknames, and what kind of presence the user wants from you\./
+  );
+});
+
+test("OpenAICompatibleChatProvider treats a plain greeting like warm first contact instead of product onboarding", async () => {
+  const instruction = await captureInstruction(
+    createRequest({
+      user: {
+        id: "user-1",
+        displayName: "User",
+        profileTraits: ["reflective"],
+        preferences: ["continuity"]
+      },
+      relationship: createRelationship("new"),
+      messages: [
+        {
+          id: "m1",
+          sessionId: "session-1",
+          role: "user",
+          content: "你好呀",
+          timestamp: new Date().toISOString(),
+          metadata: {}
+        }
+      ],
+      relevantMemories: [],
+      timeline: []
+    })
+  );
+
+  assert.match(
+    instruction,
+    /Getting-to-know-you guidance: This is a first-contact greeting\. Sound like a real person meeting someone with a little warmth or playful closeness, not like a product introduction\./
   );
 });
 

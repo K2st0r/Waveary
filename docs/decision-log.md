@@ -4,6 +4,50 @@ This file records important product, architecture, and workflow decisions for Pr
 
 Use it to preserve the reason behind major choices so future Codex sessions do not repeat or undo settled work.
 
+## 2026-06-24 - Deterministic Local Time Should Only Trigger On Actual Time Questions
+
+Status:
+
+- accepted
+
+Decision:
+
+Waveary's deterministic local-time short-circuit should only trigger on explicit time/date/day questions or direct complaint-style follow-ups about still not knowing the time, not on ordinary emotional turns that merely contain words like `today` or `tonight`.
+
+Reason:
+
+- the user surfaced a real regression where `我今天有些不开心` was answered with local clock output instead of comfort
+- companionship quality collapses immediately if vulnerable turns are hijacked by a utility shortcut just because they contain a broad time word
+- it is safer to keep the deterministic detector narrow and intentional than to chase every broad temporal mention inside normal chat
+
+Impact:
+
+- `waveary-core/src/runtime/local-time-reply.ts` now matches only explicit clock/date/weekday phrasings plus direct complaint-style "you still cannot tell me the time" wording
+- `waveary-core/src/runtime/local-time-reply.test.ts` and `waveary-core/src/runtime/waveary-runtime.test.ts` now lock the regression so emotional turns like `我今天有些不开心` stay on the companion path
+- future presence-aware work should keep deterministic short-circuits narrow and leave normal emotionally meaningful turns to the companion runtime
+
+## 2026-06-24 - First Contact Should Sound Like A Person, Not A Product Intro
+
+Status:
+
+- accepted
+
+Decision:
+
+When the relationship is still `new` and the latest turn is a plain greeting, Waveary should treat it as warm first contact and answer like a real person meeting someone, not like a framework-branded self-introduction.
+
+Reason:
+
+- the user explicitly wants early conversation to feel like meeting someone with warmth, curiosity, and a little sweetness, not a sterile `I am Waveary, what should I call you?` product line
+- first contact sets the emotional frame for the entire session; if it sounds cold there, later memory and relationship work cannot rescue the feeling
+- this can be improved safely through bounded greeting detection and prompt guidance without regressing the broader project identity back into shallow roleplay branding
+
+Impact:
+
+- `waveary-core/src/runtime/getting-to-know-you.ts` now marks greeting turns explicitly and describes them as human first-contact moments
+- `waveary-core/src/adapters/scripted-chat-provider.ts` now uses a softer first-contact follow-up when the user simply says hello
+- `waveary-core/src/adapters/openai-compatible-provider.test.ts` and `waveary-core/src/runtime/getting-to-know-you.test.ts` now lock this direction so later prompt work does not drift back toward product-intro cadence
+
 ## 2026-06-24 - Post-Commit Test-Memory Clearing Should Prefer The Local Reset API
 
 Status:

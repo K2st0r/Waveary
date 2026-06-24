@@ -80,6 +80,7 @@ test("describeGettingToKnowYouGuidance keeps new-stage discovery natural and bou
       desiredStyleDescriptors: [],
       latestTurnAskedCompanionName: true,
       latestTurnAskedForPlayfulCompanion: false,
+      latestTurnIsGreeting: false,
       shouldInviteUserName: true,
       shouldInviteCompanionNaming: true,
       shouldInviteStylePreference: true
@@ -88,8 +89,27 @@ test("describeGettingToKnowYouGuidance keeps new-stage discovery natural and bou
     "ordinary"
   );
 
-  assert.match(guidance, /answer lightly/i);
+  assert.match(guidance, /warmth and personality/i);
   assert.match(guidance, /what you should call them in return/i);
+});
+
+test("describeGettingToKnowYouGuidance pushes first greetings toward warm human first contact", () => {
+  const guidance = describeGettingToKnowYouGuidance(
+    {
+      desiredStyleDescriptors: [],
+      latestTurnAskedCompanionName: false,
+      latestTurnAskedForPlayfulCompanion: false,
+      latestTurnIsGreeting: true,
+      shouldInviteUserName: true,
+      shouldInviteCompanionNaming: true,
+      shouldInviteStylePreference: true
+    },
+    "new",
+    "ordinary"
+  );
+
+  assert.match(guidance, /first-contact greeting/i);
+  assert.match(guidance, /real person meeting someone/i);
 });
 
 test("deriveGettingToKnowYouState does not mistake emotional follow-ups for a user name", () => {
@@ -190,6 +210,33 @@ test("deriveGettingToKnowYouState still accepts direct self-introductions", () =
   );
 
   assert.equal(state.userPreferredName, "Aki");
+});
+
+test("deriveGettingToKnowYouState recognizes simple greetings as first-contact turns", () => {
+  const state = deriveGettingToKnowYouState(
+    createRequest({
+      user: {
+        id: "user-1",
+        displayName: "User",
+        profileTraits: ["reflective"],
+        preferences: ["continuity"]
+      },
+      messages: [
+        {
+          id: "m1",
+          sessionId: "session-1",
+          role: "user",
+          content: "你好呀",
+          timestamp: new Date().toISOString(),
+          metadata: {}
+        }
+      ],
+      relevantMemories: []
+    })
+  );
+
+  assert.equal(state.latestTurnIsGreeting, true);
+  assert.equal(state.shouldInviteUserName, true);
 });
 
 test("deriveGettingToKnowYouState accepts I'm called introductions", () => {

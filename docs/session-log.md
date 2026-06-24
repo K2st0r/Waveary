@@ -3,6 +3,53 @@
 
 Objective:
 
+Tighten first-contact companionship quality by fixing the local-time misfire on emotional turns, warming new-stage greeting cadence, and making the chat composer behave more like a real messaging surface.
+
+Summary:
+
+- rebuilt `waveary-core/src/runtime/local-time-reply.ts` into an ASCII-safe version so deterministic local-time replies now trigger only on explicit clock/date/weekday questions or direct complaint-style time-awareness prompts, not on ordinary emotional lines that merely mention `today` or `tonight`
+- added targeted regression in `waveary-core/src/runtime/local-time-reply.test.ts` plus runtime coverage in `waveary-core/src/runtime/waveary-runtime.test.ts` proving `我今天有些不开心` no longer collapses into a clock reply
+- extended `waveary-core/src/runtime/getting-to-know-you.ts` with explicit greeting-turn detection and updated `waveary-core/src/adapters/scripted-chat-provider.ts` so first-contact turns now sound more like a warm human hello than a product-intro form
+- added matching live-provider and parser regressions in `waveary-core/src/adapters/openai-compatible-provider.test.ts` and `waveary-core/src/runtime/getting-to-know-you.test.ts` so this early-acquaintance tone shift stays locked
+- updated `waveary-web/src/App.tsx` and `waveary-web/src/styles.css` so the chat composer now sends on `Enter`, keeps multiline on `Shift+Enter`, and places settings on the left with live-chat/send actions on the right to match more natural conversation ergonomics
+
+Files changed:
+
+- `waveary-core/src/adapters/openai-compatible-provider.test.ts`
+- `waveary-core/src/adapters/scripted-chat-provider.ts`
+- `waveary-core/src/runtime/getting-to-know-you.test.ts`
+- `waveary-core/src/runtime/getting-to-know-you.ts`
+- `waveary-core/src/runtime/local-time-reply.test.ts`
+- `waveary-core/src/runtime/local-time-reply.ts`
+- `waveary-core/src/runtime/waveary-runtime.test.ts`
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/core`
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run build --workspace @waveary/core`
+- `npm run check:mojibake`
+- PowerShell compiled-test verification via:
+  `$files = @(Get-ChildItem 'waveary-core\\dist' -Recurse -Filter '*.test.js' | ForEach-Object { $_.FullName }); & node --test @files`
+
+Commit:
+
+- `pending` - `pending`
+
+Push:
+
+- pending
+
+## 2026-06-24
+
+Objective:
+
 Support natural `I'm called ...` self-introductions so early-acquaintance parsing catches another real human name-sharing form without widening into fuzzy identity inference.
 
 Summary:

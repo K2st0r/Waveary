@@ -328,7 +328,8 @@ test("WavearyRuntime lets new-stage scripted chat learn names naturally", async 
 
   assert.equal(result.relationship.stage, "new");
   assert.ok(
-    result.reply.content.includes("What should I call you when I am thinking of you?"),
+    result.reply.content.includes("what should I call you?") ||
+      result.reply.content.includes("What should I call you?"),
     "new-stage scripted reply should invite the user's preferred name naturally"
   );
 });
@@ -368,6 +369,48 @@ test("WavearyRuntime answers direct local-time questions deterministically befor
 
   assert.ok(result.reply.content.includes("本地时间是"));
   assert.ok(!result.reply.content.includes("没法准确告诉你"));
+});
+
+test("WavearyRuntime does not mistake emotional turns mentioning today for a local-time question", async () => {
+  const runtime = new WavearyRuntime({
+    chatProvider: new ScriptedChatProvider(),
+    emotionAnalyzer: new SimpleEmotionAnalyzer(),
+    emotionStore: new InMemoryEmotionStore(),
+    emotionEngine: new SimpleCompanionEmotionEngine(),
+    proactiveCareEngine: new SimpleProactiveCareEngine(),
+    memoryStore: new TestMemoryStore(),
+    memoryExtractor: new TestMemoryExtractor(),
+    relationshipStore: new InMemoryRelationshipStore(),
+    relationshipEngine: new SimpleRelationshipEngine(),
+    timelineStore: new InMemoryTimelineStore(),
+    timelineEngine: new SimpleTimelineEngine()
+  });
+
+  const context = createContext();
+  const message: Message = {
+    id: "turn-sadness-1",
+    sessionId: context.session.id,
+    role: "user",
+    content: "我今天有些不开心",
+    timestamp: new Date().toISOString(),
+    metadata: {}
+  };
+
+  const result = await runtime.handleTurn(context, message, {
+    localTime: {
+      iso: "2026-06-24T12:20:00.000Z",
+      timeZone: "Asia/Shanghai",
+      locale: "zh-CN"
+    }
+  });
+
+  assert.ok(!result.reply.content.includes("本地时间是"));
+  assert.ok(
+    result.reply.content.includes("careful") ||
+      result.reply.content.includes("weight") ||
+      result.reply.content.includes("stay with"),
+    "emotional turn should still receive a companionship-style reply"
+  );
 });
 
 test("WavearyRuntime evaluates proactive care through relationship, emotion, and policy state", async () => {

@@ -2812,12 +2812,14 @@ textarea {
   align-items: center;
   gap: 0.65rem;
   flex-wrap: wrap;
+  justify-content: flex-end;
+  margin-left: auto;
 }
 
 .chat-composer-side-actions {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: flex-start;
   gap: 0.65rem;
   flex: 1 1 26rem;
   min-width: 0;
@@ -2833,6 +2835,7 @@ textarea {
   align-items: center;
   gap: 0.55rem;
   flex-wrap: wrap;
+  min-width: 0;
 }
 
 .chat-voice-controls {
@@ -3398,6 +3401,10 @@ textarea {
   background:
     repeating-linear-gradient(180deg, rgba(48, 40, 33, 0.05) 0 1px, transparent 1px 2.15rem),
     rgba(255, 252, 247, 0.96);
+}
+
+.chat-composer-main-actions .button {
+  min-width: 9.75rem;
 }
 
 .empty-chat-state {
