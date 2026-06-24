@@ -7,6 +7,7 @@ import { getWavearyDataDir } from "./data-dir.js";
 let browserContextPromise: Promise<BrowserContext> | null = null;
 let browserContextListenersAttached = false;
 let activeManagedPage: Page | null = null;
+let activeBrowserProfileDir: string | null = null;
 
 const pageLifecycleMetadata = new WeakMap<
   Page,
@@ -129,6 +130,11 @@ export interface BrowserFillByTextResult {
   value: string;
   exact: boolean;
   filledAt: string;
+}
+
+interface BrowserMatchedEditableTarget {
+  matchedText: string;
+  index: number;
 }
 
 export interface BrowserOpenFirstVisibleLinkOptions {
@@ -561,9 +567,7 @@ export async function closeManagedBrowserAutomation(): Promise<void> {
   }
 
   const context = await browserContextPromise.catch(() => null);
-  browserContextPromise = null;
-  browserContextListenersAttached = false;
-  activeManagedPage = null;
+  resetBrowserContextState();
 
   if (context) {
     await context.close().catch(() => undefined);
@@ -577,36 +581,115 @@ export function setBrowserAutomationOverridesForTests(
 }
 
 async function getBrowserContext(): Promise<BrowserContext> {
+  return getBrowserContextWithRecovery(true);
+}
+
+async function getBrowserContextWithRecovery(
+  allowRetry: boolean
+): Promise<BrowserContext> {
   if (!browserContextPromise) {
-    browserContextPromise = chromium.launchPersistentContext(getBrowserProfileDir(), {
-      headless: false,
-      viewport: {
-        width: 1440,
-        height: 960
-      }
-    });
+    browserContextPromise = launchBrowserContext();
   }
 
-  const context = await browserContextPromise;
+  try {
+    const context = await browserContextPromise;
+    await ensureBrowserContextUsable(context);
+    attachBrowserContextListeners(context);
+    return context;
+  } catch (error) {
+    resetBrowserContextState();
+    if (allowRetry) {
+      return getBrowserContextWithRecovery(false);
+    }
 
-  if (!browserContextListenersAttached) {
-    browserContextListenersAttached = true;
-    context.on("page", (page) => {
-      registerManagedPage(page);
-    });
+    throw error;
   }
+}
+
+function launchBrowserContext(): Promise<BrowserContext> {
+  return launchBrowserContextWithFallback();
+}
+
+async function ensureBrowserContextUsable(context: BrowserContext): Promise<void> {
+  void context.pages();
+}
+
+function attachBrowserContextListeners(context: BrowserContext): void {
+  if (browserContextListenersAttached) {
+    return;
+  }
+
+  browserContextListenersAttached = true;
+  context.on("page", (page) => {
+    registerManagedPage(page);
+  });
+  context.on("close", () => {
+    resetBrowserContextState();
+  });
 
   for (const page of context.pages()) {
     registerManagedPage(page);
   }
+}
 
-  return context;
+function resetBrowserContextState(): void {
+  browserContextPromise = null;
+  browserContextListenersAttached = false;
+  activeManagedPage = null;
+  activeBrowserProfileDir = null;
 }
 
 function getBrowserProfileDir(): string {
   const dir = join(getWavearyDataDir(), "browser-profile");
   mkdirSync(dir, { recursive: true });
   return dir;
+}
+
+function getFallbackBrowserProfileDir(): string {
+  const dir = join(getWavearyDataDir(), "browser-profile-fallback");
+  mkdirSync(dir, { recursive: true });
+  return dir;
+}
+
+async function launchBrowserContextWithFallback(): Promise<BrowserContext> {
+  const profileDirs = [getBrowserProfileDir(), getFallbackBrowserProfileDir()];
+  let lastError: unknown = null;
+
+  for (const profileDir of profileDirs) {
+    try {
+      const context = await chromium.launchPersistentContext(profileDir, {
+        headless: false,
+        viewport: {
+          width: 1440,
+          height: 960
+        }
+      });
+      activeBrowserProfileDir = profileDir;
+      return context;
+    } catch (error) {
+      lastError = error;
+      const isLastProfile = profileDir === profileDirs[profileDirs.length - 1];
+      if (isLastProfile && !isBrowserProfileInUseError(error)) {
+        throw error;
+      }
+    }
+  }
+
+  throw lastError instanceof Error ? lastError : new Error("Managed browser could not be launched.");
+}
+
+function isBrowserProfileInUseError(error: unknown): boolean {
+  const message =
+    error instanceof Error ? error.message : typeof error === "string" ? error : "";
+  const normalized = message.toLowerCase();
+
+  return (
+    normalized.includes("user data directory is already in use") ||
+    normalized.includes("opened in another") ||
+    normalized.includes("another browser") ||
+    normalized.includes("\u5df2\u5728\u53e6\u4e00\u4e2a") ||
+    normalized.includes("\u4f1a\u8bdd\u4e2d\u6253\u5f00")
+  );
 }
 
 function registerManagedPage(page: Page): void {
@@ -804,16 +887,27 @@ async function fillManagedBrowserInputInternal(
   const page = await requireManagedPage();
   const exact = options.exact ?? false;
   const timeoutMs = normalizePositiveInteger(options.timeoutMs, 5000);
+  const editableSelector =
+    "input:not([type='hidden']):not([type='checkbox']):not([type='radio']):not([type='button']):not([type='submit']):not([type='reset']), textarea, [contenteditable='true'], [role='textbox']";
 
-  const filled = await page.evaluate(
-    async ({ targetText, nextValue, exactMatch, timeout, shouldSubmit }) => {
-      const editableSelector =
-        "input:not([type='hidden']):not([type='checkbox']):not([type='radio']):not([type='button']):not([type='submit']):not([type='reset']), textarea, [contenteditable='true'], [role='textbox']";
-      const editableElements = Array.from(
-        document.querySelectorAll<HTMLElement>(editableSelector)
-      );
+  const filled = await page.locator(editableSelector).evaluateAll(
+    (elements, { targetText, exactMatch }) => {
+      const editableElements = Array.from(elements as HTMLElement[]);
       const normalize = (input: string) => input.replace(/\s+/g, " ").trim();
       const wanted = normalize(targetText).toLowerCase();
+      const SEARCH_TARGET_PATTERNS = [
+        /search/,
+        /searchbox/,
+        /query/,
+        /find/,
+        /lookup/,
+        /搜/,
+        /查找/,
+        /检索/,
+        /検索/
+      ];
+
+      const isSearchIntent = SEARCH_TARGET_PATTERNS.some((pattern) => pattern.test(wanted));
 
       const findAssociatedLabel = (element: HTMLElement): string => {
         const id = element.getAttribute("id");
@@ -855,8 +949,28 @@ async function fillManagedBrowserInputInternal(
           .filter(Boolean);
       };
 
+      const isSearchLikeElement = (element: HTMLElement, texts: string[]): boolean => {
+        const role = normalize(element.getAttribute("role") || "").toLowerCase();
+        const type =
+          element instanceof HTMLInputElement
+            ? normalize(element.getAttribute("type") || "").toLowerCase()
+            : "";
+        const name = normalize(element.getAttribute("name") || "").toLowerCase();
+        const searchTokens = ["search", "searchbox", "query", "q", "搜", "查找", "检索", "検索"];
+
+        return (
+          role === "searchbox" ||
+          role === "combobox" ||
+          type === "search" ||
+          name === "q" ||
+          texts.some((entry) =>
+            searchTokens.some((token) => entry.toLowerCase().includes(token))
+          )
+        );
+      };
+
       const visibleMatches = editableElements
-        .map((element) => {
+        .map((element, index) => {
           const rect = element.getBoundingClientRect();
           const style = window.getComputedStyle(element);
           const texts = collectCandidateTexts(element);
@@ -872,17 +986,21 @@ async function fillManagedBrowserInputInternal(
           }
 
           return {
+            index,
             element,
             texts
           };
         })
-        .filter((entry): entry is { element: HTMLElement; texts: string[] } => Boolean(entry))
-        .filter(({ texts }) =>
+        .filter(
+          (entry): entry is { index: number; element: HTMLElement; texts: string[] } =>
+            Boolean(entry)
+        )
+        .filter(({ element, texts }) =>
           texts.some((entry) =>
             exactMatch
               ? entry.toLowerCase() === wanted
               : entry.toLowerCase().includes(wanted)
-          )
+          ) || (isSearchIntent && isSearchLikeElement(element, texts))
         );
 
       const match = visibleMatches[0];
@@ -890,7 +1008,7 @@ async function fillManagedBrowserInputInternal(
         return null;
       }
 
-      const { element, texts } = match;
+      const { index, texts } = match;
       const preferredLabel =
         texts.find((entry) =>
           exactMatch ? entry.toLowerCase() === wanted : entry.toLowerCase().includes(wanted)
@@ -898,15 +1016,31 @@ async function fillManagedBrowserInputInternal(
         texts[0] ||
         targetText;
 
-      element.scrollIntoView({
-        behavior: "instant",
-        block: "center",
-        inline: "center"
-      });
+      return {
+        matchedText: preferredLabel,
+        index
+      };
+    },
+    {
+      targetText: normalizedFieldText,
+      exactMatch: exact
+    }
+  );
 
-      await new Promise((resolve) => window.setTimeout(resolve, 60));
-      element.focus();
+  if (!filled) {
+    throw new Error(`No fillable input matched "${normalizedFieldText}".`);
+  }
 
+  const locator = page.locator(editableSelector).nth(filled.index);
+  await locator.scrollIntoViewIfNeeded();
+  await locator.focus();
+
+  try {
+    await locator.fill(value, {
+      timeout: timeoutMs
+    });
+  } catch {
+    await locator.evaluate((element, nextValue) => {
       if (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement) {
         const setter =
           element instanceof HTMLInputElement
@@ -918,67 +1052,23 @@ async function fillManagedBrowserInputInternal(
         } else {
           element.value = nextValue;
         }
-
-        element.dispatchEvent(new Event("input", { bubbles: true }));
-        element.dispatchEvent(new Event("change", { bubbles: true }));
       } else {
         element.textContent = nextValue;
-        element.dispatchEvent(new Event("input", { bubbles: true }));
-        element.dispatchEvent(new Event("change", { bubbles: true }));
       }
 
-      if (shouldSubmit) {
-        const keyboardOptions = {
-          key: "Enter",
-          code: "Enter",
-          bubbles: true,
-          cancelable: true
-        };
-        const keydown = new KeyboardEvent("keydown", keyboardOptions);
-        const keypress = new KeyboardEvent("keypress", keyboardOptions);
-        const keyup = new KeyboardEvent("keyup", keyboardOptions);
-        element.dispatchEvent(keydown);
-        element.dispatchEvent(keypress);
-        element.dispatchEvent(keyup);
-
-        const form = element instanceof HTMLElement ? element.closest("form") : null;
-        if (form) {
-          const submitEvent = new Event("submit", {
-            bubbles: true,
-            cancelable: true
-          });
-          const notPrevented = form.dispatchEvent(submitEvent);
-
-          if (notPrevented) {
-            if (typeof (form as HTMLFormElement).requestSubmit === "function") {
-              (form as HTMLFormElement).requestSubmit();
-            } else {
-              (form as HTMLFormElement).submit();
-            }
-          }
-        }
-      }
-
-      await new Promise((resolve) => window.setTimeout(resolve, Math.min(timeout, 300)));
-
-      return {
-        matchedText: preferredLabel
-      };
-    },
-    {
-      targetText: normalizedFieldText,
-      nextValue: value,
-      exactMatch: exact,
-      timeout: timeoutMs,
-      shouldSubmit: submitAfterFill
-    }
-  );
-
-  if (!filled) {
-    throw new Error(`No fillable input matched "${normalizedFieldText}".`);
+      element.dispatchEvent(new Event("input", { bubbles: true }));
+      element.dispatchEvent(new Event("change", { bubbles: true }));
+    }, value);
   }
 
+  await page.waitForTimeout(Math.min(timeoutMs, 300));
+
   markPageActive(page);
+
+  if (submitAfterFill) {
+    await submitFilledElement(page, filled, editableSelector);
+  }
+
   const pageInfo = await describePage(page);
 
   return {
@@ -988,4 +1078,45 @@ async function fillManagedBrowserInputInternal(
     exact,
     filledAt: new Date().toISOString()
   };
+}
+
+async function submitFilledElement(
+  page: Page,
+  filled: BrowserMatchedEditableTarget,
+  editableSelector: string
+): Promise<void> {
+  const locator = page.locator(editableSelector).nth(filled.index);
+  await locator.focus();
+
+  try {
+    await locator.press("Enter", {
+      timeout: 2000
+    });
+    await page
+      .waitForLoadState("domcontentloaded", {
+        timeout: 5000
+      })
+      .catch(() => undefined);
+    return;
+  } catch {
+    await locator.evaluate((element) => {
+      const form = element instanceof HTMLElement ? element.closest("form") : null;
+
+      if (!form) {
+        return;
+      }
+
+      if (typeof (form as HTMLFormElement).requestSubmit === "function") {
+        (form as HTMLFormElement).requestSubmit();
+        return;
+      }
+
+      (form as HTMLFormElement).submit();
+    });
+    await page
+      .waitForLoadState("domcontentloaded", {
+        timeout: 5000
+      })
+      .catch(() => undefined);
+  }
 }

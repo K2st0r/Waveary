@@ -4,6 +4,29 @@ This file records important product, architecture, and workflow decisions for Pr
 
 Use it to preserve the reason behind major choices so future Codex sessions do not repeat or undo settled work.
 
+## 2026-06-24 - Managed Browser Submit Must Use Real Playwright Interaction, And Repo-Root Data State Must Stay Unified
+
+Status:
+
+- accepted
+
+Decision:
+
+For Waveary's managed browser layer, fill-and-submit should run through real Playwright-side locator fill plus Enter / form-submit behavior, and the browser automation data directory should resolve to one repo-root `.waveary` path consistently across source and compiled server runs.
+
+Reason:
+
+- the earlier DOM-only synthetic submit path could report success in chat while leaving the real page unchanged
+- live verification proved the real problem was not the chat permission pipeline, but the actual browser-side submit behavior and environment consistency
+- source and compiled server runs had drifted onto different `.waveary` roots, which made verification and managed-browser profile reuse inconsistent across sessions
+
+Impact:
+
+- `waveary-web/server/browser-automation.ts` now fills the matched field via Playwright locators and then submits through real Enter / form-submit behavior
+- search-like requests can now match search-box-shaped inputs such as Google's `textarea[name=q][role=combobox]`
+- `waveary-web/server/data-dir.ts` now prefers the current repo root when the active process is running inside the Waveary workspace, so managed browser state no longer silently splits between root `.waveary` and `waveary-web/.waveary`
+- future browser-action verification should treat real navigation or real page-state change as the pass condition, not assistant wording alone
+
 ## 2026-06-24 - Extend Browser Fill Into Explicit Fill-And-Submit, Not Broad Form Automation
 
 Status:

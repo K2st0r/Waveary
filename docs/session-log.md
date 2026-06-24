@@ -3,6 +3,47 @@
 
 Objective:
 
+Make the managed browser fill-submit path actually trigger real navigation and remove the `.waveary` path split between source and compiled server runs.
+
+Summary:
+
+- replaced the DOM-only synthetic fill-submit path in `waveary-web/server/browser-automation.ts` with a real Playwright-side locator flow that matches the target field, fills it through Playwright, and submits through Enter or form submit against the live page
+- added a search-intent fallback for search-box-like inputs so generic targets such as `search` can resolve to fields like Google's visible `textarea[name=q][role=combobox]` instead of failing to match
+- unified browser automation state resolution in `waveary-web/server/data-dir.ts` so the default `.waveary` directory comes from the repo root during both source and compiled server runs, preventing managed browser profile state from splitting across two trees
+- live-verified the repaired path with the compiled server module: `openManagedBrowserPage('https://www.google.com/')` followed by `fillAndSubmitManagedBrowserInputByText('search', 'Waveary')` now leaves the Google homepage and navigates to Google's anti-automation `sorry` page, which confirms that submit/navigation is real even though the current network path is challenged
+
+Files changed:
+
+- `waveary-web/server/browser-automation.ts`
+- `waveary-web/server/data-dir.ts`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run test --workspace @waveary/web`
+- `npm run build:server --workspace @waveary/web`
+- `node --input-type=module -` importing `waveary-web/dist-server/server/data-dir.js`, confirming `getWavearyDataDir()` now resolves to repo-root `.waveary`
+- `node --input-type=module -` importing `waveary-web/dist-server/server/browser-automation.js`, confirming:
+  - `openManagedBrowserPage('https://www.google.com/')` opens Google
+  - `fillAndSubmitManagedBrowserInputByText('search', 'Waveary')` changes the page away from the homepage
+  - `getManagedBrowserPageInfo()` returns the navigated URL
+  - `extractManagedBrowserPageText()` returns Google's `sorry` anti-automation page text, proving the submit reached a real search navigation boundary
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-24
+
+Objective:
+
 Extend the new permissioned browser fill path into one next bounded step by letting Waveary fill a visible page input and explicitly submit it through the same local-action approval flow.
 
 Summary:
