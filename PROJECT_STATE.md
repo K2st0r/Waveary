@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `5ea0ca0` - `Add bounded browser input fill actions`
+- `0726087` - `Add bounded browser fill submit actions`
 
 ## Latest Repository Surface
 
@@ -139,6 +139,7 @@ Brand line:
   - browser action execution notes can now return grounded companion-side summaries such as page-reading excerpts, page-search matches, clickable-target lists, and click-follow-up state instead of always reusing the older open-site wording
   - local-action reply wording now stays more companion-like after execution or dismissal, so successful browser opens no longer read like a sterile audit log or drift into made-up “virtual homepage” narration
   - Chinese open-site detection now recognizes broader Bilibili phrasing such as `打开哔哩哔哩` in addition to raw English `open bilibili`
+  - the managed browser layer now also supports a bounded fill-and-submit step: visible inputs can be filled and then explicitly submitted through Enter / form-submit behavior, `/api/browser/fill-submit` exposes that primitive directly, and natural chat requests such as `fill search with Waveary and submit` now follow the same permissioned pending-local-action path
   - the web server now exposes a first `/api/voice/speak` route that initially returned an emotion-aware browser speech plan instead of hard-wiring speech behavior directly inside the UI layer
   - `/api/voice/speak` now attempts a real provider-backed TTS request first by reusing the saved OpenAI-compatible provider config against `/audio/speech`, then falls back to browser speech planning if the provider path is unavailable or fails
   - provider-backed TTS now also supports explicit saved voice configuration and quality-oriented presets through `/api/voice/config`, `.waveary/voice-config.json`, and a compact chat-page voice control strip for profile / model / voice selection
@@ -338,6 +339,8 @@ Brand line:
 
 ## Next Steps
 
+- run one focused live-browser verification pass for the new managed browser fill-submit path inside `#chat`, then decide whether the next bounded browser step should be richer multi-field targeting or an explicit “open first search result” primitive
+- keep extending the browser-action layer one auditable primitive at a time instead of widening into a broad free-form browser agent
 - start the next voice implementation cut by pushing the current browser voice loop closer to true realtime duplex, beginning with interruption-safe reply stop/resume behavior and a tighter listen-speak handoff instead of broadening vendor coverage first
 - after that interruption-focused pass, decide whether the next highest-value voice step is wider provider-specific STT coverage such as Doubao/local or a deeper transport upgrade beyond the current browser-side speech-activity heuristics
 - replace the current fixed short capture window in provider-backed STT with a more truthful turn-end detector or streaming transport before claiming realtime voice is close to done

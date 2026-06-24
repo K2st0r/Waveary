@@ -3,6 +3,42 @@
 
 Objective:
 
+Extend the new permissioned browser fill path into one next bounded step by letting Waveary fill a visible page input and explicitly submit it through the same local-action approval flow.
+
+Summary:
+
+- added a new managed-browser primitive that reuses the existing visible-input matching logic and then performs a bounded Enter / form-submit step, instead of stopping at raw field fill
+- exposed that capability through a new `/api/browser/fill-submit` route and a new `browser_fill_submit_text` pending local action kind, so chat requests like `fill search with Waveary and submit` can now be proposed and executed under the same `allow / ask / deny` permission model
+- kept the change narrow and additive inside the existing browser-action architecture, added route-level and chat/local-action regression coverage for the new fill-submit path, and left the wider voice and console surfaces untouched
+
+Files changed:
+
+- `waveary-web/server/browser-automation.ts`
+- `waveary-web/server/local-action-audit.ts`
+- `waveary-web/server/local-actions.ts`
+- `waveary-web/server/provider-api.ts`
+- `waveary-web/server/provider-api.test.ts`
+- `waveary-web/src/App.tsx`
+
+Verification:
+
+- `npm run test --workspace @waveary/web`
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run check:mojibake`
+- `git diff -- waveary-web/server/browser-automation.ts waveary-web/server/local-actions.ts waveary-web/server/local-action-audit.ts waveary-web/server/provider-api.ts waveary-web/server/provider-api.test.ts waveary-web/src/App.tsx`
+
+Commit:
+
+- `0726087` - `Add bounded browser fill submit actions`
+
+Push:
+
+- pending
+
+## 2026-06-24
+
+Objective:
+
 Extend the permissioned managed-browser path with one next bounded interaction step by letting Waveary fill visible page inputs through the same local-action approval flow.
 
 Summary:

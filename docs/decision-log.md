@@ -4,6 +4,29 @@ This file records important product, architecture, and workflow decisions for Pr
 
 Use it to preserve the reason behind major choices so future Codex sessions do not repeat or undo settled work.
 
+## 2026-06-24 - Extend Browser Fill Into Explicit Fill-And-Submit, Not Broad Form Automation
+
+Status:
+
+- accepted
+
+Decision:
+
+Extend the new permissioned browser fill path with one next explicit primitive for filling a visible input and then submitting it, instead of jumping from field fill directly to broad multi-step form automation.
+
+Reason:
+
+- after bounded open, read, search, click, and fill support, the next highest-value browser step is letting a real search or simple form flow complete inside the same managed browser session
+- a narrow fill-and-submit primitive keeps the interaction explicit, auditable, and compatible with the existing `allow / ask / deny` local-action boundary
+- this advances practical usefulness without widening Waveary into a generic autonomous browser agent
+
+Impact:
+
+- `waveary-web/server/browser-automation.ts` now owns `fillAndSubmitManagedBrowserInputByText(...)`, which reuses the existing visible-input match logic and then performs bounded Enter / form-submit behavior
+- `waveary-web/server/provider-api.ts` now exposes `/api/browser/fill-submit`
+- `waveary-web/server/local-actions.ts` now recognizes natural requests such as `fill search with Waveary and submit` and routes them through a new `browser_fill_submit_text` pending action kind
+- future browser-action work should keep advancing through similarly explicit primitives such as multi-field targeting or first-result opening, not broad free-form web control
+
 ## 2026-06-24 - Extend Browser Actions Through Explicit Fill, Not Free-Form Automation
 
 Status:
