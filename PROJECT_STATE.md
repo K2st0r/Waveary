@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `1fb0b0f` - `Record public repository surface`
+- `f0fa76c` - `Sync repository continuity records`
 
 ## Latest Repository Surface
 

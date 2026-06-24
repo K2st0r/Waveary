@@ -3,6 +3,35 @@
 
 Objective:
 
+Refresh the public GitHub README again so the repository front page feels more like a compelling formal open-source project homepage instead of a plain summary sheet.
+
+Summary:
+
+- rewrote the root `README.md` into a stronger bilingual project-homepage layout with a centered hero block, clearer positioning, stronger thesis sections, and a more persuasive narrative around continuity, memory, relationship, and companionship
+- expanded the README structure so GitHub visitors can quickly understand what Waveary is, why it exists, what engines it includes, what capabilities already exist, and how the CE / Cloud / Enterprise direction is framed
+- kept the change repository-surface-only and did not touch runtime, frontend, provider, or voice logic
+
+Files changed:
+
+- `README.md`
+
+Verification:
+
+- `npm run check:mojibake`
+- `git diff -- README.md`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-24
+
+Objective:
+
 Finalize the public GitHub repository surface after the rename by setting the formal public metadata, default branch, and discovery topics to match Waveary's current positioning.
 
 Summary:
