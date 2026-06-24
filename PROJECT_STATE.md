@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `pending` - `Improve companion reply cadence and persona defaults`
+- `413497a` - `Improve companion reply cadence and persona defaults`
 
 ## Latest Repository Surface
 

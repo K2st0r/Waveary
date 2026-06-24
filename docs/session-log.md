@@ -38,11 +38,11 @@ Verification:
 
 Commit:
 
-- `pending` - `Improve companion reply cadence and persona defaults`
+- `413497a` - `Improve companion reply cadence and persona defaults`
 
 Push:
 
-- pending
+- pending continuity sync, because the first push completed before the new commit existed locally
 
 ## 2026-06-24
 
