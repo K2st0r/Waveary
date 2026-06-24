@@ -13,6 +13,7 @@ import {
 import {
   clickManagedBrowserElementByText,
   extractManagedBrowserPageText,
+  fillManagedBrowserInputByText,
   getManagedBrowserPageInfo,
   listManagedBrowserClickableElements,
   searchManagedBrowserPageText
@@ -164,6 +165,13 @@ interface BrowserClickableElementsRequest {
 
 interface BrowserClickTextRequest {
   text?: string;
+  exact?: boolean;
+  timeoutMs?: number;
+}
+
+interface BrowserFillTextRequest {
+  fieldText?: string;
+  value?: string;
   exact?: boolean;
   timeoutMs?: number;
 }
@@ -596,6 +604,23 @@ export function createProviderApiMiddleware() {
         const payload = (await readJsonBody(request)) as BrowserClickTextRequest;
         const result = await clickManagedBrowserElementByText(
           requireNonEmpty(payload.text, "Browser click target text is required."),
+          {
+            ...(typeof payload.exact === "boolean" ? { exact: payload.exact } : {}),
+            ...(typeof payload.timeoutMs === "number"
+              ? { timeoutMs: payload.timeoutMs }
+              : {})
+          }
+        );
+
+        sendJson(response, 200, result);
+        return;
+      }
+
+      if (request.method === "POST" && request.url === "/api/browser/fill-text") {
+        const payload = (await readJsonBody(request)) as BrowserFillTextRequest;
+        const result = await fillManagedBrowserInputByText(
+          requireNonEmpty(payload.fieldText, "Browser fill target text is required."),
+          requireNonEmpty(payload.value, "Browser fill value is required."),
           {
             ...(typeof payload.exact === "boolean" ? { exact: payload.exact } : {}),
             ...(typeof payload.timeoutMs === "number"

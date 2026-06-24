@@ -4,6 +4,29 @@ This file records important product, architecture, and workflow decisions for Pr
 
 Use it to preserve the reason behind major choices so future Codex sessions do not repeat or undo settled work.
 
+## 2026-06-24 - Extend Browser Actions Through Explicit Fill, Not Free-Form Automation
+
+Status:
+
+- accepted
+
+Decision:
+
+Extend the existing permissioned browser-action layer with one concrete new primitive for filling visible inputs by label-like text, instead of jumping directly to a broad free-form browser agent.
+
+Reason:
+
+- the current managed browser path already supports open, read, search, list-clickable, and click-by-text, so filling inputs is the next natural bounded interaction step
+- this pushes Waveary closer to genuinely useful browser assistance without breaking the explicit permission, auditability, and revocation boundaries already established for local actions
+- a small explicit form-filling primitive is easier to verify, reason about, and expose safely through the current `pendingLocalAction` flow than a generic autonomous browser controller
+
+Impact:
+
+- `waveary-web/server/browser-automation.ts` now owns a `fillManagedBrowserInputByText(...)` primitive that matches visible inputs by associated label / placeholder / aria text and dispatches real input/change events
+- `waveary-web/server/provider-api.ts` now exposes `/api/browser/fill-text`
+- `waveary-web/server/local-actions.ts` can now turn natural requests such as `fill search with Waveary` into a bounded `browser_fill_text` action and execute it through the same ask/allow flow as other local actions
+- future browser-control work should keep following this pattern: add one narrow auditable primitive at a time rather than introducing a broad unconstrained web agent surface
+
 ## 2026-06-24 - Re-Pressing Live Chat During Playback Should Interrupt, Not End The Session
 
 Status:

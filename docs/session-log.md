@@ -3,6 +3,41 @@
 
 Objective:
 
+Extend the permissioned managed-browser path with one next bounded interaction step by letting Waveary fill visible page inputs through the same local-action approval flow.
+
+Summary:
+
+- added a new browser automation primitive that can match visible inputs and textareas by label-like text and fill them with real input/change events instead of relying only on click or read actions
+- exposed that capability through a new `/api/browser/fill-text` route and a new `browser_fill_text` pending local action kind, so chat requests like `fill search with Waveary` can now be proposed and executed under the same `allow / ask / deny` permission model
+- kept the change bounded to the existing browser-action architecture instead of introducing a broad free-form web agent, and added route-level plus chat/local-action regression coverage for the new fill path
+
+Files changed:
+
+- `waveary-web/server/browser-automation.ts`
+- `waveary-web/server/local-action-audit.ts`
+- `waveary-web/server/local-actions.ts`
+- `waveary-web/server/provider-api.ts`
+- `waveary-web/server/provider-api.test.ts`
+- `waveary-web/src/App.tsx`
+
+Verification:
+
+- `npm run test --workspace @waveary/web`
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `git diff -- waveary-web/server/browser-automation.ts waveary-web/server/local-actions.ts waveary-web/server/provider-api.ts waveary-web/server/local-action-audit.ts waveary-web/server/provider-api.test.ts waveary-web/src/App.tsx`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-24
+
+Objective:
+
 Refresh the public GitHub README again so the repository front page feels more like a compelling formal open-source project homepage instead of a plain summary sheet.
 
 Summary:

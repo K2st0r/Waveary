@@ -204,11 +204,13 @@ interface PendingLocalAction {
     | "browser_extract_text"
     | "browser_search_text"
     | "browser_list_clickable"
-    | "browser_click_text";
+    | "browser_click_text"
+    | "browser_fill_text";
   label: string;
   target: string;
   targetLabel: string;
   summary: string;
+  value?: string;
 }
 
 interface ChatTurnTimeContext {

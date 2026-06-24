@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `0edf8b7` - `Refresh public README homepage`
+- `ab1e5b1` - `Add README navigation and architecture sections`
 
 ## Latest Repository Surface
 
