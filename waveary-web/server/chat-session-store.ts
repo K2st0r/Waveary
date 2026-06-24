@@ -521,6 +521,47 @@ export function resetChatSession(sessionId: string): ChatSessionSnapshot {
   });
 }
 
+export function resetAllChatSessions(): {
+  session: ChatSessionSnapshot;
+  sessions: ChatSessionListItem[];
+  defaultSessionId: string;
+  persistence: ChatPersistenceStatus;
+  resetSessionCount: number;
+} {
+  return withChatSessionRepository((repository) => {
+    const existingSessions = repository.list();
+    const resetSessionCount = existingSessions.length;
+
+    for (const { sessionId } of existingSessions) {
+      repository.delete(sessionId);
+    }
+
+    saveChatPersistenceConfig(createDefaultChatPersistenceConfig());
+
+    ensureSession(DEFAULT_CHAT_SESSION_ID, repository);
+
+    const session = {
+      sessionId: DEFAULT_CHAT_SESSION_ID,
+      messages: [],
+      latestInsights: null,
+      proactiveCarePolicy: createDefaultProactiveCarePolicy(),
+      proactiveCareState: createDefaultProactiveCareState(),
+      memoryArchive: [],
+      relationship: null,
+      timelineEvents: [],
+      updatedAt: new Date().toISOString()
+    } satisfies ChatSessionSnapshot;
+
+    return {
+      session,
+      sessions: listChatSessions(),
+      defaultSessionId: DEFAULT_CHAT_SESSION_ID,
+      persistence: getCurrentChatPersistenceStatus(),
+      resetSessionCount
+    };
+  });
+}
+
 export function exportChatSession(sessionId: string): ExportedChatSession {
   return withChatSessionRepository((repository) => {
     const session = ensureSession(sessionId, repository);

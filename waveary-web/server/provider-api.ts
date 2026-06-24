@@ -42,6 +42,7 @@ import {
   DEFAULT_CHAT_SESSION_ID,
   deleteChatSession,
   listChatSessions,
+  resetAllChatSessions,
   resetChatSession,
   renameChatSession,
   switchChatPersistenceBackend,
@@ -811,6 +812,14 @@ export function createProviderApiMiddleware() {
           defaultSessionId: DEFAULT_CHAT_SESSION_ID,
           persistence: getCurrentChatPersistenceStatus()
         });
+        return;
+      }
+
+      if (request.method === "POST" && request.url === "/api/chat/sessions/reset-all") {
+        const result = resetAllChatSessions();
+        resetChatRuntimeSessions();
+
+        sendJson(response, 200, result);
         return;
       }
 
