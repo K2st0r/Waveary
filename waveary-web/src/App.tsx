@@ -2246,6 +2246,8 @@ export function App(): ReactElement {
 
       setVoiceCatalog(response);
       setVoiceCatalogState("success");
+      setVoicePickerOpen(false);
+      setVoiceSearchQuery("");
       setVoiceStatusMessage(
         locale === "zh"
           ? `已加载语音目录：${response.models.length} 个模型，${response.voices.length} 个可选音色。`
@@ -4717,54 +4719,45 @@ export function App(): ReactElement {
                 <span>{voiceFieldLabel}</span>
                 {showSearchableVoicePicker ? (
                   <div className="voice-search-picker" ref={voicePickerRef}>
-                    <button
-                      className="voice-search-picker-trigger"
-                      type="button"
-                      onClick={() => setVoicePickerOpen((current) => !current)}
-                      disabled={!canAdjustVoiceConfig}
-                      aria-expanded={voicePickerOpen}
-                    >
+                    <div className="voice-search-picker-summary">
                       <strong>{activeVoicePickerLabel}</strong>
                       <span>{voiceConfig?.voice ?? voiceFieldPlaceholder}</span>
-                    </button>
-                    {voicePickerOpen ? (
-                      <div className="voice-search-picker-panel">
-                        <input
-                          type="text"
-                          value={voiceSearchQuery}
-                          onChange={(event) => setVoiceSearchQuery(event.target.value)}
-                          placeholder={voiceSearchPlaceholder}
-                          disabled={!canAdjustVoiceConfig}
-                          autoFocus
-                        />
-                        <div className="voice-search-picker-list" role="listbox">
-                          {filteredVoiceOptionDescriptors.length > 0 ? (
-                            filteredVoiceOptionDescriptors.map((voice) => {
-                              const isActive = voice.id === (voiceConfig?.voice ?? "");
-                              return (
-                                <button
-                                  key={voice.id}
-                                  className={`voice-search-picker-option${isActive ? " voice-search-picker-option-active" : ""}`}
-                                  type="button"
-                                  onClick={() => {
-                                    setVoiceDraftInput(voice.id);
-                                    setVoiceSearchQuery(voice.id);
-                                    setVoicePickerOpen(false);
-                                    void handleVoiceNameChange(voice.id);
-                                  }}
-                                  disabled={!canAdjustVoiceConfig}
-                                >
-                                  <strong>{voice.label}</strong>
-                                  <span>{voice.id}</span>
-                                </button>
-                              );
-                            })
-                          ) : (
-                            <div className="voice-search-picker-empty">{voiceSearchEmptyLabel}</div>
-                          )}
-                        </div>
+                    </div>
+                    <div className="voice-search-picker-panel">
+                      <input
+                        type="text"
+                        value={voiceSearchQuery}
+                        onChange={(event) => setVoiceSearchQuery(event.target.value)}
+                        placeholder={voiceSearchPlaceholder}
+                        disabled={!canAdjustVoiceConfig}
+                      />
+                      <div className="voice-search-picker-list" role="listbox">
+                        {filteredVoiceOptionDescriptors.length > 0 ? (
+                          filteredVoiceOptionDescriptors.map((voice) => {
+                            const isActive = voice.id === (voiceConfig?.voice ?? "");
+                            return (
+                              <button
+                                key={voice.id}
+                                className={`voice-search-picker-option${isActive ? " voice-search-picker-option-active" : ""}`}
+                                type="button"
+                                onClick={() => {
+                                  setVoiceDraftInput(voice.id);
+                                  setVoiceSearchQuery(voice.id);
+                                  setVoicePickerOpen(false);
+                                  void handleVoiceNameChange(voice.id);
+                                }}
+                                disabled={!canAdjustVoiceConfig}
+                              >
+                                <strong>{voice.label}</strong>
+                                <span>{voice.id}</span>
+                              </button>
+                            );
+                          })
+                        ) : (
+                          <div className="voice-search-picker-empty">{voiceSearchEmptyLabel}</div>
+                        )}
                       </div>
-                    ) : null}
+                    </div>
                   </div>
                 ) : (
                   <input

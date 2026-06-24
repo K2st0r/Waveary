@@ -6404,3 +6404,38 @@ Commit:
 Push:
 
 - succeeded: `git push origin main` pushed functional commit `e704c09` to `origin/main`
+
+## 2026-06-24
+
+Objective:
+
+Fix the voice-console discoverability bug where the UI could report a loaded voice catalog but still make the actual selectable voices look missing.
+
+Summary:
+
+- confirmed the bug was frontend-side discoverability, not missing data: the console could already show `已加载语音目录：1 个模型，13 个可选音色。` while the actual select-mode voices were still hidden behind a subtle extra trigger
+- updated `waveary-web/src/App.tsx` so loaded select-mode voice catalogs now render their searchable in-panel voice list directly instead of requiring a second hidden click before any options become visible
+- kept the provider contract unchanged: no backend route shape changed, and manual-input vendors still stay on their explicit text-entry path
+- simplified the picker presentation in `waveary-web/src/styles.css` so the current selected voice summary stays visible above the list while the searchable catalog remains plainly exposed below it
+
+Files changed:
+
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run check:mojibake`
+- `npm run web:build`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending

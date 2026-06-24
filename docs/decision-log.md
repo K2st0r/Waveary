@@ -1534,3 +1534,24 @@ Impact:
 - top navigation now stays focused on `home / console / chat`
 - the homepage closing section now owns the route narrative through `projectRouteContent`
 - the legacy `#roadmap` hash remains a compatibility redirect into the homepage section so old links and buttons still resolve
+
+## 2026-06-24 - Loaded Voice Catalogs Must Show Their Voice List Directly
+
+Status:
+
+- accepted
+
+Decision:
+
+When Waveary already knows a provider is in `voiceFieldMode = select` and a voice catalog has been loaded, the console should render the searchable voice list directly in-panel instead of hiding it behind an extra trigger while only the status card says the catalog was loaded.
+
+Reason:
+
+- the current data path was correct: the console could honestly report `1 model, 13 voice options loaded`, but the actual voice options still felt missing because they were tucked behind a subtle trigger labeled only by the current voice
+- that mismatch is especially confusing on Doubao legacy and other select-mode routes where the user expects "loaded catalog" to immediately mean "I can now see and choose the voices"
+- the user explicitly called out the discrepancy as "shows 13 voice options, but there is no voice option to choose", which means the problem is discoverability and presentation, not backend catalog fetch
+
+Impact:
+
+- `waveary-web/src/App.tsx` now renders the current selected voice summary plus the searchable voice list together for loaded select-mode catalogs
+- future select-mode voice-console refinements should preserve the invariant that loaded supported voices are plainly visible without relying on a hidden second click
