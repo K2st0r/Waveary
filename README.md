@@ -203,25 +203,6 @@ Current repository modules:
 
 ---
 
-## Editions | 版本规划
-
-### `Waveary CE`
-
-Community Edition, open source.  
-社区版，开源。
-
-### `Waveary Cloud`
-
-Managed commercial offering.  
-云端托管版，收费。
-
-### `Waveary Enterprise`
-
-Future enterprise edition.  
-后续企业版。
-
----
-
 ## Vision | 愿景
 
 Waveary is not trying to create a talking character.
