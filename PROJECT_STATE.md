@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `pending` - `Tighten identity-style name inference`
+- `9f3dcaf` - `Tighten identity-style name inference`
 
 ## Latest Repository Surface
 
