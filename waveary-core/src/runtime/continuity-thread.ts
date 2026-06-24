@@ -71,7 +71,11 @@ export function selectContinuityThread(
     };
   }
 
-  if (memoryCandidate && memoryScore >= timelineScore && memoryScore >= (emotionalTurn ? 0.48 : 0.18)) {
+  if (
+    memoryCandidate &&
+    memoryScore >= timelineScore &&
+    memoryScore >= (emotionalTurn ? 0.48 : 0.18)
+  ) {
     return {
       primaryLine: `[memory:${memoryCandidate.type}] ${memoryCandidate.content}`,
       guidance:
@@ -116,7 +120,8 @@ export function selectContinuityThread(
       primaryLine: `[timeline:${timelineCandidate.eventType}] ${timelineCandidate.title}`,
       guidance:
         "This timeline thread is available, but do not force it unless it naturally matches the user's present concern.",
-      secondaryMemories: timelineBackfill.length > 0 ? input.relevantMemories.slice(0, 2) : []
+      secondaryMemories:
+        timelineBackfill.length > 0 ? input.relevantMemories.slice(0, 2) : []
     };
   }
 
@@ -209,21 +214,25 @@ export function summarizeCurrentTurnFocusWithHistory(
   latestContent: string,
   messageHistory?: Message[]
 ): string {
-  const continuityQuery = resolveContinuityQuery(
-    latestContent
-      ? {
-          id: "focus-latest",
-          sessionId: "focus-session",
-          role: "user",
-          content: latestContent,
-          timestamp: new Date(0).toISOString(),
-          metadata: {}
-        }
-      : undefined,
+  const compactLatest = latestContent.trim();
+
+  if (!compactLatest) {
+    return summarizeCurrentTurnFocus(latestContent);
+  }
+
+  const previousUserMessage = findPreviousUserMessageByContent(
+    compactLatest,
     messageHistory
   );
 
-  return summarizeCurrentTurnFocus(continuityQuery.focusText);
+  if (
+    !previousUserMessage ||
+    !shouldBlendWithPreviousUserTurn(compactLatest, previousUserMessage.content)
+  ) {
+    return summarizeCurrentTurnFocus(compactLatest);
+  }
+
+  return `Continuing: ${summarizeCurrentTurnFocus(previousUserMessage.content)} Follow-up now: ${summarizeCurrentTurnFocus(compactLatest)}`;
 }
 
 function scoreContinuityMatch(candidateText: string, turnText: string): number {
@@ -287,14 +296,58 @@ function findPreviousUserMessage(
     return undefined;
   }
 
+  let skippedCurrentLikeMessage = false;
+
   for (let index = messageHistory.length - 1; index >= 0; index -= 1) {
     const message = messageHistory[index];
 
-    if (!message || message.role !== "user" || message.id === latestUserMessage.id) {
+    if (!message || message.role !== "user") {
+      continue;
+    }
+
+    if (message.id === latestUserMessage.id) {
+      continue;
+    }
+
+    if (
+      !skippedCurrentLikeMessage &&
+      message.content.trim() === latestUserMessage.content.trim()
+    ) {
+      skippedCurrentLikeMessage = true;
       continue;
     }
 
     return message;
+  }
+
+  return undefined;
+}
+
+function findPreviousUserMessageByContent(
+  latestContent: string,
+  messageHistory?: Message[]
+): Message | undefined {
+  if (!messageHistory || messageHistory.length === 0) {
+    return undefined;
+  }
+
+  let matchedLatest = false;
+
+  for (let index = messageHistory.length - 1; index >= 0; index -= 1) {
+    const message = messageHistory[index];
+
+    if (!message || message.role !== "user") {
+      continue;
+    }
+
+    if (!matchedLatest && message.content.trim() === latestContent) {
+      matchedLatest = true;
+      continue;
+    }
+
+    if (matchedLatest) {
+      return message;
+    }
   }
 
   return undefined;
@@ -312,21 +365,32 @@ function shouldBlendWithPreviousUserTurn(
 
   const tokenCount = extractPromptScoringTokens(normalizePromptScoringText(compact)).length;
   const startsLikeContinuation =
-    /^(and|but|so|still|also|then|just|well|actually|yeah|yes|no|其实|还是|然后|而且|但是|不过|所以|就|那|这)/i.test(
+    /^(and|but|so|still|also|then|just|well|actually|yeah|yes|no|\u5176\u5b9e|\u8fd8\u662f|\u7136\u540e|\u800c\u4e14|\u4f46\u662f|\u4e0d\u8fc7|\u6240\u4ee5|\u5c31|\u90a3|\u8fd9)/i.test(
       compact
     );
   const explicitCarryover =
     /\b(still|same thing|about that|about it|that part|this part|that one|this one|again)\b/i.test(
       compact
     ) ||
-    /(那个|这个|这件事|那件事|这一点|那一点|还是这个|还是那个|还是这件事|还是那件事|这部分|那部分)/.test(
+    /(\u90a3\u4e2a|\u8fd9\u4e2a|\u8fd9\u4ef6\u4e8b|\u90a3\u4ef6\u4e8b|\u8fd9\u4e00\u70b9|\u90a3\u4e00\u70b9|\u8fd8\u662f\u8fd9\u4e2a|\u8fd8\u662f\u90a3\u4e2a|\u8fd8\u662f\u8fd9\u4ef6\u4e8b|\u8fd8\u662f\u90a3\u4ef6\u4e8b|\u8fd9\u90e8\u5206|\u90a3\u90e8\u5206)/.test(
+      compact
+    );
+  const emotionalCarryover =
+    /\b(not over it|not over that|still hurts|still stings|can't shake it|cannot shake it|same feeling|same ache|it still hurts)\b/i.test(
+      compact
+    ) ||
+    /(\u6211\u8fd8\u6ca1\u8fc7\u53bb|\u8fd8\u6ca1\u7f13\u8fc7\u6765|\u8fd8\u662f\u90a3\u4e2a\u611f\u89c9|\u8fd8\u662f\u90a3\u79cd\u611f\u89c9|\u90a3\u79cd\u611f\u89c9\u8fd8\u5728|\u90a3\u4e00\u5757\u8fd8\u5728\u75bc)/.test(
       compact
     );
   const genericReference =
     /\b(it|that|this|they|them)\b/i.test(compact) ||
-    /(它|他|她|这|那)/.test(compact);
+    /(\u5b83|\u4ed6|\u5979|\u8fd9|\u90a3)/.test(compact);
 
   if (explicitCarryover) {
+    return true;
+  }
+
+  if (emotionalCarryover && tokenCount <= 12) {
     return true;
   }
 
@@ -370,7 +434,7 @@ function extractPromptScoringTokens(value: string): string[] {
 }
 
 function hasHighEmotionalTurnSignal(value: string): boolean {
-  return /sad|anxious|worried|hurt|alone|afraid|lonely|难过|焦虑|担心|害怕|孤单|失落|委屈/i.test(
+  return /sad|anxious|worried|hurt|alone|afraid|lonely|闅捐繃|鐒﹁檻|鎷呭績|瀹虫€?|瀛ゅ崟|澶辫惤|濮斿眻/i.test(
     value
   );
 }

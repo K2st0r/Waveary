@@ -312,6 +312,96 @@ test("summarizeCurrentTurnFocusWithHistory marks short continuation turns as fol
   assert.match(focus, /interview tomorrow/i);
 });
 
+test("selectContinuityThread keeps an oblique emotional follow-up anchored to the previous user topic", () => {
+  const messages: Message[] = [
+    {
+      id: "message-oblique-1",
+      sessionId: "session-1",
+      role: "user",
+      content: "I keep replaying the argument with my sister from last night.",
+      timestamp: "2026-06-24T12:00:00.000Z",
+      metadata: {}
+    },
+    {
+      id: "message-oblique-2",
+      sessionId: "session-1",
+      role: "assistant",
+      content: "I know that kind of replay can stay in the body for a while.",
+      timestamp: "2026-06-24T12:00:10.000Z",
+      metadata: {}
+    },
+    {
+      id: "message-oblique-3",
+      sessionId: "session-1",
+      role: "user",
+      content: "That part still hurts. I am not over it yet.",
+      timestamp: "2026-06-24T12:00:20.000Z",
+      metadata: {}
+    }
+  ];
+
+  const selection = selectContinuityThread({
+    latestUserMessage: messages[2],
+    messageHistory: messages,
+    relevantMemories: [
+      createMemory(
+        "memory-argument",
+        "relationship",
+        "The user is still replaying an argument with their sister from last night."
+      ),
+      createMemory(
+        "memory-weather",
+        "preference",
+        "The user likes rainy evenings."
+      )
+    ],
+    timeline: []
+  });
+
+  assert.equal(
+    selection.primaryLine,
+    "[memory:relationship] The user is still replaying an argument with their sister from last night."
+  );
+});
+
+test("summarizeCurrentTurnFocusWithHistory marks Chinese emotional carry-over turns as continuations", () => {
+  const messages: Message[] = [
+    {
+      id: "message-zh-1",
+      sessionId: "session-1",
+      role: "user",
+      content: "我还是一直在想昨天和妈妈吵架那件事。",
+      timestamp: "2026-06-24T12:10:00.000Z",
+      metadata: {}
+    },
+    {
+      id: "message-zh-2",
+      sessionId: "session-1",
+      role: "assistant",
+      content: "这种事会在心里停很久，我知道。",
+      timestamp: "2026-06-24T12:10:10.000Z",
+      metadata: {}
+    },
+    {
+      id: "message-zh-3",
+      sessionId: "session-1",
+      role: "user",
+      content: "我还没过去，还是那个感觉。",
+      timestamp: "2026-06-24T12:10:20.000Z",
+      metadata: {}
+    }
+  ];
+
+  const focus = summarizeCurrentTurnFocusWithHistory(
+    messages[2]?.content ?? "",
+    messages
+  );
+
+  assert.match(focus, /^Continuing:/);
+  assert.match(focus, /昨天和妈妈吵架那件事/);
+  assert.match(focus, /我还没过去，还是那个感觉/);
+});
+
 function createMemory(
   id: string,
   type: MemoryItem["type"],
