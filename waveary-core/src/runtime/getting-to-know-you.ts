@@ -53,6 +53,7 @@ const USER_NAME_STOPWORDS = new Set([
   "fine",
   "here",
   "back",
+  "right",
   "going",
   "gonna",
   "someone",
