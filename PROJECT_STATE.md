@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `db29475` - `Avoid call me follow-up false positives`
+- `pending` - `Avoid call me scheduling false positives`
 
 ## Latest Repository Surface
 
@@ -64,6 +64,7 @@ Brand line:
   - getting-to-know-you name inference now also accepts natural `my name's Aki` introductions, so one of the most common spoken self-introduction forms no longer gets missed during early acquaintance
   - getting-to-know-you name inference now also accepts parenthesized name-sharing phrasing such as `You can call me (Aki).`, so light aside-style self-introductions no longer get missed when the intent is still explicit
   - getting-to-know-you name inference now also rejects `call me if ...` and `call me when ...` follow-up phrasing, so ordinary care or scheduling language no longer degrades into fake preferred names like `if` or `when`
+  - getting-to-know-you name inference now also rejects `call me later`, `call me tomorrow`, `call me tonight`, and similar scheduling follow-ups, so plain contact-planning language no longer degrades into fake preferred names like `later` or `tomorrow`
   - scripted fallback replies now also mirror that early-acquaintance behavior by naturally asking what to call the user, letting the user name the companion, or learning desired presence style when the turn is light enough
   - permissioned local time context can now be injected into normal chat turns so the companion can answer time/date-style questions from the user's device-local clock without claiming it lacks real-time awareness
   - local time context now also resolves a bounded daypart hint so late-night and evening turns can bias toward softer companion tone without expanding into broader desktop-awareness inputs
@@ -376,7 +377,7 @@ Brand line:
 - continue the live-provider dialogue regression pass beyond the new prompt-body coverage into richer emotional-stress, reconnection, practical-question cadence, and multi-turn mutual-discovery competition cases
 - continue the continuity-thread quality pass beyond short carry-over follow-ups into pronoun-heavy multi-turn topic persistence, so turns like "that part still hurts" or "I am not over it yet" can stay anchored even when the user is more oblique
 - continue the continuity-thread quality pass beyond short, emotional, low-affect pronoun, inferential, and weaker unsettled carry-over follow-ups into the next bounded drift cases, so the system can stay anchored without over-blending unrelated nearby topics
-- continue hardening early-acquaintance inference beyond emotional-state false positives, identity-style self-description, quoted name-sharing, `my name's` introductions, parenthesized name-sharing, and `call me if/when` false positives into the next bounded ambiguous introduction cases, but keep the parser narrow enough that ordinary emotional sentences are never treated as confirmed names
+- continue hardening early-acquaintance inference beyond emotional-state false positives, identity-style self-description, quoted name-sharing, `my name's` introductions, parenthesized name-sharing, and `call me` follow-up/scheduling false positives into the next bounded ambiguous introduction cases, but keep the parser narrow enough that ordinary emotional sentences are never treated as confirmed names
 - decide whether the next truthful web-facing companion-quality surface should show remembered names / vibe continuity lightly, without regressing into a required persona setup form
 - start the next voice implementation cut by pushing the current browser voice loop closer to true realtime duplex, beginning with interruption-safe reply stop/resume behavior and a tighter listen-speak handoff instead of broadening vendor coverage first
 - after that interruption-focused pass, decide whether the next highest-value voice step is wider provider-specific STT coverage such as Doubao/local or a deeper transport upgrade beyond the current browser-side speech-activity heuristics

@@ -3,6 +3,44 @@
 
 Objective:
 
+Avoid `call me later/tomorrow ...` scheduling false positives so ordinary contact-planning language does not get mistaken for preferred-name sharing.
+
+Summary:
+
+- updated `waveary-core/src/runtime/getting-to-know-you.ts` so scheduling tokens like `later`, `tomorrow`, `tonight`, `anytime`, and `sometime` are rejected instead of being treated as preferred names after `call me ...`
+- added focused parser regression in `waveary-core/src/runtime/getting-to-know-you.test.ts` to ensure lines like `Call me later tonight.` and `Call me tomorrow when you can.` do not become fake names
+- added matching prompt-level regression in `waveary-core/src/adapters/openai-compatible-provider.test.ts` so live provider instructions now continue to say `No confirmed preferred user name...` instead of surfacing a bogus shared-history name from this scheduling phrasing
+- re-verified the full `@waveary/core` package through check, rebuild, and compiled tests; the package now passes `87` tests, and this pass stayed entirely inside the early-acquaintance dialogue-quality path without touching frontend, voice, or continuity-thread code
+
+Files changed:
+
+- `waveary-core/src/runtime/getting-to-know-you.ts`
+- `waveary-core/src/runtime/getting-to-know-you.test.ts`
+- `waveary-core/src/adapters/openai-compatible-provider.test.ts`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/core`
+- `npm run build --workspace @waveary/core`
+- PowerShell compiled-test verification via:
+  `$files = @(Get-ChildItem 'waveary-core\\dist' -Recurse -Filter '*.test.js' | ForEach-Object { $_.FullName }); & node --test @files`
+
+Commit:
+
+- `pending` - `Avoid call me scheduling false positives`
+
+Push:
+
+- pending
+
+## 2026-06-24
+
+Objective:
+
 Avoid `call me if/when ...` false positives so ordinary care or scheduling follow-ups do not get mistaken for preferred-name sharing.
 
 Summary:

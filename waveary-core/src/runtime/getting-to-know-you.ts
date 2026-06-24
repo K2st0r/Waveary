@@ -16,6 +16,11 @@ const DEFAULT_USER_PLACEHOLDERS = new Set(["waveary user", "user", "friend"]);
 const USER_NAME_STOPWORDS = new Set([
   "if",
   "when",
+  "later",
+  "tomorrow",
+  "tonight",
+  "anytime",
+  "sometime",
   "still",
   "not",
   "really",

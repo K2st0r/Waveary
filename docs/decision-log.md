@@ -247,6 +247,28 @@ Impact:
 - regression coverage now includes both parser-level and live-provider prompt-level checks proving `call me if/when ...` does not become a confirmed preferred user name
 - future parser work should keep prioritizing false-positive prevention whenever a more relaxed rule would risk corrupting durable identity memory
 
+## 2026-06-24 - Call Me Scheduling Language Must Also Stay Out Of Preferred-Name Memory
+
+Status:
+
+- accepted
+
+Decision:
+
+Waveary should not treat scheduling phrasing such as `Call me later tonight.` or `Call me tomorrow when you can.` as preferred-name evidence, even though those lines also begin with `call me`.
+
+Reason:
+
+- this is the same risk class as `call me if/when ...`, but in a more ordinary coordination form that is likely to appear frequently in real companionship chat
+- fake preferred names like `later` or `tomorrow` are especially damaging because they can arise from mundane caring logistics rather than rare edge-case wording
+- protecting durable identity memory is more important than relaxing the parser for every superficially similar phrase
+
+Impact:
+
+- `waveary-core/src/runtime/getting-to-know-you.ts` now also rejects time-and-scheduling continuation words such as `later`, `tomorrow`, `tonight`, `anytime`, and `sometime` in the preferred-name plausibility filter
+- regression coverage now includes both parser-level and live-provider prompt-level checks proving `call me later/tomorrow ...` does not become a confirmed preferred user name
+- future parser work should keep extending false-positive guards one realistic phrase family at a time instead of broadening extraction heuristics first
+
 ## 2026-06-24 - Companion Replies Should Default To Human-Scale Cadence
 
 Status:
