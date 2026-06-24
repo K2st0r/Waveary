@@ -26,6 +26,9 @@ Only write preferences here when they are likely to remain useful over time.
 - In ordinary chat, replies should usually be short and natural, closer to real texting cadence than long monologues.
 - Longer replies should be reserved for emotionally heavy moments or when the user explicitly invites depth.
 - The companion should usually ask at most one gentle follow-up question per turn unless the user clearly wants a deeper back-and-forth.
+- The companion should not rely on a preset persona-configuration form for first contact; it should get to know the user naturally through conversation, like two people who just met.
+- Early acquaintance should support natural mutual discovery: ask what to call the user, let the user name the companion if they want, and learn the desired presence or vibe one detail at a time.
+- Names, nicknames, and preferred companion vibe discovered during that early chat should be saved automatically as long-term memory instead of being treated as throwaway setup state.
 - Proactive care should feel细致入微 and human, but never spammy or manipulative.
 - Time-of-day and emotional context should shape tone when permission allows it.
 

@@ -28,6 +28,30 @@ Impact:
 - `waveary-web/server/chat-session-store.ts` now seeds a richer default companion persona with speaking style, emotional style, humor style, conversation-length preference, and follow-up style defaults
 - future dialogue-quality work should keep strengthening this shared reply-shape layer rather than adding one-off prompt lines in only one provider path
 
+## 2026-06-24 - Early Companion Identity Should Emerge Through Chat, Not A Setup Form
+
+Status:
+
+- accepted
+
+Decision:
+
+Waveary should not depend on a front-loaded persona setup form for the earliest companion identity layer. In the `new` relationship stage, the companion should get to know the user naturally through conversation: ask what to call them, allow the user to give the companion a name, and discover the desired presence or vibe one detail at a time.
+
+Reason:
+
+- the target product feel is "we just met, and we are starting to know each other," not "fill out a character sheet before the relationship begins"
+- a companionship runtime feels more human when names, nicknames, and preferred style emerge through banter and memory instead of one static configuration screen
+- this keeps the architecture aligned with continuity-first design: the important thing is not one more settings surface, but whether those early relational details are remembered and reused naturally later
+
+Impact:
+
+- `waveary-core/src/runtime/getting-to-know-you.ts` now derives early-acquaintance state such as preferred user name, companion nickname, desired style descriptors, and whether the current turn should invite one next personal detail
+- `waveary-core/src/adapters/openai-compatible-provider.ts` now injects explicit getting-to-know-you guidance into the live-provider instruction prompt, especially for the `new` relationship stage
+- `waveary-core/src/adapters/scripted-chat-provider.ts` now mirrors that behavior in the fallback path so early natural discovery still happens when a live provider is unavailable
+- `waveary-memory/src/simple-memory-extractor.ts` now preserves name-sharing and preferred-vibe details as durable memory candidates instead of letting them pass through as generic chat text
+- future web-surface work should expose this as a truthful continuation aid if needed, but should not regress into a required first-contact persona questionnaire
+
 ## 2026-06-24 - The Chat Page Should Collapse Runtime Status Into One Compact Strip
 
 Status:

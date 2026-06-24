@@ -6245,3 +6245,46 @@ Commit:
 Push:
 
 - succeeded: `git push origin main` pushed functional commit `0713ba0` to `origin/main`
+## 2026-06-24
+
+Objective:
+
+Make early companion identity feel natural by letting Waveary get to know the user through chat instead of a preset persona form, while preserving names and desired vibe into memory.
+
+Summary:
+
+- added `waveary-core/src/runtime/getting-to-know-you.ts` plus direct tests as a shared early-acquaintance helper that infers preferred user name, user-given companion nickname, desired style descriptors, and whether the next reply should invite one more personal detail
+- updated `waveary-core/src/adapters/openai-compatible-provider.ts` so live-provider prompts now carry explicit getting-to-know-you guidance in the `new` relationship stage, including lighter mutual-discovery behavior when the turn is not practical or emotionally heavy
+- updated `waveary-core/src/adapters/scripted-chat-provider.ts` plus runtime regression so fallback replies now naturally ask what to call the user, let the user name the companion, or ask what kind of presence they want, instead of relying only on prompt-side behavior
+- extended `waveary-memory/src/simple-memory-extractor.ts` and tests so early conversation details such as `call me Aki`, `I am going to call you Echo`, and preferred vibe descriptors like `playful / teasing / caring` are stored as durable memory candidates
+- verified the change through `core -> memory` build/test order after catching two real issues during the pass: the new name parser originally misread `I am going to call you Echo` as user name `going`, and parallel build/test execution caused a false `dist` missing failure on Windows
+
+Files changed:
+
+- `waveary-core/src/adapters/openai-compatible-provider.ts`
+- `waveary-core/src/adapters/scripted-chat-provider.ts`
+- `waveary-core/src/index.ts`
+- `waveary-core/src/runtime/getting-to-know-you.ts`
+- `waveary-core/src/runtime/getting-to-know-you.test.ts`
+- `waveary-core/src/runtime/waveary-runtime.test.ts`
+- `waveary-memory/src/simple-memory-extractor.ts`
+- `waveary-memory/src/simple-memory-extractor.test.ts`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/product-preferences.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/memory`
+- `npm run check --workspace @waveary/core`
+- `npm run build --workspace @waveary/core; npm run test --workspace @waveary/core; npm run build --workspace @waveary/memory; npm run test --workspace @waveary/memory`
+
+Commit:
+
+- `35e0c64` - `Add natural getting-to-know-you dialogue guidance`
+
+Push:
+
+- pending

@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `413497a` - `Improve companion reply cadence and persona defaults`
+- `35e0c64` - `Add natural getting-to-know-you dialogue guidance`
 
 ## Latest Repository Surface
 
@@ -49,6 +49,9 @@ Brand line:
   - shared reply-shape guidance now classifies current turns into practical / ordinary / playful / reconnection / emotional modes so Waveary can control reply length, emotional lead-in, and follow-up count through one runtime-facing layer instead of ad hoc prompt wording
   - live-provider prompt assembly now also incorporates richer persona defaults including speaking style, emotional style, humor style, conversation-length preference, and follow-up style, making the companion feel more consistently person-like without broad architecture changes
   - scripted fallback replies now also consume that same reply-shape layer, so ordinary turns stop drifting back into fixed three-part speeches when the real provider path is unavailable
+  - the `new` relationship stage now also has a dedicated getting-to-know-you helper that can infer preferred user name, user-given companion nickname, and desired companion vibe from chat history plus recalled memories
+  - live-provider prompt assembly now also injects explicit getting-to-know-you guidance so early turns can ask one natural discovery question at a time instead of sounding like a configured persona form
+  - scripted fallback replies now also mirror that early-acquaintance behavior by naturally asking what to call the user, letting the user name the companion, or learning desired presence style when the turn is light enough
   - permissioned local time context can now be injected into normal chat turns so the companion can answer time/date-style questions from the user's device-local clock without claiming it lacks real-time awareness
   - local time context now also resolves a bounded daypart hint so late-night and evening turns can bias toward softer companion tone without expanding into broader desktop-awareness inputs
   - direct local time/date/day questions now also short-circuit inside `WavearyRuntime` through a shared deterministic reply helper before provider generation, so real providers can no longer ignore the supplied local clock context and fall back to generic "I do not know the time" disclaimers
@@ -66,6 +69,7 @@ Brand line:
   - in-memory memory store exists
   - Node-based extractor and store tests are implemented
   - memory extraction now condenses longer user turns into shorter recall-friendly memory fragments instead of storing the entire sentence verbatim by default
+  - memory extraction now also preserves early acquaintance details such as shared names, user-given companion nicknames, and desired companion vibe as durable memory candidates instead of treating them as generic chat text
 - `waveary-web`
   - standalone React and Vite workspace exists
   - local product context is now documented in `waveary-web/PRODUCT.md` so future frontend redesign or polish passes can resume with stable product intent
@@ -351,8 +355,8 @@ Brand line:
 
 - extend the bounded browser layer into one next explicit interaction such as richer multi-field targeting or an `open nth result` primitive, now that the live `#chat` result-opening path has been re-verified against the current dev server
 - keep extending the browser-action layer one auditable primitive at a time instead of widening into a broad free-form browser agent
-- expose the richer companion persona-definition fields through a small truthful web surface so users can shape name / speaking style / emotional style / humor / reply length directly instead of relying only on server defaults
-- add stronger live-provider dialogue regression for emotional-stress, reconnection, and practical-question cadence now that shared reply-shape guidance exists in `waveary-core`
+- add stronger live-provider dialogue regression for emotional-stress, reconnection, practical-question cadence, and new-stage mutual-discovery behavior now that shared reply-shape and getting-to-know-you guidance both exist in `waveary-core`
+- decide whether the next truthful web-facing companion-quality surface should show remembered names / vibe continuity lightly, without regressing into a required persona setup form
 - start the next voice implementation cut by pushing the current browser voice loop closer to true realtime duplex, beginning with interruption-safe reply stop/resume behavior and a tighter listen-speak handoff instead of broadening vendor coverage first
 - after that interruption-focused pass, decide whether the next highest-value voice step is wider provider-specific STT coverage such as Doubao/local or a deeper transport upgrade beyond the current browser-side speech-activity heuristics
 - replace the current fixed short capture window in provider-backed STT with a more truthful turn-end detector or streaming transport before claiming realtime voice is close to done
