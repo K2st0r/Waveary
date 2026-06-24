@@ -115,6 +115,28 @@ Impact:
 - regression coverage now includes both direct continuity selection and live-provider prompt checks for `Maybe that's why I can't settle tonight.` style follow-ups
 - future continuity work should keep advancing one bounded follow-up class at a time instead of broadening all vague short turns into automatic continuation
 
+## 2026-06-24 - Weaker Unsettled Inferential Drift Should Still Reuse The Previous Topic
+
+Status:
+
+- accepted
+
+Decision:
+
+Waveary should also treat weaker unsettled inferential follow-ups such as `Probably why everything feels a bit unsettled tonight.` as continuation of the immediately previous user topic when the wording is still causal, referential, and focused on the lingering aftereffect of that same unresolved thread.
+
+Reason:
+
+- real companionship drift does not stop at explicit `that's why` lines; users often soften further into `probably why...` plus a vague mood-state description once the topic is already emotionally active
+- the earlier inferential rule covered a stronger explicit-cause shape, but still missed this lighter, more human texting cadence where the user is obviously still on the same subject
+- this remains safe enough to add because it is bounded to short turns that combine a soft inferential lead-in, a referential subject like `it / everything / that`, and a lingering state word such as `off` or `unsettled`
+
+Impact:
+
+- `waveary-core/src/runtime/continuity-thread.ts` now recognizes a second, narrower inferential-aftereffect class instead of relying only on the stronger `that's why` pattern
+- regression coverage now includes both direct continuity selection and live-provider prompt checks for `Probably why everything feels a bit unsettled tonight.` style follow-ups
+- the next dialogue-quality pass should move away from continuity broadening and back toward parser hardening, unless a new clearly bounded carry-over miss is discovered
+
 ## 2026-06-24 - Companion Replies Should Default To Human-Scale Cadence
 
 Status:

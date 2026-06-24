@@ -552,6 +552,197 @@ test("summarizeCurrentTurnFocusWithHistory marks short inferential follow-ups as
   assert.match(focus, /Follow-up now: Maybe that's why I can't settle tonight\./);
 });
 
+test("selectContinuityThread keeps a softer inferential drift follow-up anchored to the previous user topic", () => {
+  const messages: Message[] = [
+    {
+      id: "message-soft-inferential-1",
+      sessionId: "session-1",
+      role: "user",
+      content: "I keep thinking about calling him back, and I hate that I still want to.",
+      timestamp: "2026-06-24T15:00:00.000Z",
+      metadata: {}
+    },
+    {
+      id: "message-soft-inferential-2",
+      sessionId: "session-1",
+      role: "assistant",
+      content: "You do not have to force the decision tonight.",
+      timestamp: "2026-06-24T15:00:10.000Z",
+      metadata: {}
+    },
+    {
+      id: "message-soft-inferential-3",
+      sessionId: "session-1",
+      role: "user",
+      content: "Maybe that is part of why I still feel off.",
+      timestamp: "2026-06-24T15:00:20.000Z",
+      metadata: {}
+    }
+  ];
+
+  const selection = selectContinuityThread({
+    latestUserMessage: messages[2],
+    messageHistory: messages,
+    relevantMemories: [
+      createMemory(
+        "memory-call-back",
+        "relationship",
+        "The user keeps thinking about calling him back and hates that they still want to.",
+        "2026-06-22T10:00:00.000Z",
+        ["message-soft-inferential-1"]
+      ),
+      createMemory(
+        "memory-lamps",
+        "preference",
+        "The user likes warm desk lamps at night.",
+        "2026-06-24T14:59:00.000Z",
+        ["older-message"]
+      )
+    ],
+    timeline: []
+  });
+
+  assert.equal(
+    selection.primaryLine,
+    "[memory:relationship] The user keeps thinking about calling him back and hates that they still want to."
+  );
+});
+
+test("summarizeCurrentTurnFocusWithHistory marks softer inferential drift follow-ups as continuations", () => {
+  const messages: Message[] = [
+    {
+      id: "message-soft-inferential-focus-1",
+      sessionId: "session-1",
+      role: "user",
+      content: "I keep thinking about calling him back, and I hate that I still want to.",
+      timestamp: "2026-06-24T15:10:00.000Z",
+      metadata: {}
+    },
+    {
+      id: "message-soft-inferential-focus-2",
+      sessionId: "session-1",
+      role: "assistant",
+      content: "You do not have to force the decision tonight.",
+      timestamp: "2026-06-24T15:10:10.000Z",
+      metadata: {}
+    },
+    {
+      id: "message-soft-inferential-focus-3",
+      sessionId: "session-1",
+      role: "user",
+      content: "Maybe that is part of why I still feel off.",
+      timestamp: "2026-06-24T15:10:20.000Z",
+      metadata: {}
+    }
+  ];
+
+  const focus = summarizeCurrentTurnFocusWithHistory(
+    messages[2]?.content ?? "",
+    messages
+  );
+
+  assert.match(focus, /^Continuing:/);
+  assert.match(focus, /calling him back/i);
+  assert.match(focus, /Follow-up now: Maybe that is part of why I still feel off\./);
+});
+
+test("selectContinuityThread keeps a weaker unsettled inferential follow-up anchored to the previous user topic", () => {
+  const messages: Message[] = [
+    {
+      id: "message-unsettled-1",
+      sessionId: "session-1",
+      role: "user",
+      content: "I keep thinking about leaving this city, even though part of me still wants to stay.",
+      timestamp: "2026-06-24T15:20:00.000Z",
+      metadata: {}
+    },
+    {
+      id: "message-unsettled-2",
+      sessionId: "session-1",
+      role: "assistant",
+      content: "That kind of split feeling can sit with you for a while.",
+      timestamp: "2026-06-24T15:20:10.000Z",
+      metadata: {}
+    },
+    {
+      id: "message-unsettled-3",
+      sessionId: "session-1",
+      role: "user",
+      content: "Probably why everything feels a bit unsettled tonight.",
+      timestamp: "2026-06-24T15:20:20.000Z",
+      metadata: {}
+    }
+  ];
+
+  const selection = selectContinuityThread({
+    latestUserMessage: messages[2],
+    messageHistory: messages,
+    relevantMemories: [
+      createMemory(
+        "memory-unsettled-city",
+        "life_event",
+        "The user keeps thinking about leaving this city, even though part of them still wants to stay.",
+        "2026-06-22T10:00:00.000Z",
+        ["message-unsettled-1"]
+      ),
+      createMemory(
+        "memory-unsettled-rain",
+        "preference",
+        "The user likes rainy sidewalks at night.",
+        "2026-06-24T15:19:00.000Z",
+        ["older-message"]
+      )
+    ],
+    timeline: []
+  });
+
+  assert.equal(
+    selection.primaryLine,
+    "[memory:life_event] The user keeps thinking about leaving this city, even though part of them still wants to stay."
+  );
+});
+
+test("summarizeCurrentTurnFocusWithHistory marks weaker unsettled inferential follow-ups as continuations", () => {
+  const messages: Message[] = [
+    {
+      id: "message-unsettled-focus-1",
+      sessionId: "session-1",
+      role: "user",
+      content: "I keep thinking about leaving this city, even though part of me still wants to stay.",
+      timestamp: "2026-06-24T15:30:00.000Z",
+      metadata: {}
+    },
+    {
+      id: "message-unsettled-focus-2",
+      sessionId: "session-1",
+      role: "assistant",
+      content: "That kind of split feeling can sit with you for a while.",
+      timestamp: "2026-06-24T15:30:10.000Z",
+      metadata: {}
+    },
+    {
+      id: "message-unsettled-focus-3",
+      sessionId: "session-1",
+      role: "user",
+      content: "Probably why everything feels a bit unsettled tonight.",
+      timestamp: "2026-06-24T15:30:20.000Z",
+      metadata: {}
+    }
+  ];
+
+  const focus = summarizeCurrentTurnFocusWithHistory(
+    messages[2]?.content ?? "",
+    messages
+  );
+
+  assert.match(focus, /^Continuing:/);
+  assert.match(focus, /leaving this city/i);
+  assert.match(
+    focus,
+    /Follow-up now: Probably why everything feels a bit unsettled tonight\./
+  );
+});
+
 test("summarizeCurrentTurnFocusWithHistory marks Chinese emotional carry-over turns as continuations", () => {
   const messages: Message[] = [
     {
