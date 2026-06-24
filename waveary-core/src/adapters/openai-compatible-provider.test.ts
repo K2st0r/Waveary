@@ -682,6 +682,41 @@ test("OpenAICompatibleChatProvider guides natural mutual discovery when the user
   );
 });
 
+test("OpenAICompatibleChatProvider does not treat emotional follow-up wording as a confirmed user name", async () => {
+  const instruction = await captureInstruction(
+    createRequest({
+      user: {
+        id: "user-1",
+        displayName: "User",
+        profileTraits: ["reflective"],
+        preferences: ["continuity"]
+      },
+      relationship: createRelationship("new"),
+      messages: [
+        {
+          id: "m1",
+          sessionId: "session-1",
+          role: "user",
+          content: "I am still scared about that, honestly.",
+          timestamp: new Date().toISOString(),
+          metadata: {}
+        }
+      ],
+      relevantMemories: [],
+      timeline: []
+    })
+  );
+
+  assert.doesNotMatch(
+    instruction,
+    /Confirmed preferred user name from shared history: still\./i
+  );
+  assert.match(
+    instruction,
+    /No confirmed preferred user name has been established yet\. Do not treat the placeholder profile label as intimate personal knowledge\./
+  );
+});
+
 test("OpenAICompatibleChatProvider marks reconnection turns as short emotion-led replies", async () => {
   const instruction = await captureInstruction(
     createRequest({

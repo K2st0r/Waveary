@@ -13,6 +13,33 @@ export interface GettingToKnowYouState {
 }
 
 const DEFAULT_USER_PLACEHOLDERS = new Set(["waveary user", "user", "friend"]);
+const USER_NAME_STOPWORDS = new Set([
+  "still",
+  "not",
+  "really",
+  "so",
+  "very",
+  "just",
+  "kind",
+  "kinda",
+  "sorta",
+  "feeling",
+  "scared",
+  "afraid",
+  "anxious",
+  "worried",
+  "tired",
+  "sad",
+  "upset",
+  "angry",
+  "okay",
+  "ok",
+  "fine",
+  "here",
+  "back",
+  "going",
+  "gonna"
+]);
 
 const USER_NAME_PATTERNS = [
   /\bmy name is\s+([a-z][a-z0-9_-]{0,15})/i,
@@ -80,7 +107,7 @@ export function deriveGettingToKnowYouState(
     .find((message) => message.role === "user")
     ?.content ?? "";
 
-  const userPreferredName = findLatestMatch(allTexts, USER_NAME_PATTERNS);
+  const userPreferredName = findLatestUserName(allTexts);
   const companionAssignedName = findLatestMatch(allTexts, COMPANION_NAME_PATTERNS);
   const desiredStyleDescriptors = collectStyleDescriptors(allTexts);
   const userDisplayNameLooksDefault = DEFAULT_USER_PLACEHOLDERS.has(
@@ -149,6 +176,38 @@ function findLatestMatch(texts: string[], patterns: RegExp[]): string | undefine
   }
 
   return undefined;
+}
+
+function findLatestUserName(texts: string[]): string | undefined {
+  for (let index = texts.length - 1; index >= 0; index -= 1) {
+    const text = texts[index] ?? "";
+
+    for (const pattern of USER_NAME_PATTERNS) {
+      const match = text.match(pattern);
+      const value = match?.[1]?.trim();
+
+      if (value && isProbableUserName(value)) {
+        return value;
+      }
+    }
+  }
+
+  return undefined;
+}
+
+function isProbableUserName(value: string): boolean {
+  const normalized = value.trim().replace(/[.,!?;:]+$/g, "");
+  const lowered = normalized.toLowerCase();
+
+  if (!normalized) {
+    return false;
+  }
+
+  if (USER_NAME_STOPWORDS.has(lowered)) {
+    return false;
+  }
+
+  return true;
 }
 
 function collectStyleDescriptors(texts: string[]): string[] {
