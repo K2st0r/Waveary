@@ -295,6 +295,7 @@ Brand line:
 - `ACTIVE_TASKS.md` now tracks the live implementation queue so a resumed session can continue the current cut without reconstructing it from chat history
 - `docs/product-preferences.md` now records durable product, tone, trust-boundary, and workflow preferences that should survive heavy context compression
 - `docs/session-log.md` and `docs/decision-log.md` continue to serve as chronological execution and architecture records
+- `docs/market-benchmark-2026-06.md` now captures mature-market companion patterns from Replika, Nomi, Kindroid, Character.AI, and selected China products so future Waveary product work can reuse one concrete benchmark instead of redoing surface-level competitor research
 - the repository now also has a changed-files mojibake guard at `tools/check-mojibake.mjs`, exposed through `npm run check:mojibake`, so Chinese-copy edits can be validated mechanically instead of relying only on terminal rendering
 - the voice routes now also expose explicit routing diagnostics, so the console and playback layer can tell whether Waveary is ready for provider-backed audio, which required fields are still missing, and why the last playback fell back to browser speech
 - the voice console status card now reads shared-mode provider type, label, and guidance from the real routing diagnostics instead of accidentally reusing the last dedicated-provider preset, so shared chat-provider routing no longer gets mislabeled as Doubao in the right-side status panel
@@ -387,6 +388,7 @@ Brand line:
 - keep extending the browser-action layer one auditable primitive at a time instead of widening into a broad free-form browser agent
 - continue the live-provider dialogue regression pass beyond the new prompt-body coverage into richer emotional-stress, reconnection, practical-question cadence, and multi-turn mutual-discovery competition cases
 - continue the markdown-backed companion-soul rollout by turning it into the next bounded runtime improvements for first-turn naming cadence, softer self-reveal, and more human remembered-name usage before attempting any broader relationship-architecture refactor
+- translate the new market benchmark into one next concrete product-system step, prioritizing layered memory controls or concept-level identity memory before broader immersion features
 - visually verify the chat composer reorder and new `Enter`-to-send flow in-browser, then keep tightening the dedicated chat surface around shorter everyday cadence and warmer first-contact behavior
 - continue the continuity-thread quality pass beyond short carry-over follow-ups into pronoun-heavy multi-turn topic persistence, so turns like "that part still hurts" or "I am not over it yet" can stay anchored even when the user is more oblique
 - continue the continuity-thread quality pass beyond short, emotional, low-affect pronoun, inferential, and weaker unsettled carry-over follow-ups into the next bounded drift cases, so the system can stay anchored without over-blending unrelated nearby topics

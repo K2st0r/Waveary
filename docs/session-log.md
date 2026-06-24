@@ -3,6 +3,39 @@
 
 Objective:
 
+Study current mature companion products and turn that market learning into a reusable Waveary product benchmark instead of leaving it as throwaway chat context.
+
+Summary:
+
+- added `docs/market-benchmark-2026-06.md` as a focused benchmark note covering current mature companion-product patterns across Replika, Nomi, Kindroid, Character.AI, selected China products, and companion-relevant voice references
+- distilled the repeated market lessons into concrete Waveary system priorities: layered memory, identity continuity, unified voice/text continuity, visible memory controls, and explicit safety posture
+- recorded the corresponding product decision that Waveary should learn the market's systems without inheriting shallow `AI girlfriend` framing or visible relationship-ladder scripting
+- updated continuity files so the next Waveary product-quality pass can pick a concrete benchmark-driven cut instead of redoing surface-level competitor research
+
+Files changed:
+
+- `docs/market-benchmark-2026-06.md`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- manual review of the new benchmark document against the current repo direction
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-24
+
+Objective:
+
 Lock the companion soul into repository markdown and tighten first-contact identity guidance so Waveary feels more like one emotionally real caring person and less like a staged product shell.
 
 Summary:

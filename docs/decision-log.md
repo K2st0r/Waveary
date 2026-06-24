@@ -27,6 +27,28 @@ Impact:
 - early name-discovery guidance and scripted fallback copy now more strongly avoid flat branded self-introductions and lean into natural mutual discovery
 - future runtime and dataset work should extend these markdown rules rather than reintroducing visible ladder-style romance scripting as the main conversational frame
 
+## 2026-06-24 - Waveary Should Learn Market Systems, Not Market Framing
+
+Status:
+
+- accepted
+
+Decision:
+
+When learning from mature companion products, Waveary should copy their durable system strengths such as layered memory, identity continuity, voice/text continuity, visible user controls, and explicit safety, but it should not copy shallow market framing such as visible relationship ladders or narrow `AI girlfriend` positioning.
+
+Reason:
+
+- the current mature market shows a clear pattern: the strongest products win more from continuity systems than from romance labels
+- several leading products already expose stronger memory layers, identity handling, or user control than most open-source companion stacks
+- Waveary's opportunity is to become the open framework that absorbs those system lessons without collapsing back into closed, manipulative, or roleplay-only branding
+
+Impact:
+
+- the repo now has `docs/market-benchmark-2026-06.md` as a reusable benchmark note covering Replika, Nomi, Kindroid, Character.AI, selected China products, and companion-relevant voice references
+- future prioritization should favor layered memory, editable memory control, concept-level identity memory, and unified voice/text continuity before broader immersion-only features
+- future market-learning work should keep separating "what their system does well" from "how they package it commercially"
+
 ## 2026-06-24 - Deterministic Local Time Should Only Trigger On Actual Time Questions
 
 Status:
