@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `59ce742` - `Add companion market benchmark`
+- `c999e6d` - `Add concept-level identity summaries`
 
 ## Latest Repository Surface
 
