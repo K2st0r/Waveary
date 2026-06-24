@@ -6367,6 +6367,41 @@ Push:
 
 Objective:
 
+Strengthen dialogue continuity so short carry-over user follow-ups still stay anchored to the immediately previous topic instead of being treated like isolated new requests.
+
+Summary:
+
+- updated `waveary-core/src/runtime/continuity-thread.ts` so continuity matching now detects short carry-over follow-ups and blends them with the previous user turn when the new message is clearly elliptical rather than self-contained
+- added a history-aware focus summary path so live provider prompts can describe the current turn as `Continuing ... Follow-up now ...`, which gives stronger grounding for high-end model replies
+- added focused regression coverage in both `waveary-core/src/runtime/continuity-thread.test.ts` and `waveary-core/src/adapters/openai-compatible-provider.test.ts` to lock the new continuation behavior before later dialogue-quality work
+- kept the change narrow to `waveary-core` dialogue logic and avoided frontend or provider-route churn
+
+Files changed:
+
+- `waveary-core/src/runtime/continuity-thread.ts`
+- `waveary-core/src/runtime/continuity-thread.test.ts`
+- `waveary-core/src/adapters/openai-compatible-provider.ts`
+- `waveary-core/src/adapters/openai-compatible-provider.test.ts`
+
+Verification:
+
+- `npm run check --workspace @waveary/core`
+- `npm run build --workspace @waveary/core`
+- PowerShell compiled-test verification via:
+  `$files = Get-ChildItem 'waveary-core\\dist' -Recurse -Filter '*.test.js' | ForEach-Object { $_.FullName }; & node --test @files`
+
+Commit:
+
+- `c380a5a` - `Blend short follow-up turns into continuity matching`
+
+Push:
+
+- pending
+
+## 2026-06-24
+
+Objective:
+
 Remove the separate roadmap page from the public web surface and turn it into a stronger homepage-ending project-route section without disturbing the console or chat flows.
 
 Summary:

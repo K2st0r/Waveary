@@ -4,6 +4,29 @@ This file records important product, architecture, and workflow decisions for Pr
 
 Use it to preserve the reason behind major choices so future Codex sessions do not repeat or undo settled work.
 
+## 2026-06-24 - Short Follow-Up Turns Should Reuse The Previous User Topic
+
+Status:
+
+- accepted
+
+Decision:
+
+When a new user turn is short and clearly phrased like a carry-over follow-up such as `still scared about that`, `还是这件事`, or `that part still hurts`, Waveary should blend it with the immediately previous user turn for continuity matching and prompt focus instead of treating the fragment as a fresh isolated topic.
+
+Reason:
+
+- real companionship quality depends on following unfinished threads naturally, not only on recalling stored facts
+- many human follow-up turns are deliberately elliptical; people often continue the same topic with pronouns, fragments, and emotional carry-over instead of restating the whole subject
+- without this blend step, the runtime can miss the real anchor and either recall the wrong memory or sound like it forgot what the user was just talking about one turn ago
+
+Impact:
+
+- `waveary-core/src/runtime/continuity-thread.ts` now builds a blended continuity query when a short carry-over follow-up is detected and a previous user turn is available
+- `waveary-core/src/adapters/openai-compatible-provider.ts` now uses a history-aware current-turn focus summary so provider prompts can explicitly describe the turn as a continuation instead of a standalone fragment
+- regression coverage now includes both core continuity selection and live-provider prompt-body checks for short carry-over follow-ups around the same topic
+- future dialogue-quality work should extend this path into more oblique multi-turn anchoring cases before adding broader memory-surface UX
+
 ## 2026-06-24 - Companion Replies Should Default To Human-Scale Cadence
 
 Status:
