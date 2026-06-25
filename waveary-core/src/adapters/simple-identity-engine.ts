@@ -160,6 +160,19 @@ const RITUAL_TERMS = [
   "when i wake"
 ];
 
+const NEW_SIGNAL_PRECEDENCE = [
+  "needs explicit reassurance that someone is still here when loneliness surfaces",
+  "needs calmer pacing and fewer moving parts when overwhelmed",
+  "needs steadiness and reassurance of presence when anxious",
+  "needs emotional presence before analysis when vulnerable",
+  "when lonely, the user looks for explicit signs that someone is still here",
+  "when overwhelmed, the user benefits from calmer pacing and fewer demands at once",
+  "when hurt, the user wants comfort to arrive before explanation",
+  "when unsettled, the user needs steadiness and reassurance of presence",
+  "trust is deepening through remembered naming and repeated return",
+  "small repeated rituals help this bond feel dependable and lived-in"
+];
+
 interface InferenceContext {
   userText: string;
   replyText: string;
@@ -200,7 +213,13 @@ export class SimpleIdentityEngine implements IdentityEngine {
     );
     const recurringNeeds = mergeFavoringRecent(
       input.currentSummary?.recurringNeeds ?? [],
-      deriveRecurringNeeds(context)
+      deriveRecurringNeeds(context),
+      {
+        suppressCurrentThemes: ["needs emotional presence before analysis when vulnerable"],
+        signals: context.signals,
+        suppressCurrentWhen: (signals) =>
+          signals.loneliness || signals.overwhelm || signals.anxiety || signals.sadness
+      }
     );
     const emotionalPatterns = mergeFavoringRecent(
       input.currentSummary?.emotionalPatterns ?? [],
@@ -378,7 +397,7 @@ function deriveRecurringNeeds(context: InferenceContext): string[] {
     picks.push("accepts closeness when it grows through one natural detail at a time");
   }
 
-  return dedupeAndTrim(picks);
+  return dedupeAndTrim(prioritizeSpecificEntries(picks, signals));
 }
 
 function deriveEmotionalPatterns(
@@ -408,7 +427,7 @@ function deriveEmotionalPatterns(
     picks.push("the user often frames emotion through continuity and remembered threads");
   }
 
-  return dedupeAndTrim(picks);
+  return dedupeAndTrim(prioritizeSpecificEntries(picks, signals));
 }
 
 function deriveCompanionStance(
@@ -464,8 +483,22 @@ function mergePreservingCurrent(current: string[], next: string[]): string[] {
   return dedupeAndTrim([...current, ...next]);
 }
 
-function mergeFavoringRecent(current: string[], next: string[]): string[] {
-  return dedupeAndTrim([...next, ...current]);
+function mergeFavoringRecent(
+  current: string[],
+  next: string[],
+  options?: {
+    suppressCurrentThemes?: string[];
+    suppressCurrentWhen?: (signals: IdentitySignals) => boolean;
+    signals?: IdentitySignals;
+  }
+): string[] {
+  const shouldSuppressCurrent = options?.suppressCurrentWhen?.(options.signals ?? ({} as IdentitySignals)) ?? false;
+  const currentList =
+    shouldSuppressCurrent && options?.suppressCurrentThemes?.length
+      ? current.filter((value) => !options.suppressCurrentThemes?.includes(value))
+      : current;
+
+  return dedupeAndTrim([...prioritizeSpecificEntries(next), ...currentList]);
 }
 
 function dedupeAndTrim(values: string[]): string[] {
@@ -484,6 +517,21 @@ function dedupeAndTrim(values: string[]): string[] {
   }
 
   return deduped.slice(0, MAX_ITEMS);
+}
+
+function prioritizeSpecificEntries(values: string[], signals?: IdentitySignals): string[] {
+  if (!signals) {
+    return values;
+  }
+
+  const specific = values.filter((value) => NEW_SIGNAL_PRECEDENCE.includes(value));
+  const generic = values.filter((value) => !NEW_SIGNAL_PRECEDENCE.includes(value));
+
+  if (signals.loneliness || signals.overwhelm || signals.naming || signals.rituals) {
+    return [...specific, ...generic];
+  }
+
+  return values;
 }
 
 function normalizeText(value: string): string {

@@ -2046,3 +2046,25 @@ Impact:
 - emotional summary derivation now distinguishes loneliness and overwhelm from generic sadness/anxiety comfort needs
 - relationship-warming summaries now preserve trust-building signals such as remembered naming, repeated return, and small rituals when those are the real reason the bond feels more real
 - the next identity-summary step should either expose this higher-fidelity layer to the user lightly, or refine conflict handling between old stable themes and newer high-signal themes before exposure
+
+## 2026-06-25 - New High-Signal Care Needs Should Suppress Older Generic Comfort Themes
+
+Status:
+
+- accepted
+
+Decision:
+
+When the identity-summary layer re-derives recurring needs from a turn that clearly signals loneliness, overwhelm, anxiety, or sadness, newer specific care needs should be allowed to suppress older generic comfort themes such as `needs emotional presence before analysis when vulnerable`.
+
+Reason:
+
+- a stale broad comfort line can still survive long enough to sit ahead of a more exact current need
+- companionship quality improves when the current emotional shape stays legible instead of being flattened into a generic reassurance sentence
+- this is still a narrow conflict-resolution rule, not a broader schema change
+
+Impact:
+
+- `waveary-core/src/adapters/simple-identity-engine.ts` now supports suppression of older generic recurring-needs themes when a more specific emotional signal is present
+- regression coverage now proves the newer overwhelmed-care turn can outrank the older generic comfort theme
+- future identity-summary work should add more suppression rules only when a real conflict is observed, instead of broadening the summary schema

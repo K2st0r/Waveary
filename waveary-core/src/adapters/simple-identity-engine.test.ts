@@ -324,3 +324,78 @@ test("SimpleIdentityEngine infers relationship warming through naming, return, a
     summary?.bondThemes.some((item) => item.includes("warming through remembered details"))
   );
 });
+
+test("SimpleIdentityEngine lets newer higher-signal care needs replace older generic comfort themes", async () => {
+  const engine = new SimpleIdentityEngine();
+  const summary = await engine.summarize({
+    userId: "user-1",
+    message: {
+      id: "message-6",
+      sessionId: "session-1",
+      role: "user",
+      content:
+        "I feel overwhelmed tonight and need you to stay with me instead of giving generic comfort.",
+      timestamp: "2026-06-24T17:00:00.000Z",
+      metadata: {}
+    },
+    reply: {
+      id: "reply-6",
+      sessionId: "session-1",
+      role: "assistant",
+      content: "I can stay with you and keep this simple.",
+      timestamp: "2026-06-24T17:00:03.000Z",
+      metadata: {}
+    },
+    history: [],
+    relevantMemories: [],
+    storedMemories: [],
+    relationship: {
+      userId: "user-1",
+      stage: "warming",
+      affinityScore: 0.58,
+      trustScore: 0.54,
+      stabilityScore: 0.64,
+      lastUpdatedAt: "2026-06-24T17:00:03.000Z"
+    },
+    timeline: [],
+    emotion: {
+      userId: "user-1",
+      primaryEmotion: "concerned",
+      intensity: 0.85,
+      confidence: 0.84,
+      windowStart: "2026-06-24T17:00:00.000Z",
+      windowEnd: "2026-06-24T17:00:03.000Z",
+      subject: "companion",
+      detectedUserEmotion: "anxiety"
+    },
+    currentSummary: {
+      userId: "user-1",
+      userSelfConcept: ["cares about emotional truth and human warmth"],
+      bondThemes: ["this bond is expected to carry continuity across turns"],
+      recurringNeeds: [
+        "needs emotional presence before analysis when vulnerable",
+        "prefers natural conversational cadence over long speeches"
+      ],
+      emotionalPatterns: [
+        "when hurt, the user wants comfort to arrive before explanation",
+        "the user often frames emotion through continuity and remembered threads"
+      ],
+      companionStance: ["stay caring, human, and continuity-aware"],
+      summaryText: "Older summary",
+      lastUpdatedAt: "2026-06-24T16:30:00.000Z"
+    }
+  });
+
+  assert.ok(summary);
+  assert.ok(
+    summary?.recurringNeeds[0]?.includes("needs calmer pacing and fewer moving parts when overwhelmed") ||
+      summary?.recurringNeeds[0]?.includes("needs explicit reassurance that someone is still here when loneliness surfaces")
+  );
+  assert.ok(
+    summary?.emotionalPatterns[0]?.includes("when overwhelmed") ||
+      summary?.emotionalPatterns[0]?.includes("when lonely")
+  );
+  assert.ok(
+    !summary?.recurringNeeds.slice(0, 2).includes("needs emotional presence before analysis when vulnerable")
+  );
+});

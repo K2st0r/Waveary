@@ -7262,3 +7262,39 @@ Commit:
 Push:
 
 - succeeded: `git push origin main` pushed functional commit `8fb3f8d` to `origin/main`
+
+## 2026-06-25
+
+Objective:
+
+Tighten identity-summary conflict handling so newer high-signal care needs can suppress older generic comfort themes instead of being flattened by them.
+
+Summary:
+
+- refined `waveary-core/src/adapters/simple-identity-engine.ts` so the summary merger can suppress stale generic comfort lines when the current turn clearly contains loneliness, overwhelm, anxiety, or sadness
+- kept the narrower summary rules focused on the highest-signal emotional and bond cues, then added regression coverage proving the new care need can outrank the older generic theme
+- updated the repository continuity files to reflect the new summary behavior and the next bounded identity-summary decision point
+
+Files changed:
+
+- `waveary-core/src/adapters/simple-identity-engine.ts`
+- `waveary-core/src/adapters/simple-identity-engine.test.ts`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/core`
+- `npm run build --workspace @waveary/core`
+- PowerShell compiled-test verification via:
+  `$files = @(Get-ChildItem 'waveary-core\\dist' -Recurse -Filter '*.test.js' | ForEach-Object { $_.FullName }); & node --test @files`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
