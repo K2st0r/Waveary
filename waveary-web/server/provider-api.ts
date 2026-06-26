@@ -931,6 +931,7 @@ export function createProviderApiMiddleware() {
           apiKey: requireNonEmpty(payload.apiKey, "API key is required."),
           model: requireNonEmpty(payload.model, "Model is required.")
         });
+        resetChatRuntimeSessions();
 
         sendJson(response, 200, { config });
         return;

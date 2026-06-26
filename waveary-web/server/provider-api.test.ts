@@ -2801,6 +2801,78 @@ test("chat persistence route resets runtime cache before the next turn", async (
   assert.equal(fetchCalls[1]?.model, "model-b");
 });
 
+test("provider config route resets runtime cache before the next turn", async () => {
+  const fetchCalls: Array<{ url: string; model: string }> = [];
+
+  globalThis.fetch = (async (input, init) => {
+    const url = String(input);
+    const body = init?.body ? (JSON.parse(String(init.body)) as { model?: string }) : {};
+    fetchCalls.push({
+      url,
+      model: body.model ?? "unknown"
+    });
+
+    return new Response(
+      JSON.stringify({
+        choices: [
+          {
+            message: {
+              content: `reply:${body.model ?? "unknown"}`
+            }
+          }
+        ]
+      }),
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json"
+        }
+      }
+    );
+  }) as typeof fetch;
+
+  saveProviderConfig({
+    provider: "provider-a",
+    baseURL: "https://provider-a.example/v1",
+    apiKey: "key-a",
+    model: "model-a"
+  });
+
+  const middleware = createProviderApiMiddleware();
+
+  const firstTurn = await invokeJsonRoute(middleware, "POST", "/api/chat/turn", {
+    sessionId: DEFAULT_CHAT_SESSION_ID,
+    message: "first turn"
+  });
+
+  assert.equal(firstTurn.statusCode, 200);
+  assert.equal(firstTurn.body.reply, "reply:model-a");
+
+  const configResponse = await invokeJsonRoute(middleware, "POST", "/api/provider/config", {
+    provider: "provider-b",
+    baseURL: "https://provider-b.example/v1",
+    apiKey: "key-b",
+    model: "model-b"
+  });
+
+  assert.equal(configResponse.statusCode, 200);
+  assert.equal(configResponse.body.config.provider, "provider-b");
+  assert.equal(configResponse.body.config.model, "model-b");
+
+  const secondTurn = await invokeJsonRoute(middleware, "POST", "/api/chat/turn", {
+    sessionId: DEFAULT_CHAT_SESSION_ID,
+    message: "second turn"
+  });
+
+  assert.equal(secondTurn.statusCode, 200);
+  assert.equal(secondTurn.body.reply, "reply:model-b");
+  assert.equal(fetchCalls.length, 2);
+  assert.equal(fetchCalls[0]?.url, "https://provider-a.example/v1/chat/completions");
+  assert.equal(fetchCalls[0]?.model, "model-a");
+  assert.equal(fetchCalls[1]?.url, "https://provider-b.example/v1/chat/completions");
+  assert.equal(fetchCalls[1]?.model, "model-b");
+});
+
 test("chat sessions route lists sessions with default session and persistence status", async () => {
   createChatSession(DEFAULT_CHAT_SESSION_ID);
   createChatSession("session-alpha", "Alpha Session");
