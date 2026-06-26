@@ -7700,6 +7700,45 @@ Verification:
 
 Commit:
 
+- `afe4379` - `Add micro-ack chat cadence`
+
+Push:
+
+- succeeded: `git push origin main` pushed functional commit `afe4379` to `origin/main`
+
+## 2026-06-26
+
+Objective:
+
+Extend the new `micro_ack` cadence to softer acknowledgment endings so low-stakes closers still get one short human reply instead of broader ordinary-chat drift.
+
+Summary:
+
+- updated `waveary-core/src/runtime/reply-shape.ts` so softer acknowledgment endings such as `okay then`, `gotcha`, `sounds good then`, `知道啦`, `收到啦`, `好喔`, `好哦`, `好啦`, and `行呀` are also classified as `micro_ack` turns
+- added focused regression coverage in `waveary-core/src/runtime/reply-shape.test.ts`, `waveary-core/src/adapters/openai-compatible-provider.test.ts`, and `waveary-core/src/runtime/waveary-runtime.test.ts` so both prompt guidance and runtime behavior stay on the same one-line acknowledgment track for these softer closers
+- kept the change fully inside the shared reply-shape realism layer, preserving the current small-cut strategy for improving everyday companion cadence
+- re-verified the full compiled `@waveary/core` test suite after the bounded cadence expansion
+
+Files changed:
+
+- `waveary-core/src/runtime/reply-shape.ts`
+- `waveary-core/src/runtime/reply-shape.test.ts`
+- `waveary-core/src/adapters/openai-compatible-provider.test.ts`
+- `waveary-core/src/runtime/waveary-runtime.test.ts`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/core`
+- `npm run build --workspace @waveary/core`
+- PowerShell compiled-test verification via:
+  `$files = @(Get-ChildItem 'waveary-core\\dist' -Recurse -Filter '*.test.js' | Sort-Object FullName | ForEach-Object { $_.FullName }); & node --test @files`
+
+Commit:
+
 - pending functional commit
 
 Push:

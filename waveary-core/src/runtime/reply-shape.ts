@@ -109,12 +109,17 @@ const STATUS_UPDATE_PATTERNS = [
 const MICRO_ACK_PATTERNS = [
   /^\s*ok(?:ay)?\.?\s*$/i,
   /^\s*ok(?:ay)?\s+ok(?:ay)?\.?\s*$/i,
+  /^\s*ok(?:ay)?\s+then\.?\s*$/i,
   /^\s*got it\.?\s*$/i,
   /^\s*i got it\.?\s*$/i,
+  /^\s*gotcha(?:\s+then)?\.?\s*$/i,
   /^\s*noted\.?\s*$/i,
   /^\s*sounds good\.?\s*$/i,
+  /^\s*sounds good\s+then\.?\s*$/i,
   /^\s*all right\.?\s*$/i,
+  /^\s*all right\s+then\.?\s*$/i,
   /^\s*alright\.?\s*$/i,
+  /^\s*alright\s+then\.?\s*$/i,
   /^\s*sure\.?\s*$/i,
   /^\s*kk\.?\s*$/i,
   /^\s*mm-?hmm\.?\s*$/i,
@@ -124,12 +129,20 @@ const MICRO_ACK_PATTERNS = [
   /^\s*\u597d(?:\u5440|\u561b|\u54e6|\u561e)?[~\u3002\uff01!]?[\s]*$/u,
   /^\s*\u884c(?:\u5440|\u5427|\u54e6)?[~\u3002\uff01!]?[\s]*$/u,
   /^\s*\u77e5\u9053\u4e86[~\u3002\uff01!]?[\s]*$/u,
+  /^\s*\u77e5\u9053\u5566[~\u3002\uff01!]?[\s]*$/u,
   /^\s*\u660e\u767d\u4e86[~\u3002\uff01!]?[\s]*$/u,
+  /^\s*\u660e\u767d\u5566[~\u3002\uff01!]?[\s]*$/u,
   /^\s*\u6536\u5230[~\u3002\uff01!]?[\s]*$/u,
+  /^\s*\u6536\u5230\u5566[~\u3002\uff01!]?[\s]*$/u,
   /^\s*\u55ef\u55ef[~\u3002\uff01!]?[\s]*$/u,
   /^\s*\u6069\u6069[~\u3002\uff01!]?[\s]*$/u,
   /^\s*\u54e6\u54e6[~\u3002\uff01!]?[\s]*$/u,
-  /^\s*\u597d\u5462[~\u3002\uff01!]?[\s]*$/u
+  /^\s*\u597d\u5462[~\u3002\uff01!]?[\s]*$/u,
+  /^\s*\u597d\u5594[~\u3002\uff01!]?[\s]*$/u,
+  /^\s*\u597d\u54e6[~\u3002\uff01!]?[\s]*$/u,
+  /^\s*\u597d\u5566[~\u3002\uff01!]?[\s]*$/u,
+  /^\s*\u884c\u5440[~\u3002\uff01!]?[\s]*$/u,
+  /^\s*\u884c\u5462[~\u3002\uff01!]?[\s]*$/u
 ];
 
 const EMOTIONAL_PATTERNS = [

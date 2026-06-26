@@ -2335,3 +2335,24 @@ Impact:
 - `waveary-core/src/runtime/reply-shape.ts` now classifies tiny confirmations as `ordinarySubtype: micro_ack`
 - `waveary-core/src/adapters/scripted-chat-provider.ts` now returns only the short prefix for that subtype instead of adding continuity or onboarding beats
 - live-provider prompt guidance now explicitly says tiny confirmations should usually get one very short human reply and stop there
+
+## 2026-06-26 - Softer Ack Endings Should Stay In The Same Micro-Ack Track
+
+Status:
+
+- accepted
+
+Decision:
+
+Treat softer acknowledgment endings such as `okay then`, `gotcha`, `sounds good then`, `知道啦`, `收到啦`, `好喔`, `好哦`, `好啦`, and `行呀` as the same `micro_ack` subtype as plain `okay` or `收到`, instead of letting them fall back into broader ordinary-chat behavior.
+
+Reason:
+
+- real texting often uses slightly softer closing words without opening a new topic, and these turns still want the same one-line, no-fuss response shape
+- once the plain `micro_ack` path existed, leaving these close variants outside it would reintroduce the same over-talking regression through a slightly different wording surface
+- this is still a bounded reply-shape improvement, so it preserves the current strategy of pushing realism through small shared-cadence cuts rather than bigger architecture churn
+
+Impact:
+
+- `waveary-core/src/runtime/reply-shape.ts` now recognizes softer English and Chinese acknowledgment endings as `ordinarySubtype: micro_ack`
+- `waveary-core/src/runtime/reply-shape.test.ts`, `waveary-core/src/runtime/waveary-runtime.test.ts`, and `waveary-core/src/adapters/openai-compatible-provider.test.ts` now lock that behavior in at the guidance and runtime levels
