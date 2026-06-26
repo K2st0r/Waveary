@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `7d1b3e1` - `Broaden deferential micro-ack cadence`
+- `pending` - `Clarify provider draft vs saved runtime config`
 
 ## Latest Repository Surface
 
@@ -118,6 +118,7 @@ Brand line:
   - browser-native provider setup flow is implemented through local `/api/provider/*` routes
   - provider model discovery routes now return normalized model descriptors even when upstream vendors use broader OpenAI-compatible payload variants
   - provider model selection UI now surfaces normalized model labels plus optional context-window hints returned by compatible providers
+  - provider setup now also distinguishes unsaved draft inputs from the saved runtime config, so edited API keys no longer look broken when chat is still using the last saved provider state
   - first in-browser runtime chat shell is implemented through local `/api/chat/turn`
   - local browser chat session persistence is implemented through `.waveary/chat-sessions.json`
   - local persistence backend switching between JSON file and SQLite is implemented through local `/api/chat/persistence`
@@ -499,6 +500,7 @@ Brand line:
 - the new `npm run check:mojibake` guard only scans changed added lines for obvious corruption patterns; it reduces repeat mistakes but does not replace a dedicated full-document Chinese cleanup pass
 - `npx tsc --noEmit -p waveary-web/tsconfig.server.json` is not a trustworthy verification command in this workspace right now because its standalone resolution still reports broader historical workspace-type issues even when the package build/test flow passes; prefer `npm run test --workspace @waveary/web` or `npm run build:server --workspace @waveary/web` for server-side voice verification until that separate tsconfig issue is deliberately cleaned up
 - `waveary-web/src/App.tsx` no longer has the newest visible mojibake in the dedicated voice credential block, but broader document-level cleanup is still outstanding and should stay isolated from active feature work
+- provider and voice setup still use different persistence ergonomics today: provider chat runtime only uses explicitly saved config, while many voice fields save on blur, so future console changes should keep that distinction legible instead of implying all edited credentials are already active
 - direct deletion of `.waveary/chat-sessions.db` is not a reliable live-reset strategy on Windows while the web server is running, because SQLite file locks can block removal; prefer the local reset API path first
 - the first provider-backed STT browser path now uses browser-side speech-activity heuristics rather than a fixed short timer, but it is still not a server-grounded VAD, interruption-capable loop, or full duplex transport
 - live Fish Audio verification is currently blocked by upstream reachability from this machine: direct requests to `api.fish.audio:443` time out before any HTTP response, so current failures reflect network access rather than a known Waveary route bug

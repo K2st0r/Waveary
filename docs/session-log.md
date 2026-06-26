@@ -7813,3 +7813,38 @@ Commit:
 Push:
 
 - succeeded: `git push origin main` pushed functional commit `7d1b3e1` to `origin/main`
+
+## 2026-06-26
+
+Objective:
+
+Make provider-config persistence feel truthful in the web console by distinguishing unsaved draft credentials from the saved runtime config that chat actually uses.
+
+Summary:
+
+- updated `waveary-web/src/App.tsx` with a bounded provider-draft helper layer so the provider workspace can compare current inputs against the saved provider config instead of treating every visible field as already active
+- added a masked saved API key preview plus two explicit saved-vs-draft status surfaces in the provider workspace, so users can immediately see whether chat is using the current inputs or the previously saved config
+- kept the change frontend-only and runtime-truthful: chat still uses the saved backend config, but the UI now says so clearly instead of making API key edits look broken
+
+Files changed:
+
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run test --workspace @waveary/web`
+- `npm run check:mojibake`
+
+Commit:
+
+- `pending` - `Clarify provider draft vs saved runtime config`
+
+Push:
+
+- pending

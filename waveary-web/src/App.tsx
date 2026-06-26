@@ -167,6 +167,13 @@ interface VoiceSpeakPlanResponse {
   routing: VoiceRoutingStatus;
 }
 
+interface ProviderDraftConfig {
+  provider: string;
+  baseURL: string;
+  apiKey: string;
+  model: string;
+}
+
 interface VoiceConfigResponse {
   config: SavedVoiceConfig;
   presets: VoicePresetDescriptor[];
@@ -1245,6 +1252,56 @@ const enCopy = {
 
 function getCopy(locale: Locale): typeof zhCopy | typeof enCopy {
   return locale === "zh" ? zhCopy : enCopy;
+}
+
+function normalizeProviderDraftField(value: string): string {
+  return value.trim();
+}
+
+function buildProviderDraftConfig(draft: ProviderDraftConfig): ProviderDraftConfig {
+  return {
+    provider: normalizeProviderDraftField(draft.provider),
+    baseURL: normalizeProviderDraftField(draft.baseURL),
+    apiKey: normalizeProviderDraftField(draft.apiKey),
+    model: normalizeProviderDraftField(draft.model)
+  };
+}
+
+function providerDraftMatchesSavedConfig(
+  savedConfig: SavedProviderConfig | null,
+  draftConfig: ProviderDraftConfig
+): boolean {
+  if (!savedConfig) {
+    return false;
+  }
+
+  const normalizedSaved = buildProviderDraftConfig(savedConfig);
+  const normalizedDraft = buildProviderDraftConfig(draftConfig);
+
+  return (
+    normalizedSaved.provider === normalizedDraft.provider &&
+    normalizedSaved.baseURL === normalizedDraft.baseURL &&
+    normalizedSaved.apiKey === normalizedDraft.apiKey &&
+    normalizedSaved.model === normalizedDraft.model
+  );
+}
+
+function hasProviderDraftContent(draftConfig: ProviderDraftConfig): boolean {
+  return Object.values(buildProviderDraftConfig(draftConfig)).some((value) => value.length > 0);
+}
+
+function maskSecret(value: string): string {
+  const trimmed = value.trim();
+
+  if (!trimmed) {
+    return "-";
+  }
+
+  if (trimmed.length <= 8) {
+    return `${"\u2022".repeat(Math.max(trimmed.length, 4))}`;
+  }
+
+  return `${trimmed.slice(0, 4)}...${trimmed.slice(-4)}`;
 }
 
 const proactiveIntentLabels: Record<Locale, Record<ProactiveCareIntent, string>> = {
@@ -4276,6 +4333,40 @@ export function App(): ReactElement {
     Boolean(selectedProvider && baseURL.trim() && apiKey.trim() && selectedModel) && saveState !== "loading";
   const canAdjustVoiceConfig = Boolean(voiceConfig) && voiceConfigState !== "loading";
   const selectedPreset = presets.find((preset) => preset.id === selectedProvider) ?? null;
+  const providerDraftConfig = buildProviderDraftConfig({
+    provider: selectedProvider,
+    baseURL,
+    apiKey,
+    model: selectedModel
+  });
+  const providerDraftHasContent = hasProviderDraftContent(providerDraftConfig);
+  const providerDraftMatchesSaved = providerDraftMatchesSavedConfig(savedConfig, providerDraftConfig);
+  const providerHasSavedConfig = Boolean(savedConfig);
+  const providerDraftStateLabel = providerDraftMatchesSaved
+    ? locale === "zh"
+      ? "已与生效配置一致"
+      : "Matches active config"
+    : locale === "zh"
+      ? "未保存，未生效"
+      : "Unsaved draft";
+  const providerDraftStatusMessage = providerDraftMatchesSaved
+    ? locale === "zh"
+      ? "当前输入已生效，聊天会直接使用这套配置。"
+      : "These inputs already match the active saved configuration. Chat will use them immediately."
+    : providerHasSavedConfig
+      ? locale === "zh"
+        ? "当前输入还是草稿，聊天仍在使用左侧的已保存配置。先保存后才会生效。"
+        : "These inputs are still a draft. Chat is still using the saved configuration shown on the left until you save."
+      : providerDraftHasContent
+        ? locale === "zh"
+          ? "你已经开始填写新配置，但还没有写入本地。完成保存后聊天才会使用它。"
+          : "You have started a new provider draft, but it is not stored locally yet. Chat cannot use it until you save."
+        : locale === "zh"
+          ? "还没有输入内容。聊天运行时只会使用已保存的供应商配置。"
+          : "No draft values entered yet. The runtime only uses saved provider configuration.";
+  const providerRuntimeNotice = locale === "zh"
+    ? "聊天运行时只会使用已保存的供应商配置"
+    : "The runtime only uses the saved provider configuration";
   const selectedVoicePreset =
     voicePresets.find((preset) => preset.id === voiceConfig?.qualityProfile) ?? null;
   const availableVoiceModels = Array.from(
@@ -5737,10 +5828,25 @@ export function App(): ReactElement {
                       <span className="saved-label">{copy.setup.baseUrl}</span>
                       <code>{savedConfig.baseURL}</code>
                     </div>
+                    <div>
+                      <span className="saved-label">{locale === "zh" ? "API Key（部分隐藏）" : "API Key (masked)"}</span>
+                      <code>{maskSecret(savedConfig.apiKey)}</code>
+                    </div>
                   </div>
                 ) : (
                   <p className="provider-note">{copy.setup.noSavedConfiguration}</p>
                 )}
+              </div>
+
+              <div className="saved-config-block">
+                <div className="mini-heading">{locale === "zh" ? "当前生效状态" : "Active Runtime Status"}</div>
+                <div className={`provider-draft-status-card ${providerDraftMatchesSaved ? "provider-draft-status-card-synced" : "provider-draft-status-card-pending"}`}>
+                  <div className="provider-draft-status-header">
+                    <strong>{providerDraftStateLabel}</strong>
+                    <span className="provider-draft-status-pill">{providerRuntimeNotice}</span>
+                  </div>
+                  <p>{providerDraftStatusMessage}</p>
+                </div>
               </div>
 
               <div className="saved-config-block">
@@ -5770,6 +5876,12 @@ export function App(): ReactElement {
                 }`}
               >
                 {statusMessage}
+              </div>
+
+              <div className={`provider-draft-inline-banner ${providerDraftMatchesSaved ? "provider-draft-inline-banner-synced" : "provider-draft-inline-banner-pending"}`}>
+                <strong>{locale === "zh" ? "当前输入" : "Current Draft"}</strong>
+                <span>{providerDraftStateLabel}</span>
+                <p>{providerDraftStatusMessage}</p>
               </div>
 
               <div className="provider-form-grid">

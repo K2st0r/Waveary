@@ -2377,3 +2377,25 @@ Impact:
 
 - `waveary-core/src/runtime/reply-shape.ts` now recognizes a bounded set of English and Chinese deferential closers as `ordinarySubtype: micro_ack`
 - `waveary-core/src/runtime/reply-shape.test.ts`, `waveary-core/src/runtime/waveary-runtime.test.ts`, and `waveary-core/src/adapters/openai-compatible-provider.test.ts` now keep that behavior aligned across guidance and scripted runtime output
+
+## 2026-06-26 - Provider Draft Inputs Must Be Distinguished From The Saved Runtime Config
+
+Status:
+
+- accepted
+
+Decision:
+
+Waveary's provider console must explicitly distinguish unsaved draft inputs from the saved provider configuration that the chat runtime actually uses.
+
+Reason:
+
+- the user reported that API key saving looked broken, but the real problem was that the runtime correctly kept using the last saved provider config while the UI allowed editing a separate unsaved draft
+- a companion product loses trust quickly when credential changes appear to do nothing, even if persistence is technically working underneath
+- this is better solved first through truthful UI state and explicit saved-vs-draft feedback than by silently changing runtime semantics around partial credential edits
+
+Impact:
+
+- `waveary-web/src/App.tsx` now computes whether the current provider draft matches the saved config and surfaces that state directly in the provider workspace
+- the provider console now shows a masked preview of the saved API key plus an explicit warning when the current input values are still only a draft and chat is still using the saved config
+- future provider or voice-console changes should preserve this truthfulness boundary instead of implying that edited credentials are already live before a save occurs
