@@ -254,7 +254,7 @@ function assembleReply(
   identityLine: string,
   followup: string,
   kind: "practical" | "ordinary" | "playful" | "reconnection" | "emotional",
-  ordinarySubtype?: "status_update" | "micro_ack" | "plain"
+  ordinarySubtype?: "status_update" | "soft_update" | "micro_ack" | "plain"
 ): string {
   if (kind === "practical") {
     return [continuity, identityLine, followup].filter(Boolean).join(" ").trim();
@@ -284,6 +284,15 @@ function assembleReply(
       return statusUpdateReply;
     }
 
+    const softUpdateReply = maybeBuildSoftUpdateOrdinaryReply(
+      prefix,
+      continuity,
+      ordinarySubtype
+    );
+    if (softUpdateReply) {
+      return softUpdateReply;
+    }
+
     if (continuity && followup.startsWith("Tell me a little more")) {
       return [prefix, continuity].filter(Boolean).join(" ").trim();
     }
@@ -306,7 +315,7 @@ function maybeBuildStatusUpdateOrdinaryReply(
   prefix: string,
   continuity: string,
   followup: string,
-  ordinarySubtype?: "status_update" | "micro_ack" | "plain"
+  ordinarySubtype?: "status_update" | "soft_update" | "micro_ack" | "plain"
 ): string | undefined {
   if (ordinarySubtype !== "status_update") {
     return undefined;
@@ -321,9 +330,28 @@ function maybeBuildStatusUpdateOrdinaryReply(
   return [prefix, onboardingPrompt || continuityBeat].filter(Boolean).join(" ").trim();
 }
 
+function maybeBuildSoftUpdateOrdinaryReply(
+  prefix: string,
+  continuity: string,
+  ordinarySubtype?: "status_update" | "soft_update" | "micro_ack" | "plain"
+): string | undefined {
+  if (ordinarySubtype !== "soft_update") {
+    return undefined;
+  }
+
+  const continuityBeat =
+    continuity &&
+    !continuity.includes("one-off message") &&
+    !continuity.includes("stay with what you just shared")
+      ? continuity
+      : "";
+
+  return [prefix, continuityBeat].filter(Boolean).join(" ").trim();
+}
+
 function maybeBuildMicroAckOrdinaryReply(
   prefix: string,
-  ordinarySubtype?: "status_update" | "micro_ack" | "plain"
+  ordinarySubtype?: "status_update" | "soft_update" | "micro_ack" | "plain"
 ): string | undefined {
   if (ordinarySubtype !== "micro_ack") {
     return undefined;

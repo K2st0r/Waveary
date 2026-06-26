@@ -7848,3 +7848,43 @@ Commit:
 Push:
 
 - succeeded: `git push origin main` pushed functional commit `2ecfe92` to `origin/main`
+
+## 2026-06-26
+
+Objective:
+
+Tighten everyday companion realism one more step by giving lightly hedged micro-updates and quiet plan confirmations their own short texting cadence.
+
+Summary:
+
+- updated `waveary-core/src/runtime/reply-shape.ts` so bounded low-stakes lines such as `maybe a bit later`, `I think I'll head back soon`, and similar short hesitant updates are classified as `ordinarySubtype: soft_update`
+- updated `waveary-core/src/adapters/scripted-chat-provider.ts` so scripted fallback keeps those turns brief and question-light instead of reopening the conversation with ordinary follow-up pressure
+- added focused regression coverage in `waveary-core/src/runtime/reply-shape.test.ts`, `waveary-core/src/adapters/openai-compatible-provider.test.ts`, and `waveary-core/src/runtime/waveary-runtime.test.ts` so prompt guidance and runtime output stay aligned on this new low-stakes texting bucket
+- confirmed an additional workflow caveat during verification: on this Windows workspace, `@waveary/core` build and compiled `dist` tests must be run sequentially, not in parallel, or the shared `dist` directory can produce misleading false failures
+
+Files changed:
+
+- `waveary-core/src/runtime/reply-shape.ts`
+- `waveary-core/src/runtime/reply-shape.test.ts`
+- `waveary-core/src/adapters/scripted-chat-provider.ts`
+- `waveary-core/src/adapters/openai-compatible-provider.test.ts`
+- `waveary-core/src/runtime/waveary-runtime.test.ts`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/core`
+- `npm run build --workspace @waveary/core`
+- PowerShell compiled-test verification via:
+  `$files = @(Get-ChildItem 'waveary-core\\dist' -Recurse -Filter '*.test.js' | Sort-Object FullName | ForEach-Object { $_.FullName }); & node --test @files`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending

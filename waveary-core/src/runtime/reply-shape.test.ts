@@ -49,7 +49,29 @@ test("deriveReplyShapeGuidance leaves non-status ordinary chat in the plain buck
   const guidance = deriveReplyShapeGuidance(createRequest("That makes sense, I think."));
 
   assert.equal(guidance.kind, "ordinary");
-  assert.equal(guidance.ordinarySubtype, "plain");
+assert.equal(guidance.ordinarySubtype, "plain");
+});
+
+test("deriveReplyShapeGuidance treats lightly hedged micro-updates as soft updates", () => {
+  const englishGuidance = deriveReplyShapeGuidance(createRequest("maybe a bit later"));
+  const chineseGuidance = deriveReplyShapeGuidance(createRequest("\u53ef\u80fd\u665a\u70b9"));
+
+  assert.equal(englishGuidance.kind, "ordinary");
+  assert.equal(englishGuidance.ordinarySubtype, "soft_update");
+  assert.equal(englishGuidance.maxFollowups, 0);
+  assert.equal(chineseGuidance.kind, "ordinary");
+  assert.equal(chineseGuidance.ordinarySubtype, "soft_update");
+  assert.equal(chineseGuidance.maxFollowups, 0);
+});
+
+test("deriveReplyShapeGuidance treats quiet plan confirmations as soft updates", () => {
+  const guidance = deriveReplyShapeGuidance(
+    createRequest("I think I'll head back soon.")
+  );
+
+  assert.equal(guidance.kind, "ordinary");
+  assert.equal(guidance.ordinarySubtype, "soft_update");
+  assert.equal(guidance.targetLength, "short");
 });
 
 test("deriveReplyShapeGuidance treats micro acknowledgments as their own short ordinary subtype", () => {
@@ -133,6 +155,17 @@ test("describeReplyShapeGuidance includes micro-ack constraints", () => {
   assert.match(
     text,
     /For tiny confirmations or soft acknowledgments, prefer one very short human reply and usually stop there\./
+  );
+});
+
+test("describeReplyShapeGuidance includes soft-update constraints", () => {
+  const text = describeReplyShapeGuidance(
+    deriveReplyShapeGuidance(createRequest("that should be fine for tonight"))
+  );
+
+  assert.match(
+    text,
+    /For lightly hedged updates or quiet plan confirmations, answer like a quick human text back\./
   );
 });
 

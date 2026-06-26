@@ -14,7 +14,7 @@ export interface ReplyShapeGuidance {
   maxFollowups: 0 | 1;
   shouldLeadWithEmotion: boolean;
   allowParagraphExpansion: boolean;
-  ordinarySubtype?: "status_update" | "micro_ack" | "plain";
+  ordinarySubtype?: "status_update" | "soft_update" | "micro_ack" | "plain";
 }
 
 const PRACTICAL_PATTERNS = [
@@ -85,7 +85,6 @@ const STATUS_UPDATE_PATTERNS = [
   /\bback now\b/i,
   /\bi am back\b/i,
   /\bi'?m back\b/i,
-  /\bback\b/i,
   /\u5230\u5bb6\u4e86/,
   /\u56de\u6765\u4e86/,
   /\u521a\u5230\u5bb6/,
@@ -104,6 +103,21 @@ const STATUS_UPDATE_PATTERNS = [
   /\u521a\u5fd9\u5b8c/,
   /\u5fd9\u5b8c\u4e86/,
   /\u5f04\u5b8c\u4e86/
+];
+
+const SOFT_UPDATE_PATTERNS = [
+  /^\s*maybe(?:\s+just)?\s+(?:a\s+bit\s+)?later\.?\s*$/i,
+  /^\s*probably\s+after\s+(?:dinner|work|lunch|that)\.?\s*$/i,
+  /^\s*i think i(?:'ll| will)\s+(?:head back|go back|turn in|sleep|rest)\s+(?:soon|a bit earlier|early)(?:\s+tonight)?\.?\s*$/i,
+  /^\s*i might\s+(?:head back|go back|turn in|sleep|rest)\s+(?:soon|a little earlier|early)(?:\s+tonight)?\.?\s*$/i,
+  /^\s*that should be fine(?:\s+for\s+tonight)?\.?\s*$/i,
+  /^\s*i(?:'ll| will)\s+do it in a bit\.?\s*$/i,
+  /^\s*\u53ef\u80fd\u665a\u70b9[~\u3002\uff01!]?[\s]*$/u,
+  /^\s*\u5e94\u8be5\u665a\u70b9[~\u3002\uff01!]?[\s]*$/u,
+  /^\s*\u6211\u5e94\u8be5\u665a\u70b9\u56de\u53bb[~\u3002\uff01!]?[\s]*$/u,
+  /^\s*\u6211\u53ef\u80fd\u7a0d\u5fae\u65e9\u70b9\u7761[~\u3002\uff01!]?[\s]*$/u,
+  /^\s*\u90a3\u4eca\u665a\u5e94\u8be5\u53ef\u4ee5[~\u3002\uff01!]?[\s]*$/u,
+  /^\s*\u6211\u7b49\u4f1a\u513f\u5f04[~\u3002\uff01!]?[\s]*$/u
 ];
 
 const MICRO_ACK_PATTERNS = [
@@ -209,6 +223,14 @@ export function deriveReplyShapeGuidance(
     !playful &&
     !reconnection &&
     !microAck;
+  const softUpdate =
+    SOFT_UPDATE_PATTERNS.some((pattern) => pattern.test(content)) &&
+    content.length <= 72 &&
+    !practical &&
+    !playful &&
+    !reconnection &&
+    !microAck &&
+    !statusUpdate;
 
   let kind: ReplyShapeKind = "ordinary";
   if (emotional) {
@@ -279,7 +301,13 @@ export function deriveReplyShapeGuidance(
     maxFollowups: userIntensity === "low" ? 0 : 1,
     shouldLeadWithEmotion: false,
     allowParagraphExpansion: false,
-    ordinarySubtype: microAck ? "micro_ack" : statusUpdate ? "status_update" : "plain"
+    ordinarySubtype: microAck
+      ? "micro_ack"
+      : statusUpdate
+        ? "status_update"
+        : softUpdate
+          ? "soft_update"
+          : "plain"
   };
 }
 
@@ -317,6 +345,8 @@ export function describeReplyShapeGuidance(
         ? "For tiny confirmations or soft acknowledgments, prefer one very short human reply and usually stop there. Do not inflate the moment into continuity theater, recap, or a fresh question."
         : guidance.ordinarySubtype === "status_update"
         ? "For simple status updates or check-ins, prefer one warm acknowledgment or one acknowledgment plus one tiny continuity beat. Do not turn it into analysis, recap, or a check-in questionnaire."
+        : guidance.ordinarySubtype === "soft_update"
+        ? "For lightly hedged updates or quiet plan confirmations, answer like a quick human text back. Keep it short, lightly warm, and usually question-free."
         : guidance.maxFollowups === 0
         ? "For ordinary low-intensity chat, prefer 1 to 2 short natural sentences and usually no trailing question."
         : "For ordinary chat, prefer 1 to 3 short natural sentences and ask a follow-up only if it feels genuinely human."

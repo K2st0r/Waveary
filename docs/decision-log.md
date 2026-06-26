@@ -2399,3 +2399,47 @@ Impact:
 - `waveary-web/src/App.tsx` now computes whether the current provider draft matches the saved config and surfaces that state directly in the provider workspace
 - the provider console now shows a masked preview of the saved API key plus an explicit warning when the current input values are still only a draft and chat is still using the saved config
 - future provider or voice-console changes should preserve this truthfulness boundary instead of implying that edited credentials are already live before a save occurs
+
+## 2026-06-26 - Everyday Soft Updates Need Their Own Quiet Texting Cadence
+
+Status:
+
+- accepted
+
+Decision:
+
+Treat lightly hedged everyday updates and quiet plan confirmations such as `maybe a bit later`, `I think I'll head back soon`, and similar short low-stakes phrasing as their own `soft_update` subtype inside ordinary chat.
+
+Reason:
+
+- the user wants Waveary's ordinary conversation to feel more like a real person texting, and these soft micro-updates are common human messages that should not get stretched into recap or follow-up pressure
+- the existing `status_update` and `micro_ack` buckets improved realism, but they still left a gap for hesitant timing updates and quiet plan-confirmation texts
+- this is safest to add inside the shared reply-shape layer, because that keeps live-provider guidance and scripted fallback behavior aligned without reopening broader runtime architecture
+
+Impact:
+
+- `waveary-core/src/runtime/reply-shape.ts` now classifies a bounded set of lightly hedged plan/update phrasings as `ordinarySubtype: soft_update`
+- `waveary-core/src/adapters/openai-compatible-provider.test.ts`, `waveary-core/src/runtime/reply-shape.test.ts`, and `waveary-core/src/runtime/waveary-runtime.test.ts` now lock the new guidance and runtime brevity expectations
+- `waveary-core/src/adapters/scripted-chat-provider.ts` now answers that subtype with the same short, warm, question-light cadence instead of falling back to broader ordinary-chat pressure
+- future realism work should keep extending everyday cadence one bounded subtype at a time instead of broadening all ordinary chat heuristics at once
+
+## 2026-06-26 - Do Not Parallelize `@waveary/core` Build And Compiled-Test Runs On Windows
+
+Status:
+
+- accepted
+
+Decision:
+
+When verifying `@waveary/core` on this Windows workspace, do not run `npm run build --workspace @waveary/core` in parallel with compiled `dist` test execution.
+
+Reason:
+
+- this repo already carries a Windows `dist` race risk, and a real verification pass for the new `soft_update` subtype produced misleading failures when build and compiled tests were launched concurrently
+- the source code was correct, but the parallel run let the compiled-test step observe unstable `dist` state, which looked like a runtime regression and would be easy to misdiagnose in a later session
+- keeping build and compiled tests sequential is cheaper than repeatedly chasing false regressions in the dialogue-quality layer
+
+Impact:
+
+- future `@waveary/core` verification on this machine should run in this order: `npm run check --workspace @waveary/core`, then `npm run build --workspace @waveary/core`, then compiled `node --test` over `waveary-core/dist/**/*.test.js`
+- continuity files should preserve this caveat so later Waveary sessions do not repeat the same false failure pattern
