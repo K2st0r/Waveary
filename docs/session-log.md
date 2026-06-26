@@ -7888,3 +7888,42 @@ Commit:
 Push:
 
 - succeeded: `git push origin main` pushed functional commit `9dc4cd8` and continuity sync commit `ef6a05e` to `origin/main`
+
+## 2026-06-26
+
+Objective:
+
+Continue tightening everyday companion realism by giving small apology and delayed-reply repair texts their own short, warm resume-the-thread cadence.
+
+Summary:
+
+- updated `waveary-core/src/runtime/reply-shape.ts` so bounded low-stakes apology or delayed-reply lines such as `sorry for the late reply`, `just saw this`, `回晚了`, and `刚刚在忙` are classified as `ordinarySubtype: delay_repair`
+- updated `waveary-core/src/adapters/scripted-chat-provider.ts` so scripted fallback keeps those turns brief, warm, and low-pressure instead of reopening the thread with a follow-up question
+- added focused regression coverage in `waveary-core/src/runtime/reply-shape.test.ts`, `waveary-core/src/adapters/openai-compatible-provider.test.ts`, and `waveary-core/src/runtime/waveary-runtime.test.ts` so prompt guidance and runtime output stay aligned on this new everyday-texting bucket
+- re-verified `@waveary/core` in the stored sequential Windows order: `check`, then `build`, then compiled `dist` tests
+
+Files changed:
+
+- `waveary-core/src/runtime/reply-shape.ts`
+- `waveary-core/src/runtime/reply-shape.test.ts`
+- `waveary-core/src/adapters/scripted-chat-provider.ts`
+- `waveary-core/src/adapters/openai-compatible-provider.test.ts`
+- `waveary-core/src/runtime/waveary-runtime.test.ts`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/core`
+- `npm run build --workspace @waveary/core`
+- PowerShell compiled-test verification via:
+  `$files = @(Get-ChildItem 'waveary-core\\dist' -Recurse -Filter '*.test.js' | Sort-Object FullName | ForEach-Object { $_.FullName }); & node --test @files`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending

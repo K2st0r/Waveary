@@ -2443,3 +2443,25 @@ Impact:
 
 - future `@waveary/core` verification on this machine should run in this order: `npm run check --workspace @waveary/core`, then `npm run build --workspace @waveary/core`, then compiled `node --test` over `waveary-core/dist/**/*.test.js`
 - continuity files should preserve this caveat so later Waveary sessions do not repeat the same false failure pattern
+
+## 2026-06-26 - Small Apology And Late-Reply Repairs Need Their Own Resume-The-Thread Cadence
+
+Status:
+
+- accepted
+
+Decision:
+
+Treat short apology or delayed-reply repair texts such as `sorry for the late reply`, `just saw this`, `回晚了`, and `刚刚在忙` as their own `delay_repair` subtype inside ordinary chat.
+
+Reason:
+
+- the user wants Waveary to sound like a real person texting, and small apology / resume-the-thread messages are common everyday chat turns that should not trigger either emotional-heavy comfort or generic follow-up pressure
+- after `status_update`, `micro_ack`, and `soft_update`, this was the next realistic low-stakes bucket where assistant-like over-talking still breaks the illusion
+- the shared reply-shape layer remains the safest place to add this because it keeps live-provider guidance and scripted fallback aligned without reopening broader runtime structure
+
+Impact:
+
+- `waveary-core/src/runtime/reply-shape.ts` now classifies a bounded set of apology / delayed-reply repair phrasings as `ordinarySubtype: delay_repair`
+- `waveary-core/src/adapters/scripted-chat-provider.ts` now answers that subtype with the same short, warm, low-pressure cadence instead of reopening the thread with an unnecessary question
+- `waveary-core/src/runtime/reply-shape.test.ts`, `waveary-core/src/adapters/openai-compatible-provider.test.ts`, and `waveary-core/src/runtime/waveary-runtime.test.ts` now lock both prompt guidance and runtime brevity for this new ordinary-chat bucket
