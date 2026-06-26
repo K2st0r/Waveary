@@ -2,6 +2,8 @@
 
 <div align="center">
 
+<img src="./docs/assets/readme-hero-fan.png" alt="Waveary hero banner" width="100%" />
+
 ## 回响之境 · Waveary
 
 ### 念念不忘，终有回响。
@@ -20,6 +22,7 @@
 [Why](#why-waveary--为什么是-waveary) ·
 [Capabilities](#capabilities--当前能力) ·
 [Architecture](#architecture--架构概览) ·
+[Star History](#star-history--关注趋势) ·
 [Quick Start](#quick-start--快速开始) ·
 [Project Route](#project-route--项目路线) ·
 [Contributing](#contributing--参与贡献)
@@ -36,7 +39,7 @@
 
 Waveary is not trying to create a slightly smarter chatbot. It is trying to build the infrastructure for an AI that can remember, understand, grow, and stay with a person over time.
 
-Waveary 不是在做一个“更会答题”的聊天机器人，而是在构建一种基础设施，让 AI 可以长期记住、理解、成长，并持续陪伴一个人的生活。
+Waveary 不是在做一个“更会回答问题”的聊天机器人，而是在构建一种基础设施，让 AI 可以长期记住、理解、成长，并持续陪伴一个人的生活。
 
 ---
 
@@ -180,6 +183,16 @@ flowchart TD
 Waveary sits between product interfaces and model vendors. It turns short-term model interaction into long-term companion continuity.
 
 Waveary 位于产品界面与模型供应商之间，负责把短期模型交互提升为长期陪伴连续性。
+
+---
+
+## Star History | 关注趋势
+
+[![Star History Chart](https://api.star-history.com/svg?repos=K2st0r/Waveary&type=Date)](https://star-history.com/#K2st0r/Waveary&Date)
+
+This graph tracks how public GitHub attention grows over time.
+
+这张图反映了项目在 GitHub 上的公开关注趋势。
 
 ---
 

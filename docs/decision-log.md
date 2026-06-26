@@ -607,6 +607,28 @@ Impact:
 - the root homepage now presents Waveary through clearer sections for overview, positioning, core thesis, current capabilities, core engines, architecture, repository structure, quick start, and project route
 - future GitHub-facing copy should preserve the formal framework-first positioning and avoid drifting back toward `AI girlfriend` or draft-note framing
 
+## 2026-06-26 - README Hero Should Use The Question-Mark Portrait System And Show Public Star History
+
+Status:
+
+- accepted
+
+Decision:
+
+Use the existing question-mark portrait assets to create a custom fan-arranged hero banner at the top of the root `README.md`, and add a public GitHub star-history chart section instead of leaving the GitHub homepage as text plus badges only.
+
+Reason:
+
+- the user explicitly wants the GitHub landing page to feel more recognizable and visually distinct, closer to standout open-source homepages
+- the portrait system is already part of Waveary's public visual identity, so reusing it in the repository homepage strengthens brand continuity
+- a live star-history chart is a practical public signal and fits the user's request for a visible follow-trend graph without building custom infrastructure
+
+Impact:
+
+- `docs/assets/readme-hero-fan.png` now provides a repository-local hero banner built from the existing portrait set
+- `README.md` now opens with that banner and includes a `Star History` section powered by `star-history.com`
+- future README polish should preserve this identity-first header structure instead of regressing to badges-only presentation
+
 ## 2026-06-24 - Managed Browser Submit Must Use Real Playwright Interaction, And Repo-Root Data State Must Stay Unified
 
 Status:

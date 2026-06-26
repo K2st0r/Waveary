@@ -7368,3 +7368,36 @@ Commit:
 Push:
 
 - succeeded: `git push origin main` pushed functional commit `2601439` to `origin/main`
+
+## 2026-06-26
+
+Objective:
+
+Strengthen the GitHub homepage visually by adding a portrait-based hero banner and a public star-history chart to the root README.
+
+Summary:
+
+- created `docs/assets/readme-hero-fan.png` as a custom repository-local banner using the existing question-mark portrait set arranged in a fan of overlapping polaroid-style cards
+- updated `README.md` to place that banner at the top of the GitHub homepage and added a dedicated `Star History` section powered by `star-history.com`
+- kept the README structure otherwise intact while correcting one Chinese overview line and preserving the framework-first bilingual positioning
+- re-verified the changed copy with the mojibake guard and a direct README diff
+
+Files changed:
+
+- `README.md`
+- `docs/assets/readme-hero-fan.png`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check:mojibake`
+- `git diff -- README.md docs/assets/readme-hero-fan.png`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
