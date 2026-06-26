@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `7daa2cf` - `Record benchmark note removal`
+- `24cdeec` - `Tighten dialogue realism cadence`
 
 ## Latest Repository Surface
 
