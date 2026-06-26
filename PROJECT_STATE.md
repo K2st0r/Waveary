@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `01d75ec` - `Add open-source chat benchmark note`
+- `2255aaf` - `Remove public third-party benchmark note`
 
 ## Latest Repository Surface
 
