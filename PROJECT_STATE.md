@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `fb7bd53` - `Broaden micro-ack endings`
+- `7d1b3e1` - `Broaden deferential micro-ack cadence`
 
 ## Latest Repository Surface
 
@@ -61,6 +61,7 @@ Brand line:
   - early-acquaintance name inference now also rejects light status-update tokens such as `home`, `done`, `on`, `awake`, and `arrived`, so ordinary check-in texts no longer pollute remembered preferred-name state
   - the newest reply-realism pass now also treats tiny confirmations such as `got it`, `okay`, `sure`, `收到`, `知道了`, and `嗯嗯` as a dedicated `micro_ack` ordinary-chat subtype, so both live-provider prompts and scripted fallback replies answer them with one very short human acknowledgment instead of continuity theater, recap, or a fresh question
   - that same `micro_ack` path now also covers softer light-close variants such as `okay then`, `gotcha`, `sounds good then`, `知道啦`, `收到啦`, `好喔`, `好哦`, `好啦`, and `行呀`, so everyday low-stakes texting can end cleanly without drifting back into recap or follow-up pressure
+  - the newest reply-realism cut now also folds lightly deferential low-stakes closers such as `we can do that then`, `that works then`, `guess that's fine then`, `那行吧`, `先这样`, and `那就先这样` into that same `micro_ack` track, so small hesitant closers still get one short human line instead of reopening the conversation artificially
   - the `new` relationship stage now also has a dedicated getting-to-know-you helper that can infer preferred user name, user-given companion nickname, and desired companion vibe from chat history plus recalled memories
   - live-provider prompt assembly now also injects explicit getting-to-know-you guidance so early turns can ask one natural discovery question at a time instead of sounding like a configured persona form
   - live-provider regression now explicitly covers practical new-stage turns, emotional new-stage turns, reconnection cadence, and `what should I call you` mutual-discovery prompts so prompt-shape drift is less likely to silently reintroduce long assistant-style replies or block early natural acquaintance
@@ -450,7 +451,7 @@ Brand line:
 - add route-level or live verification for more provider-specific chat payload divergences after the current DeepSeek and broader structured-payload compatibility baseline
 - re-run `npm run verify:provider` and `npm run models:provider` with refreshed real credentials, starting with DeepSeek because the currently saved local key now returns `401 invalid api key`
 - continue the dialogue-quality pass by extending live-provider regression beyond prompt-body inspection into stronger emotional-stress cases, finer ordinary-texting cadence, and richer memory-vs-timeline competition now that recency and source-turn weighting are both present in the shared helper
-- continue the dialogue-quality pass by extending the low-stakes short-texting cadence beyond status updates, tiny confirmations, and softer micro-ack endings into the next bounded everyday-message buckets such as lightly hedged micro-updates or small deferential closers, while keeping emotional-first handling and identity inference narrow
+- continue the dialogue-quality pass by extending the low-stakes short-texting cadence beyond status updates, tiny confirmations, softer micro-ack endings, and deferential closers into the next bounded everyday-message buckets such as lightly hedged micro-updates or quiet plan-confirmation texts, while keeping emotional-first handling and identity inference narrow
 - consider whether the next continuity-scoring refinement should incorporate bounded source-session or repeated-reference signals beyond the current current-turn match, recency, and source-turn layers
 - consider reusing the shared continuity-thread helper in future runtime-facing care or summary surfaces instead of reintroducing prompt-local continuity heuristics elsewhere
 - consider whether continuity-thread scoring now needs source-turn weighting in addition to the new lightweight recency bias, especially for memories created within the same short time band

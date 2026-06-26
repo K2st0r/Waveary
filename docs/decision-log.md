@@ -2356,3 +2356,24 @@ Impact:
 
 - `waveary-core/src/runtime/reply-shape.ts` now recognizes softer English and Chinese acknowledgment endings as `ordinarySubtype: micro_ack`
 - `waveary-core/src/runtime/reply-shape.test.ts`, `waveary-core/src/runtime/waveary-runtime.test.ts`, and `waveary-core/src/adapters/openai-compatible-provider.test.ts` now lock that behavior in at the guidance and runtime levels
+
+## 2026-06-26 - Deferential Low-Stakes Closers Should Stay In The Same Micro-Ack Track
+
+Status:
+
+- accepted
+
+Decision:
+
+Treat lightly deferential low-stakes closers such as `we can do that then`, `that works then`, `guess that's fine then`, `那行吧`, `先这样`, and `那就先这样` as the same `micro_ack` subtype as plain `okay` or `收到`, instead of letting them reopen the conversation through broader ordinary-chat behavior.
+
+Reason:
+
+- real texting often ends with a small hesitant or deferential close rather than a clean `okay`, and those turns still want the same one-line human acknowledgment shape
+- leaving these messages outside the existing `micro_ack` bucket would keep reintroducing assistant-style over-talking through another very common low-stakes wording surface
+- this is still a narrow shared-cadence change, so it improves realism without touching memory, relationship, or prompt architecture more broadly
+
+Impact:
+
+- `waveary-core/src/runtime/reply-shape.ts` now recognizes a bounded set of English and Chinese deferential closers as `ordinarySubtype: micro_ack`
+- `waveary-core/src/runtime/reply-shape.test.ts`, `waveary-core/src/runtime/waveary-runtime.test.ts`, and `waveary-core/src/adapters/openai-compatible-provider.test.ts` now keep that behavior aligned across guidance and scripted runtime output

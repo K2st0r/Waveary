@@ -7775,3 +7775,41 @@ Commit:
 Push:
 
 - not applicable
+
+## 2026-06-26
+
+Objective:
+
+Broaden the everyday short-texting realism pass so lightly deferential closers stay on the same one-line human acknowledgment track as other `micro_ack` turns.
+
+Summary:
+
+- updated `waveary-core/src/runtime/reply-shape.ts` so lightly deferential closers such as `we can do that then`, `that works then`, `guess that's fine then`, `那行吧`, `先这样`, and `那就先这样` are also classified as `ordinarySubtype: micro_ack`
+- added focused regression coverage in `waveary-core/src/runtime/reply-shape.test.ts`, `waveary-core/src/adapters/openai-compatible-provider.test.ts`, and `waveary-core/src/runtime/waveary-runtime.test.ts` so both prompt guidance and scripted runtime behavior keep those closers short and stop cleanly
+- kept the change fully inside the shared reply-shape realism layer, preserving the current small-cut strategy for improving everyday companion cadence without reopening architecture or frontend work
+
+Files changed:
+
+- `waveary-core/src/runtime/reply-shape.ts`
+- `waveary-core/src/runtime/reply-shape.test.ts`
+- `waveary-core/src/adapters/openai-compatible-provider.test.ts`
+- `waveary-core/src/runtime/waveary-runtime.test.ts`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/core`
+- `npm run build --workspace @waveary/core`
+- PowerShell compiled-test verification via:
+  `$files = @(Get-ChildItem 'waveary-core\\dist' -Recurse -Filter '*.test.js' | Sort-Object FullName | ForEach-Object { $_.FullName }); & node --test @files`
+
+Commit:
+
+- `7d1b3e1` - `Broaden deferential micro-ack cadence`
+
+Push:
+
+- succeeded: `git push origin main` pushed functional commit `7d1b3e1` to `origin/main`
