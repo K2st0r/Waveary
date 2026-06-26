@@ -72,4 +72,4 @@ Only write preferences here when they are likely to remain useful over time.
 - After each code commit, clear local Waveary test-session memory before the next live verification pass, while preserving repository continuity files, so stale chat history does not pollute product-behavior checks.
 - When editing Chinese copy on this Windows / PowerShell setup, do not trust terminal rendering alone; verify with `git diff`, and prefer ASCII-safe insertion methods such as `\uXXXX` escapes for new literals when shell encoding looks unstable.
 - When a work block changes Chinese-facing copy, run `npm run check:mojibake` before commit so obvious mojibake patterns are caught mechanically instead of only by eye.
-- When borrowing from outside open-source chat products, prefer permissive-license sources first; treat GPL or custom-community-license projects as reference-first unless Waveary deliberately accepts those obligations.
+- Do not publish third-party project whitelists or named borrowing targets inside the public Waveary repository; keep public guidance generic and handle any external code reuse with case-by-case license review.

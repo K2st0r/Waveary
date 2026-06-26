@@ -2157,7 +2157,7 @@ Impact:
 - `docs/assets/readme-hero-fan.png` now uses a broader outward fan geometry, lighter but deeper layered shadows, and a cleaner title block so the header reads more like a formal poster
 - future README hero iterations should stay tightly scoped to static GitHub presentation and avoid dragging runtime UI concerns into the repository cover image
 
-## 2026-06-26 - Open-Source Chat Shell Borrowing Should Prefer Permissive Sources First
+## 2026-06-26 - Public Repo Guidance Should Stay Generic About Third-Party Borrowing
 
 Status:
 
@@ -2165,16 +2165,16 @@ Status:
 
 Decision:
 
-When Waveary borrows from external open-source chat products, permissive-license projects such as `MIT`, `Apache-2.0`, or `BSD-3-Clause` should be the default first choice for direct reuse. `GPL` or custom-community-license projects should be treated as reference-first unless Waveary deliberately chooses those downstream obligations.
+Waveary should not publish named third-party borrowing targets or whitelist-style external project notes inside the public repository. Public repo guidance should stay generic, while any real reuse decision should still be reviewed case-by-case against the source license before code is brought in.
 
 Reason:
 
-- the user wants Waveary to move faster by learning from mature chat products instead of rebuilding every shell pattern from zero
-- that acceleration is useful, but casual copying from `GPLv3` or custom-license projects would create avoidable legal and distribution ambiguity
-- Waveary's real differentiation is still its companionship runtime, so the safest speed gain is to borrow shell and provider ideas from permissive sources while keeping the memory, relationship, emotion, and identity layers Waveary-owned
+- the user does not want the public repo to read like a named whitelist or shortlist of third-party projects, because that creates unnecessary visibility around who was inspected or considered
+- open source still carries copyright and license obligations, so hiding the names does not remove the need for discipline; it only keeps the public repository cleaner and less bait-like
+- Waveary's real differentiation is still its companionship runtime, so public documentation should emphasize Waveary's own direction rather than a catalog of outside products
 
 Impact:
 
-- `docs/open-source-benchmark.md` now records the current benchmark set and their recommended reuse posture
-- `LibreChat` is the strongest default candidate for direct shell-level inspiration or selective reuse
-- `Chatbox CE`, `Open WebUI`, and current `LobeHub / LobeChat` should stay reference-first unless a more deliberate license decision is made
+- public repo guidance should stay at the level of generic license and review rules
+- future third-party reuse still requires source-by-source license review before code is adopted
+- Waveary can continue learning from the market without publishing a named external-project shortlist in-repo

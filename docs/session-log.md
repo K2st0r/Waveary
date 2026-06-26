@@ -7439,18 +7439,16 @@ Push:
 
 Objective:
 
-Record a practical open-source benchmark note so Waveary can learn from mature chat shells without re-deciding license boundaries every session.
+Remove the public named third-party benchmark note and keep repository guidance generic about external borrowing.
 
 Summary:
 
-- added `docs/open-source-benchmark.md` as a focused benchmark note covering `LibreChat`, `Chatbox CE`, `Open WebUI`, `LobeHub / LobeChat`, and `CakeChat`
-- classified each project by recommended Waveary posture: selective direct reuse, reference-first, or research-only
-- locked the long-term policy that permissive-license chat products should be preferred first for direct borrowing, while GPL or custom-license products stay reference-first unless Waveary explicitly accepts those obligations
-- updated continuity files so the next dialogue-quality or shell-acceleration pass can start from this benchmark instead of redoing the same licensing and reuse analysis
+- removed `docs/open-source-benchmark.md` so the public Waveary repository no longer carries a whitelist-style note naming outside projects
+- replaced the earlier named-project guidance with a generic rule: do not publish external borrowing target lists in-repo, and review any real reuse case-by-case before code is brought in
+- kept the product-learning direction intact by preserving the broader realism and dialogue-quality focus without tying public continuity files to named third-party shortlists
 
 Files changed:
 
-- `docs/open-source-benchmark.md`
 - `docs/product-preferences.md`
 - `PROJECT_STATE.md`
 - `ACTIVE_TASKS.md`
@@ -7459,8 +7457,7 @@ Files changed:
 
 Verification:
 
-- manual review of the benchmark note against the current Waveary repo direction
-- `git diff -- docs/open-source-benchmark.md docs/product-preferences.md PROJECT_STATE.md ACTIVE_TASKS.md docs/decision-log.md docs/session-log.md`
+- `git diff -- docs/product-preferences.md PROJECT_STATE.md ACTIVE_TASKS.md docs/decision-log.md docs/session-log.md`
 
 Commit:
 
