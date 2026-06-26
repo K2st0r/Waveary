@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `06a4b57` - `Add reassurance-close chat cadence`
+- `d9fc5fe` - `Add check-back chat cadence`
 
 ## Latest Repository Surface
 
