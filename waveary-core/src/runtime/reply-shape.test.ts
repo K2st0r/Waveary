@@ -40,8 +40,16 @@ test("deriveReplyShapeGuidance keeps low-intensity ordinary chat short and usual
   const guidance = deriveReplyShapeGuidance(createRequest("Okay, I am home now."));
 
   assert.equal(guidance.kind, "ordinary");
+  assert.equal(guidance.ordinarySubtype, "status_update");
   assert.equal(guidance.targetLength, "short");
   assert.equal(guidance.maxFollowups, 0);
+});
+
+test("deriveReplyShapeGuidance leaves non-status ordinary chat in the plain bucket", () => {
+  const guidance = deriveReplyShapeGuidance(createRequest("That makes sense, I think."));
+
+  assert.equal(guidance.kind, "ordinary");
+  assert.equal(guidance.ordinarySubtype, "plain");
 });
 
 test("deriveReplyShapeGuidance catches softer emotional support requests earlier", () => {

@@ -50,7 +50,14 @@ export class ScriptedChatProvider implements ChatProvider {
       gettingToKnowYou
     );
 
-    return assembleReply(prefix, continuity, identityLine, followup, replyShape.kind);
+    return assembleReply(
+      prefix,
+      continuity,
+      identityLine,
+      followup,
+      replyShape.kind,
+      replyShape.ordinarySubtype
+    );
   }
 }
 
@@ -246,7 +253,8 @@ function assembleReply(
   continuity: string,
   identityLine: string,
   followup: string,
-  kind: "practical" | "ordinary" | "playful" | "reconnection" | "emotional"
+  kind: "practical" | "ordinary" | "playful" | "reconnection" | "emotional",
+  ordinarySubtype?: "status_update" | "plain"
 ): string {
   if (kind === "practical") {
     return [continuity, identityLine, followup].filter(Boolean).join(" ").trim();
@@ -261,6 +269,16 @@ function assembleReply(
   }
 
   if (kind === "ordinary") {
+    const statusUpdateReply = maybeBuildStatusUpdateOrdinaryReply(
+      prefix,
+      continuity,
+      followup,
+      ordinarySubtype
+    );
+    if (statusUpdateReply) {
+      return statusUpdateReply;
+    }
+
     if (continuity && followup.startsWith("Tell me a little more")) {
       return [prefix, continuity].filter(Boolean).join(" ").trim();
     }
@@ -277,6 +295,36 @@ function assembleReply(
   }
 
   return [prefix, continuity, identityLine, followup].filter(Boolean).join(" ").trim();
+}
+
+function maybeBuildStatusUpdateOrdinaryReply(
+  prefix: string,
+  continuity: string,
+  followup: string,
+  ordinarySubtype?: "status_update" | "plain"
+): string | undefined {
+  if (ordinarySubtype !== "status_update") {
+    return undefined;
+  }
+
+  const onboardingPrompt = isGettingToKnowYouPrompt(followup) ? followup : "";
+  const continuityBeat =
+    !onboardingPrompt && continuity && !continuity.includes("one-off message")
+      ? continuity
+      : "";
+
+  return [prefix, onboardingPrompt || continuityBeat].filter(Boolean).join(" ").trim();
+}
+
+function isGettingToKnowYouPrompt(value: string): boolean {
+  const normalized = value.toLowerCase();
+
+  return (
+    normalized.includes("what should i call you") ||
+    normalized.includes("give me a name of your own") ||
+    normalized.includes("do you want me softer") ||
+    normalized.includes("what name i should keep for you")
+  );
 }
 
 function summarizeTopic(content: string): string {

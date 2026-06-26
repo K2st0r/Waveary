@@ -14,6 +14,7 @@ export interface ReplyShapeGuidance {
   maxFollowups: 0 | 1;
   shouldLeadWithEmotion: boolean;
   allowParagraphExpansion: boolean;
+  ordinarySubtype?: "status_update" | "plain";
 }
 
 const PRACTICAL_PATTERNS = [
@@ -48,6 +49,32 @@ const RECONNECTION_PATTERNS = [
   /\u60f3\u4f60/,
   /\u5728\u5417/,
   /\u56de\u6765\u4e86/
+];
+
+const STATUS_UPDATE_PATTERNS = [
+  /\bi am home\b/i,
+  /\bi'?m home\b/i,
+  /\bgot home\b/i,
+  /\bmade it home\b/i,
+  /\bi am back\b/i,
+  /\bi'?m back\b/i,
+  /\bjust got back\b/i,
+  /\bjust got home\b/i,
+  /\bjust got in\b/i,
+  /\bjust finished\b/i,
+  /\bi am done now\b/i,
+  /\bi'?m done now\b/i,
+  /\bfinished now\b/i,
+  /\bhome now\b/i,
+  /\bback now\b/i,
+  /\u5230\u5bb6\u4e86/,
+  /\u56de\u6765\u4e86/,
+  /\u521a\u5230\u5bb6/,
+  /\u6211\u56de\u6765\u4e86/,
+  /\u6211\u5230\u5bb6\u4e86/,
+  /\u521a\u5fd9\u5b8c/,
+  /\u5fd9\u5b8c\u4e86/,
+  /\u5f04\u5b8c\u4e86/
 ];
 
 const EMOTIONAL_PATTERNS = [
@@ -93,6 +120,12 @@ export function deriveReplyShapeGuidance(
   const practical = PRACTICAL_PATTERNS.some((pattern) => pattern.test(content));
   const playful = PLAYFUL_PATTERNS.some((pattern) => pattern.test(content));
   const reconnection = RECONNECTION_PATTERNS.some((pattern) => pattern.test(content));
+  const statusUpdate =
+    STATUS_UPDATE_PATTERNS.some((pattern) => pattern.test(content)) &&
+    content.length <= 64 &&
+    !practical &&
+    !playful &&
+    !reconnection;
 
   let kind: ReplyShapeKind = "ordinary";
   if (emotional) {
@@ -162,7 +195,8 @@ export function deriveReplyShapeGuidance(
     targetLength: normalized.length > 96 ? "medium" : "short",
     maxFollowups: userIntensity === "low" ? 0 : 1,
     shouldLeadWithEmotion: false,
-    allowParagraphExpansion: false
+    allowParagraphExpansion: false,
+    ordinarySubtype: statusUpdate ? "status_update" : "plain"
   };
 }
 
@@ -196,7 +230,9 @@ export function describeReplyShapeGuidance(
 
   if (guidance.kind === "ordinary") {
     base.push(
-      guidance.maxFollowups === 0
+      guidance.ordinarySubtype === "status_update"
+        ? "For simple status updates or check-ins, prefer one warm acknowledgment or one acknowledgment plus one tiny continuity beat. Do not turn it into analysis, recap, or a check-in questionnaire."
+        : guidance.maxFollowups === 0
         ? "For ordinary low-intensity chat, prefer 1 to 2 short natural sentences and usually no trailing question."
         : "For ordinary chat, prefer 1 to 3 short natural sentences and ask a follow-up only if it feels genuinely human."
     );

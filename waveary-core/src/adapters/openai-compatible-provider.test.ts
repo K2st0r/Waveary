@@ -1378,7 +1378,44 @@ test("OpenAICompatibleChatProvider keeps low-intensity ordinary turns from defau
   assert.match(instruction, /Maximum natural follow-up questions: 0\./);
   assert.match(
     instruction,
-    /For ordinary low-intensity chat, prefer 1 to 2 short natural sentences and usually no trailing question\./
+    /For simple status updates or check-ins, prefer one warm acknowledgment or one acknowledgment plus one tiny continuity beat\./
+  );
+  assert.match(
+    instruction,
+    /For low-intensity ordinary turns, it is often better to end cleanly than to tack on a follow-up question\./
+  );
+  assert.match(
+    instruction,
+    /No confirmed preferred user name has been established yet\./
+  );
+});
+
+test("OpenAICompatibleChatProvider gives dedicated short-texting guidance for simple status updates", async () => {
+  const instruction = await captureInstruction(
+    createRequest({
+      messages: [
+        {
+          id: "m1",
+          sessionId: "session-1",
+          role: "user",
+          content: "Okay, I'm home now.",
+          timestamp: new Date().toISOString(),
+          metadata: {}
+        }
+      ],
+      relevantMemories: [],
+      timeline: []
+    })
+  );
+
+  assert.match(instruction, /Current reply mode: ordinary\./);
+  assert.match(
+    instruction,
+    /For simple status updates or check-ins, prefer one warm acknowledgment or one acknowledgment plus one tiny continuity beat\./
+  );
+  assert.match(
+    instruction,
+    /If the user is only giving a light status update like being home, back, or done for now, answer like a real person receiving a quick text: acknowledge it warmly, maybe add one tiny caring beat, then stop\./
   );
 });
 
