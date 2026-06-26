@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `pending` - `Clarify provider draft vs saved runtime config`
+- `2ecfe92` - `Clarify provider draft vs saved runtime config`
 
 ## Latest Repository Surface
 
