@@ -7966,3 +7966,44 @@ Commit:
 Push:
 
 - succeeded: `git push origin main` pushed functional commit `06a4b57` and continuity sync commit `dad166b` to `origin/main`
+
+## 2026-06-26
+
+Objective:
+
+Continue the everyday companion-realism pass by giving light check-back nudges their own brief presence-signal cadence.
+
+Summary:
+
+- updated `waveary-core/src/runtime/reply-shape.ts` so bounded low-stakes presence checks such as `you there?`, `still up?`, `在吗`, and `还醒着吗` are classified as `ordinarySubtype: check_back`
+- narrowed practical-question detection so these light check-back nudges no longer get misread as generic Q&A just because they end with `?`
+- kept heavier reconnection intact by broadening the reconnection matcher to continue recognizing `missed` / `missing` forms during the same realism pass
+- updated `waveary-core/src/adapters/scripted-chat-provider.ts` so scripted fallback answers this new subtype with one brief warm presence signal instead of recap, follow-up pressure, or a bigger reunion beat
+- added focused regression coverage in `waveary-core/src/runtime/reply-shape.test.ts`, `waveary-core/src/adapters/openai-compatible-provider.test.ts`, and `waveary-core/src/runtime/waveary-runtime.test.ts`, then re-verified `@waveary/core` in the required sequential Windows order after first observing that concurrent build/test execution can still create misleading failures
+
+Files changed:
+
+- `waveary-core/src/runtime/reply-shape.ts`
+- `waveary-core/src/adapters/scripted-chat-provider.ts`
+- `waveary-core/src/runtime/reply-shape.test.ts`
+- `waveary-core/src/adapters/openai-compatible-provider.test.ts`
+- `waveary-core/src/runtime/waveary-runtime.test.ts`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/core`
+- `npm run build --workspace @waveary/core`
+- PowerShell compiled-test verification via:
+  `$files = @(Get-ChildItem 'waveary-core\\dist' -Recurse -Filter '*.test.js' | Sort-Object FullName | ForEach-Object { $_.FullName }); & node --test @files`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending

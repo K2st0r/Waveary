@@ -104,6 +104,18 @@ test("deriveReplyShapeGuidance treats gentle reassurance closers as reassurance-
   assert.equal(chineseGuidance.maxFollowups, 0);
 });
 
+test("deriveReplyShapeGuidance treats light check-back nudges as their own ordinary subtype", () => {
+  const englishGuidance = deriveReplyShapeGuidance(createRequest("you there?"));
+  const chineseGuidance = deriveReplyShapeGuidance(createRequest("\u8fd8\u9192\u7740\u5417"));
+
+  assert.equal(englishGuidance.kind, "ordinary");
+  assert.equal(englishGuidance.ordinarySubtype, "check_back");
+  assert.equal(englishGuidance.maxFollowups, 0);
+  assert.equal(chineseGuidance.kind, "ordinary");
+  assert.equal(chineseGuidance.ordinarySubtype, "check_back");
+  assert.equal(chineseGuidance.maxFollowups, 0);
+});
+
 test("deriveReplyShapeGuidance treats micro acknowledgments as their own short ordinary subtype", () => {
   const englishGuidance = deriveReplyShapeGuidance(createRequest("got it"));
   const chineseGuidance = deriveReplyShapeGuidance(createRequest("嗯嗯"));
@@ -218,6 +230,17 @@ test("describeReplyShapeGuidance includes reassurance-close constraints", () => 
   assert.match(
     text,
     /For gentle reassurance or soft rest-style closers, answer with a brief warm receipt\./
+  );
+});
+
+test("describeReplyShapeGuidance includes check-back constraints", () => {
+  const text = describeReplyShapeGuidance(
+    deriveReplyShapeGuidance(createRequest("still up?"))
+  );
+
+  assert.match(
+    text,
+    /For light check-back nudges, answer with a brief warm presence signal\./
   );
 });
 

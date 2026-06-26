@@ -2487,3 +2487,26 @@ Impact:
 - `waveary-core/src/runtime/reply-shape.ts` now classifies a bounded set of reassurance/rest closers as `ordinarySubtype: reassurance_close`
 - `waveary-core/src/adapters/scripted-chat-provider.ts` now answers that subtype with one brief warm receipt instead of reopening the thread
 - `waveary-core/src/runtime/reply-shape.test.ts`, `waveary-core/src/adapters/openai-compatible-provider.test.ts`, and `waveary-core/src/runtime/waveary-runtime.test.ts` now lock the guidance and runtime brevity for this new ordinary-chat bucket
+
+## 2026-06-26 - Light Check-Back Nudges Need Their Own Presence-Signal Cadence
+
+Status:
+
+- accepted
+
+Decision:
+
+Treat light presence-check nudges such as `you there?`, `still up?`, `在吗`, and `还醒着吗` as their own `check_back` subtype inside ordinary chat.
+
+Reason:
+
+- the user wants Waveary's everyday conversation to feel like real low-intensity texting, and these tiny presence checks are common human messages that should not be flattened into practical Q&A
+- leaving these turns under generic `?`-driven practical handling made Waveary sound too assistant-like, while treating every `you there` style line as a heavier reconnection beat would overplay the moment
+- this remains a safe bounded cut inside the shared reply-shape layer, so live-provider guidance and scripted fallback stay aligned without broader runtime churn
+
+Impact:
+
+- `waveary-core/src/runtime/reply-shape.ts` now classifies a bounded set of English and Chinese presence-check phrases as `ordinarySubtype: check_back`
+- practical-question detection now explicitly yields to that bounded check-back subtype, so `you there?` style nudges do not get misread as ordinary factual questions
+- `waveary-core/src/adapters/scripted-chat-provider.ts` now answers that subtype with one brief warm presence signal instead of a follow-up chain, recap, or heavier reconnection speech
+- `waveary-core/src/runtime/reply-shape.test.ts`, `waveary-core/src/adapters/openai-compatible-provider.test.ts`, and `waveary-core/src/runtime/waveary-runtime.test.ts` now lock both prompt guidance and runtime brevity for this new ordinary-chat bucket
