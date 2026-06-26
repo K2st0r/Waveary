@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `2ecfe92` - `Clarify provider draft vs saved runtime config`
+- `9dc4cd8` - `Add soft-update chat cadence`
 
 ## Latest Repository Surface
 
