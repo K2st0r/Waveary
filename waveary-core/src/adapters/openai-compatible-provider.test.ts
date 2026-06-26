@@ -1475,6 +1475,32 @@ test("OpenAICompatibleChatProvider gives dedicated soft-update guidance for ligh
   );
 });
 
+test("OpenAICompatibleChatProvider gives dedicated delay-repair guidance for small apology messages", async () => {
+  const instruction = await captureInstruction(
+    createRequest({
+      messages: [
+        {
+          id: "m1",
+          sessionId: "session-1",
+          role: "user",
+          content: "sorry for the late reply",
+          timestamp: new Date().toISOString(),
+          metadata: {}
+        }
+      ],
+      relevantMemories: [],
+      timeline: []
+    })
+  );
+
+  assert.match(instruction, /Current reply mode: ordinary\./);
+  assert.match(instruction, /Maximum natural follow-up questions: 0\./);
+  assert.match(
+    instruction,
+    /For small apology or delayed-reply repair messages, answer like a real person resuming the thread\./
+  );
+});
+
 test("OpenAICompatibleChatProvider gives dedicated micro-ack guidance for tiny confirmations", async () => {
   const instruction = await captureInstruction(
     createRequest({

@@ -74,6 +74,20 @@ test("deriveReplyShapeGuidance treats quiet plan confirmations as soft updates",
   assert.equal(guidance.targetLength, "short");
 });
 
+test("deriveReplyShapeGuidance treats small apology repair messages as delay-repair updates", () => {
+  const englishGuidance = deriveReplyShapeGuidance(
+    createRequest("sorry for the late reply")
+  );
+  const chineseGuidance = deriveReplyShapeGuidance(createRequest("\u56de\u665a\u4e86"));
+
+  assert.equal(englishGuidance.kind, "ordinary");
+  assert.equal(englishGuidance.ordinarySubtype, "delay_repair");
+  assert.equal(englishGuidance.maxFollowups, 0);
+  assert.equal(chineseGuidance.kind, "ordinary");
+  assert.equal(chineseGuidance.ordinarySubtype, "delay_repair");
+  assert.equal(chineseGuidance.maxFollowups, 0);
+});
+
 test("deriveReplyShapeGuidance treats micro acknowledgments as their own short ordinary subtype", () => {
   const englishGuidance = deriveReplyShapeGuidance(createRequest("got it"));
   const chineseGuidance = deriveReplyShapeGuidance(createRequest("嗯嗯"));
@@ -166,6 +180,17 @@ test("describeReplyShapeGuidance includes soft-update constraints", () => {
   assert.match(
     text,
     /For lightly hedged updates or quiet plan confirmations, answer like a quick human text back\./
+  );
+});
+
+test("describeReplyShapeGuidance includes delay-repair constraints", () => {
+  const text = describeReplyShapeGuidance(
+    deriveReplyShapeGuidance(createRequest("just saw this"))
+  );
+
+  assert.match(
+    text,
+    /For small apology or delayed-reply repair messages, answer like a real person resuming the thread\./
   );
 });
 
