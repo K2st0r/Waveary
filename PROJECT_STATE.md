@@ -15,13 +15,15 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `afe4379` - `Add micro-ack chat cadence`
+- `fb7bd53` - `Broaden micro-ack endings`
 
 ## Latest Repository Surface
 
 - GitHub repository: `https://github.com/K2st0r/Waveary`
 - visibility: `public`
 - default branch: `main`
+- GitHub description: `回响之境 Waveary｜开源数字生命陪伴框架 / Open source digital life companion framework for memory, relationship, timeline, emotion, and voice.`
+- GitHub topics: `waveary`, `hui-xiang-zhi-jing`, `digital-life-companion`, `digital-companion`, `ai-companion`, `companion-framework`, `companion-ai`, `llm-framework`, `long-term-memory`, `memory-framework`, `memory-engine`, `relationship-engine`, `timeline-engine`, `voice-agent`, `emotional-ai`, `open-source`
 - homepage: `https://github.com/K2st0r/Waveary#readme`
 
 ## Modules

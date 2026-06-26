@@ -7739,8 +7739,39 @@ Verification:
 
 Commit:
 
-- pending functional commit
+- `fb7bd53` - `Broaden micro-ack endings`
 
 Push:
 
-- pending
+- succeeded: `git push origin main` pushed functional commit `fb7bd53` to `origin/main`
+
+## 2026-06-26
+
+Objective:
+
+Improve GitHub discoverability by adding Chinese-aware repository metadata without changing the repository URL.
+
+Summary:
+
+- kept the repository name as `Waveary` to avoid changing the GitHub URL, clone path, badges, and inbound links
+- updated the GitHub `About` description to include both Chinese and English positioning around `回响之境`, `开源数字生命陪伴框架`, and the current framework scope
+- replaced the repository topics with a broader search-oriented set that stays URL-safe while still covering Chinese discovery through pinyin and companion-framework semantics, including `hui-xiang-zhi-jing`, `digital-life-companion`, `companion-framework`, `memory-framework`, and related runtime terms
+- recorded the new public repository metadata back into continuity files so future sessions do not drift back to the older English-only GitHub surface
+
+Files changed:
+
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `gh repo view K2st0r/Waveary --json name,description,url,homepageUrl`
+- `gh api repos/K2st0r/Waveary/topics -H "Accept: application/vnd.github+json"`
+
+Commit:
+
+- not applicable; this work updated GitHub repository metadata directly and only synced local continuity notes
+
+Push:
+
+- not applicable
