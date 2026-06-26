@@ -15,6 +15,7 @@ export interface ReplyShapeGuidance {
   shouldLeadWithEmotion: boolean;
   allowParagraphExpansion: boolean;
   ordinarySubtype?:
+    | "check_back"
     | "status_update"
     | "soft_update"
     | "micro_ack"
@@ -49,10 +50,26 @@ const PLAYFUL_PATTERNS = [
 ];
 
 const RECONNECTION_PATTERNS = [
-  /\bmiss\b/i,
-  /\bare you there\b/i,
+  /\bmiss(?:ed|ing)?\b/i,
   /\u60f3\u4f60/,
-  /\u5728\u5417/
+  /\u60f3\u4f60\u4e86/
+];
+
+const CHECK_BACK_PATTERNS = [
+  /^\s*you there\??\s*$/i,
+  /^\s*are you there\??\s*$/i,
+  /^\s*still there\??\s*$/i,
+  /^\s*still up\??\s*$/i,
+  /^\s*you up\??\s*$/i,
+  /^\s*are you awake\??\s*$/i,
+  /^\s*you awake\??\s*$/i,
+  /^\s*you around\??\s*$/i,
+  /^\s*still around\??\s*$/i,
+  /^\s*\u5728\u5417[~\u3002\uff01!?？]*\s*$/u,
+  /^\s*\u8fd8\u5728\u5417[~\u3002\uff01!?？]*\s*$/u,
+  /^\s*\u8fd8\u9192\u7740\u5417[~\u3002\uff01!?？]*\s*$/u,
+  /^\s*\u8fd8\u6ca1\u7761\u5417[~\u3002\uff01!?？]*\s*$/u,
+  /^\s*\u7761\u4e86\u5417[~\u3002\uff01!?？]*\s*$/u
 ];
 
 const STATUS_UPDATE_PATTERNS = [
@@ -248,7 +265,11 @@ export function deriveReplyShapeGuidance(
     userEmotion !== "neutral" ||
     EMOTIONAL_PATTERNS.some((pattern) => pattern.test(content)) ||
     userEmotionIntensity >= 0.58;
-  const practical = PRACTICAL_PATTERNS.some((pattern) => pattern.test(content));
+  const checkBack =
+    CHECK_BACK_PATTERNS.some((pattern) => pattern.test(content)) &&
+    content.length <= 40;
+  const practical =
+    PRACTICAL_PATTERNS.some((pattern) => pattern.test(content)) && !checkBack;
   const playful = PLAYFUL_PATTERNS.some((pattern) => pattern.test(content));
   const reconnection = RECONNECTION_PATTERNS.some((pattern) => pattern.test(content));
   const microAck =
@@ -263,6 +284,7 @@ export function deriveReplyShapeGuidance(
     !practical &&
     !playful &&
     !reconnection &&
+    !checkBack &&
     !microAck;
   const softUpdate =
     SOFT_UPDATE_PATTERNS.some((pattern) => pattern.test(content)) &&
@@ -270,6 +292,7 @@ export function deriveReplyShapeGuidance(
     !practical &&
     !playful &&
     !reconnection &&
+    !checkBack &&
     !microAck &&
     !statusUpdate;
   const delayRepair =
@@ -278,6 +301,7 @@ export function deriveReplyShapeGuidance(
     !practical &&
     !playful &&
     !reconnection &&
+    !checkBack &&
     !microAck &&
     !statusUpdate &&
     !softUpdate;
@@ -287,6 +311,7 @@ export function deriveReplyShapeGuidance(
     !practical &&
     !playful &&
     !reconnection &&
+    !checkBack &&
     !microAck &&
     !statusUpdate &&
     !softUpdate &&
@@ -361,9 +386,11 @@ export function deriveReplyShapeGuidance(
     maxFollowups: userIntensity === "low" ? 0 : 1,
     shouldLeadWithEmotion: false,
     allowParagraphExpansion: false,
-    ordinarySubtype: microAck
-      ? "micro_ack"
-      : statusUpdate
+    ordinarySubtype: checkBack
+      ? "check_back"
+      : microAck
+        ? "micro_ack"
+        : statusUpdate
         ? "status_update"
         : delayRepair
           ? "delay_repair"
@@ -405,7 +432,9 @@ export function describeReplyShapeGuidance(
 
   if (guidance.kind === "ordinary") {
     base.push(
-      guidance.ordinarySubtype === "micro_ack"
+      guidance.ordinarySubtype === "check_back"
+        ? "For light check-back nudges, answer with a brief warm presence signal. Keep it easy and human. Do not turn it into a heavy reunion, a practical answer, or a follow-up chain."
+        : guidance.ordinarySubtype === "micro_ack"
         ? "For tiny confirmations or soft acknowledgments, prefer one very short human reply and usually stop there. Do not inflate the moment into continuity theater, recap, or a fresh question."
         : guidance.ordinarySubtype === "status_update"
         ? "For simple status updates or check-ins, prefer one warm acknowledgment or one acknowledgment plus one tiny continuity beat. Do not turn it into analysis, recap, or a check-in questionnaire."

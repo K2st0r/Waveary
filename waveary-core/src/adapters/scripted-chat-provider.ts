@@ -255,6 +255,7 @@ function assembleReply(
   followup: string,
   kind: "practical" | "ordinary" | "playful" | "reconnection" | "emotional",
   ordinarySubtype?:
+    | "check_back"
     | "status_update"
     | "soft_update"
     | "micro_ack"
@@ -278,6 +279,11 @@ function assembleReply(
     const microAckReply = maybeBuildMicroAckOrdinaryReply(prefix, ordinarySubtype);
     if (microAckReply) {
       return microAckReply;
+    }
+
+    const checkBackReply = maybeBuildCheckBackOrdinaryReply(prefix, ordinarySubtype);
+    if (checkBackReply) {
+      return checkBackReply;
     }
 
     const statusUpdateReply = maybeBuildStatusUpdateOrdinaryReply(
@@ -339,6 +345,7 @@ function maybeBuildStatusUpdateOrdinaryReply(
   continuity: string,
   followup: string,
   ordinarySubtype?:
+    | "check_back"
     | "status_update"
     | "soft_update"
     | "micro_ack"
@@ -363,6 +370,7 @@ function maybeBuildSoftUpdateOrdinaryReply(
   prefix: string,
   continuity: string,
   ordinarySubtype?:
+    | "check_back"
     | "status_update"
     | "soft_update"
     | "micro_ack"
@@ -388,6 +396,7 @@ function maybeBuildDelayRepairOrdinaryReply(
   prefix: string,
   continuity: string,
   ordinarySubtype?:
+    | "check_back"
     | "status_update"
     | "soft_update"
     | "micro_ack"
@@ -413,6 +422,7 @@ function maybeBuildDelayRepairOrdinaryReply(
 function maybeBuildReassuranceCloseOrdinaryReply(
   prefix: string,
   ordinarySubtype?:
+    | "check_back"
     | "status_update"
     | "soft_update"
     | "micro_ack"
@@ -430,6 +440,7 @@ function maybeBuildReassuranceCloseOrdinaryReply(
 function maybeBuildMicroAckOrdinaryReply(
   prefix: string,
   ordinarySubtype?:
+    | "check_back"
     | "status_update"
     | "soft_update"
     | "micro_ack"
@@ -438,6 +449,24 @@ function maybeBuildMicroAckOrdinaryReply(
     | "plain"
 ): string | undefined {
   if (ordinarySubtype !== "micro_ack") {
+    return undefined;
+  }
+
+  return prefix;
+}
+
+function maybeBuildCheckBackOrdinaryReply(
+  prefix: string,
+  ordinarySubtype?:
+    | "check_back"
+    | "status_update"
+    | "soft_update"
+    | "micro_ack"
+    | "delay_repair"
+    | "reassurance_close"
+    | "plain"
+): string | undefined {
+  if (ordinarySubtype !== "check_back") {
     return undefined;
   }
 
