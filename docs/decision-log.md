@@ -2156,3 +2156,25 @@ Impact:
 
 - `docs/assets/readme-hero-fan.png` now uses a broader outward fan geometry, lighter but deeper layered shadows, and a cleaner title block so the header reads more like a formal poster
 - future README hero iterations should stay tightly scoped to static GitHub presentation and avoid dragging runtime UI concerns into the repository cover image
+
+## 2026-06-26 - Open-Source Chat Shell Borrowing Should Prefer Permissive Sources First
+
+Status:
+
+- accepted
+
+Decision:
+
+When Waveary borrows from external open-source chat products, permissive-license projects such as `MIT`, `Apache-2.0`, or `BSD-3-Clause` should be the default first choice for direct reuse. `GPL` or custom-community-license projects should be treated as reference-first unless Waveary deliberately chooses those downstream obligations.
+
+Reason:
+
+- the user wants Waveary to move faster by learning from mature chat products instead of rebuilding every shell pattern from zero
+- that acceleration is useful, but casual copying from `GPLv3` or custom-license projects would create avoidable legal and distribution ambiguity
+- Waveary's real differentiation is still its companionship runtime, so the safest speed gain is to borrow shell and provider ideas from permissive sources while keeping the memory, relationship, emotion, and identity layers Waveary-owned
+
+Impact:
+
+- `docs/open-source-benchmark.md` now records the current benchmark set and their recommended reuse posture
+- `LibreChat` is the strongest default candidate for direct shell-level inspiration or selective reuse
+- `Chatbox CE`, `Open WebUI`, and current `LobeHub / LobeChat` should stay reference-first unless a more deliberate license decision is made

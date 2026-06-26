@@ -7434,3 +7434,38 @@ Commit:
 Push:
 
 - succeeded: `git push origin main` pushed functional commit `8227a3d` to `origin/main`
+
+## 2026-06-26
+
+Objective:
+
+Record a practical open-source benchmark note so Waveary can learn from mature chat shells without re-deciding license boundaries every session.
+
+Summary:
+
+- added `docs/open-source-benchmark.md` as a focused benchmark note covering `LibreChat`, `Chatbox CE`, `Open WebUI`, `LobeHub / LobeChat`, and `CakeChat`
+- classified each project by recommended Waveary posture: selective direct reuse, reference-first, or research-only
+- locked the long-term policy that permissive-license chat products should be preferred first for direct borrowing, while GPL or custom-license products stay reference-first unless Waveary explicitly accepts those obligations
+- updated continuity files so the next dialogue-quality or shell-acceleration pass can start from this benchmark instead of redoing the same licensing and reuse analysis
+
+Files changed:
+
+- `docs/open-source-benchmark.md`
+- `docs/product-preferences.md`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- manual review of the benchmark note against the current Waveary repo direction
+- `git diff -- docs/open-source-benchmark.md docs/product-preferences.md PROJECT_STATE.md ACTIVE_TASKS.md docs/decision-log.md docs/session-log.md`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
