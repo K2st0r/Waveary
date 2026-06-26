@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `24cdeec` - `Tighten dialogue realism cadence`
+- `e2efa10` - `Tighten low-stakes chat cadence`
 
 ## Latest Repository Surface
 
