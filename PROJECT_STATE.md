@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `9dc4cd8` - `Add soft-update chat cadence`
+- `c2a5a13` - `Add delay-repair chat cadence`
 
 ## Latest Repository Surface
 
