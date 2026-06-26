@@ -1449,6 +1449,32 @@ test("OpenAICompatibleChatProvider gives the same short-texting guidance for tra
   );
 });
 
+test("OpenAICompatibleChatProvider gives dedicated soft-update guidance for lightly hedged everyday plans", async () => {
+  const instruction = await captureInstruction(
+    createRequest({
+      messages: [
+        {
+          id: "m1",
+          sessionId: "session-1",
+          role: "user",
+          content: "maybe a bit later",
+          timestamp: new Date().toISOString(),
+          metadata: {}
+        }
+      ],
+      relevantMemories: [],
+      timeline: []
+    })
+  );
+
+  assert.match(instruction, /Current reply mode: ordinary\./);
+  assert.match(instruction, /Maximum natural follow-up questions: 0\./);
+  assert.match(
+    instruction,
+    /For lightly hedged updates or quiet plan confirmations, answer like a quick human text back\./
+  );
+});
+
 test("OpenAICompatibleChatProvider gives dedicated micro-ack guidance for tiny confirmations", async () => {
   const instruction = await captureInstruction(
     createRequest({
