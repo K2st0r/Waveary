@@ -7665,3 +7665,44 @@ Commit:
 Push:
 
 - pending continuity sync commit
+
+## 2026-06-26
+
+Objective:
+
+Extend the low-stakes texting realism pass so more everyday micro-updates get short warm replies and stop leaking into name inference or heavier reconnection cadence.
+
+Summary:
+
+- updated `waveary-core/src/runtime/reply-shape.ts` so the short ordinary status-update bucket now also catches transit / arrival / wake-up texts such as `I'm on my way.`, `I arrived.`, `just woke up`, `我到了`, `在路上`, and `刚醒`
+- removed the bare `back` token from the reconnection bucket and kept plain `I'm back.` in the short status-update path unless the user adds stronger reconnection cues
+- updated `waveary-core/src/runtime/getting-to-know-you.ts` so casual status tokens such as `on`, `awake`, and `arrived` no longer risk becoming false preferred-name memory
+- added focused regression coverage across `reply-shape`, `getting-to-know-you`, live-provider prompt assembly, and runtime behavior, then re-verified the full compiled `@waveary/core` test suite
+
+Files changed:
+
+- `waveary-core/src/runtime/reply-shape.ts`
+- `waveary-core/src/runtime/reply-shape.test.ts`
+- `waveary-core/src/runtime/getting-to-know-you.ts`
+- `waveary-core/src/runtime/getting-to-know-you.test.ts`
+- `waveary-core/src/adapters/openai-compatible-provider.test.ts`
+- `waveary-core/src/runtime/waveary-runtime.test.ts`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/core`
+- `npm run build --workspace @waveary/core`
+- PowerShell compiled-test verification via:
+  `$files = @(Get-ChildItem 'waveary-core\\dist' -Recurse -Filter '*.test.js' | Sort-Object FullName | ForEach-Object { $_.FullName }); & node --test @files`
+
+Commit:
+
+- pending functional commit
+
+Push:
+
+- pending

@@ -2291,3 +2291,25 @@ Impact:
 - `waveary-web/server/provider-api.ts` now calls `resetChatRuntimeSessions()` after `saveProviderConfig(...)`
 - the web test suite now includes a route-level regression proving that one chat turn can use `model-a`, a following `/api/provider/config` save can switch to `model-b`, and the next chat turn in the same session really uses `model-b`
 - future provider-setup changes should treat saved provider config and active chat runtime as one consistency boundary instead of assuming file persistence alone is enough
+
+## 2026-06-26 - Low-Stakes Status Updates Should Cover Real Texting Micro-Updates, Not Only Home Or Done
+
+Status:
+
+- accepted
+
+Decision:
+
+Waveary's low-stakes short-texting path should treat real messaging micro-updates such as `I'm on my way.`, `I arrived.`, `just woke up`, `我到了`, `在路上`, and `刚醒` as the same ordinary status-update subtype as `I'm home now.`, and a plain `I'm back.` should stay in that short ordinary bucket unless the user adds explicit reconnection cues like `I missed you` or `are you there?`.
+
+Reason:
+
+- the user wants the companion to feel like a real person texting, and these transit / arrival / wake-up updates are common human micro-messages that should get a short warm acknowledgment instead of assistant cadence
+- the earlier bounded status-update pass still left real everyday messages outside the short-texting bucket and could also let `I'm back.` drift toward the heavier reconnection mode just because of the bare word `back`
+- those same short forms overlap with broad early-name inference, so the realism pass is incomplete unless the parser also stops treating tokens like `on`, `awake`, or `arrived` as potential preferred names
+
+Impact:
+
+- `waveary-core/src/runtime/reply-shape.ts` now treats more English and Chinese transit / arrival / wake-up micro-updates as `ordinarySubtype: status_update`
+- the reconnection bucket now depends on clearer emotional return signals such as `miss` or `are you there`, instead of grabbing every plain `back` message
+- `waveary-core/src/runtime/getting-to-know-you.ts` now also rejects new casual status tokens such as `on`, `awake`, and `arrived` so those micro-updates do not pollute remembered identity

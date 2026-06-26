@@ -52,6 +52,24 @@ test("deriveReplyShapeGuidance leaves non-status ordinary chat in the plain buck
   assert.equal(guidance.ordinarySubtype, "plain");
 });
 
+test("deriveReplyShapeGuidance treats quick arrival and transit texts as status updates", () => {
+  const transitGuidance = deriveReplyShapeGuidance(createRequest("I'm on my way."));
+  const arrivalGuidance = deriveReplyShapeGuidance(createRequest("我到了。"));
+
+  assert.equal(transitGuidance.kind, "ordinary");
+  assert.equal(transitGuidance.ordinarySubtype, "status_update");
+  assert.equal(arrivalGuidance.kind, "ordinary");
+  assert.equal(arrivalGuidance.ordinarySubtype, "status_update");
+});
+
+test("deriveReplyShapeGuidance keeps plain I'm back in the status-update bucket", () => {
+  const guidance = deriveReplyShapeGuidance(createRequest("I'm back."));
+
+  assert.equal(guidance.kind, "ordinary");
+  assert.equal(guidance.ordinarySubtype, "status_update");
+  assert.equal(guidance.maxFollowups, 0);
+});
+
 test("deriveReplyShapeGuidance catches softer emotional support requests earlier", () => {
   const guidance = deriveReplyShapeGuidance(
     createRequest("I am tired. I do not want advice, I just want someone here.")

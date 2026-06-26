@@ -1419,6 +1419,36 @@ test("OpenAICompatibleChatProvider gives dedicated short-texting guidance for si
   );
 });
 
+test("OpenAICompatibleChatProvider gives the same short-texting guidance for transit updates", async () => {
+  const instruction = await captureInstruction(
+    createRequest({
+      messages: [
+        {
+          id: "m1",
+          sessionId: "session-1",
+          role: "user",
+          content: "I'm on my way.",
+          timestamp: new Date().toISOString(),
+          metadata: {}
+        }
+      ],
+      relevantMemories: [],
+      timeline: []
+    })
+  );
+
+  assert.match(instruction, /Current reply mode: ordinary\./);
+  assert.match(instruction, /Maximum natural follow-up questions: 0\./);
+  assert.match(
+    instruction,
+    /For simple status updates or check-ins, prefer one warm acknowledgment or one acknowledgment plus one tiny continuity beat\./
+  );
+  assert.match(
+    instruction,
+    /No confirmed preferred user name has been established yet\./
+  );
+});
+
 test("OpenAICompatibleChatProvider keeps emotional-turn continuity guidance restrained when only a weak timeline thread is available", async () => {
   const instruction = await captureInstruction(
     createRequest({
