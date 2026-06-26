@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `8427908` - `Polish README hero presentation`
+- `8227a3d` - `Refine README hero banner composition`
 
 ## Latest Repository Surface
 
