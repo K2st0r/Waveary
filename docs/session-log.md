@@ -7336,3 +7336,35 @@ Commit:
 Push:
 
 - succeeded: `git push origin main` pushed functional commit `73a6e5e` to `origin/main`
+
+## 2026-06-26
+
+Objective:
+
+Rewrite the root GitHub homepage into a stronger formal bilingual README that matches Waveary's current framework positioning.
+
+Summary:
+
+- replaced the older root `README.md` draft with a cleaner bilingual GitHub homepage centered on `回响之境 · Waveary`, the final slogan `念念不忘，终有回响。`, and the open source Digital Life Companion Framework positioning
+- tightened the homepage information architecture into a more formal open-source-project flow: overview, why, positioning, core thesis, current capabilities, engines, architecture, repository structure, quick start, project route, and contribution entrypoints
+- kept the README aligned with the current repository reality by using the actual monorepo packages and current root scripts instead of writing speculative module names or nonexistent commands
+- re-verified the changed Chinese-facing lines with the repo mojibake guard and a direct `git diff`
+
+Files changed:
+
+- `README.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check:mojibake`
+- `git diff -- README.md`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending

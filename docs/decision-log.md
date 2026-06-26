@@ -585,6 +585,28 @@ Impact:
 - `waveary-web/server/local-actions.ts` now recognizes natural requests such as `open second result for Waveary` and routes them through a new `browser_open_result_at_index` action kind
 - follow-up browser work should stay on similarly narrow disambiguation primitives such as richer field targeting or explicit link selection, not a broad unconstrained web agent
 
+## 2026-06-26 - Root README Should Be A Formal Bilingual Project Homepage
+
+Status:
+
+- accepted
+
+Decision:
+
+Rewrite the repository root `README.md` as a concise bilingual GitHub homepage for Waveary, centered on the project's open source Digital Life Companion Framework positioning rather than leaving it as a partially corrupted or overly draft-like project note.
+
+Reason:
+
+- the GitHub landing page is the first public surface many users will see, so it needs to communicate identity, scope, capabilities, and direction quickly
+- the previous root README had visible mojibake and mixed several older structures together, which weakened credibility
+- the project has already stabilized enough product framing in `docs/vision.md`, `docs/architecture.md`, and `docs/product-invariants.md` to support a more formal homepage
+
+Impact:
+
+- `README.md` now opens with the final slogan `念念不忘，终有回响。` and a tighter bilingual hero
+- the root homepage now presents Waveary through clearer sections for overview, positioning, core thesis, current capabilities, core engines, architecture, repository structure, quick start, and project route
+- future GitHub-facing copy should preserve the formal framework-first positioning and avoid drifting back toward `AI girlfriend` or draft-note framing
+
 ## 2026-06-24 - Managed Browser Submit Must Use Real Playwright Interaction, And Repo-Root Data State Must Stay Unified
 
 Status:
