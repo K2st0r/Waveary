@@ -254,7 +254,13 @@ function assembleReply(
   identityLine: string,
   followup: string,
   kind: "practical" | "ordinary" | "playful" | "reconnection" | "emotional",
-  ordinarySubtype?: "status_update" | "soft_update" | "micro_ack" | "delay_repair" | "plain"
+  ordinarySubtype?:
+    | "status_update"
+    | "soft_update"
+    | "micro_ack"
+    | "delay_repair"
+    | "reassurance_close"
+    | "plain"
 ): string {
   if (kind === "practical") {
     return [continuity, identityLine, followup].filter(Boolean).join(" ").trim();
@@ -302,6 +308,14 @@ function assembleReply(
       return delayRepairReply;
     }
 
+    const reassuranceCloseReply = maybeBuildReassuranceCloseOrdinaryReply(
+      prefix,
+      ordinarySubtype
+    );
+    if (reassuranceCloseReply) {
+      return reassuranceCloseReply;
+    }
+
     if (continuity && followup.startsWith("Tell me a little more")) {
       return [prefix, continuity].filter(Boolean).join(" ").trim();
     }
@@ -324,7 +338,13 @@ function maybeBuildStatusUpdateOrdinaryReply(
   prefix: string,
   continuity: string,
   followup: string,
-  ordinarySubtype?: "status_update" | "soft_update" | "micro_ack" | "delay_repair" | "plain"
+  ordinarySubtype?:
+    | "status_update"
+    | "soft_update"
+    | "micro_ack"
+    | "delay_repair"
+    | "reassurance_close"
+    | "plain"
 ): string | undefined {
   if (ordinarySubtype !== "status_update") {
     return undefined;
@@ -342,7 +362,13 @@ function maybeBuildStatusUpdateOrdinaryReply(
 function maybeBuildSoftUpdateOrdinaryReply(
   prefix: string,
   continuity: string,
-  ordinarySubtype?: "status_update" | "soft_update" | "micro_ack" | "delay_repair" | "plain"
+  ordinarySubtype?:
+    | "status_update"
+    | "soft_update"
+    | "micro_ack"
+    | "delay_repair"
+    | "reassurance_close"
+    | "plain"
 ): string | undefined {
   if (ordinarySubtype !== "soft_update") {
     return undefined;
@@ -361,7 +387,13 @@ function maybeBuildSoftUpdateOrdinaryReply(
 function maybeBuildDelayRepairOrdinaryReply(
   prefix: string,
   continuity: string,
-  ordinarySubtype?: "status_update" | "soft_update" | "micro_ack" | "delay_repair" | "plain"
+  ordinarySubtype?:
+    | "status_update"
+    | "soft_update"
+    | "micro_ack"
+    | "delay_repair"
+    | "reassurance_close"
+    | "plain"
 ): string | undefined {
   if (ordinarySubtype !== "delay_repair") {
     return undefined;
@@ -378,9 +410,32 @@ function maybeBuildDelayRepairOrdinaryReply(
   return [prefix, continuityBeat].filter(Boolean).join(" ").trim();
 }
 
+function maybeBuildReassuranceCloseOrdinaryReply(
+  prefix: string,
+  ordinarySubtype?:
+    | "status_update"
+    | "soft_update"
+    | "micro_ack"
+    | "delay_repair"
+    | "reassurance_close"
+    | "plain"
+): string | undefined {
+  if (ordinarySubtype !== "reassurance_close") {
+    return undefined;
+  }
+
+  return prefix;
+}
+
 function maybeBuildMicroAckOrdinaryReply(
   prefix: string,
-  ordinarySubtype?: "status_update" | "soft_update" | "micro_ack" | "delay_repair" | "plain"
+  ordinarySubtype?:
+    | "status_update"
+    | "soft_update"
+    | "micro_ack"
+    | "delay_repair"
+    | "reassurance_close"
+    | "plain"
 ): string | undefined {
   if (ordinarySubtype !== "micro_ack") {
     return undefined;

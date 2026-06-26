@@ -14,7 +14,13 @@ export interface ReplyShapeGuidance {
   maxFollowups: 0 | 1;
   shouldLeadWithEmotion: boolean;
   allowParagraphExpansion: boolean;
-  ordinarySubtype?: "status_update" | "soft_update" | "micro_ack" | "delay_repair" | "plain";
+  ordinarySubtype?:
+    | "status_update"
+    | "soft_update"
+    | "micro_ack"
+    | "delay_repair"
+    | "reassurance_close"
+    | "plain";
 }
 
 const PRACTICAL_PATTERNS = [
@@ -137,6 +143,24 @@ const DELAY_REPAIR_PATTERNS = [
   /^\s*\u65b9\u624d\u5728\u5fd9[~\u3002\uff01!]?[\s]*$/u
 ];
 
+const REASSURANCE_CLOSE_PATTERNS = [
+  /^\s*no worries(?:\s+then)?\.?\s*$/i,
+  /^\s*it's okay(?:\s+then)?\.?\s*$/i,
+  /^\s*it is okay(?:\s+then)?\.?\s*$/i,
+  /^\s*get some rest(?:\s+then|\s+tonight)?\.?\s*$/i,
+  /^\s*rest early(?:\s+tonight)?\.?\s*$/i,
+  /^\s*do not overthink it(?:\s+tonight)?\.?\s*$/i,
+  /^\s*don't overthink it(?:\s+tonight)?\.?\s*$/i,
+  /^\s*sleep early(?:\s+tonight)?\.?\s*$/i,
+  /^\s*\u6ca1\u4e8b\u5566[~\u3002\uff01!]?[\s]*$/u,
+  /^\s*\u6ca1\u4e8b\u7684[~\u3002\uff01!]?[\s]*$/u,
+  /^\s*\u522b\u60f3\u592a\u591a\u5566[~\u3002\uff01!]?[\s]*$/u,
+  /^\s*\u522b\u60f3\u592a\u591a\u4e86[~\u3002\uff01!]?[\s]*$/u,
+  /^\s*\u65e9\u70b9\u4f11\u606f\u5427[~\u3002\uff01!]?[\s]*$/u,
+  /^\s*\u5feb\u53bb\u4f11\u606f\u5427[~\u3002\uff01!]?[\s]*$/u,
+  /^\s*\u4f60\u5148\u597d\u597d\u4f11\u606f[~\u3002\uff01!]?[\s]*$/u
+];
+
 const MICRO_ACK_PATTERNS = [
   /^\s*ok(?:ay)?\.?\s*$/i,
   /^\s*ok(?:ay)?\s+ok(?:ay)?\.?\s*$/i,
@@ -257,6 +281,16 @@ export function deriveReplyShapeGuidance(
     !microAck &&
     !statusUpdate &&
     !softUpdate;
+  const reassuranceClose =
+    REASSURANCE_CLOSE_PATTERNS.some((pattern) => pattern.test(content)) &&
+    content.length <= 72 &&
+    !practical &&
+    !playful &&
+    !reconnection &&
+    !microAck &&
+    !statusUpdate &&
+    !softUpdate &&
+    !delayRepair;
 
   let kind: ReplyShapeKind = "ordinary";
   if (emotional) {
@@ -333,9 +367,11 @@ export function deriveReplyShapeGuidance(
         ? "status_update"
         : delayRepair
           ? "delay_repair"
-        : softUpdate
-          ? "soft_update"
-          : "plain"
+          : softUpdate
+            ? "soft_update"
+            : reassuranceClose
+              ? "reassurance_close"
+              : "plain"
   };
 }
 
@@ -375,6 +411,8 @@ export function describeReplyShapeGuidance(
         ? "For simple status updates or check-ins, prefer one warm acknowledgment or one acknowledgment plus one tiny continuity beat. Do not turn it into analysis, recap, or a check-in questionnaire."
         : guidance.ordinarySubtype === "delay_repair"
         ? "For small apology or delayed-reply repair messages, answer like a real person resuming the thread. Keep it brief, warm, and do not turn the apology into a heavy emotional scene."
+        : guidance.ordinarySubtype === "reassurance_close"
+        ? "For gentle reassurance or soft rest-style closers, answer with a brief warm receipt. Do not reopen the conversation unless the user clearly leaves the door open."
         : guidance.ordinarySubtype === "soft_update"
         ? "For lightly hedged updates or quiet plan confirmations, answer like a quick human text back. Keep it short, lightly warm, and usually question-free."
         : guidance.maxFollowups === 0

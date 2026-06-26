@@ -484,6 +484,40 @@ test("WavearyRuntime keeps small apology repair messages brief and low-pressure"
   assert.ok(result.reply.content.length < 220);
 });
 
+test("WavearyRuntime keeps gentle reassurance closers brief and non-reopening", async () => {
+  const runtime = new WavearyRuntime({
+    chatProvider: new ScriptedChatProvider(),
+    emotionAnalyzer: new SimpleEmotionAnalyzer(),
+    emotionStore: new InMemoryEmotionStore(),
+    emotionEngine: new SimpleCompanionEmotionEngine(),
+    identityStore: new InMemoryIdentityStore(),
+    identityEngine: new SimpleIdentityEngine(),
+    proactiveCareEngine: new SimpleProactiveCareEngine(),
+    memoryStore: new TestMemoryStore(),
+    memoryExtractor: new TestMemoryExtractor(),
+    relationshipStore: new InMemoryRelationshipStore(),
+    relationshipEngine: new SimpleRelationshipEngine(),
+    timelineStore: new InMemoryTimelineStore(),
+    timelineEngine: new SimpleTimelineEngine()
+  });
+
+  const context = createContext();
+  const message: Message = {
+    id: "turn-status-2d",
+    sessionId: context.session.id,
+    role: "user",
+    content: "get some rest then",
+    timestamp: new Date().toISOString(),
+    metadata: {}
+  };
+
+  const result = await runtime.handleTurn(context, message);
+
+  assert.ok(!result.reply.content.includes("Tell me a little more"));
+  assert.ok(!result.reply.content.includes("I still remember"));
+  assert.ok(result.reply.content.length < 180);
+});
+
 test("WavearyRuntime keeps micro acknowledgments extremely brief", async () => {
   const runtime = new WavearyRuntime({
     chatProvider: new ScriptedChatProvider(),

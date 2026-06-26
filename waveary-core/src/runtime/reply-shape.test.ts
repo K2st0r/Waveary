@@ -88,6 +88,22 @@ test("deriveReplyShapeGuidance treats small apology repair messages as delay-rep
   assert.equal(chineseGuidance.maxFollowups, 0);
 });
 
+test("deriveReplyShapeGuidance treats gentle reassurance closers as reassurance-close updates", () => {
+  const englishGuidance = deriveReplyShapeGuidance(
+    createRequest("get some rest then")
+  );
+  const chineseGuidance = deriveReplyShapeGuidance(
+    createRequest("\u65e9\u70b9\u4f11\u606f\u5427")
+  );
+
+  assert.equal(englishGuidance.kind, "ordinary");
+  assert.equal(englishGuidance.ordinarySubtype, "reassurance_close");
+  assert.equal(englishGuidance.maxFollowups, 0);
+  assert.equal(chineseGuidance.kind, "ordinary");
+  assert.equal(chineseGuidance.ordinarySubtype, "reassurance_close");
+  assert.equal(chineseGuidance.maxFollowups, 0);
+});
+
 test("deriveReplyShapeGuidance treats micro acknowledgments as their own short ordinary subtype", () => {
   const englishGuidance = deriveReplyShapeGuidance(createRequest("got it"));
   const chineseGuidance = deriveReplyShapeGuidance(createRequest("嗯嗯"));
@@ -191,6 +207,17 @@ test("describeReplyShapeGuidance includes delay-repair constraints", () => {
   assert.match(
     text,
     /For small apology or delayed-reply repair messages, answer like a real person resuming the thread\./
+  );
+});
+
+test("describeReplyShapeGuidance includes reassurance-close constraints", () => {
+  const text = describeReplyShapeGuidance(
+    deriveReplyShapeGuidance(createRequest("don't overthink it tonight"))
+  );
+
+  assert.match(
+    text,
+    /For gentle reassurance or soft rest-style closers, answer with a brief warm receipt\./
   );
 });
 
