@@ -7293,6 +7293,44 @@ Verification:
 
 Commit:
 
+- `f976852` - `Tighten identity summary conflict handling`
+
+Push:
+
+- succeeded: `git push origin main` pushed functional commit `f976852` to `origin/main`
+
+## 2026-06-26
+
+Objective:
+
+Extend the bounded managed-browser result-opening path so Waveary can explicitly open the requested nth visible result without widening into a broad browser agent.
+
+Summary:
+
+- extended `waveary-web/server/browser-automation.ts` with an explicit `openManagedBrowserNthVisibleLink(...)` path that reuses the same visible-link filtering logic while selecting a requested visible result index
+- updated `waveary-web/server/provider-api.ts` so `/api/browser/open-result` now accepts `resultIndex`, preserving the existing route shape while adding explicit indexed selection
+- updated `waveary-web/server/local-actions.ts` plus `waveary-web/server/local-action-audit.ts` so natural requests such as `open second result for Waveary` become a new bounded `browser_open_result_at_index` action with grounded execution, dismissal, and failure notes
+- added route and chat-flow regression coverage in `waveary-web/server/provider-api.test.ts`, then re-verified the web package end to end
+
+Files changed:
+
+- `waveary-web/server/browser-automation.ts`
+- `waveary-web/server/local-action-audit.ts`
+- `waveary-web/server/local-actions.ts`
+- `waveary-web/server/provider-api.test.ts`
+- `waveary-web/server/provider-api.ts`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run test --workspace @waveary/web`
+
+Commit:
+
 - pending
 
 Push:

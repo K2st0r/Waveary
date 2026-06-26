@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `ce42f54` - `Record identity summary refinement step`
+- `f976852` - `Tighten identity summary conflict handling`
 
 ## Latest Repository Surface
 
@@ -176,6 +176,7 @@ Brand line:
   - those bounded browser read and click capabilities now also flow through the existing chat-side pending-action card and `full-access` auto-run path, so they are no longer trapped behind standalone browser routes with no conversation-level permission wiring
   - default natural-language search-site opens now prefer `Bing` over `Google` on the local browser path for mainland-China usability, while explicit URLs still open exactly as given
   - the managed browser layer can now also open the first visible result link, or the first visible link whose text matches a requested phrase, through the same permissioned local-action path instead of requiring raw click-text phrasing every time
+  - the managed browser layer can now also open an explicit visible result index such as the second or third result through the same permissioned local-action path, so simple disambiguation no longer requires a broader browser agent
   - browser action execution notes can now return grounded companion-side summaries such as page-reading excerpts, page-search matches, clickable-target lists, and click-follow-up state instead of always reusing the older open-site wording
   - local-action reply wording now stays more companion-like after execution or dismissal, so successful browser opens no longer read like a sterile audit log or drift into made-up “virtual homepage” narration
   - Chinese open-site detection now recognizes broader Bilibili phrasing such as `打开哔哩哔哩` in addition to raw English `open bilibili`
@@ -420,7 +421,7 @@ Brand line:
 - keep future realtime voice and full-duplex work behind the new `waveary-voice` package boundary instead of blending media logic into `waveary-web` directly
 - continue refining the new three-step chat permission presets so the difference between `high-permission` and `full-access` stays legible now that `full-access` also returns same-turn execution-consistent replies instead of showing a contradiction between model text and local action outcome
 - add a focused browser pass for chat-integrated browser actions so the live `#chat` page is re-verified end-to-end against page-read, page-search, clickable-list, and click-by-text flows, not only route-level tests
-- extend the new Playwright-backed browser path from current-page info, extract-text, page-search, clickable-list, and click-by-text into one next bounded interaction cut such as explicit link selection or form-field targeting, while keeping permission prompts, auditability, and revocation explicit
+- extend the new Playwright-backed browser path from current-page info, extract-text, page-search, clickable-list, click-by-text, and nth-result opening into one next bounded interaction cut such as explicit link selection or richer form-field targeting, while keeping permission prompts, auditability, and revocation explicit
 - consider showing a user-facing indicator in the console or chat flow when a proactive care wait-state has been cleared by a real reply, so the permissioned care loop is more legible
 - consider distinguishing affirmative proactive recommendations from blocked evaluations more visually in the console card now that their text is user-facing
 - consider exposing a smaller single-line status echo near the evaluate button so the latest `WPCE` conclusion remains visible even when the full decision card scrolls out of view

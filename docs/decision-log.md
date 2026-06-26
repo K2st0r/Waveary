@@ -562,6 +562,29 @@ Impact:
 - `waveary-web/server/local-actions.ts` now recognizes result-opening requests such as `open result for Waveary` and routes them through a new `browser_open_first_result` action kind
 - follow-up browser work should stay on similarly bounded primitives such as nth-result selection or richer form targeting, not a broad unconstrained browser planner
 
+## 2026-06-26 - Browser Result Opening Can Extend To Explicit Nth Visible Result Selection
+
+Status:
+
+- accepted
+
+Decision:
+
+Extend the existing bounded result-opening path so Waveary can explicitly open the 2nd or 3rd visible result when the user asks for that index, instead of broadening immediately into generic ranking logic or free-form browser autonomy.
+
+Reason:
+
+- the current browser path already completes `open page -> search/fill -> open first result`, and explicit nth-result selection is the smallest honest next step for disambiguation
+- users often mean "not the first one, open the second result" in a way that is concrete, verifiable, and still easy to audit
+- this preserves the existing trust boundary: one explicit requested result index, one visible browser action, one grounded follow-up note
+
+Impact:
+
+- `waveary-web/server/browser-automation.ts` now supports opening an explicit visible result index through `openManagedBrowserNthVisibleLink(...)`
+- `waveary-web/server/provider-api.ts` now lets `/api/browser/open-result` accept `resultIndex`
+- `waveary-web/server/local-actions.ts` now recognizes natural requests such as `open second result for Waveary` and routes them through a new `browser_open_result_at_index` action kind
+- follow-up browser work should stay on similarly narrow disambiguation primitives such as richer field targeting or explicit link selection, not a broad unconstrained web agent
+
 ## 2026-06-24 - Managed Browser Submit Must Use Real Playwright Interaction, And Repo-Root Data State Must Stay Unified
 
 Status:

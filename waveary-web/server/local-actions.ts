@@ -10,6 +10,7 @@ import {
   getManagedBrowserPageInfo,
   listManagedBrowserClickableElements,
   openManagedBrowserFirstVisibleLink,
+  openManagedBrowserNthVisibleLink,
   openManagedBrowserPage,
   searchManagedBrowserPageText,
   type BrowserClickableElement,
@@ -27,6 +28,7 @@ export type LocalActionKind =
   | "browser_fill_text"
   | "browser_fill_submit_text"
   | "browser_open_first_result"
+  | "browser_open_result_at_index"
   | "browser_open_bilibili_video";
 export type LocalActionPermissionLevel = "allow" | "ask" | "deny";
 export type LocalActionLocale = "zh" | "en";
@@ -39,6 +41,7 @@ export interface PendingLocalAction {
   targetLabel: string;
   summary: string;
   value?: string;
+  resultIndex?: number;
 }
 
 export interface ExecutedLocalAction {
@@ -51,6 +54,11 @@ type LocalActionExecutor = (
   action: PendingLocalAction,
   locale?: LocalActionLocale
 ) => Promise<ExecutedLocalAction>;
+
+interface BrowserOpenResultInstruction {
+  query?: string;
+  resultIndex: number;
+}
 
 const KNOWN_URLS: Array<{
   pattern: RegExp;
@@ -165,13 +173,28 @@ export async function detectPendingLocalAction(message: string): Promise<Pending
 
   const browserOpenResultTarget = extractBrowserOpenResultInstruction(trimmed);
   if (browserOpenResultTarget) {
+    if (browserOpenResultTarget.resultIndex > 1) {
+      const targetLabel = browserOpenResultTarget.query ?? "__nth_visible_result__";
+      return buildPendingLocalAction(
+        "browser_open_result_at_index",
+        targetLabel,
+        targetLabel,
+        browserOpenResultTarget.query
+          ? `Open the ${formatVisibleResultOrdinal(browserOpenResultTarget.resultIndex, "en")} visible result for ${browserOpenResultTarget.query}`
+          : `Open the ${formatVisibleResultOrdinal(browserOpenResultTarget.resultIndex, "en")} visible result`,
+        undefined,
+        browserOpenResultTarget.resultIndex
+      );
+    }
+
+    const targetLabel = browserOpenResultTarget.query ?? "__first_visible_result__";
     return buildPendingLocalAction(
       "browser_open_first_result",
-      browserOpenResultTarget,
-      browserOpenResultTarget,
-      browserOpenResultTarget === "__first_visible_result__"
-        ? "Open the first visible result"
-        : `Open the first visible result for ${browserOpenResultTarget}`
+      targetLabel,
+      targetLabel,
+      browserOpenResultTarget.query
+        ? `Open the first visible result for ${browserOpenResultTarget.query}`
+        : "Open the first visible result"
     );
   }
 
@@ -398,41 +421,102 @@ function extractBrowserFillInstruction(
   return null;
 }
 
-function extractBrowserOpenResultInstruction(message: string): string | null {
-  const englishPatterns = [
-    /^(?:open|click)\s+(?:the\s+)?first\s+(?:search\s+)?result(?:\s+for\s+["“]?(.+?)["”]?)?$/i,
-    /^(?:open|click)\s+(?:the\s+)?result\s+for\s+["“]?(.+?)["”]?$/i
+function extractBrowserOpenResultInstruction(message: string): BrowserOpenResultInstruction | null {
+  const englishPatterns: Array<{
+    pattern: RegExp;
+    resultIndex: number;
+  }> = [
+    {
+      pattern:
+        /^(?:open|click)\s+(?:the\s+)?(?:1st|first)\s+(?:search\s+)?result(?:\s+for\s+["“]?(.+?)["”]?)?$/i,
+      resultIndex: 1
+    },
+    {
+      pattern:
+        /^(?:open|click)\s+(?:the\s+)?(?:2nd|second)\s+(?:search\s+)?result(?:\s+for\s+["“]?(.+?)["”]?)?$/i,
+      resultIndex: 2
+    },
+    {
+      pattern:
+        /^(?:open|click)\s+(?:the\s+)?(?:3rd|third)\s+(?:search\s+)?result(?:\s+for\s+["“]?(.+?)["”]?)?$/i,
+      resultIndex: 3
+    },
+    {
+      pattern: /^(?:open|click)\s+(?:the\s+)?first\s+(?:search\s+)?result(?:\s+for\s+["“]?(.+?)["”]?)?$/i,
+      resultIndex: 1
+    },
+    {
+      pattern: /^(?:open|click)\s+(?:the\s+)?result\s+for\s+["“]?(.+?)["”]?$/i,
+      resultIndex: 1
+    }
   ];
-  const chinesePatterns = [
-    /^打开(?:第一个)?(?:搜索)?结果(?:，|,| )?(?:关于|有关)?["“]?(.+?)["”]?$/,
-    /^点开(?:第一个)?(?:搜索)?结果(?:，|,| )?(?:关于|有关)?["“]?(.+?)["”]?$/,
-    /^打开第一个结果$/,
-    /^点开第一个结果$/
+  const chinesePatterns: Array<{
+    pattern: RegExp;
+    resultIndex: number;
+  }> = [
+    {
+      pattern: /^打开(?:第(?:1|一)|第一个)?(?:搜索)?结果(?:，|,| )?(?:关于|有关)?["“]?(.+?)["”]?$/,
+      resultIndex: 1
+    },
+    {
+      pattern: /^打开第(?:2|二)个(?:搜索)?结果(?:，|,| )?(?:关于|有关)?["“]?(.+?)["”]?$/,
+      resultIndex: 2
+    },
+    {
+      pattern: /^打开第(?:3|三)个(?:搜索)?结果(?:，|,| )?(?:关于|有关)?["“]?(.+?)["”]?$/,
+      resultIndex: 3
+    },
+    {
+      pattern: /^点开(?:第(?:1|一)|第一个)?(?:搜索)?结果(?:，|,| )?(?:关于|有关)?["“]?(.+?)["”]?$/,
+      resultIndex: 1
+    },
+    {
+      pattern: /^点开第(?:2|二)个(?:搜索)?结果(?:，|,| )?(?:关于|有关)?["“]?(.+?)["”]?$/,
+      resultIndex: 2
+    },
+    {
+      pattern: /^点开第(?:3|三)个(?:搜索)?结果(?:，|,| )?(?:关于|有关)?["“]?(.+?)["”]?$/,
+      resultIndex: 3
+    },
+    {
+      pattern: /^打开第一个结果$/,
+      resultIndex: 1
+    },
+    {
+      pattern: /^点开第一个结果$/,
+      resultIndex: 1
+    }
   ];
 
-  for (const pattern of englishPatterns) {
-    const match = message.match(pattern);
+  for (const entry of englishPatterns) {
+    const match = message.match(entry.pattern);
     const query = match?.[1]?.trim();
 
-    if (query) {
-      return stripTrailingPunctuation(query);
-    }
-
-    if (/first\s+(?:search\s+)?result/i.test(message)) {
-      return "__first_visible_result__";
+    if (match) {
+      return query
+        ? {
+            query: stripTrailingPunctuation(query),
+            resultIndex: entry.resultIndex
+          }
+        : {
+            resultIndex: entry.resultIndex
+          };
     }
   }
 
-  for (const pattern of chinesePatterns) {
-    const match = message.match(pattern);
+  for (const entry of chinesePatterns) {
+    const match = message.match(entry.pattern);
     const query = match?.[1]?.trim();
 
-    if (query) {
-      return stripTrailingPunctuation(query);
-    }
-
-    if (/第一个结果/.test(message)) {
-      return "__first_visible_result__";
+    if (match) {
+      return query
+        ? {
+            query: stripTrailingPunctuation(query),
+            resultIndex: entry.resultIndex
+          }
+        : {
+            resultIndex: entry.resultIndex
+          };
     }
   }
 
@@ -463,7 +547,8 @@ function buildPendingLocalAction(
   target: string,
   targetLabel: string,
   summary: string,
-  value?: string
+  value?: string,
+  resultIndex?: number
 ): PendingLocalAction {
   return {
     id: `local-action-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
@@ -472,6 +557,7 @@ function buildPendingLocalAction(
     target,
     targetLabel,
     summary,
+    ...(resultIndex !== undefined ? { resultIndex } : {}),
     ...(value !== undefined ? { value } : {})
   };
 }
@@ -510,6 +596,10 @@ function summarizeKind(kind: LocalActionKind): string {
   }
 
   if (kind === "browser_open_first_result") {
+    return "Open page result";
+  }
+
+  if (kind === "browser_open_result_at_index") {
     return "Open page result";
   }
 
@@ -709,6 +799,33 @@ async function executeLocalAction(
     };
   }
 
+  if (action.kind === "browser_open_result_at_index") {
+    const resultIndex = action.resultIndex ?? 2;
+    const result = await openManagedBrowserNthVisibleLink({
+      hrefIncludes: "",
+      ...(action.target !== "__nth_visible_result__"
+        ? { textIncludes: action.target }
+        : {}),
+      resultIndex,
+      timeoutMs: 4000
+    });
+
+    return {
+      status: "executed",
+      message:
+        locale === "zh"
+          ? `已打开第${resultIndex}个可见结果。`
+          : `Opened the ${formatVisibleResultOrdinal(resultIndex, "en")} visible result.`,
+      assistantNote: buildBrowserOpenResultAssistantNote(
+        result.page,
+        result.matchedText,
+        action.targetLabel,
+        locale,
+        result.resultIndex ?? resultIndex
+      )
+    };
+  }
+
   if (action.kind === "browser_open_bilibili_video") {
     const query = action.targetLabel;
     const searchUrl = `https://search.bilibili.com/all?keyword=${encodeURIComponent(query)}`;
@@ -842,18 +959,49 @@ function buildBrowserOpenResultAssistantNote(
   page: BrowserPageInfo,
   matchedText: string,
   targetLabel: string,
-  locale: LocalActionLocale
+  locale: LocalActionLocale,
+  resultIndex?: number
 ): string {
   const pageRef = describePage(page, locale);
   const isGenericFirstResult = targetLabel === "__first_visible_result__";
+  const isGenericNthResult = targetLabel === "__nth_visible_result__";
+  const visibleResultIndex = resultIndex ?? 1;
+  const ordinal = formatVisibleResultOrdinal(visibleResultIndex, locale);
 
   return locale === "zh"
-    ? isGenericFirstResult
+    ? isGenericFirstResult && visibleResultIndex === 1
       ? `我已经替你点开了当前结果页里最先出现的那一项，打开的是「${matchedText}」。现在页面来到${pageRef}，如果你愿意，我可以继续陪你往下看。`
-      : `我已经替你点开了和「${targetLabel}」最贴近的结果，打开的是「${matchedText}」。现在页面来到${pageRef}，如果你愿意，我可以继续陪你往下看。`
-    : isGenericFirstResult
-      ? `I opened the first visible result for you, and it led to "${matchedText}". We are at ${pageRef} now, and I can keep going with you if you want.`
-      : `I opened the visible result that best matched "${targetLabel}" for you, and it led to "${matchedText}". We are at ${pageRef} now, and I can keep going with you if you want.`;
+      : `我已经替你点开了第${visibleResultIndex}个可见结果，打开的是「${matchedText}」。现在页面来到${pageRef}，如果你愿意，我可以继续陪你往下看。`
+    : visibleResultIndex === 1
+      ? isGenericFirstResult
+        ? `I opened the first visible result for you, and it led to "${matchedText}". We are at ${pageRef} now, and I can keep going with you if you want.`
+        : `I opened the visible result that best matched "${targetLabel}" for you, and it led to "${matchedText}". We are at ${pageRef} now, and I can keep going with you if you want.`
+      : isGenericFirstResult
+        ? `I opened the ${ordinal} visible result for you, and it led to "${matchedText}". We are at ${pageRef} now, and I can keep going with you if you want.`
+        : isGenericNthResult
+          ? `I opened the ${ordinal} visible result for you, and it led to "${matchedText}". We are at ${pageRef} now, and I can keep going with you if you want.`
+          : `I opened the ${ordinal} visible result that best matched "${targetLabel}" for you, and it led to "${matchedText}". We are at ${pageRef} now, and I can keep going with you if you want.`;
+}
+
+function formatVisibleResultOrdinal(value: number, locale: LocalActionLocale): string {
+  const normalized = Math.max(1, Math.floor(value));
+
+  if (locale === "zh") {
+    return `第${normalized}`;
+  }
+
+  const suffix =
+    normalized % 100 >= 11 && normalized % 100 <= 13
+      ? "th"
+      : normalized % 10 === 1
+        ? "st"
+        : normalized % 10 === 2
+          ? "nd"
+          : normalized % 10 === 3
+            ? "rd"
+            : "th";
+
+  return `${normalized}${suffix}`;
 }
 
 function buildBilibiliOpenAssistantNote(
