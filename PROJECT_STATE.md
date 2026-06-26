@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `2255aaf` - `Remove public third-party benchmark note`
+- `7daa2cf` - `Record benchmark note removal`
 
 ## Latest Repository Surface
 
@@ -54,6 +54,7 @@ Brand line:
   - shared reply-shape guidance now classifies current turns into practical / ordinary / playful / reconnection / emotional modes so Waveary can control reply length, emotional lead-in, and follow-up count through one runtime-facing layer instead of ad hoc prompt wording
   - live-provider prompt assembly now also incorporates richer persona defaults including speaking style, emotional style, humor style, conversation-length preference, and follow-up style, making the companion feel more consistently person-like without broad architecture changes
   - scripted fallback replies now also consume that same reply-shape layer, so ordinary turns stop drifting back into fixed three-part speeches when the real provider path is unavailable
+  - the first reply-realism tightening pass is now complete too: ordinary low-intensity turns now usually avoid a trailing question, softer support-seeking lines are classified as emotional earlier, provider prompt guidance now pushes harder against essayistic or support-agent cadence, and scripted fallback now preserves new-stage naming warmth plus growing-stage continuity while still keeping everyday replies shorter
   - the `new` relationship stage now also has a dedicated getting-to-know-you helper that can infer preferred user name, user-given companion nickname, and desired companion vibe from chat history plus recalled memories
   - live-provider prompt assembly now also injects explicit getting-to-know-you guidance so early turns can ask one natural discovery question at a time instead of sounding like a configured persona form
   - live-provider regression now explicitly covers practical new-stage turns, emotional new-stage turns, reconnection cadence, and `what should I call you` mutual-discovery prompts so prompt-shape drift is less likely to silently reintroduce long assistant-style replies or block early natural acquaintance
@@ -438,7 +439,7 @@ Brand line:
 - expand provider-specific chat request normalization where "OpenAI-compatible" vendors diverge beyond the current shared `/chat/completions` and `/responses` paths
 - add route-level or live verification for more provider-specific chat payload divergences after the current DeepSeek and broader structured-payload compatibility baseline
 - re-run `npm run verify:provider` and `npm run models:provider` with refreshed real credentials, starting with DeepSeek because the currently saved local key now returns `401 invalid api key`
-- continue the dialogue-quality pass by extending live-provider regression beyond prompt-body inspection into stronger emotional-stress cases and richer memory-vs-timeline competition now that recency and source-turn weighting are both present in the shared helper
+- continue the dialogue-quality pass by extending live-provider regression beyond prompt-body inspection into stronger emotional-stress cases, finer ordinary-texting cadence, and richer memory-vs-timeline competition now that recency and source-turn weighting are both present in the shared helper
 - consider whether the next continuity-scoring refinement should incorporate bounded source-session or repeated-reference signals beyond the current current-turn match, recency, and source-turn layers
 - consider reusing the shared continuity-thread helper in future runtime-facing care or summary surfaces instead of reintroducing prompt-local continuity heuristics elsewhere
 - consider whether continuity-thread scoring now needs source-turn weighting in addition to the new lightweight recency bias, especially for memories created within the same short time band

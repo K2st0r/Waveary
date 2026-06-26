@@ -139,6 +139,10 @@ test("OpenAICompatibleChatProvider strengthens companionship guidance in the ins
     /Treat relationship stage as quiet internal calibration, not as a visible script, ladder, or label to perform back to the user\./
   );
   assert.match(instruction, /Do not over-explain your memory process/i);
+  assert.match(
+    instruction,
+    /Do not sound like an essayist, coach, or polished support agent when a smaller human reply would feel more real\./
+  );
 });
 
 test("OpenAICompatibleChatProvider includes concept-level identity summary guidance in the instruction prompt", async () => {
@@ -941,7 +945,7 @@ test("OpenAICompatibleChatProvider keeps emotional new-stage turns focused on pr
   assert.match(instruction, /Current reply mode: emotional\./);
   assert.match(
     instruction,
-    /Lead with emotional presence first, then add only one next helpful thought if needed\./
+    /Lead with emotional presence first\. Do not open with analysis, advice, tools, or factual correction unless the user clearly asked for that first\./
   );
   assert.match(
     instruction,
@@ -1348,7 +1352,33 @@ test("OpenAICompatibleChatProvider marks reconnection turns as short emotion-led
   assert.match(instruction, /Default reply length: short\./);
   assert.match(
     instruction,
-    /Lead with emotional presence first, then add only one next helpful thought if needed\./
+    /Lead with emotional presence first\. Do not open with analysis, advice, tools, or factual correction unless the user clearly asked for that first\./
+  );
+});
+
+test("OpenAICompatibleChatProvider keeps low-intensity ordinary turns from defaulting to a trailing question", async () => {
+  const instruction = await captureInstruction(
+    createRequest({
+      messages: [
+        {
+          id: "m1",
+          sessionId: "session-1",
+          role: "user",
+          content: "Okay, I am home now.",
+          timestamp: new Date().toISOString(),
+          metadata: {}
+        }
+      ],
+      relevantMemories: [],
+      timeline: []
+    })
+  );
+
+  assert.match(instruction, /Current reply mode: ordinary\./);
+  assert.match(instruction, /Maximum natural follow-up questions: 0\./);
+  assert.match(
+    instruction,
+    /For ordinary low-intensity chat, prefer 1 to 2 short natural sentences and usually no trailing question\./
   );
 });
 

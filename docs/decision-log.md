@@ -2178,3 +2178,25 @@ Impact:
 - public repo guidance should stay at the level of generic license and review rules
 - future third-party reuse still requires source-by-source license review before code is adopted
 - Waveary can continue learning from the market without publishing a named external-project shortlist in-repo
+
+## 2026-06-26 - Reply Realism Should Tighten Through Shared Shape Rules Before Bigger Architecture Moves
+
+Status:
+
+- accepted
+
+Decision:
+
+Push the next companion-quality gain through the shared reply-shape layer first, instead of jumping straight into a larger architecture rewrite. That means ordinary low-intensity turns should usually get shorter, cleaner endings, while emotional turns should trigger emotion-first handling earlier and more consistently across both live-provider and scripted fallback paths.
+
+Reason:
+
+- the user explicitly wants the chat to feel more like a real person texting and less like an assistant writing polished mini-essays
+- this is a high-leverage place to improve realism because both the live-provider prompt path and the scripted fallback path already depend on the same reply-shape layer
+- changing this layer is smaller, safer, and more testable than trying to redesign memory or relationship architecture just to make everyday chat feel more human
+
+Impact:
+
+- `waveary-core/src/runtime/reply-shape.ts` now classifies softer support-seeking lines as emotional earlier and reduces trailing follow-up pressure on low-intensity ordinary chat
+- `waveary-core/src/adapters/openai-compatible-provider.ts` now pushes harder against essayistic or support-agent cadence in model-facing instructions
+- `waveary-core/src/adapters/scripted-chat-provider.ts` now preserves new-stage naming warmth and growing-stage continuity while still shortening ordinary fallback replies

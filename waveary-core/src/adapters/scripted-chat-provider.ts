@@ -165,10 +165,6 @@ function buildFollowup(
   replyShapeKind: "practical" | "ordinary" | "playful" | "reconnection" | "emotional",
   gettingToKnowYou: ReturnType<typeof deriveGettingToKnowYouState>
 ): string {
-  if (maxFollowups === 0) {
-    return "";
-  }
-
   const onboardingFollowup = buildGettingToKnowYouFollowup(
     stage,
     replyShapeKind,
@@ -177,6 +173,10 @@ function buildFollowup(
 
   if (onboardingFollowup) {
     return onboardingFollowup;
+  }
+
+  if (maxFollowups === 0) {
+    return "";
   }
 
   const topic = summarizeTopic(content);
@@ -258,6 +258,22 @@ function assembleReply(
 
   if (kind === "reconnection") {
     return [prefix, continuity, identityLine].filter(Boolean).join(" ").trim();
+  }
+
+  if (kind === "ordinary") {
+    if (continuity && followup.startsWith("Tell me a little more")) {
+      return [prefix, continuity].filter(Boolean).join(" ").trim();
+    }
+
+    if (followup) {
+      return [prefix, followup].filter(Boolean).join(" ").trim();
+    }
+
+    if (continuity) {
+      return [prefix, continuity, identityLine].filter(Boolean).join(" ").trim();
+    }
+
+    return [prefix, identityLine].filter(Boolean).join(" ").trim();
   }
 
   return [prefix, continuity, identityLine, followup].filter(Boolean).join(" ").trim();

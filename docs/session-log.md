@@ -1338,6 +1338,48 @@ Push:
 
 - succeeded: `git push origin main` pushed functional commit `2255aaf` to `origin/main`
 
+## 2026-06-26
+
+Objective:
+
+Tighten the first realism-focused dialogue pass so Waveary sounds less like a polished assistant and more like a real person in ordinary and emotional chat.
+
+Summary:
+
+- rebuilt `waveary-core/src/runtime/reply-shape.ts` into an ASCII-safe version and tightened the shared shape rules: softer support-seeking lines now classify as emotional earlier, low-intensity ordinary turns now usually avoid a trailing question, and the guidance now explicitly pushes against essay-like cadence
+- updated `waveary-core/src/adapters/openai-compatible-provider.ts` so live-provider instructions push harder toward short human messaging rhythm and away from support-agent or coach-like phrasing
+- updated `waveary-core/src/adapters/scripted-chat-provider.ts` so the fallback path keeps new-stage naming warmth and growing-stage continuity while still shortening ordinary everyday replies
+- added and adjusted regression coverage in `waveary-core/src/runtime/reply-shape.test.ts`, `waveary-core/src/adapters/openai-compatible-provider.test.ts`, and `waveary-core/src/runtime/waveary-runtime.test.ts`
+- re-verified `@waveary/core` through typecheck, build, and compiled test execution; the suite now passes `110` tests after the reply-realism tightening pass
+
+Files changed:
+
+- `waveary-core/src/runtime/reply-shape.ts`
+- `waveary-core/src/runtime/reply-shape.test.ts`
+- `waveary-core/src/adapters/openai-compatible-provider.ts`
+- `waveary-core/src/adapters/openai-compatible-provider.test.ts`
+- `waveary-core/src/adapters/scripted-chat-provider.ts`
+- `waveary-core/src/runtime/waveary-runtime.test.ts`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/core`
+- `npm run build --workspace @waveary/core`
+- PowerShell compiled-test verification via:
+  `$files = @(Get-ChildItem 'waveary-core\\dist' -Recurse -Filter '*.test.js' | ForEach-Object { $_.FullName }); & node --test @files`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
 ## 2026-06-23
 
 Objective:
