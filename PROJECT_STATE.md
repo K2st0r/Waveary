@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `bc9df0a` - `Add editable companion understanding panel`
+- `d8f4682` - `Reset chat runtime on provider config save`
 
 ## Latest Repository Surface
 
@@ -289,6 +289,7 @@ Brand line:
   - current doodle assets under that path are now real generated PNGs rather than transparent placeholders, and future refreshes should preserve the same low-complexity `gpt-image-2` generation strategy that avoided repeated `524` gateway timeouts
   - current homepage doodle inventory now includes correspondence-style objects in addition to study and youth-memory objects, and those extra assets are already wired into the homepage background layer
   - can list provider presets, fetch models through the selected provider key, and save local config
+  - saving `/api/provider/config` now also resets cached chat runtime sessions immediately, so a same-session provider or API-key change cannot keep sending chat turns through a stale in-memory provider config
   - can run a first browser chat flow and render memory, relationship, emotion, and timeline signals
   - can now capture microphone speech in supported browsers and turn it into the next local chat turn without leaving the chat page
   - can now transcribe microphone audio through a provider-backed `/api/voice/transcribe` path whenever the active voice route is shared-compatible or dedicated-compatible, while honestly falling back to browser speech recognition when provider STT is unavailable

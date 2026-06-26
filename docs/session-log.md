@@ -7631,3 +7631,37 @@ Commit:
 Push:
 
 - succeeded: `git push origin main` pushed functional commit `bc9df0a` to `origin/main`
+
+## 2026-06-26
+
+Objective:
+
+Fix stale provider-session reuse so saving a new provider key or model in the console immediately affects the next chat turn instead of leaving the active session on an old in-memory provider config.
+
+Summary:
+
+- updated `waveary-web/server/provider-api.ts` so `POST /api/provider/config` now calls `resetChatRuntimeSessions()` right after `saveProviderConfig(...)`
+- added a focused regression in `waveary-web/server/provider-api.test.ts` proving that the same active session switches from `model-a` to `model-b` on the very next chat turn after saving a new provider config
+- confirmed the fix through `@waveary/web` typecheck and full server test coverage, with the new regression passing alongside the existing runtime-cache reset coverage for chat persistence switching
+
+Files changed:
+
+- `waveary-web/server/provider-api.ts`
+- `waveary-web/server/provider-api.test.ts`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run test --workspace @waveary/web`
+
+Commit:
+
+- `d8f4682` - `Reset chat runtime on provider config save`
+
+Push:
+
+- pending continuity sync commit

@@ -2269,3 +2269,25 @@ Impact:
 - `waveary-web/server/provider-api.ts` now exposes `/api/chat/identity-summary` as a bounded save route for the active session
 - `waveary-web/src/App.tsx` now lets the user edit and save the existing `Companion Understanding` card in place instead of forcing a separate setup page
 - the next related decision is whether corrected understanding should gain provenance / pinning semantics, or whether runtime-side summary conflict resolution should be tightened first
+
+## 2026-06-26 - Provider Config Saves Must Invalidate Cached Chat Runtime
+
+Status:
+
+- accepted
+
+Decision:
+
+When the web console saves a new provider configuration through `/api/provider/config`, Waveary must immediately reset cached chat runtime sessions before the next turn.
+
+Reason:
+
+- the user hit a real failure where chat kept returning `401 invalid api key` from an older key even after the saved provider config had already changed
+- the root cause was runtime-session reuse in `waveary-web/server/chat-runtime.ts`, not missing persistence, so same-session chat could continue to use stale provider credentials from memory
+- letting provider setup look updated while chat still talks to the old vendor state makes the product feel broken and makes provider debugging much harder than it needs to be
+
+Impact:
+
+- `waveary-web/server/provider-api.ts` now calls `resetChatRuntimeSessions()` after `saveProviderConfig(...)`
+- the web test suite now includes a route-level regression proving that one chat turn can use `model-a`, a following `/api/provider/config` save can switch to `model-b`, and the next chat turn in the same session really uses `model-b`
+- future provider-setup changes should treat saved provider config and active chat runtime as one consistency boundary instead of assuming file persistence alone is enough
