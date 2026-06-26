@@ -7508,3 +7508,47 @@ Commit:
 Push:
 
 - succeeded: `git push origin main` pushed functional commit `01d75ec` to `origin/main`
+
+## 2026-06-26
+
+Objective:
+
+Tighten everyday reply realism for low-stakes status updates so short check-in texts feel more like real messaging, while preventing those same status words from being mis-saved as user names.
+
+Summary:
+
+- refined `waveary-core/src/runtime/reply-shape.ts` so light status-update turns such as `I'm home now`, `I'm back`, and `just finished` are treated as a dedicated ordinary-chat subtype instead of falling through the broader low-intensity bucket
+- updated `waveary-core/src/adapters/openai-compatible-provider.ts` so live-provider prompt instructions now explicitly tell the model to answer those quick updates with one warm acknowledgment and stop, rather than drifting into recap or assistant-like follow-up cadence
+- updated `waveary-core/src/adapters/scripted-chat-provider.ts` so scripted fallback replies now also stay brief for that subtype instead of expanding into generic continuity or `tell me a little more` patterns
+- fixed a real early-acquaintance regression in `waveary-core/src/runtime/getting-to-know-you.ts` where broad `I'm ...` parsing could misread status words like `home` or `done` as the user's preferred name
+- added focused regression coverage across `reply-shape`, `getting-to-know-you`, live-provider prompt assembly, and runtime behavior, then re-verified the full compiled `@waveary/core` test suite
+
+Files changed:
+
+- `waveary-core/src/runtime/reply-shape.ts`
+- `waveary-core/src/runtime/reply-shape.test.ts`
+- `waveary-core/src/runtime/getting-to-know-you.ts`
+- `waveary-core/src/runtime/getting-to-know-you.test.ts`
+- `waveary-core/src/adapters/openai-compatible-provider.ts`
+- `waveary-core/src/adapters/openai-compatible-provider.test.ts`
+- `waveary-core/src/adapters/scripted-chat-provider.ts`
+- `waveary-core/src/runtime/waveary-runtime.test.ts`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/core`
+- `npm run build --workspace @waveary/core`
+- PowerShell compiled-test verification via:
+  `$files = @(Get-ChildItem 'waveary-core\\dist' -Recurse -Filter '*.test.js' | Sort-Object FullName | ForEach-Object { $_.FullName }); & node --test @files`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending

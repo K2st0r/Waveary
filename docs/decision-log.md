@@ -2200,3 +2200,26 @@ Impact:
 - `waveary-core/src/runtime/reply-shape.ts` now classifies softer support-seeking lines as emotional earlier and reduces trailing follow-up pressure on low-intensity ordinary chat
 - `waveary-core/src/adapters/openai-compatible-provider.ts` now pushes harder against essayistic or support-agent cadence in model-facing instructions
 - `waveary-core/src/adapters/scripted-chat-provider.ts` now preserves new-stage naming warmth and growing-stage continuity while still shortening ordinary fallback replies
+
+## 2026-06-26 - Light Status Updates Need Their Own Ordinary-Chat Cadence And Must Not Pollute Name Memory
+
+Status:
+
+- accepted
+
+Decision:
+
+Treat low-stakes status-update turns such as `I'm home now`, `I'm back`, and `just finished` as a dedicated subtype inside ordinary chat, and explicitly block those status words from being inferred as the user's preferred name.
+
+Reason:
+
+- the user wants everyday conversation to feel like real texting, which means short check-in messages should get a short warm acknowledgment instead of being stretched into a mini speech or a reflexive follow-up question
+- the existing ordinary-chat bucket was still too broad, so light status messages could drift toward assistant-like recap cadence even after the earlier realism pass
+- the status-update wording overlaps with the existing broad `I'm ...` name-sharing parser, which created a real regression where `home` was treated as a remembered preferred user name
+
+Impact:
+
+- `waveary-core/src/runtime/reply-shape.ts` now tags light status updates as `ordinarySubtype: status_update` and tells both prompt and fallback paths to keep them to one warm acknowledgment or one tiny continuity beat
+- `waveary-core/src/adapters/openai-compatible-provider.ts` now gives explicit model-facing instructions for this quick-text cadence
+- `waveary-core/src/adapters/scripted-chat-provider.ts` now shortens scripted ordinary replies for this subtype instead of falling back to broader continuity or follow-up patterns
+- `waveary-core/src/runtime/getting-to-know-you.ts` now rejects `home` and `done` as probable user names so ordinary check-in texts no longer contaminate identity memory
