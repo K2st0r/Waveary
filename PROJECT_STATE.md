@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `3f7ff83` - `Record README hero banner refinement`
+- `01d75ec` - `Add open-source chat benchmark note`
 
 ## Latest Repository Surface
 
