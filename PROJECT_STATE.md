@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `c8cc138` - `Sync continuity after identity summary push`
+- `bc9df0a` - `Add editable companion understanding panel`
 
 ## Latest Repository Surface
 
