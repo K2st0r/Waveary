@@ -7927,3 +7927,42 @@ Commit:
 Push:
 
 - succeeded: `git push origin main` pushed functional commit `c2a5a13` and continuity sync commit `7d6a79b` to `origin/main`
+
+## 2026-06-26
+
+Objective:
+
+Continue the everyday companion-realism pass by giving gentle reassurance closers their own brief, non-reopening receipt cadence.
+
+Summary:
+
+- updated `waveary-core/src/runtime/reply-shape.ts` so bounded low-stakes reassuring endings such as `get some rest then`, `don't overthink it tonight`, and `早点休息吧` are classified as `ordinarySubtype: reassurance_close`
+- updated `waveary-core/src/adapters/scripted-chat-provider.ts` so scripted fallback answers those turns with one brief warm receipt instead of reopening the conversation
+- added focused regression coverage in `waveary-core/src/runtime/reply-shape.test.ts`, `waveary-core/src/adapters/openai-compatible-provider.test.ts`, and `waveary-core/src/runtime/waveary-runtime.test.ts` so prompt guidance and runtime output stay aligned on this new low-intensity comforting bucket
+- re-verified `@waveary/core` again in the stored sequential Windows order: `check`, then `build`, then compiled `dist` tests
+
+Files changed:
+
+- `waveary-core/src/runtime/reply-shape.ts`
+- `waveary-core/src/runtime/reply-shape.test.ts`
+- `waveary-core/src/adapters/scripted-chat-provider.ts`
+- `waveary-core/src/adapters/openai-compatible-provider.test.ts`
+- `waveary-core/src/runtime/waveary-runtime.test.ts`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/core`
+- `npm run build --workspace @waveary/core`
+- PowerShell compiled-test verification via:
+  `$files = @(Get-ChildItem 'waveary-core\\dist' -Recurse -Filter '*.test.js' | Sort-Object FullName | ForEach-Object { $_.FullName }); & node --test @files`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending

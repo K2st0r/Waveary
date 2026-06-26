@@ -2465,3 +2465,25 @@ Impact:
 - `waveary-core/src/runtime/reply-shape.ts` now classifies a bounded set of apology / delayed-reply repair phrasings as `ordinarySubtype: delay_repair`
 - `waveary-core/src/adapters/scripted-chat-provider.ts` now answers that subtype with the same short, warm, low-pressure cadence instead of reopening the thread with an unnecessary question
 - `waveary-core/src/runtime/reply-shape.test.ts`, `waveary-core/src/adapters/openai-compatible-provider.test.ts`, and `waveary-core/src/runtime/waveary-runtime.test.ts` now lock both prompt guidance and runtime brevity for this new ordinary-chat bucket
+
+## 2026-06-26 - Gentle Reassurance Closers Need Their Own Brief Receipt Cadence
+
+Status:
+
+- accepted
+
+Decision:
+
+Treat gentle reassurance or soft rest-style closers such as `get some rest then`, `don't overthink it tonight`, `早点休息吧`, and similar low-pressure comforting endings as their own `reassurance_close` subtype inside ordinary chat.
+
+Reason:
+
+- the user explicitly wants low-intensity companion texting to feel like a real person, and these soft reassuring closers should usually receive one brief warm receipt instead of reopening the conversation
+- after `status_update`, `soft_update`, and `delay_repair`, this was another common everyday texting surface where generic follow-up behavior still made Waveary sound more assistant-like than person-like
+- adding it through the shared reply-shape layer keeps live-provider guidance and scripted fallback aligned while still preserving the small-bounded-cut strategy
+
+Impact:
+
+- `waveary-core/src/runtime/reply-shape.ts` now classifies a bounded set of reassurance/rest closers as `ordinarySubtype: reassurance_close`
+- `waveary-core/src/adapters/scripted-chat-provider.ts` now answers that subtype with one brief warm receipt instead of reopening the thread
+- `waveary-core/src/runtime/reply-shape.test.ts`, `waveary-core/src/adapters/openai-compatible-provider.test.ts`, and `waveary-core/src/runtime/waveary-runtime.test.ts` now lock the guidance and runtime brevity for this new ordinary-chat bucket

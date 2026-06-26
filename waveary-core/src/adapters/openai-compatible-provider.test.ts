@@ -1501,6 +1501,32 @@ test("OpenAICompatibleChatProvider gives dedicated delay-repair guidance for sma
   );
 });
 
+test("OpenAICompatibleChatProvider gives dedicated reassurance-close guidance for soft rest-style closers", async () => {
+  const instruction = await captureInstruction(
+    createRequest({
+      messages: [
+        {
+          id: "m1",
+          sessionId: "session-1",
+          role: "user",
+          content: "don't overthink it tonight",
+          timestamp: new Date().toISOString(),
+          metadata: {}
+        }
+      ],
+      relevantMemories: [],
+      timeline: []
+    })
+  );
+
+  assert.match(instruction, /Current reply mode: ordinary\./);
+  assert.match(instruction, /Maximum natural follow-up questions: 0\./);
+  assert.match(
+    instruction,
+    /For gentle reassurance or soft rest-style closers, answer with a brief warm receipt\./
+  );
+});
+
 test("OpenAICompatibleChatProvider gives dedicated micro-ack guidance for tiny confirmations", async () => {
   const instruction = await captureInstruction(
     createRequest({
