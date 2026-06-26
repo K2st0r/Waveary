@@ -43,6 +43,8 @@ export function buildLocalActionFailureNote(
                     ? action.targetLabel === "__first_visible_result__"
                       ? "\u6211\u521a\u521a\u8bd5\u7740\u66ff\u4f60\u70b9\u5f00\u5f53\u524d\u7b2c\u4e00\u4e2a\u7ed3\u679c"
                       : `\u6211\u521a\u521a\u8bd5\u7740\u66ff\u4f60\u70b9\u5f00\u548c\u201c${action.targetLabel}\u201d\u6700\u8d34\u7684\u7ed3\u679c`
+                    : action.kind === "browser_open_result_at_index"
+                      ? `\u6211\u521a\u521a\u8bd5\u7740\u66ff\u4f60\u70b9\u5f00\u7b2c${action.resultIndex ?? 2}\u4e2a\u53ef\u89c1\u7ed3\u679c`
                     : action.kind === "open_folder"
                       ? `\u6211\u521a\u521a\u8bd5\u7740\u66ff\u4f60\u6253\u5f00 ${action.targetLabel} \u6587\u4ef6\u5939`
                       : action.kind === "launch_app"
@@ -71,6 +73,8 @@ export function buildLocalActionFailureNote(
                   ? action.targetLabel === "__first_visible_result__"
                     ? "I just tried to open the first visible result for you"
                     : `I just tried to open the closest visible result for "${action.targetLabel}"`
+                  : action.kind === "browser_open_result_at_index"
+                    ? `I just tried to open the ${action.resultIndex ?? 2}th visible result for "${action.targetLabel}"`
                   : action.kind === "open_folder"
                     ? `I just tried to open the ${action.targetLabel} folder for you`
                     : action.kind === "launch_app"
@@ -111,6 +115,10 @@ function buildExecutedZhNote(action: PendingLocalAction): string {
     return action.targetLabel === "__first_visible_result__"
       ? "\u6211\u5df2\u7ecf\u66ff\u4f60\u70b9\u5f00\u4e86\u5f53\u524d\u7ed3\u679c\u9875\u91cc\u7684\u7b2c\u4e00\u4e2a\u7ed3\u679c\u3002\u5982\u679c\u4f60\u60f3\uff0c\u6211\u53ef\u4ee5\u7ee7\u7eed\u966a\u4f60\u770b\u4e0b\u53bb\u3002"
       : `\u6211\u5df2\u7ecf\u66ff\u4f60\u70b9\u5f00\u4e86\u548c\u201c${action.targetLabel}\u201d\u6700\u8d34\u7684\u7ed3\u679c\u3002\u5982\u679c\u4f60\u60f3\uff0c\u6211\u53ef\u4ee5\u7ee7\u7eed\u966a\u4f60\u770b\u4e0b\u53bb\u3002`;
+  }
+
+  if (action.kind === "browser_open_result_at_index") {
+    return `\u6211\u5df2\u7ecf\u66ff\u4f60\u70b9\u5f00\u4e86\u7b2c${action.resultIndex ?? 2}\u4e2a\u53ef\u89c1\u7ed3\u679c\u3002\u5982\u679c\u4f60\u60f3\uff0c\u6211\u53ef\u4ee5\u7ee7\u7eed\u966a\u4f60\u770b\u4e0b\u53bb\u3002`;
   }
 
   if (action.kind === "open_url") {
@@ -155,6 +163,10 @@ function buildDismissedZhNote(action: PendingLocalAction): string {
       : `\u8fd9\u6b21\u6211\u5148\u4e0d\u53bb\u70b9\u5f00\u548c\u201c${action.targetLabel}\u201d\u6700\u8d34\u7684\u7ed3\u679c\u3002\u7b49\u4f60\u786e\u5b9a\u4e86\uff0c\u6211\u518d\u7ee7\u7eed\u3002`;
   }
 
+  if (action.kind === "browser_open_result_at_index") {
+    return `\u8fd9\u6b21\u6211\u5148\u4e0d\u53bb\u70b9\u5f00\u7b2c${action.resultIndex ?? 2}\u4e2a\u53ef\u89c1\u7ed3\u679c\u3002\u7b49\u4f60\u786e\u5b9a\u4e86\uff0c\u6211\u518d\u7ee7\u7eed\u3002`;
+  }
+
   if (action.kind === "open_url") {
     return `\u8fd9\u6b21\u6211\u5148\u4e0d\u66ff\u4f60\u6253\u5f00 ${action.targetLabel}\u3002\u7b49\u4f60\u60f3\u8981\u7684\u65f6\u5019\uff0c\u518d\u53eb\u6211\u4e00\u58f0\u5c31\u597d\u3002`;
   }
@@ -197,6 +209,10 @@ function buildExecutedEnNote(action: PendingLocalAction): string {
       : `I opened the closest visible result for "${action.targetLabel}" for you. If you want, I can keep going from there too.`;
   }
 
+  if (action.kind === "browser_open_result_at_index") {
+    return `I opened the ${action.resultIndex ?? 2}th visible result for "${action.targetLabel}" for you. If you want, I can keep going from there too.`;
+  }
+
   if (action.kind === "open_url") {
     return `I opened ${action.targetLabel} for you. If you want, I can stay with you and help with the next step too.`;
   }
@@ -237,6 +253,10 @@ function buildDismissedEnNote(action: PendingLocalAction): string {
     return action.targetLabel === "__first_visible_result__"
       ? "I did not open the first visible result this time. Ask me again when you want me to."
       : `I did not open the closest visible result for "${action.targetLabel}" this time. Ask me again when you want me to.`;
+  }
+
+  if (action.kind === "browser_open_result_at_index") {
+    return `I did not open the ${action.resultIndex ?? 2}th visible result for "${action.targetLabel}" this time. Ask me again when you want me to.`;
   }
 
   if (action.kind === "open_url") {

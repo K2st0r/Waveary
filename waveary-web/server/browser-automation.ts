@@ -47,6 +47,9 @@ type BrowserAutomationOverrides = {
   openFirstVisibleLink?: (
     options?: BrowserOpenFirstVisibleLinkOptions
   ) => Promise<BrowserOpenFirstVisibleLinkResult>;
+  openNthVisibleLink?: (
+    options: BrowserOpenNthVisibleLinkOptions
+  ) => Promise<BrowserOpenFirstVisibleLinkResult>;
   close?: () => Promise<void>;
 };
 
@@ -148,6 +151,11 @@ export interface BrowserOpenFirstVisibleLinkResult {
   matchedText: string;
   href: string;
   openedAt: string;
+  resultIndex?: number;
+}
+
+export interface BrowserOpenNthVisibleLinkOptions extends BrowserOpenFirstVisibleLinkOptions {
+  resultIndex: number;
 }
 
 export async function openManagedBrowserPage(url: string): Promise<BrowserOpenResult> {
@@ -462,23 +470,42 @@ export async function openManagedBrowserFirstVisibleLink(
     return browserAutomationOverrides.openFirstVisibleLink(options);
   }
 
+  return openManagedBrowserVisibleLink(options, 0);
+}
+
+export async function openManagedBrowserNthVisibleLink(
+  options: BrowserOpenNthVisibleLinkOptions
+): Promise<BrowserOpenFirstVisibleLinkResult> {
+  if (browserAutomationOverrides?.openNthVisibleLink) {
+    return browserAutomationOverrides.openNthVisibleLink(options);
+  }
+
+  return openManagedBrowserVisibleLink(options, options.resultIndex - 1);
+}
+
+async function openManagedBrowserVisibleLink(
+  options: BrowserOpenFirstVisibleLinkOptions,
+  matchIndex: number
+): Promise<BrowserOpenFirstVisibleLinkResult> {
   const page = await requireManagedPage();
   const timeoutMs = normalizePositiveInteger(options.timeoutMs, 5000);
   const hrefIncludes = options.hrefIncludes?.trim().toLowerCase() || "";
   const textIncludes = options.textIncludes?.trim().toLowerCase() || "";
+  const normalizedMatchIndex = Math.max(0, Math.floor(matchIndex));
 
   await page.waitForLoadState("domcontentloaded", {
     timeout: timeoutMs
   });
 
   await page.waitForFunction(
-    ({ hrefNeedle, textNeedle }) => {
+    ({ hrefNeedle, textNeedle, desiredIndex }) => {
       const matchesHref = (href: string) =>
         !hrefNeedle || href.toLowerCase().includes(hrefNeedle);
       const matchesText = (text: string) =>
         !textNeedle || text.toLowerCase().includes(textNeedle);
+      let visibleMatchCount = 0;
 
-      return Array.from(document.querySelectorAll<HTMLAnchorElement>("a")).some((element) => {
+      for (const element of Array.from(document.querySelectorAll<HTMLAnchorElement>("a"))) {
         const rect = element.getBoundingClientRect();
         const style = window.getComputedStyle(element);
         const href = element.href || element.getAttribute("href") || "";
@@ -492,31 +519,42 @@ export async function openManagedBrowserFirstVisibleLink(
           .trim();
 
         if (!href || !matchesHref(href) || !matchesText(text)) {
-          return false;
+          continue;
         }
 
-        return !(
+        if (
           rect.width <= 0 ||
           rect.height <= 0 ||
           style.visibility === "hidden" ||
           style.display === "none"
-        );
-      });
+        ) {
+          continue;
+        }
+
+        visibleMatchCount += 1;
+        if (visibleMatchCount > desiredIndex) {
+          return true;
+        }
+      }
+
+      return false;
     },
     {
       hrefNeedle: hrefIncludes,
-      textNeedle: textIncludes
+      textNeedle: textIncludes,
+      desiredIndex: normalizedMatchIndex
     },
     {
       timeout: timeoutMs
     }
   );
 
-  const match = await page.evaluate(({ hrefNeedle, textNeedle }) => {
+  const match = await page.evaluate(({ hrefNeedle, textNeedle, desiredIndex }) => {
     const matchesHref = (href: string) =>
       !hrefNeedle || href.toLowerCase().includes(hrefNeedle);
     const matchesText = (text: string) =>
       !textNeedle || text.toLowerCase().includes(textNeedle);
+    const matches: Array<{ href: string; text: string }> = [];
 
     for (const element of Array.from(document.querySelectorAll<HTMLAnchorElement>("a"))) {
       const rect = element.getBoundingClientRect();
@@ -544,16 +582,17 @@ export async function openManagedBrowserFirstVisibleLink(
         continue;
       }
 
-      return {
+      matches.push({
         href: new URL(href, window.location.href).href,
         text: text || href
-      };
+      });
     }
 
-    return null;
+    return matches[desiredIndex] ?? null;
   }, {
     hrefNeedle: hrefIncludes,
-    textNeedle: textIncludes
+    textNeedle: textIncludes,
+    desiredIndex: normalizedMatchIndex
   });
 
   if (!match) {
@@ -572,7 +611,8 @@ export async function openManagedBrowserFirstVisibleLink(
     page: pageInfo,
     matchedText: match.text,
     href: match.href,
-    openedAt: new Date().toISOString()
+    openedAt: new Date().toISOString(),
+    resultIndex: normalizedMatchIndex + 1
   };
 }
 

@@ -17,6 +17,8 @@ import {
   fillManagedBrowserInputByText,
   getManagedBrowserPageInfo,
   listManagedBrowserClickableElements,
+  openManagedBrowserNthVisibleLink,
+  openManagedBrowserFirstVisibleLink,
   searchManagedBrowserPageText
 } from "./browser-automation.js";
 
@@ -182,6 +184,12 @@ interface BrowserFillSubmitTextRequest {
   fieldText?: string;
   value?: string;
   exact?: boolean;
+  timeoutMs?: number;
+}
+
+interface BrowserOpenResultRequest {
+  query?: string;
+  resultIndex?: number;
   timeoutMs?: number;
 }
 
@@ -654,6 +662,27 @@ export function createProviderApiMiddleware() {
               : {})
           }
         );
+
+        sendJson(response, 200, result);
+        return;
+      }
+
+      if (request.method === "POST" && request.url === "/api/browser/open-result") {
+        const payload = (await readJsonBody(request)) as BrowserOpenResultRequest;
+        const query = payload.query?.trim() || "";
+        const resultIndex = typeof payload.resultIndex === "number" ? payload.resultIndex : 1;
+        const openResultOptions = {
+          ...(query ? { textIncludes: query } : {}),
+          ...(typeof payload.timeoutMs === "number" ? { timeoutMs: payload.timeoutMs } : {})
+        };
+
+        const result =
+          resultIndex > 1
+            ? await openManagedBrowserNthVisibleLink({
+                ...openResultOptions,
+                resultIndex
+              })
+            : await openManagedBrowserFirstVisibleLink(openResultOptions);
 
         sendJson(response, 200, result);
         return;
