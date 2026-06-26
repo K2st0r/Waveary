@@ -3,6 +3,7 @@ import { dirname } from "node:path";
 
 import type {
   EmotionState,
+  IdentitySummary,
   MemoryItem,
   Message,
   ProactiveCarePolicy,
@@ -37,10 +38,21 @@ import {
 import type { PendingLocalAction } from "./local-actions.js";
 import type { CompanionDeliveryHint } from "./companion-delivery.js";
 
+export interface SessionIdentitySummary {
+  userSelfConcept: string[];
+  bondThemes: string[];
+  recurringNeeds: string[];
+  emotionalPatterns: string[];
+  companionStance: string[];
+  summaryText: string;
+  lastUpdatedAt: string;
+}
+
 export interface ChatReplyPayload {
   reply: string;
   relationship: RelationshipProfile;
   emotion?: EmotionState;
+  identitySummary?: SessionIdentitySummary;
   delivery?: CompanionDeliveryHint;
   recalledMemories: string[];
   storedMemories: string[];
@@ -56,6 +68,7 @@ export interface ChatSessionSnapshot {
   sessionId: string;
   messages: Message[];
   latestInsights: ChatReplyPayload | null;
+  identitySummary: SessionIdentitySummary | null;
   proactiveCarePolicy: ProactiveCarePolicy;
   proactiveCareState: ProactiveCareState;
   memoryArchive: Array<{
@@ -282,36 +295,7 @@ export class PersistentChatSessionState {
       return undefined;
     }
 
-    return {
-      sessionId: this.sessionId,
-      messages: persisted.context.history.filter(
-        (message) => message.role === "user" || message.role === "assistant"
-      ),
-      latestInsights: persisted.latestInsights,
-      proactiveCarePolicy: resolveProactiveCarePolicy(
-        persisted.proactiveCarePolicy ?? createDefaultProactiveCarePolicy()
-      ),
-      proactiveCareState: resolveProactiveCareState(
-        persisted.proactiveCareState ?? createDefaultProactiveCareState()
-      ),
-      memoryArchive: persisted.memories.map((memory) => ({
-        id: memory.id,
-        type: memory.type,
-        content: memory.content,
-        importance: memory.importance,
-        createdAt: memory.createdAt
-      })),
-      relationship: persisted.relationship ?? null,
-      timelineEvents: persisted.timeline.map((event) => ({
-        id: event.id,
-        title: event.title,
-        description: event.description,
-        type: event.eventType,
-        eventTime: event.eventTime,
-        importance: event.importance
-      })),
-      updatedAt: persisted.updatedAt
-    };
+    return buildChatSessionSnapshot(this.sessionId, persisted);
   }
 
   setTitle(title: string): void {
@@ -382,36 +366,7 @@ export function createChatSession(sessionId?: string, title?: string): ChatSessi
       );
     }
 
-    return {
-      sessionId: resolvedSessionId,
-      messages: session.context.history.filter(
-        (message) => message.role === "user" || message.role === "assistant"
-      ),
-      latestInsights: session.latestInsights,
-      proactiveCarePolicy: resolveProactiveCarePolicy(
-        session.proactiveCarePolicy ?? createDefaultProactiveCarePolicy()
-      ),
-      proactiveCareState: resolveProactiveCareState(
-        session.proactiveCareState ?? createDefaultProactiveCareState()
-      ),
-      memoryArchive: session.memories.map((memory) => ({
-        id: memory.id,
-        type: memory.type,
-        content: memory.content,
-        importance: memory.importance,
-        createdAt: memory.createdAt
-      })),
-      relationship: session.relationship ?? null,
-      timelineEvents: session.timeline.map((event) => ({
-        id: event.id,
-        title: event.title,
-        description: event.description,
-        type: event.eventType,
-        eventTime: event.eventTime,
-        importance: event.importance
-      })),
-      updatedAt: session.updatedAt
-    };
+    return buildChatSessionSnapshot(resolvedSessionId, session);
   });
 }
 
@@ -439,36 +394,11 @@ export function renameChatSession(sessionId: string, title: string): ChatSession
       repository
     );
 
-    return {
-      sessionId,
-      messages: session.context.history.filter(
-        (message) => message.role === "user" || message.role === "assistant"
-      ),
-      latestInsights: session.latestInsights,
-      proactiveCarePolicy: resolveProactiveCarePolicy(
-        session.proactiveCarePolicy ?? createDefaultProactiveCarePolicy()
-      ),
-      proactiveCareState: resolveProactiveCareState(
-        session.proactiveCareState ?? createDefaultProactiveCareState()
-      ),
-      memoryArchive: session.memories.map((memory) => ({
-        id: memory.id,
-        type: memory.type,
-        content: memory.content,
-        importance: memory.importance,
-        createdAt: memory.createdAt
-      })),
-      relationship: session.relationship ?? null,
-      timelineEvents: session.timeline.map((event) => ({
-        id: event.id,
-        title: event.title,
-        description: event.description,
-        type: event.eventType,
-        eventTime: event.eventTime,
-        importance: event.importance
-      })),
+    return buildChatSessionSnapshot(sessionId, {
+      ...session,
+      title: normalized,
       updatedAt: new Date().toISOString()
-    };
+    });
   });
 }
 
@@ -511,6 +441,7 @@ export function resetChatSession(sessionId: string): ChatSessionSnapshot {
       sessionId,
       messages: [],
       latestInsights: null,
+      identitySummary: null,
       proactiveCarePolicy: resolveProactiveCarePolicy(
         nextState.proactiveCarePolicy ?? createDefaultProactiveCarePolicy()
       ),
@@ -548,6 +479,7 @@ export function resetAllChatSessions(): {
       sessionId: DEFAULT_CHAT_SESSION_ID,
       messages: [],
       latestInsights: null,
+      identitySummary: null,
       proactiveCarePolicy: createDefaultProactiveCarePolicy(),
       proactiveCareState: createDefaultProactiveCareState(),
       memoryArchive: [],
@@ -576,36 +508,7 @@ export function exportChatSession(sessionId: string): ExportedChatSession {
       exportedAt: new Date().toISOString(),
       sessionId,
       title,
-      snapshot: {
-        sessionId,
-        messages: session.context.history.filter(
-          (message) => message.role === "user" || message.role === "assistant"
-        ),
-        latestInsights: session.latestInsights,
-        proactiveCarePolicy: resolveProactiveCarePolicy(
-          session.proactiveCarePolicy ?? createDefaultProactiveCarePolicy()
-        ),
-        proactiveCareState: resolveProactiveCareState(
-          session.proactiveCareState ?? createDefaultProactiveCareState()
-        ),
-        memoryArchive: session.memories.map((memory) => ({
-          id: memory.id,
-          type: memory.type,
-          content: memory.content,
-          importance: memory.importance,
-          createdAt: memory.createdAt
-        })),
-        relationship: session.relationship ?? null,
-        timelineEvents: session.timeline.map((event) => ({
-          id: event.id,
-          title: event.title,
-          description: event.description,
-          type: event.eventType,
-          eventTime: event.eventTime,
-          importance: event.importance
-        })),
-        updatedAt: session.updatedAt
-      }
+      snapshot: buildChatSessionSnapshot(sessionId, session)
     };
   });
 }
@@ -656,6 +559,14 @@ export function importChatSession(
         linkedMemoryIds: []
       })),
       latestInsights: snapshot.latestInsights,
+      ...(snapshot.identitySummary
+        ? {
+            identitySummary: {
+              ...snapshot.identitySummary,
+              userId: "user-web-1"
+            }
+          }
+        : {}),
       proactiveCarePolicy: resolveProactiveCarePolicy(
         snapshot.proactiveCarePolicy ?? createDefaultProactiveCarePolicy()
       ),
@@ -676,27 +587,7 @@ export function importChatSession(
     repository.save(importedSessionId, importedState);
 
     return {
-      session: {
-        sessionId: importedSessionId,
-        messages: importedState.context.history.filter(
-          (message) => message.role === "user" || message.role === "assistant"
-        ),
-        latestInsights: importedState.latestInsights,
-        proactiveCarePolicy: resolveProactiveCarePolicy(
-          importedState.proactiveCarePolicy ??
-            snapshot.proactiveCarePolicy ??
-            createDefaultProactiveCarePolicy()
-        ),
-        proactiveCareState: resolveProactiveCareState(
-          importedState.proactiveCareState ??
-            snapshot.proactiveCareState ??
-            createDefaultProactiveCareState()
-        ),
-        memoryArchive: snapshot.memoryArchive,
-        relationship: snapshot.relationship,
-        timelineEvents: snapshot.timelineEvents,
-        updatedAt: importedState.updatedAt
-      },
+      session: buildChatSessionSnapshot(importedSessionId, importedState),
       exportedAt: exported.exportedAt,
       importedFromSessionId: exported.sessionId,
       importedTitle
@@ -888,6 +779,61 @@ function createInitialSessionState(sessionId: string): PersistedChatSession {
   return baseState;
 }
 
+function buildChatSessionSnapshot(
+  sessionId: string,
+  session: PersistedChatSession
+): ChatSessionSnapshot {
+  return {
+    sessionId,
+    messages: session.context.history.filter(
+      (message) => message.role === "user" || message.role === "assistant"
+    ),
+    latestInsights: session.latestInsights,
+    identitySummary: toSessionIdentitySummary(session.identitySummary) ?? null,
+    proactiveCarePolicy: resolveProactiveCarePolicy(
+      session.proactiveCarePolicy ?? createDefaultProactiveCarePolicy()
+    ),
+    proactiveCareState: resolveProactiveCareState(
+      session.proactiveCareState ?? createDefaultProactiveCareState()
+    ),
+    memoryArchive: session.memories.map((memory) => ({
+      id: memory.id,
+      type: memory.type,
+      content: memory.content,
+      importance: memory.importance,
+      createdAt: memory.createdAt
+    })),
+    relationship: session.relationship ?? null,
+    timelineEvents: session.timeline.map((event) => ({
+      id: event.id,
+      title: event.title,
+      description: event.description,
+      type: event.eventType,
+      eventTime: event.eventTime,
+      importance: event.importance
+    })),
+    updatedAt: session.updatedAt
+  };
+}
+
+function toSessionIdentitySummary(
+  summary: IdentitySummary | undefined
+): SessionIdentitySummary | undefined {
+  if (!summary) {
+    return undefined;
+  }
+
+  return {
+    userSelfConcept: [...summary.userSelfConcept],
+    bondThemes: [...summary.bondThemes],
+    recurringNeeds: [...summary.recurringNeeds],
+    emotionalPatterns: [...summary.emotionalPatterns],
+    companionStance: [...summary.companionStance],
+    summaryText: summary.summaryText,
+    lastUpdatedAt: summary.lastUpdatedAt
+  };
+}
+
 function resolveSessionId(sessionId?: string): string {
   const trimmed = sessionId?.trim();
 
@@ -1000,6 +946,21 @@ function validateExportedChatSession(exported: ExportedChatSession): void {
     details.push("`snapshot.relationship` must be an object or null.");
   } else if (isRecord(exported.snapshot.relationship)) {
     validateRelationshipSnapshot(exported.snapshot.relationship, "snapshot.relationship", details);
+  }
+
+  if (
+    exported.snapshot?.identitySummary !== undefined &&
+    exported.snapshot.identitySummary !== null
+  ) {
+    if (!isRecord(exported.snapshot.identitySummary)) {
+      details.push("`snapshot.identitySummary` must be an object or null.");
+    } else {
+      validateIdentitySummarySnapshot(
+        exported.snapshot.identitySummary,
+        "snapshot.identitySummary",
+        details
+      );
+    }
   }
 
   if (
@@ -1253,6 +1214,18 @@ function validateLatestInsights(
       }
     }
   }
+
+  if (latestInsights.identitySummary !== undefined) {
+    if (!isRecord(latestInsights.identitySummary)) {
+      details.push("`snapshot.latestInsights.identitySummary` must be an object if present.");
+    } else {
+      validateIdentitySummarySnapshot(
+        latestInsights.identitySummary,
+        "snapshot.latestInsights.identitySummary",
+        details
+      );
+    }
+  }
 }
 
 function validateExportedSessionSemantics(
@@ -1389,6 +1362,20 @@ function validateExportedSessionSemantics(
       );
     }
 
+    if (
+      exported.snapshot.identitySummary &&
+      isRecord(exported.snapshot.identitySummary) &&
+      isRecord(exported.snapshot.latestInsights.identitySummary) &&
+      !identitySummariesSemanticallyMatch(
+        exported.snapshot.identitySummary,
+        exported.snapshot.latestInsights.identitySummary
+      )
+    ) {
+      details.push(
+        "`snapshot.latestInsights.identitySummary` must match `snapshot.identitySummary` for summary text, sections, and `lastUpdatedAt`."
+      );
+    }
+
     if (Array.isArray(exported.snapshot.latestInsights.recalledMemories)) {
       exported.snapshot.latestInsights.recalledMemories.forEach((memory, index) => {
         if (
@@ -1485,6 +1472,44 @@ function relationshipsSemanticallyMatch(
   );
 }
 
+function identitySummariesSemanticallyMatch(
+  snapshotIdentitySummary: Record<string, unknown>,
+  latestInsightsIdentitySummary: Record<string, unknown>
+): boolean {
+  return (
+    snapshotIdentitySummary.summaryText === latestInsightsIdentitySummary.summaryText &&
+    snapshotIdentitySummary.lastUpdatedAt === latestInsightsIdentitySummary.lastUpdatedAt &&
+    stringArraysSemanticallyMatch(
+      snapshotIdentitySummary.userSelfConcept,
+      latestInsightsIdentitySummary.userSelfConcept
+    ) &&
+    stringArraysSemanticallyMatch(
+      snapshotIdentitySummary.bondThemes,
+      latestInsightsIdentitySummary.bondThemes
+    ) &&
+    stringArraysSemanticallyMatch(
+      snapshotIdentitySummary.recurringNeeds,
+      latestInsightsIdentitySummary.recurringNeeds
+    ) &&
+    stringArraysSemanticallyMatch(
+      snapshotIdentitySummary.emotionalPatterns,
+      latestInsightsIdentitySummary.emotionalPatterns
+    ) &&
+    stringArraysSemanticallyMatch(
+      snapshotIdentitySummary.companionStance,
+      latestInsightsIdentitySummary.companionStance
+    )
+  );
+}
+
+function stringArraysSemanticallyMatch(left: unknown, right: unknown): boolean {
+  if (!Array.isArray(left) || !Array.isArray(right) || left.length !== right.length) {
+    return false;
+  }
+
+  return left.every((entry, index) => entry === right[index]);
+}
+
 function validateRelationshipSnapshot(
   relationship: Record<string, unknown>,
   fieldPath: string,
@@ -1517,6 +1542,48 @@ function validateRelationshipSnapshot(
   } else if (!isIsoTimestamp(relationship.lastUpdatedAt)) {
     details.push(`\`${fieldPath}.lastUpdatedAt\` must be a valid ISO timestamp.`);
   }
+}
+
+function validateIdentitySummarySnapshot(
+  summary: Record<string, unknown>,
+  fieldPath: string,
+  details: string[]
+): void {
+  validateStringArrayField(summary, "userSelfConcept", fieldPath, details);
+  validateStringArrayField(summary, "bondThemes", fieldPath, details);
+  validateStringArrayField(summary, "recurringNeeds", fieldPath, details);
+  validateStringArrayField(summary, "emotionalPatterns", fieldPath, details);
+  validateStringArrayField(summary, "companionStance", fieldPath, details);
+
+  if (typeof summary.summaryText !== "string") {
+    details.push(`\`${fieldPath}.summaryText\` must be a string.`);
+  }
+
+  if (typeof summary.lastUpdatedAt !== "string") {
+    details.push(`\`${fieldPath}.lastUpdatedAt\` must be a string.`);
+  } else if (!isIsoTimestamp(summary.lastUpdatedAt)) {
+    details.push(`\`${fieldPath}.lastUpdatedAt\` must be a valid ISO timestamp.`);
+  }
+}
+
+function validateStringArrayField(
+  record: Record<string, unknown>,
+  key: string,
+  fieldPath: string,
+  details: string[]
+): void {
+  const value = record[key];
+
+  if (!Array.isArray(value)) {
+    details.push(`\`${fieldPath}.${key}\` must be an array.`);
+    return;
+  }
+
+  value.forEach((entry, index) => {
+    if (typeof entry !== "string") {
+      details.push(`\`${fieldPath}.${key}[${index}]\` must be a string.`);
+    }
+  });
 }
 
 function validateProactiveCarePolicySnapshot(

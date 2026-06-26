@@ -119,6 +119,7 @@ interface ChatTurnResponse {
     primaryEmotion: string;
     intensity: number;
   };
+  identitySummary?: SessionIdentitySummary;
   delivery?: {
     style?: "soft" | "warm" | "concerned" | "quiet" | "bright" | "playful" | "steady";
     pace?: "slower" | "steady" | "lighter";
@@ -246,6 +247,16 @@ interface SessionTimelineEvent {
   importance: number;
 }
 
+interface SessionIdentitySummary {
+  userSelfConcept: string[];
+  bondThemes: string[];
+  recurringNeeds: string[];
+  emotionalPatterns: string[];
+  companionStance: string[];
+  summaryText: string;
+  lastUpdatedAt: string;
+}
+
 interface ProactiveCarePolicy {
   enabled: boolean;
   quietHoursStart?: string;
@@ -279,6 +290,7 @@ interface ChatSessionSnapshot {
   sessionId: string;
   messages: ChatMessage[];
   latestInsights: ChatTurnResponse | null;
+  identitySummary: SessionIdentitySummary | null;
   proactiveCarePolicy: ProactiveCarePolicy;
   proactiveCareState: ProactiveCareState;
   memoryArchive: SessionMemoryArchiveItem[];
@@ -756,6 +768,17 @@ const zhCopy = {
     noStored: "最新一轮没有存入新的记忆候选。",
     timeline: "时间轴",
     noTimeline: "暂时还没有时间轴事件。",
+    understanding: "陪伴理解",
+    understandingTag: "身份 + 关系",
+    understandingSummary: "Waveary 当前对你和这段关系的稳定理解。",
+    understandingNoSummary: "还没有形成稳定的陪伴理解。",
+    selfConcept: "自我认识",
+    bondThemes: "关系主题",
+    recurringNeeds: "反复需要",
+    emotionalPatterns: "情绪模式",
+    companionStance: "陪伴立场",
+    understandingUpdatedAt: "更新时间",
+    understandingHint: "这不是调试数据，而是 Waveary 的连续性理解开始变得可见。",
     runtimeHint: "发送一条消息后，这里会显示记忆召回、关系变化与时间轴事件。",
     archive: "持久会话档案",
     archiveTag: "记忆 + 时间轴 + 关系",
@@ -1131,6 +1154,17 @@ const enCopy = {
     noStored: "No memory candidates were stored in the latest turn.",
     timeline: "Timeline",
     noTimeline: "No timeline events yet.",
+    understanding: "Companion Understanding",
+    understandingTag: "Identity + Bond",
+    understandingSummary: "How Waveary currently understands you and the bond.",
+    understandingNoSummary: "No stable understanding summary has formed yet.",
+    selfConcept: "Self Concept",
+    bondThemes: "Bond Themes",
+    recurringNeeds: "Recurring Needs",
+    emotionalPatterns: "Emotional Patterns",
+    companionStance: "Companion Stance",
+    understandingUpdatedAt: "Updated",
+    understandingHint: "This is not raw debug output. It is the continuity layer becoming visible.",
     runtimeHint: "Send a message to see memory recall, relationship changes, and timeline events from the runtime.",
     archive: "Persisted Session Archive",
     archiveTag: "Memory + Timeline + Relationship",
@@ -1498,6 +1532,7 @@ export function App(): ReactElement {
   const [chatInsights, setChatInsights] = useState<ChatTurnResponse | null>(null);
   const [pendingLocalAction, setPendingLocalAction] = useState<PendingLocalAction | null>(null);
   const [chatRestoredAt, setChatRestoredAt] = useState<string | null>(null);
+  const [sessionIdentitySummary, setSessionIdentitySummary] = useState<SessionIdentitySummary | null>(null);
   const [sessionMemoryArchive, setSessionMemoryArchive] = useState<SessionMemoryArchiveItem[]>([]);
   const [sessionRelationship, setSessionRelationship] = useState<SessionRelationshipSnapshot | null>(null);
   const [sessionTimelineEvents, setSessionTimelineEvents] = useState<SessionTimelineEvent[]>([]);
@@ -1931,6 +1966,7 @@ export function App(): ReactElement {
       setChatInsights(null);
       setPendingLocalAction(null);
       setChatRestoredAt(null);
+      setSessionIdentitySummary(null);
       setSessionMemoryArchive([]);
       setSessionRelationship(null);
       setSessionTimelineEvents([]);
@@ -1943,6 +1979,7 @@ export function App(): ReactElement {
     setChatInsights(session.latestInsights);
     setPendingLocalAction(session.latestInsights?.pendingLocalAction ?? null);
     setChatRestoredAt(session.updatedAt);
+    setSessionIdentitySummary(session.identitySummary);
     setSessionMemoryArchive(session.memoryArchive);
     setSessionRelationship(session.relationship);
     setSessionTimelineEvents(session.timelineEvents);
@@ -4435,7 +4472,11 @@ export function App(): ReactElement {
   const alternateBackendStatus =
     persistenceStatus?.backendDetails.find((detail) => detail.backend !== persistenceStatus.backend) ?? null;
   const hasSessionArchive =
-    sessionMemoryArchive.length > 0 || sessionTimelineEvents.length > 0 || Boolean(sessionRelationship);
+    sessionMemoryArchive.length > 0 ||
+    sessionTimelineEvents.length > 0 ||
+    Boolean(sessionRelationship) ||
+    Boolean(sessionIdentitySummary);
+  const activeIdentitySummary = chatInsights?.identitySummary ?? sessionIdentitySummary;
   const configuredRuntimeLabel = savedConfig
     ? `${savedConfig.provider} / ${savedConfig.model}`
     : copy.formatting.runtimeNotConfigured;
@@ -6863,6 +6904,44 @@ export function App(): ReactElement {
                         ? `${chatInsights.emotion.primaryEmotion} (${chatInsights.emotion.intensity.toFixed(2)})`
                         : copy.runtime.noEmotion}
                     </p>
+                  </div>
+
+                  <div className="insight-card insight-card-understanding">
+                    <div className="mini-heading">{copy.runtime.understanding}</div>
+                    {activeIdentitySummary ? (
+                      <>
+                        <p>{activeIdentitySummary.summaryText || copy.runtime.understandingSummary}</p>
+                        <div className="identity-summary-grid">
+                          {([
+                            [copy.runtime.selfConcept, activeIdentitySummary.userSelfConcept],
+                            [copy.runtime.bondThemes, activeIdentitySummary.bondThemes],
+                            [copy.runtime.recurringNeeds, activeIdentitySummary.recurringNeeds],
+                            [copy.runtime.emotionalPatterns, activeIdentitySummary.emotionalPatterns],
+                            [copy.runtime.companionStance, activeIdentitySummary.companionStance]
+                          ] as Array<[string, string[]]>).map(([label, items]) => (
+                            <div className="identity-summary-section" key={label}>
+                              <strong>{label}</strong>
+                              {items.length > 0 ? (
+                                <ul className="insight-list">
+                                  {items.slice(0, 2).map((item) => (
+                                    <li key={`${label}-${item}`}>{item}</li>
+                                  ))}
+                                </ul>
+                              ) : (
+                                <p>{copy.runtime.understandingNoSummary}</p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                        <span className="identity-summary-meta">
+                          {copy.runtime.understandingUpdatedAt}
+                          {copy.formatting.sep}
+                          {formatSessionTimestamp(activeIdentitySummary.lastUpdatedAt, locale)}
+                        </span>
+                      </>
+                    ) : (
+                      <p>{copy.runtime.understandingNoSummary}</p>
+                    )}
                   </div>
 
                   <div className="insight-card">

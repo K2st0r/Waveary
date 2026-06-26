@@ -300,6 +300,19 @@ function toReplyPayload(result: RuntimeTurnResult): ChatReplyPayload {
   return {
     reply: result.reply.content,
     relationship: result.relationship,
+    ...(result.identitySummary
+      ? {
+          identitySummary: {
+            userSelfConcept: [...result.identitySummary.userSelfConcept],
+            bondThemes: [...result.identitySummary.bondThemes],
+            recurringNeeds: [...result.identitySummary.recurringNeeds],
+            emotionalPatterns: [...result.identitySummary.emotionalPatterns],
+            companionStance: [...result.identitySummary.companionStance],
+            summaryText: result.identitySummary.summaryText,
+            lastUpdatedAt: result.identitySummary.lastUpdatedAt
+          }
+        }
+      : {}),
     recalledMemories: result.recalledMemories.map((memory) => memory.content),
     storedMemories: result.storedMemories.map((memory) => memory.content),
     pendingLocalAction: null,
