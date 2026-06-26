@@ -416,6 +416,40 @@ test("WavearyRuntime keeps simple transit updates brief instead of turning them 
   assert.ok(result.reply.content.length < 260);
 });
 
+test("WavearyRuntime keeps micro acknowledgments extremely brief", async () => {
+  const runtime = new WavearyRuntime({
+    chatProvider: new ScriptedChatProvider(),
+    emotionAnalyzer: new SimpleEmotionAnalyzer(),
+    emotionStore: new InMemoryEmotionStore(),
+    emotionEngine: new SimpleCompanionEmotionEngine(),
+    identityStore: new InMemoryIdentityStore(),
+    identityEngine: new SimpleIdentityEngine(),
+    proactiveCareEngine: new SimpleProactiveCareEngine(),
+    memoryStore: new TestMemoryStore(),
+    memoryExtractor: new TestMemoryExtractor(),
+    relationshipStore: new InMemoryRelationshipStore(),
+    relationshipEngine: new SimpleRelationshipEngine(),
+    timelineStore: new InMemoryTimelineStore(),
+    timelineEngine: new SimpleTimelineEngine()
+  });
+
+  const context = createContext();
+  const message: Message = {
+    id: "turn-status-3",
+    sessionId: context.session.id,
+    role: "user",
+    content: "嗯嗯",
+    timestamp: new Date().toISOString(),
+    metadata: {}
+  };
+
+  const result = await runtime.handleTurn(context, message);
+
+  assert.ok(!result.reply.content.includes("Tell me a little more"));
+  assert.ok(!result.reply.content.includes("I still remember"));
+  assert.ok(result.reply.content.length < 140);
+});
+
 test("WavearyRuntime forms a concept-level identity summary from repeated companion needs", async () => {
   const identityStore = new InMemoryIdentityStore();
   const runtime = new WavearyRuntime({

@@ -52,6 +52,18 @@ test("deriveReplyShapeGuidance leaves non-status ordinary chat in the plain buck
   assert.equal(guidance.ordinarySubtype, "plain");
 });
 
+test("deriveReplyShapeGuidance treats micro acknowledgments as their own short ordinary subtype", () => {
+  const englishGuidance = deriveReplyShapeGuidance(createRequest("got it"));
+  const chineseGuidance = deriveReplyShapeGuidance(createRequest("嗯嗯"));
+
+  assert.equal(englishGuidance.kind, "ordinary");
+  assert.equal(englishGuidance.ordinarySubtype, "micro_ack");
+  assert.equal(englishGuidance.maxFollowups, 0);
+  assert.equal(chineseGuidance.kind, "ordinary");
+  assert.equal(chineseGuidance.ordinarySubtype, "micro_ack");
+  assert.equal(chineseGuidance.maxFollowups, 0);
+});
+
 test("deriveReplyShapeGuidance treats quick arrival and transit texts as status updates", () => {
   const transitGuidance = deriveReplyShapeGuidance(createRequest("I'm on my way."));
   const arrivalGuidance = deriveReplyShapeGuidance(createRequest("我到了。"));
@@ -87,6 +99,17 @@ test("describeReplyShapeGuidance includes cadence constraints", () => {
   assert.match(text, /Maximum natural follow-up questions: 1\./);
   assert.match(text, /Default reply length:/);
   assert.match(text, /Avoid polished essay cadence\./);
+});
+
+test("describeReplyShapeGuidance includes micro-ack constraints", () => {
+  const text = describeReplyShapeGuidance(
+    deriveReplyShapeGuidance(createRequest("好呀"))
+  );
+
+  assert.match(
+    text,
+    /For tiny confirmations or soft acknowledgments, prefer one very short human reply and usually stop there\./
+  );
 });
 
 function createRequest(
