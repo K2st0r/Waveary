@@ -48,6 +48,8 @@ import {
   resetChatSession,
   renameChatSession,
   switchChatPersistenceBackend,
+  type SessionIdentitySummary,
+  updateChatSessionIdentitySummary,
   updateChatSessionProactiveCare
 } from "./chat-session-store.js";
 import type { ChatPersistenceBackend } from "./chat-persistence-config.js";
@@ -238,6 +240,17 @@ interface UpdateProactiveCareSettingsRequest extends ChatSessionRequest {
     unansweredReachoutCount?: number;
     lastReachOutAt?: string;
   };
+}
+
+interface UpdateIdentitySummaryRequest extends ChatSessionRequest {
+  identitySummary?: {
+    userSelfConcept?: string[];
+    bondThemes?: string[];
+    recurringNeeds?: string[];
+    emotionalPatterns?: string[];
+    companionStance?: string[];
+    summaryText?: string;
+  } | null;
 }
 
 interface CreateChatSessionRequest {
@@ -744,6 +757,20 @@ export function createProviderApiMiddleware() {
         return;
       }
 
+      if (request.method === "POST" && request.url === "/api/chat/identity-summary") {
+        const payload = (await readJsonBody(request)) as UpdateIdentitySummaryRequest;
+        const result = updateChatSessionIdentitySummary(
+          payload.sessionId?.trim() || DEFAULT_CHAT_SESSION_ID,
+          payload.identitySummary === null
+            ? null
+            : normalizeIdentitySummaryInput(payload.identitySummary)
+        );
+        resetChatRuntimeSessions();
+
+        sendJson(response, 200, result);
+        return;
+      }
+
       if (request.method === "POST" && request.url === "/api/chat/session/export") {
         const payload = (await readJsonBody(request)) as ChatSessionRequest;
         const exported = exportChatSession(
@@ -968,6 +995,54 @@ function requireLocalActionPermission(
 
 function normalizeLocalActionLocale(value: string | undefined): "zh" | "en" {
   return value?.toLowerCase().startsWith("zh") ? "zh" : "en";
+}
+
+function normalizeIdentitySummaryInput(
+  input:
+    | {
+        userSelfConcept?: string[];
+        bondThemes?: string[];
+        recurringNeeds?: string[];
+        emotionalPatterns?: string[];
+        companionStance?: string[];
+        summaryText?: string;
+      }
+    | null
+    | undefined
+): SessionIdentitySummary {
+  if (!input || typeof input !== "object") {
+    throw new Error("Identity summary input is required.");
+  }
+
+  const summaryText = typeof input.summaryText === "string" ? input.summaryText.trim() : "";
+
+  if (!summaryText) {
+    throw new Error("Identity summary text is required.");
+  }
+
+  return {
+    userSelfConcept: requireStringArray(input.userSelfConcept, "userSelfConcept"),
+    bondThemes: requireStringArray(input.bondThemes, "bondThemes"),
+    recurringNeeds: requireStringArray(input.recurringNeeds, "recurringNeeds"),
+    emotionalPatterns: requireStringArray(input.emotionalPatterns, "emotionalPatterns"),
+    companionStance: requireStringArray(input.companionStance, "companionStance"),
+    summaryText,
+    lastUpdatedAt: new Date().toISOString()
+  };
+}
+
+function requireStringArray(value: unknown, fieldName: string): string[] {
+  if (!Array.isArray(value)) {
+    throw new Error(`Identity summary field \`${fieldName}\` must be an array of strings.`);
+  }
+
+  return value.map((entry) => {
+    if (typeof entry !== "string") {
+      throw new Error(`Identity summary field \`${fieldName}\` must contain only strings.`);
+    }
+
+    return entry;
+  });
 }
 
 function getSessionPackageReference(): SessionPackageReference {

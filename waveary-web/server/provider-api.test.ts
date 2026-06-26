@@ -3005,6 +3005,83 @@ test("chat proactive settings route persists proactive policy and state for late
   assert.equal(sessionResponse.body.session.proactiveCareState.unansweredReachoutCount, 2);
 });
 
+test("chat identity summary route persists companion understanding for the active session", async () => {
+  const middleware = createProviderApiMiddleware();
+
+  saveProviderConfig({
+    provider: "provider-a",
+    baseURL: "https://provider-a.example/v1",
+    apiKey: "key-a",
+    model: "model-a"
+  });
+
+  globalThis.fetch = (async () =>
+    new Response(
+      JSON.stringify({
+        choices: [
+          {
+            message: {
+              content: "understanding reply"
+            }
+          }
+        ]
+      }),
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json"
+        }
+      }
+    )) as typeof fetch;
+
+  await invokeJsonRoute(middleware, "POST", "/api/chat/turn", {
+    sessionId: DEFAULT_CHAT_SESSION_ID,
+    message: "I want you to know I need steadiness more than grand speeches."
+  });
+
+  const response = await invokeJsonRoute(
+    middleware,
+    "POST",
+    "/api/chat/identity-summary",
+    {
+      sessionId: DEFAULT_CHAT_SESSION_ID,
+      identitySummary: {
+        userSelfConcept: ["values emotional steadiness"],
+        bondThemes: ["trust grows through quiet consistency"],
+        recurringNeeds: ["needs a steady caring tone"],
+        emotionalPatterns: ["opens up more when replies stay grounded"],
+        companionStance: ["stay warm and concise without overexplaining"],
+        summaryText: "The user values steadiness, quiet trust, and grounded care."
+      }
+    }
+  );
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(
+    response.body.session.identitySummary.summaryText,
+    "The user values steadiness, quiet trust, and grounded care."
+  );
+  assert.deepEqual(response.body.session.identitySummary.userSelfConcept, [
+    "values emotional steadiness"
+  ]);
+  assert.deepEqual(response.body.session.latestInsights.identitySummary.companionStance, [
+    "stay warm and concise without overexplaining"
+  ]);
+
+  const restored = await invokeJsonRoute(middleware, "POST", "/api/chat/session", {
+    sessionId: DEFAULT_CHAT_SESSION_ID
+  });
+
+  assert.equal(restored.statusCode, 200);
+  assert.equal(
+    restored.body.session.identitySummary.summaryText,
+    "The user values steadiness, quiet trust, and grounded care."
+  );
+  assert.deepEqual(restored.body.session.identitySummary.recurringNeeds, [
+    "needs a steady caring tone"
+  ]);
+});
+
 test("chat proactive evaluation route returns a read-only decision without requiring provider config", async () => {
   const imported = importChatSession({
     schemaVersion: "waveary-session@1",
