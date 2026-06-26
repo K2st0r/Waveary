@@ -113,6 +113,9 @@ const MICRO_ACK_PATTERNS = [
   /^\s*got it\.?\s*$/i,
   /^\s*i got it\.?\s*$/i,
   /^\s*gotcha(?:\s+then)?\.?\s*$/i,
+  /^\s*guess\s+that(?:'s| is)\s+fine(?:\s+then)?\.?\s*$/i,
+  /^\s*we can do that(?:\s+then)?\.?\s*$/i,
+  /^\s*that works(?:\s+then)?\.?\s*$/i,
   /^\s*noted\.?\s*$/i,
   /^\s*sounds good\.?\s*$/i,
   /^\s*sounds good\s+then\.?\s*$/i,
@@ -142,7 +145,12 @@ const MICRO_ACK_PATTERNS = [
   /^\s*\u597d\u54e6[~\u3002\uff01!]?[\s]*$/u,
   /^\s*\u597d\u5566[~\u3002\uff01!]?[\s]*$/u,
   /^\s*\u884c\u5440[~\u3002\uff01!]?[\s]*$/u,
-  /^\s*\u884c\u5462[~\u3002\uff01!]?[\s]*$/u
+  /^\s*\u884c\u5462[~\u3002\uff01!]?[\s]*$/u,
+  /^\s*\u90a3\u884c\u5427[~\u3002\uff01!]?[\s]*$/u,
+  /^\s*\u5148\u8fd9\u6837[~\u3002\uff01!]?[\s]*$/u,
+  /^\s*\u90a3\u5c31\u5148\u8fd9\u6837[~\u3002\uff01!]?[\s]*$/u,
+  /^\s*\u597d\u5427\u90a3\u5c31\u8fd9\u6837[~\u3002\uff01!]?[\s]*$/u,
+  /^\s*\u90a3\u5c31\u8fd9\u6837\u5427[~\u3002\uff01!]?[\s]*$/u
 ];
 
 const EMOTIONAL_PATTERNS = [
