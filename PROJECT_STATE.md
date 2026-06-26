@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `f976852` - `Tighten identity summary conflict handling`
+- `73a6e5e` - `Add nth browser result opening`
 
 ## Latest Repository Surface
 
