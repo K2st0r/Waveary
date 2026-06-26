@@ -2223,3 +2223,26 @@ Impact:
 - `waveary-core/src/adapters/openai-compatible-provider.ts` now gives explicit model-facing instructions for this quick-text cadence
 - `waveary-core/src/adapters/scripted-chat-provider.ts` now shortens scripted ordinary replies for this subtype instead of falling back to broader continuity or follow-up patterns
 - `waveary-core/src/runtime/getting-to-know-you.ts` now rejects `home` and `done` as probable user names so ordinary check-in texts no longer contaminate identity memory
+
+## 2026-06-26 - Identity Summary Should Become A Visible Product Surface, Not Stay Prompt-Only
+
+Status:
+
+- accepted
+
+Decision:
+
+Expose the existing persisted `IdentitySummary` through the web product as a lightweight user-facing continuity surface instead of keeping it only inside runtime storage and prompt assembly.
+
+Reason:
+
+- the user wants Waveary to surpass companion competitors through felt continuity, not only internal architecture
+- `IdentitySummary` already existed in `waveary-core`, so hiding it in the web layer wasted one of the strongest current differentiators
+- showing how Waveary understands the user and the bond is a more truthful product advantage than another vague marketing claim about memory
+
+Impact:
+
+- `waveary-web/server/chat-runtime.ts` now passes `identitySummary` through chat-turn payloads
+- `waveary-web/server/chat-session-store.ts` now carries `identitySummary` through snapshots and import/export validation
+- `waveary-web/src/App.tsx` now renders a lightweight runtime understanding panel for self-concept, bond themes, recurring needs, emotional patterns, and companion stance
+- the next related decision is whether this surface should stay read-only or gain a light CE inspect/edit correction path

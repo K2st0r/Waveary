@@ -3032,6 +3032,7 @@ test("chat proactive evaluation route returns a read-only decision without requi
         }
       ],
       latestInsights: null,
+      identitySummary: null,
       proactiveCarePolicy: {
         enabled: true,
         quietHoursStart: "23:00",
@@ -3104,6 +3105,7 @@ test("chat proactive settings route can record a delivered reachout that suppres
         }
       ],
       latestInsights: null,
+      identitySummary: null,
       proactiveCarePolicy: {
         enabled: true,
         quietHoursStart: "23:00",
@@ -3189,6 +3191,7 @@ test("chat turn clears unanswered proactive reachouts after the user replies", a
         }
       ],
       latestInsights: null,
+      identitySummary: null,
       proactiveCarePolicy: {
         enabled: true,
         quietHoursStart: "23:00",

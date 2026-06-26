@@ -7552,3 +7552,42 @@ Commit:
 Push:
 
 - succeeded: `git push origin main` pushed functional commit `e2efa10` to `origin/main`
+
+## 2026-06-26
+
+Objective:
+
+Turn the internal `IdentitySummary` continuity layer into a visible web product surface so Waveary's higher-level user understanding is felt in the runtime UI instead of staying hidden inside prompt assembly.
+
+Summary:
+
+- updated `waveary-web/server/chat-runtime.ts` so chat-turn payloads now include `identitySummary` when the runtime returns it
+- updated `waveary-web/server/chat-session-store.ts` so persisted session snapshots, export/import flows, and validation rules now carry `identitySummary` consistently across `snapshot.identitySummary` and `snapshot.latestInsights.identitySummary`
+- added a lightweight `Companion Understanding` runtime panel in `waveary-web/src/App.tsx` backed by the existing concept-level summary fields for self-concept, bond themes, recurring needs, emotional patterns, and companion stance
+- added the supporting runtime-shell styling in `waveary-web/src/styles.css`
+- updated focused web tests in `waveary-web/server/provider-api.test.ts` to keep the new session snapshot contract explicit
+
+Files changed:
+
+- `waveary-web/server/chat-runtime.ts`
+- `waveary-web/server/chat-session-store.ts`
+- `waveary-web/server/provider-api.test.ts`
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run test --workspace @waveary/web`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
