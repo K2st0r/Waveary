@@ -7401,3 +7401,36 @@ Commit:
 Push:
 
 - succeeded: `git push origin main` pushed functional commit `8427908` to `origin/main`
+
+## 2026-06-26
+
+Objective:
+
+Make the GitHub homepage banner feel more dramatic and premium by flipping the portrait fan direction and tightening the static poster composition.
+
+Summary:
+
+- rebuilt `docs/assets/readme-hero-fan.png` from the existing portrait set as a new outward-fanned spread where the shorter inner arc stays tucked inside and the longer outer arc opens across the header
+- strengthened the banner's static presentation with cleaner paper layering, softer but deeper shadows, calmer cream lighting, and a more deliberate title block so the README cover feels less like a stacked mockup and more like a formal project poster
+- kept the change tightly scoped to GitHub-homepage presentation only, with no product or runtime code changes
+
+Files changed:
+
+- `docs/assets/readme-hero-fan.png`
+- `PROJECT_STATE.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- visual inspection of `docs/assets/readme-hero-fan.png`
+- `npm run check:mojibake`
+- `git diff -- docs/assets/readme-hero-fan.png PROJECT_STATE.md docs/decision-log.md docs/session-log.md`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending

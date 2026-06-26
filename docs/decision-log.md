@@ -2135,3 +2135,24 @@ Impact:
 - `waveary-core/src/adapters/simple-identity-engine.ts` now supports suppression of older generic recurring-needs themes when a more specific emotional signal is present
 - regression coverage now proves the newer overwhelmed-care turn can outrank the older generic comfort theme
 - future identity-summary work should add more suppression rules only when a real conflict is observed, instead of broadening the summary schema
+
+## 2026-06-26 - The GitHub Hero Banner Should Read Like A Brand Poster, Not A Flat README Header
+
+Status:
+
+- accepted
+
+Decision:
+
+The root README hero banner should use a flipped outward fan of question-mark portraits, with the shorter inner arc tucked behind and the longer outer arc opening across the header like a hand-fanned spread.
+
+Reason:
+
+- the previous banner direction felt mechanically stacked instead of intentionally opened, so it did not create the premium first impression the user wanted for the public repository homepage
+- the GitHub README surface is static, which means the banner itself must carry more of the project's emotional identity through composition, paper depth, and tonal contrast
+- the outward-fan layout makes the portrait system feel more iconic and collectible, which better supports Waveary's question-mark companion branding
+
+Impact:
+
+- `docs/assets/readme-hero-fan.png` now uses a broader outward fan geometry, lighter but deeper layered shadows, and a cleaner title block so the header reads more like a formal poster
+- future README hero iterations should stay tightly scoped to static GitHub presentation and avoid dragging runtime UI concerns into the repository cover image

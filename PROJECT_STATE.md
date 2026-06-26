@@ -103,6 +103,7 @@ Brand line:
   - product positioning, engine stack, provider compatibility, roadmap, and repository structure are presented in the first page
   - homepage information architecture now separates brand vision, framework positioning, and the companion console so the product no longer reads like one long debug dashboard
   - homepage visual system now separates a high-confidence brand layer from a cinematic runtime shell so the site reads more like a formal AI framework homepage than a dark admin prototype
+  - the repository README hero banner now uses an outward-fanned question-mark portrait composition with deeper paper layering and stronger brand-poster contrast so the GitHub homepage lands more like a deliberate project cover than a plain documentation header
   - homepage top section now behaves as a single-page framework introduction with anchor navigation, a pure introduction-first first screen, and the interactive console deferred until later sections
   - browser-native provider setup flow is implemented through local `/api/provider/*` routes
   - provider model discovery routes now return normalized model descriptors even when upstream vendors use broader OpenAI-compatible payload variants
@@ -445,7 +446,7 @@ Brand line:
 - add focused route-level and browser-facing coverage for any remaining persistence edge cases beyond the current file/sqlite symmetry path
 - continue polishing the split web shell by tightening session-management density below the console fold and improving message rhythm plus mixed-language balance in the dedicated chat page
 - visually verify and tune the new compact console toolbar plus non-session workspace flow in-browser, especially the internal scrolling behavior now that the marketing-style console intro has been suppressed
-- continue refining the homepage hero so the first screen feels complete across more desktop and laptop heights, with no further scroll-first regression after future copy or asset additions
+- visually verify the new outward-fanned README hero banner on the live GitHub homepage, then only keep iterating if the repository header still feels cramped or under-dramatic after real README rendering
 - if future homepage polish touches the closing route section again, keep it as a homepage-ending promotional recap and do not reintroduce a separate roadmap page
 - if another shell-polish pass is needed, prefer targeted fixes for specific overflowing metadata rows or mobile breakpoints instead of broad console restructuring, because the current containment baseline for `#home`, `#chat`, and `#console` has now been browser-verified
 - keep iterating on the compact console shell only after visual verification shows a remaining real usability gap, instead of re-expanding it into explanatory blocks
