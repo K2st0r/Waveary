@@ -7591,3 +7591,43 @@ Commit:
 Push:
 
 - succeeded: `git push origin main` pushed functional commit `031132c` to `origin/main`
+
+## 2026-06-26
+
+Objective:
+
+Turn the new visible `Companion Understanding` panel into a bounded correction surface so the user can keep Waveary's higher-level understanding aligned with reality instead of leaving it as a read-only guess.
+
+Summary:
+
+- added a narrow identity-summary update path in `waveary-web/server/chat-session-store.ts` plus a dedicated `/api/chat/identity-summary` route in `waveary-web/server/provider-api.ts`
+- kept the persistence contract coherent by saving corrected understanding back into persisted session state and mirroring the same corrected summary into `latestInsights`, so runtime snapshots and export/import-visible state do not drift
+- updated `waveary-web/src/App.tsx` so the existing runtime `Companion Understanding` card now supports an in-place edit mode with bounded section editing and save/cancel actions instead of introducing a separate persona-setup page
+- added matching runtime-shell styling in `waveary-web/src/styles.css`
+- added a focused route test in `waveary-web/server/provider-api.test.ts` proving that a saved correction persists through `/api/chat/session` and updates both `session.identitySummary` and `session.latestInsights.identitySummary`
+
+Files changed:
+
+- `waveary-web/server/chat-session-store.ts`
+- `waveary-web/server/provider-api.ts`
+- `waveary-web/server/provider-api.test.ts`
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run test --workspace @waveary/web`
+- `npm run check:mojibake`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending

@@ -2246,3 +2246,26 @@ Impact:
 - `waveary-web/server/chat-session-store.ts` now carries `identitySummary` through snapshots and import/export validation
 - `waveary-web/src/App.tsx` now renders a lightweight runtime understanding panel for self-concept, bond themes, recurring needs, emotional patterns, and companion stance
 - the next related decision is whether this surface should stay read-only or gain a light CE inspect/edit correction path
+
+## 2026-06-26 - Identity Summary Should Be Correctable, Not Only Visible
+
+Status:
+
+- accepted
+
+Decision:
+
+Once Waveary exposed the persisted `IdentitySummary` in the runtime UI, the next truthful product step was to let the user lightly correct that understanding in place instead of leaving it as an opaque read-only artifact.
+
+Reason:
+
+- a companion product that can be wrong about `who I am` or `what this bond feels like` needs a bounded correction path, not only internal prompt tweaks
+- this closes a real product gap better than another round of invisible prompt tuning because the user can now keep higher-level continuity aligned with reality
+- keeping the surface session-local and lightweight preserves Waveary's no-persona-form direction while still making continuity more trustworthy
+
+Impact:
+
+- `waveary-web/server/chat-session-store.ts` now persists session-level identity-summary corrections and mirrors them into `latestInsights`
+- `waveary-web/server/provider-api.ts` now exposes `/api/chat/identity-summary` as a bounded save route for the active session
+- `waveary-web/src/App.tsx` now lets the user edit and save the existing `Companion Understanding` card in place instead of forcing a separate setup page
+- the next related decision is whether corrected understanding should gain provenance / pinning semantics, or whether runtime-side summary conflict resolution should be tightened first

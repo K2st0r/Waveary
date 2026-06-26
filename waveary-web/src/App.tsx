@@ -1533,6 +1533,9 @@ export function App(): ReactElement {
   const [pendingLocalAction, setPendingLocalAction] = useState<PendingLocalAction | null>(null);
   const [chatRestoredAt, setChatRestoredAt] = useState<string | null>(null);
   const [sessionIdentitySummary, setSessionIdentitySummary] = useState<SessionIdentitySummary | null>(null);
+  const [identitySummaryDraft, setIdentitySummaryDraft] = useState<SessionIdentitySummary | null>(null);
+  const [isEditingIdentitySummary, setIsEditingIdentitySummary] = useState(false);
+  const [identitySummarySaveState, setIdentitySummarySaveState] = useState<"idle" | "saving" | "success" | "error">("idle");
   const [sessionMemoryArchive, setSessionMemoryArchive] = useState<SessionMemoryArchiveItem[]>([]);
   const [sessionRelationship, setSessionRelationship] = useState<SessionRelationshipSnapshot | null>(null);
   const [sessionTimelineEvents, setSessionTimelineEvents] = useState<SessionTimelineEvent[]>([]);
@@ -1967,6 +1970,9 @@ export function App(): ReactElement {
       setPendingLocalAction(null);
       setChatRestoredAt(null);
       setSessionIdentitySummary(null);
+      setIdentitySummaryDraft(null);
+      setIsEditingIdentitySummary(false);
+      setIdentitySummarySaveState("idle");
       setSessionMemoryArchive([]);
       setSessionRelationship(null);
       setSessionTimelineEvents([]);
@@ -1980,6 +1986,9 @@ export function App(): ReactElement {
     setPendingLocalAction(session.latestInsights?.pendingLocalAction ?? null);
     setChatRestoredAt(session.updatedAt);
     setSessionIdentitySummary(session.identitySummary);
+    setIdentitySummaryDraft(session.identitySummary ? cloneIdentitySummary(session.identitySummary) : null);
+    setIsEditingIdentitySummary(false);
+    setIdentitySummarySaveState("idle");
     setSessionMemoryArchive(session.memoryArchive);
     setSessionRelationship(session.relationship);
     setSessionTimelineEvents(session.timelineEvents);
@@ -2957,6 +2966,51 @@ export function App(): ReactElement {
 
   async function handleSendMessage(): Promise<void> {
     await sendChatMessage(chatInput);
+  }
+
+  async function handleSaveIdentitySummary(): Promise<void> {
+    if (!activeSessionId) {
+      return;
+    }
+
+    const draft = identitySummaryEditorValue;
+    setIdentitySummarySaveState("saving");
+
+    try {
+      const response = await fetchJson<{
+        session: ChatSessionSnapshot;
+        sessions: ChatSessionListItem[];
+        defaultSessionId: string;
+        persistence: ChatPersistenceStatus;
+      }>("/api/chat/identity-summary", {
+        method: "POST",
+        body: JSON.stringify({
+          sessionId: activeSessionId,
+          identitySummary: {
+            userSelfConcept: parseIdentitySummaryLines(draft.userSelfConcept),
+            bondThemes: parseIdentitySummaryLines(draft.bondThemes),
+            recurringNeeds: parseIdentitySummaryLines(draft.recurringNeeds),
+            emotionalPatterns: parseIdentitySummaryLines(draft.emotionalPatterns),
+            companionStance: parseIdentitySummaryLines(draft.companionStance),
+            summaryText: draft.summaryText.trim()
+          }
+        })
+      });
+
+      setChatSessions(response.sessions);
+      setPersistenceStatus(response.persistence);
+      setSelectedPersistenceBackend(response.persistence.backend);
+      applySessionSnapshot(response.session);
+      setIdentitySummarySaveState("success");
+      setStatusMessage(
+        locale === "zh"
+          ? "\u966a\u4f34\u7406\u89e3\u5df2\u4fdd\u5b58\uff0c\u540e\u7eed\u5bf9\u8bdd\u4f1a\u57fa\u4e8e\u8fd9\u4efd\u6821\u6b63\u7ee7\u7eed\u3002"
+          : "Companion understanding saved. Future turns will continue from this correction."
+      );
+    } catch (error) {
+      setIdentitySummarySaveState("error");
+      setStatusMessage(getErrorMessage(error));
+    }
   }
 
   async function handleChatInputKeyDown(
@@ -4477,6 +4531,9 @@ export function App(): ReactElement {
     Boolean(sessionRelationship) ||
     Boolean(sessionIdentitySummary);
   const activeIdentitySummary = chatInsights?.identitySummary ?? sessionIdentitySummary;
+  const identitySummaryEditorValue =
+    identitySummaryDraft ??
+    (activeIdentitySummary ? cloneIdentitySummary(activeIdentitySummary) : createEmptyIdentitySummary());
   const configuredRuntimeLabel = savedConfig
     ? `${savedConfig.provider} / ${savedConfig.model}`
     : copy.formatting.runtimeNotConfigured;
@@ -6910,34 +6967,140 @@ export function App(): ReactElement {
                     <div className="mini-heading">{copy.runtime.understanding}</div>
                     {activeIdentitySummary ? (
                       <>
-                        <p>{activeIdentitySummary.summaryText || copy.runtime.understandingSummary}</p>
-                        <div className="identity-summary-grid">
-                          {([
-                            [copy.runtime.selfConcept, activeIdentitySummary.userSelfConcept],
-                            [copy.runtime.bondThemes, activeIdentitySummary.bondThemes],
-                            [copy.runtime.recurringNeeds, activeIdentitySummary.recurringNeeds],
-                            [copy.runtime.emotionalPatterns, activeIdentitySummary.emotionalPatterns],
-                            [copy.runtime.companionStance, activeIdentitySummary.companionStance]
-                          ] as Array<[string, string[]]>).map(([label, items]) => (
-                            <div className="identity-summary-section" key={label}>
-                              <strong>{label}</strong>
-                              {items.length > 0 ? (
-                                <ul className="insight-list">
-                                  {items.slice(0, 2).map((item) => (
-                                    <li key={`${label}-${item}`}>{item}</li>
-                                  ))}
-                                </ul>
-                              ) : (
-                                <p>{copy.runtime.understandingNoSummary}</p>
-                              )}
-                            </div>
-                          ))}
+                        <div className="identity-summary-header">
+                          <p>{activeIdentitySummary.summaryText || copy.runtime.understandingSummary}</p>
+                          <div className="identity-summary-actions">
+                            {isEditingIdentitySummary ? (
+                              <>
+                                <button
+                                  className="button button-secondary button-compact"
+                                  type="button"
+                                  onClick={() => {
+                                    setIdentitySummaryDraft(cloneIdentitySummary(activeIdentitySummary));
+                                    setIsEditingIdentitySummary(false);
+                                    setIdentitySummarySaveState("idle");
+                                  }}
+                                >
+                                  {locale === "zh" ? "\u53d6\u6d88" : "Cancel"}
+                                </button>
+                                <button
+                                  className="button button-primary button-compact"
+                                  type="button"
+                                  onClick={() => void handleSaveIdentitySummary()}
+                                  disabled={identitySummarySaveState === "saving"}
+                                >
+                                  {identitySummarySaveState === "saving"
+                                    ? locale === "zh"
+                                      ? "\u6b63\u5728\u4fdd\u5b58..."
+                                      : "Saving..."
+                                    : locale === "zh"
+                                      ? "\u4fdd\u5b58\u7406\u89e3"
+                                      : "Save Understanding"}
+                                </button>
+                              </>
+                            ) : (
+                              <button
+                                className="button button-secondary button-compact"
+                                type="button"
+                                onClick={() => {
+                                  setIdentitySummaryDraft(cloneIdentitySummary(activeIdentitySummary));
+                                  setIsEditingIdentitySummary(true);
+                                  setIdentitySummarySaveState("idle");
+                                }}
+                              >
+                                {locale === "zh" ? "\u6821\u6b63\u7406\u89e3" : "Correct Understanding"}
+                              </button>
+                            )}
+                          </div>
                         </div>
-                        <span className="identity-summary-meta">
-                          {copy.runtime.understandingUpdatedAt}
-                          {copy.formatting.sep}
-                          {formatSessionTimestamp(activeIdentitySummary.lastUpdatedAt, locale)}
-                        </span>
+                        {isEditingIdentitySummary ? (
+                          <div className="identity-summary-editor">
+                            <label className="field-label" htmlFor="identity-summary-text">
+                              {locale === "zh" ? "\u7406\u89e3\u6458\u8981" : "Summary"}
+                            </label>
+                            <textarea
+                              id="identity-summary-text"
+                              value={identitySummaryEditorValue.summaryText}
+                              onChange={(event) =>
+                                setIdentitySummaryDraft({
+                                  ...identitySummaryEditorValue,
+                                  summaryText: event.target.value
+                                })
+                              }
+                            />
+                            <p className="identity-summary-editor-hint">
+                              {locale === "zh"
+                                ? "\u8fd9\u91cc\u662f\u6821\u6b63 Waveary \u5bf9\u4f60\u7684\u7a33\u5b9a\u7406\u89e3\uff0c\u4e0d\u662f\u5199\u6b7b\u89d2\u8272\u8bbe\u5b9a\u3002"
+                                : "Correct Waveary's stable understanding here without turning it into a rigid persona form."}
+                            </p>
+                            <div className="identity-summary-grid">
+                              {([
+                                ["userSelfConcept", copy.runtime.selfConcept],
+                                ["bondThemes", copy.runtime.bondThemes],
+                                ["recurringNeeds", copy.runtime.recurringNeeds],
+                                ["emotionalPatterns", copy.runtime.emotionalPatterns],
+                                ["companionStance", copy.runtime.companionStance]
+                              ] as Array<
+                                [
+                                  | "userSelfConcept"
+                                  | "bondThemes"
+                                  | "recurringNeeds"
+                                  | "emotionalPatterns"
+                                  | "companionStance",
+                                  string
+                                ]
+                              >).map(([field, label]) => (
+                                <div className="identity-summary-section" key={label}>
+                                  <strong>{label}</strong>
+                                  <textarea
+                                    value={identitySummaryEditorValue[field].join("\n")}
+                                    onChange={(event) =>
+                                      setIdentitySummaryDraft({
+                                        ...identitySummaryEditorValue,
+                                        [field]: event.target.value.split(/\r?\n/)
+                                      })
+                                    }
+                                  />
+                                  <span className="identity-summary-meta">
+                                    {locale === "zh"
+                                      ? "\u6bcf\u884c\u4e00\u6761\uff0c\u7a7a\u884c\u4f1a\u81ea\u52a8\u5ffd\u7565\u3002"
+                                      : "One line per item. Empty lines are ignored."}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="identity-summary-grid">
+                              {([
+                                [copy.runtime.selfConcept, activeIdentitySummary.userSelfConcept],
+                                [copy.runtime.bondThemes, activeIdentitySummary.bondThemes],
+                                [copy.runtime.recurringNeeds, activeIdentitySummary.recurringNeeds],
+                                [copy.runtime.emotionalPatterns, activeIdentitySummary.emotionalPatterns],
+                                [copy.runtime.companionStance, activeIdentitySummary.companionStance]
+                              ] as Array<[string, string[]]>).map(([label, items]) => (
+                                <div className="identity-summary-section" key={label}>
+                                  <strong>{label}</strong>
+                                  {items.length > 0 ? (
+                                    <ul className="insight-list">
+                                      {items.slice(0, 2).map((item) => (
+                                        <li key={`${label}-${item}`}>{item}</li>
+                                      ))}
+                                    </ul>
+                                  ) : (
+                                    <p>{copy.runtime.understandingNoSummary}</p>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                            <span className="identity-summary-meta">
+                              {copy.runtime.understandingUpdatedAt}
+                              {copy.formatting.sep}
+                              {formatSessionTimestamp(activeIdentitySummary.lastUpdatedAt, locale)}
+                            </span>
+                          </>
+                        )}
                       </>
                     ) : (
                       <p>{copy.runtime.understandingNoSummary}</p>
@@ -7384,6 +7547,54 @@ async function fetchJson<T>(input: string, init?: RequestInit): Promise<T> {
   }
 
   return payload as T;
+}
+
+function cloneIdentitySummary(summary: SessionIdentitySummary): SessionIdentitySummary {
+  return {
+    userSelfConcept: [...summary.userSelfConcept],
+    bondThemes: [...summary.bondThemes],
+    recurringNeeds: [...summary.recurringNeeds],
+    emotionalPatterns: [...summary.emotionalPatterns],
+    companionStance: [...summary.companionStance],
+    summaryText: summary.summaryText,
+    lastUpdatedAt: summary.lastUpdatedAt
+  };
+}
+
+function createEmptyIdentitySummary(): SessionIdentitySummary {
+  return {
+    userSelfConcept: [],
+    bondThemes: [],
+    recurringNeeds: [],
+    emotionalPatterns: [],
+    companionStance: [],
+    summaryText: "",
+    lastUpdatedAt: new Date().toISOString()
+  };
+}
+
+function parseIdentitySummaryLines(lines: string[]): string[] {
+  const seen = new Set<string>();
+  const next: string[] = [];
+
+  for (const line of lines) {
+    const normalized = line.trim();
+
+    if (!normalized) {
+      continue;
+    }
+
+    const key = normalized.toLowerCase();
+
+    if (seen.has(key)) {
+      continue;
+    }
+
+    seen.add(key);
+    next.push(normalized);
+  }
+
+  return next.slice(0, 6);
 }
 
 function formatSessionTimestamp(updatedAt: string, locale: Locale = "en"): string {

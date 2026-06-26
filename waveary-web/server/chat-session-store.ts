@@ -104,6 +104,13 @@ export interface UpdateChatProactiveCareResult {
   persistence: ChatPersistenceStatus;
 }
 
+export interface UpdateChatIdentitySummaryResult {
+  session: ChatSessionSnapshot;
+  sessions: ChatSessionListItem[];
+  defaultSessionId: string;
+  persistence: ChatPersistenceStatus;
+}
+
 export interface ExportedChatSession {
   schemaVersion?: string;
   exportedAt: string;
@@ -216,6 +223,45 @@ export class PersistentChatSessionState {
       : this.runtimeState.getProactiveCareState();
 
     return { policy, state };
+  }
+
+  saveIdentitySummary(summary: SessionIdentitySummary | null): void {
+    const timestamp = new Date().toISOString();
+
+    this.runtimeState.saveState((current) => {
+      const nextIdentitySummary = summary
+        ? fromSessionIdentitySummary(
+            summary,
+            current.context.user.id,
+            timestamp
+          )
+        : undefined;
+      const nextSessionIdentitySummary = nextIdentitySummary
+        ? toSessionIdentitySummary(nextIdentitySummary)
+        : undefined;
+
+      const nextLatestInsights = current.latestInsights
+        ? nextIdentitySummary
+          ? withIdentitySummaryOnLatestInsights(
+              current.latestInsights,
+              nextSessionIdentitySummary as SessionIdentitySummary
+            )
+          : stripIdentitySummaryFromLatestInsights(current.latestInsights)
+        : current.latestInsights;
+
+      return nextIdentitySummary
+        ? {
+            ...current,
+            identitySummary: nextIdentitySummary,
+            latestInsights: nextLatestInsights,
+            updatedAt: timestamp
+          }
+        : {
+            ...current,
+            latestInsights: nextLatestInsights,
+            updatedAt: timestamp
+          };
+    });
   }
 
   saveTurn(context: RuntimeContext, latestInsights: ChatReplyPayload): void {
@@ -622,6 +668,26 @@ export function updateChatSessionProactiveCare(
   }
 }
 
+export function updateChatSessionIdentitySummary(
+  sessionId: string,
+  input: SessionIdentitySummary | null
+): UpdateChatIdentitySummaryResult {
+  const persistentState = new PersistentChatSessionState(sessionId);
+
+  try {
+    persistentState.saveIdentitySummary(input);
+
+    return {
+      session: persistentState.getSnapshot() ?? createChatSession(sessionId),
+      sessions: listChatSessions(),
+      defaultSessionId: DEFAULT_CHAT_SESSION_ID,
+      persistence: getCurrentChatPersistenceStatus()
+    };
+  } finally {
+    persistentState.close();
+  }
+}
+
 export function switchChatPersistenceBackend(
   nextBackend: ChatPersistenceBackend
 ): ChatPersistenceSwitchResult {
@@ -831,6 +897,64 @@ function toSessionIdentitySummary(
     companionStance: [...summary.companionStance],
     summaryText: summary.summaryText,
     lastUpdatedAt: summary.lastUpdatedAt
+  };
+}
+
+function fromSessionIdentitySummary(
+  summary: SessionIdentitySummary,
+  userId: string,
+  timestamp: string
+): IdentitySummary {
+  return {
+    userId,
+    userSelfConcept: normalizeIdentitySummarySection(summary.userSelfConcept),
+    bondThemes: normalizeIdentitySummarySection(summary.bondThemes),
+    recurringNeeds: normalizeIdentitySummarySection(summary.recurringNeeds),
+    emotionalPatterns: normalizeIdentitySummarySection(summary.emotionalPatterns),
+    companionStance: normalizeIdentitySummarySection(summary.companionStance),
+    summaryText: summary.summaryText.trim(),
+    lastUpdatedAt: timestamp
+  };
+}
+
+function normalizeIdentitySummarySection(items: string[]): string[] {
+  const seen = new Set<string>();
+  const normalized: string[] = [];
+
+  for (const rawItem of items) {
+    const item = rawItem.trim();
+
+    if (!item) {
+      continue;
+    }
+
+    const key = item.toLowerCase();
+
+    if (seen.has(key)) {
+      continue;
+    }
+
+    seen.add(key);
+    normalized.push(item);
+  }
+
+  return normalized.slice(0, 6);
+}
+
+function stripIdentitySummaryFromLatestInsights(
+  latestInsights: ChatReplyPayload
+): ChatReplyPayload {
+  const { identitySummary: _identitySummary, ...rest } = latestInsights;
+  return rest;
+}
+
+function withIdentitySummaryOnLatestInsights(
+  latestInsights: ChatReplyPayload,
+  identitySummary: SessionIdentitySummary
+): ChatReplyPayload {
+  return {
+    ...latestInsights,
+    identitySummary
   };
 }
 

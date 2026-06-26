@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `031132c` - `Expose identity summaries in web runtime`
+- `c8cc138` - `Sync continuity after identity summary push`
 
 ## Latest Repository Surface
 
@@ -80,6 +80,7 @@ Brand line:
   - the concept-level identity-summary derivation is now more precise across ordinary chat, emotional turns, and relationship-warming turns: casual cadence preferences no longer get over-promoted into vulnerability, emotional support needs now distinguish loneliness and overwhelm from generic sadness/anxiety, and bond summaries can preserve naming/ritual/reconnection trust cues instead of collapsing back to only generic continuity
   - the newest identity-summary pass now also suppresses older generic comfort themes when a fresher loneliness / overwhelm / anxiety signal clearly calls for a more specific care need
   - that same concept-level understanding is now also surfaced truthfully through `waveary-web` session snapshots, chat-turn payloads, import/export validation, and a user-facing runtime understanding panel, so Waveary's continuity layer is no longer hidden only inside prompt assembly
+  - the runtime understanding panel is now also lightly correctable in place through the web UI, so the active session's concept-level identity summary can be edited, persisted, mirrored back into `latestInsights`, and reused by future turns without forcing the user through a rigid persona setup form
   - permissioned local time context can now be injected into normal chat turns so the companion can answer time/date-style questions from the user's device-local clock without claiming it lacks real-time awareness
   - local time context now also resolves a bounded daypart hint so late-night and evening turns can bias toward softer companion tone without expanding into broader desktop-awareness inputs
   - direct local time/date/day questions now also short-circuit inside `WavearyRuntime` through a shared deterministic reply helper before provider generation, so real providers can no longer ignore the supplied local clock context and fall back to generic "I do not know the time" disclaimers
@@ -399,13 +400,13 @@ Brand line:
 - keep extending the browser-action layer one auditable primitive at a time instead of widening into a broad free-form browser agent
 - continue the live-provider dialogue regression pass beyond the new prompt-body coverage into richer emotional-stress, reconnection, practical-question cadence, and multi-turn mutual-discovery competition cases
 - continue the markdown-backed companion-soul rollout by turning it into the next bounded runtime improvements for first-turn naming cadence, softer self-reveal, and more human remembered-name usage before attempting any broader relationship-architecture refactor
-- continue the new user-facing identity-summary surface by deciding whether the next cut should stay read-only or add a light CE inspect/edit control for correcting stale or mismatched understanding
+- continue the new user-facing identity-summary surface by deciding whether the next cut should add correction provenance / user-pinned understanding hints, or another bounded runtime-side refinement for stale-vs-fresh summary conflict resolution
 - visually verify the chat composer reorder and new `Enter`-to-send flow in-browser, then keep tightening the dedicated chat surface around shorter everyday cadence and warmer first-contact behavior
 - continue the continuity-thread quality pass beyond short carry-over follow-ups into pronoun-heavy multi-turn topic persistence, so turns like "that part still hurts" or "I am not over it yet" can stay anchored even when the user is more oblique
 - continue the continuity-thread quality pass beyond short, emotional, low-affect pronoun, inferential, and weaker unsettled carry-over follow-ups into the next bounded drift cases, so the system can stay anchored without over-blending unrelated nearby topics
 - continue hardening early-acquaintance inference beyond emotional-state false positives, identity-style self-description, quoted name-sharing, `my name's` introductions, `I'm called` introductions, parenthesized name-sharing, and `call me` follow-up/scheduling/sequencing/callback false positives into the next bounded ambiguous introduction cases, but keep the parser narrow enough that ordinary emotional sentences are never treated as confirmed names
 - decide whether the next truthful web-facing companion-quality surface should show remembered names / vibe continuity lightly beside the new understanding panel, without regressing into a required persona setup form
-  - decide whether the next identity-summary cut should surface a light inspect/edit CE memory panel first, or stay read-only while one more bounded refinement improves conflict resolution between old stable themes and newly detected higher-signal care needs
+  - decide whether the next identity-summary cut should add correction provenance / pinning first, or one more bounded refinement for conflict resolution between old stable themes and newly detected higher-signal care needs
   - if the summary layer still drifts toward stale generic comfort wording under conflict, add one more explicit suppression rule before broadening the schema
 - start the next voice implementation cut by pushing the current browser voice loop closer to true realtime duplex, beginning with interruption-safe reply stop/resume behavior and a tighter listen-speak handoff instead of broadening vendor coverage first
 - after that interruption-focused pass, decide whether the next highest-value voice step is wider provider-specific STT coverage such as Doubao/local or a deeper transport upgrade beyond the current browser-side speech-activity heuristics
