@@ -2313,3 +2313,25 @@ Impact:
 - `waveary-core/src/runtime/reply-shape.ts` now treats more English and Chinese transit / arrival / wake-up micro-updates as `ordinarySubtype: status_update`
 - the reconnection bucket now depends on clearer emotional return signals such as `miss` or `are you there`, instead of grabbing every plain `back` message
 - `waveary-core/src/runtime/getting-to-know-you.ts` now also rejects new casual status tokens such as `on`, `awake`, and `arrived` so those micro-updates do not pollute remembered identity
+
+## 2026-06-26 - Tiny Confirmations Need Their Own Micro-Ack Cadence
+
+Status:
+
+- accepted
+
+Decision:
+
+Treat tiny confirmations such as `got it`, `okay`, `sure`, `收到`, `知道了`, and `嗯嗯` as their own `micro_ack` subtype inside ordinary chat, with both the live-provider prompt path and scripted fallback path answering them in one very short human line and usually stopping there.
+
+Reason:
+
+- the user wants everyday conversation to feel like real texting, and tiny acknowledgments are one of the most common places where assistant-style over-talking breaks that illusion
+- the newer status-update subtype fixed quick check-ins, but very small confirmations were still broad ordinary chat and could drift into recap, continuity performance, or a reflexive follow-up
+- the shared reply-shape layer is the safest place to tighten this because it already controls both live-provider prompt guidance and scripted fallback cadence
+
+Impact:
+
+- `waveary-core/src/runtime/reply-shape.ts` now classifies tiny confirmations as `ordinarySubtype: micro_ack`
+- `waveary-core/src/adapters/scripted-chat-provider.ts` now returns only the short prefix for that subtype instead of adding continuity or onboarding beats
+- live-provider prompt guidance now explicitly says tiny confirmations should usually get one very short human reply and stop there

@@ -7664,28 +7664,27 @@ Commit:
 
 Push:
 
-- pending continuity sync commit
+- succeeded later: `git push origin main` advanced `origin/main` to include `d8f4682`, and continuity was left stale until the next recorded sync
 
 ## 2026-06-26
 
 Objective:
 
-Extend the low-stakes texting realism pass so more everyday micro-updates get short warm replies and stop leaking into name inference or heavier reconnection cadence.
+Add a dedicated micro-ack cadence so tiny confirmations get one short human reply instead of assistant-style recap or follow-up drift.
 
 Summary:
 
-- updated `waveary-core/src/runtime/reply-shape.ts` so the short ordinary status-update bucket now also catches transit / arrival / wake-up texts such as `I'm on my way.`, `I arrived.`, `just woke up`, `我到了`, `在路上`, and `刚醒`
-- removed the bare `back` token from the reconnection bucket and kept plain `I'm back.` in the short status-update path unless the user adds stronger reconnection cues
-- updated `waveary-core/src/runtime/getting-to-know-you.ts` so casual status tokens such as `on`, `awake`, and `arrived` no longer risk becoming false preferred-name memory
-- added focused regression coverage across `reply-shape`, `getting-to-know-you`, live-provider prompt assembly, and runtime behavior, then re-verified the full compiled `@waveary/core` test suite
+- updated `waveary-core/src/runtime/reply-shape.ts` so tiny confirmations such as `got it`, `okay`, `sure`, `收到`, `知道了`, and `嗯嗯` are classified as a dedicated `micro_ack` ordinary subtype instead of falling through the broader ordinary-chat bucket
+- updated `waveary-core/src/adapters/scripted-chat-provider.ts` so scripted fallback replies now return only the short acknowledgment prefix for `micro_ack` turns instead of adding continuity or follow-up pressure
+- added focused regression coverage in `waveary-core/src/runtime/reply-shape.test.ts`, `waveary-core/src/adapters/openai-compatible-provider.test.ts`, and `waveary-core/src/runtime/waveary-runtime.test.ts` proving both prompt guidance and runtime output stay very short for these tiny confirmations
+- re-verified the full compiled `@waveary/core` test suite after the bounded realism pass
 
 Files changed:
 
 - `waveary-core/src/runtime/reply-shape.ts`
 - `waveary-core/src/runtime/reply-shape.test.ts`
-- `waveary-core/src/runtime/getting-to-know-you.ts`
-- `waveary-core/src/runtime/getting-to-know-you.test.ts`
 - `waveary-core/src/adapters/openai-compatible-provider.test.ts`
+- `waveary-core/src/adapters/scripted-chat-provider.ts`
 - `waveary-core/src/runtime/waveary-runtime.test.ts`
 - `PROJECT_STATE.md`
 - `ACTIVE_TASKS.md`

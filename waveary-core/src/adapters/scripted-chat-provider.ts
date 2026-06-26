@@ -254,7 +254,7 @@ function assembleReply(
   identityLine: string,
   followup: string,
   kind: "practical" | "ordinary" | "playful" | "reconnection" | "emotional",
-  ordinarySubtype?: "status_update" | "plain"
+  ordinarySubtype?: "status_update" | "micro_ack" | "plain"
 ): string {
   if (kind === "practical") {
     return [continuity, identityLine, followup].filter(Boolean).join(" ").trim();
@@ -269,6 +269,11 @@ function assembleReply(
   }
 
   if (kind === "ordinary") {
+    const microAckReply = maybeBuildMicroAckOrdinaryReply(prefix, ordinarySubtype);
+    if (microAckReply) {
+      return microAckReply;
+    }
+
     const statusUpdateReply = maybeBuildStatusUpdateOrdinaryReply(
       prefix,
       continuity,
@@ -301,7 +306,7 @@ function maybeBuildStatusUpdateOrdinaryReply(
   prefix: string,
   continuity: string,
   followup: string,
-  ordinarySubtype?: "status_update" | "plain"
+  ordinarySubtype?: "status_update" | "micro_ack" | "plain"
 ): string | undefined {
   if (ordinarySubtype !== "status_update") {
     return undefined;
@@ -314,6 +319,17 @@ function maybeBuildStatusUpdateOrdinaryReply(
       : "";
 
   return [prefix, onboardingPrompt || continuityBeat].filter(Boolean).join(" ").trim();
+}
+
+function maybeBuildMicroAckOrdinaryReply(
+  prefix: string,
+  ordinarySubtype?: "status_update" | "micro_ack" | "plain"
+): string | undefined {
+  if (ordinarySubtype !== "micro_ack") {
+    return undefined;
+  }
+
+  return prefix;
 }
 
 function isGettingToKnowYouPrompt(value: string): boolean {
