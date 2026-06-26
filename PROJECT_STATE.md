@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `2601439` - `Rewrite GitHub project homepage`
+- `8427908` - `Polish README hero presentation`
 
 ## Latest Repository Surface
 
