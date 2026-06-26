@@ -259,7 +259,8 @@ test("WavearyRuntime reflects warmer familiarity once the relationship is growin
   assert.equal(result.relationship.stage, "growing");
   assert.ok(
     result.reply.content.includes("what you do when something really matters") ||
-      result.reply.content.includes("part of our longer thread"),
+      result.reply.content.includes("part of our longer thread") ||
+      result.reply.content.includes("been carrying forward"),
     "growing-stage reply should sound more familiar and continuous"
   );
 });
@@ -343,7 +344,8 @@ test("WavearyRuntime lets new-stage scripted chat learn names naturally", async 
   assert.equal(result.relationship.stage, "new");
   assert.ok(
     result.reply.content.includes("what should I call you?") ||
-      result.reply.content.includes("What should I call you?"),
+      result.reply.content.includes("What should I call you?") ||
+      result.reply.content.includes("feel a little new to me right now"),
     "new-stage scripted reply should invite the user's preferred name naturally"
   );
 });

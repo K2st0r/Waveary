@@ -36,6 +36,23 @@ test("deriveReplyShapeGuidance keeps practical questions short", () => {
   assert.equal(guidance.allowParagraphExpansion, false);
 });
 
+test("deriveReplyShapeGuidance keeps low-intensity ordinary chat short and usually question-free", () => {
+  const guidance = deriveReplyShapeGuidance(createRequest("Okay, I am home now."));
+
+  assert.equal(guidance.kind, "ordinary");
+  assert.equal(guidance.targetLength, "short");
+  assert.equal(guidance.maxFollowups, 0);
+});
+
+test("deriveReplyShapeGuidance catches softer emotional support requests earlier", () => {
+  const guidance = deriveReplyShapeGuidance(
+    createRequest("I am tired. I do not want advice, I just want someone here.")
+  );
+
+  assert.equal(guidance.kind, "emotional");
+  assert.equal(guidance.shouldLeadWithEmotion, true);
+});
+
 test("describeReplyShapeGuidance includes cadence constraints", () => {
   const text = describeReplyShapeGuidance(
     deriveReplyShapeGuidance(createRequest("I am back. Are you there?"))
@@ -43,6 +60,7 @@ test("describeReplyShapeGuidance includes cadence constraints", () => {
 
   assert.match(text, /Maximum natural follow-up questions: 1\./);
   assert.match(text, /Default reply length:/);
+  assert.match(text, /Avoid polished essay cadence\./);
 });
 
 function createRequest(
