@@ -64,6 +64,18 @@ test("deriveReplyShapeGuidance treats micro acknowledgments as their own short o
   assert.equal(chineseGuidance.maxFollowups, 0);
 });
 
+test("deriveReplyShapeGuidance treats softer acknowledgment endings as micro acknowledgments", () => {
+  const englishGuidance = deriveReplyShapeGuidance(createRequest("okay then"));
+  const chineseGuidance = deriveReplyShapeGuidance(createRequest("\u597d\u5594"));
+
+  assert.equal(englishGuidance.kind, "ordinary");
+  assert.equal(englishGuidance.ordinarySubtype, "micro_ack");
+  assert.equal(englishGuidance.maxFollowups, 0);
+  assert.equal(chineseGuidance.kind, "ordinary");
+  assert.equal(chineseGuidance.ordinarySubtype, "micro_ack");
+  assert.equal(chineseGuidance.maxFollowups, 0);
+});
+
 test("deriveReplyShapeGuidance treats quick arrival and transit texts as status updates", () => {
   const transitGuidance = deriveReplyShapeGuidance(createRequest("I'm on my way."));
   const arrivalGuidance = deriveReplyShapeGuidance(createRequest("我到了。"));
@@ -103,7 +115,7 @@ test("describeReplyShapeGuidance includes cadence constraints", () => {
 
 test("describeReplyShapeGuidance includes micro-ack constraints", () => {
   const text = describeReplyShapeGuidance(
-    deriveReplyShapeGuidance(createRequest("好呀"))
+    deriveReplyShapeGuidance(createRequest("\u884c\u5440"))
   );
 
   assert.match(

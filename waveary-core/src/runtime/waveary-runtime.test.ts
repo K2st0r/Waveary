@@ -438,7 +438,7 @@ test("WavearyRuntime keeps micro acknowledgments extremely brief", async () => {
     id: "turn-status-3",
     sessionId: context.session.id,
     role: "user",
-    content: "嗯嗯",
+    content: "\u77e5\u9053\u5566",
     timestamp: new Date().toISOString(),
     metadata: {}
   };
