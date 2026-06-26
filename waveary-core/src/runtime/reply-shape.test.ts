@@ -76,6 +76,18 @@ test("deriveReplyShapeGuidance treats softer acknowledgment endings as micro ack
   assert.equal(chineseGuidance.maxFollowups, 0);
 });
 
+test("deriveReplyShapeGuidance treats deferential low-stakes closers as micro acknowledgments", () => {
+  const englishGuidance = deriveReplyShapeGuidance(createRequest("we can do that then"));
+  const chineseGuidance = deriveReplyShapeGuidance(createRequest("\u90a3\u884c\u5427"));
+
+  assert.equal(englishGuidance.kind, "ordinary");
+  assert.equal(englishGuidance.ordinarySubtype, "micro_ack");
+  assert.equal(englishGuidance.maxFollowups, 0);
+  assert.equal(chineseGuidance.kind, "ordinary");
+  assert.equal(chineseGuidance.ordinarySubtype, "micro_ack");
+  assert.equal(chineseGuidance.maxFollowups, 0);
+});
+
 test("deriveReplyShapeGuidance treats quick arrival and transit texts as status updates", () => {
   const transitGuidance = deriveReplyShapeGuidance(createRequest("I'm on my way."));
   const arrivalGuidance = deriveReplyShapeGuidance(createRequest("我到了。"));

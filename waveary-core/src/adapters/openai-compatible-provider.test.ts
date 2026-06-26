@@ -1501,6 +1501,32 @@ test("OpenAICompatibleChatProvider gives the same micro-ack guidance for softer 
   );
 });
 
+test("OpenAICompatibleChatProvider gives the same micro-ack guidance for deferential closers", async () => {
+  const instruction = await captureInstruction(
+    createRequest({
+      messages: [
+        {
+          id: "m1",
+          sessionId: "session-1",
+          role: "user",
+          content: "那行吧",
+          timestamp: new Date().toISOString(),
+          metadata: {}
+        }
+      ],
+      relevantMemories: [],
+      timeline: []
+    })
+  );
+
+  assert.match(instruction, /Current reply mode: ordinary\./);
+  assert.match(instruction, /Maximum natural follow-up questions: 0\./);
+  assert.match(
+    instruction,
+    /For tiny confirmations or soft acknowledgments, prefer one very short human reply and usually stop there\./
+  );
+});
+
 test("OpenAICompatibleChatProvider keeps emotional-turn continuity guidance restrained when only a weak timeline thread is available", async () => {
   const instruction = await captureInstruction(
     createRequest({
