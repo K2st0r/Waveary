@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `e2efa10` - `Tighten low-stakes chat cadence`
+- `031132c` - `Expose identity summaries in web runtime`
 
 ## Latest Repository Surface
 
