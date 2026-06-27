@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `d9fc5fe` - `Add check-back chat cadence`
+- `1ee0b4f` - `Add tone-repair chat cadence`
 
 ## Latest Repository Surface
 
@@ -64,6 +64,7 @@ Brand line:
   - the newest reply-realism cut now also folds lightly deferential low-stakes closers such as `we can do that then`, `that works then`, `guess that's fine then`, `那行吧`, `先这样`, and `那就先这样` into that same `micro_ack` track, so small hesitant closers still get one short human line instead of reopening the conversation artificially
   - the next bounded reply-realism cut now also treats lightly hedged everyday updates such as `maybe a bit later`, `I think I'll head back soon`, `可能晚点`, and similar quiet plan confirmations as a dedicated `soft_update` ordinary-chat subtype, so both live-provider guidance and scripted fallback replies answer them like a quick warm human text instead of recap or follow-up pressure
   - the next bounded reply-realism cut now also treats light check-back nudges such as `you there?`, `still up?`, `还醒着吗`, and `在吗` as a dedicated `check_back` ordinary-chat subtype, so gentle presence checks get one brief warm signal instead of being misread as practical Q&A or overplayed as a heavier reconnection scene
+  - the next bounded reply-realism cut now also treats small tone-softener lines such as `didn't mean to sound harsh`, `sorry if that came off a bit cold`, `不是故意凶你的`, and similar low-intensity interpersonal repairs as a dedicated `tone_repair` ordinary-chat subtype, so small human softeners can land briefly and warmly without escalating into a heavy apology scene or a forced follow-up
   - the `new` relationship stage now also has a dedicated getting-to-know-you helper that can infer preferred user name, user-given companion nickname, and desired companion vibe from chat history plus recalled memories
   - live-provider prompt assembly now also injects explicit getting-to-know-you guidance so early turns can ask one natural discovery question at a time instead of sounding like a configured persona form
   - live-provider regression now explicitly covers practical new-stage turns, emotional new-stage turns, reconnection cadence, and `what should I call you` mutual-discovery prompts so prompt-shape drift is less likely to silently reintroduce long assistant-style replies or block early natural acquaintance
@@ -454,7 +455,7 @@ Brand line:
 - add route-level or live verification for more provider-specific chat payload divergences after the current DeepSeek and broader structured-payload compatibility baseline
 - re-run `npm run verify:provider` and `npm run models:provider` with refreshed real credentials, starting with DeepSeek because the currently saved local key now returns `401 invalid api key`
 - continue the dialogue-quality pass by extending live-provider regression beyond prompt-body inspection into stronger emotional-stress cases, finer ordinary-texting cadence, and richer memory-vs-timeline competition now that recency and source-turn weighting are both present in the shared helper
-- continue the dialogue-quality pass by extending the low-stakes short-texting cadence beyond status updates, tiny confirmations, softer micro-ack endings, deferential closers, soft updates, reassurance closers, and light check-back nudges into one next bounded everyday-message bucket such as small apology-softeners with emotional undertone, while keeping emotional-first handling and identity inference narrow
+- continue the dialogue-quality pass by extending the low-stakes short-texting cadence beyond status updates, tiny confirmations, softer micro-ack endings, deferential closers, soft updates, reassurance closers, light check-back nudges, and small tone-repair softeners into one next bounded everyday-message bucket such as small affectionate catch-up openers or light self-conscious softeners, while keeping emotional-first handling and identity inference narrow
 - consider whether the next continuity-scoring refinement should incorporate bounded source-session or repeated-reference signals beyond the current current-turn match, recency, and source-turn layers
 - consider reusing the shared continuity-thread helper in future runtime-facing care or summary surfaces instead of reintroducing prompt-local continuity heuristics elsewhere
 - consider whether continuity-thread scoring now needs source-turn weighting in addition to the new lightweight recency bias, especially for memories created within the same short time band

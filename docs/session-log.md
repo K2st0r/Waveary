@@ -8007,3 +8007,43 @@ Commit:
 Push:
 
 - succeeded: `git push origin main` pushed functional commit `d9fc5fe` to `origin/main`
+
+## 2026-06-27
+
+Objective:
+
+Continue the everyday companion-realism pass by giving small tone-softener and interpersonal-repair texts their own brief, warm landing cadence.
+
+Summary:
+
+- updated `waveary-core/src/runtime/reply-shape.ts` so bounded low-intensity tone-softener lines such as `didn't mean to sound harsh`, `sorry if that came off a bit cold`, and `不是故意凶你的` are classified as `ordinarySubtype: tone_repair`
+- updated `waveary-core/src/adapters/scripted-chat-provider.ts` so scripted fallback lets that subtype land with one brief warm reply instead of reopening the thread, turning it into a heavy apology scene, or flattening it into another ordinary bucket
+- added focused regression coverage in `waveary-core/src/runtime/reply-shape.test.ts`, `waveary-core/src/adapters/openai-compatible-provider.test.ts`, and `waveary-core/src/runtime/waveary-runtime.test.ts`
+- re-verified `@waveary/core` in the required sequential Windows order: `check`, then `build`, then compiled `dist` tests
+
+Files changed:
+
+- `waveary-core/src/runtime/reply-shape.ts`
+- `waveary-core/src/adapters/scripted-chat-provider.ts`
+- `waveary-core/src/runtime/reply-shape.test.ts`
+- `waveary-core/src/adapters/openai-compatible-provider.test.ts`
+- `waveary-core/src/runtime/waveary-runtime.test.ts`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/core`
+- `npm run build --workspace @waveary/core`
+- PowerShell compiled-test verification via:
+  `$files = @(Get-ChildItem 'waveary-core\\dist' -Recurse -Filter '*.test.js' | Sort-Object FullName | ForEach-Object { $_.FullName }); & node --test @files`
+
+Commit:
+
+- `1ee0b4f` - `Add tone-repair chat cadence`
+
+Push:
+
+- succeeded: `git push origin main` pushed functional commit `1ee0b4f` to `origin/main`
