@@ -63,9 +63,12 @@ const CHECK_BACK_PATTERNS = [
   /^\s*are you there\??\s*$/i,
   /^\s*still there\??\s*$/i,
   /^\s*still up\??\s*$/i,
+  /^\s*you still up\??\s*$/i,
   /^\s*you up\??\s*$/i,
   /^\s*are you awake\??\s*$/i,
   /^\s*you awake\??\s*$/i,
+  /^\s*are you asleep\??\s*$/i,
+  /^\s*you asleep\??\s*$/i,
   /^\s*you around\??\s*$/i,
   /^\s*still around\??\s*$/i,
   /^\s*\u5728\u5417[~\u3002\uff01!?？]*\s*$/u,
@@ -79,11 +82,13 @@ const CATCH_UP_PATTERNS = [
   /^\s*(?:hey(?:\s+you)?|hi(?:\s+you)?)(?:[,!.\s]+)?(?:just\s+)?(?:thinking of you|thought of you)(?:\s+a little)?\.?\s*$/i,
   /^\s*(?:just\s+)?thought of you(?:\s+a little)?\.?\s*$/i,
   /^\s*(?:just\s+)?thinking of you(?:\s+a little)?\.?\s*$/i,
+  /^\s*(?:i\s+)?miss\s+you(?:\s+a\s+little|\s+already|\s+tonight|\s+lately|\s+right\s+now)?\.?\s*$/i,
   /^\s*missed you a little(?:\s+today|\s+just now|\s+lately)?\.?\s*$/i,
   /^\s*wanted to come back to you(?:\s+for a second)?\.?\s*$/i,
   /^\s*came back to you first\.?\s*$/i,
   /^\s*\u521a\u521a\u60f3\u5230\u4f60\u4e86[~\u3002\uff01!]?[\s]*$/u,
   /^\s*\u7a81\u7136\u60f3\u5230\u4f60\u4e86[~\u3002\uff01!]?[\s]*$/u,
+  /^\s*\u60f3\u4f60\u4e86[~\u3002\uff01!]?[\s]*$/u,
   /^\s*\u6709\u70b9\u60f3\u4f60\u4e86[~\u3002\uff01!]?[\s]*$/u,
   /^\s*\u5ffd\u7136\u6709\u70b9\u60f3\u4f60[~\u3002\uff01!]?[\s]*$/u,
   /^\s*\u56de\u6765\u627e\u4f60\u4e86[~\u3002\uff01!]?[\s]*$/u,
@@ -207,6 +212,7 @@ const REASSURANCE_CLOSE_PATTERNS = [
   /^\s*no worries(?:\s+then)?\.?\s*$/i,
   /^\s*it's okay(?:\s+then)?\.?\s*$/i,
   /^\s*it is okay(?:\s+then)?\.?\s*$/i,
+  /^\s*good\s*night\.?\s*$/i,
   /^\s*get some rest(?:\s+then|\s+tonight)?\.?\s*$/i,
   /^\s*rest early(?:\s+tonight)?\.?\s*$/i,
   /^\s*do not overthink it(?:\s+tonight)?\.?\s*$/i,
@@ -216,6 +222,7 @@ const REASSURANCE_CLOSE_PATTERNS = [
   /^\s*\u6ca1\u4e8b\u7684[~\u3002\uff01!]?[\s]*$/u,
   /^\s*\u522b\u60f3\u592a\u591a\u5566[~\u3002\uff01!]?[\s]*$/u,
   /^\s*\u522b\u60f3\u592a\u591a\u4e86[~\u3002\uff01!]?[\s]*$/u,
+  /^\s*\u665a\u5b89[~\u3002\uff01!]?[\s]*$/u,
   /^\s*\u65e9\u70b9\u4f11\u606f\u5427[~\u3002\uff01!]?[\s]*$/u,
   /^\s*\u5feb\u53bb\u4f11\u606f\u5427[~\u3002\uff01!]?[\s]*$/u,
   /^\s*\u4f60\u5148\u597d\u597d\u4f11\u606f[~\u3002\uff01!]?[\s]*$/u
@@ -519,9 +526,9 @@ export function describeReplyShapeGuidance(
   if (guidance.kind === "ordinary") {
     base.push(
       guidance.ordinarySubtype === "check_back"
-        ? "For light check-back nudges, answer with a brief warm presence signal. It is okay to sound a little quietly affectionate or a little glad they reached for you, as long as it stays natural. Do not turn it into a heavy reunion, a practical answer, or a follow-up chain."
+        ? "For light check-back nudges, answer with a brief warm presence signal. If the wording is sleepy or late-night, it can feel a touch softer and more quietly close. Do not turn it into a heavy reunion, a practical answer, or a follow-up chain."
         : guidance.ordinarySubtype === "catch_up"
-        ? "For light affectionate catch-up or thinking-of-you openers, answer with one brief warm reconnection line. Let it feel lightly personal without turning it into a heavy reunion speech or a follow-up chain."
+        ? "For light affectionate catch-up or thinking-of-you openers, answer with one brief warm reconnection line. If they say they missed you or thought of you, it is okay to sound quietly pleased or softly touched, but keep it small. Do not turn it into a heavy reunion speech or a follow-up chain."
         : guidance.ordinarySubtype === "micro_ack"
         ? "For tiny confirmations or soft acknowledgments, prefer one very short human reply and usually stop there. Do not inflate the moment into continuity theater, recap, or a fresh question."
         : guidance.ordinarySubtype === "status_update"
@@ -533,7 +540,7 @@ export function describeReplyShapeGuidance(
         : guidance.ordinarySubtype === "delay_repair"
         ? "For small apology or delayed-reply repair messages, answer like a real person resuming the thread. Keep it brief, warm, and do not turn the apology into a heavy emotional scene."
         : guidance.ordinarySubtype === "reassurance_close"
-        ? "For gentle reassurance or soft rest-style closers, answer with a brief warm receipt. Do not reopen the conversation unless the user clearly leaves the door open."
+        ? "For gentle reassurance or soft rest-style closers, answer with a brief warm receipt. Bedtime or good-night lines may feel a little softer, sleepier, or closer, but still brief. Do not reopen the conversation unless the user clearly leaves the door open."
         : guidance.ordinarySubtype === "soft_update"
         ? "For lightly hedged updates or quiet plan confirmations, answer like a quick human text back. Keep it short, lightly warm, and usually question-free."
         : guidance.maxFollowups === 0
