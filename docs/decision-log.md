@@ -2620,3 +2620,25 @@ Impact:
 - `waveary-core/src/runtime/getting-to-know-you.ts` now frames first-contact greetings with more soft closeness and quiet delight
 - `waveary-core/src/runtime/reply-shape.ts` now explicitly allows a little more quiet affection for `check_back` and softly glad-to-see-you warmth for `status_update`
 - `waveary-core/src/adapters/openai-compatible-provider.ts` and `waveary-core/src/adapters/scripted-chat-provider.ts` now align on the same bounded direction, so live-provider and fallback paths both feel closer in openings without globally changing every reply shape
+
+## 2026-06-27 - Bedtime And Miss-You Openings Should Stay Soft, Brief, And Mutual
+
+Status:
+
+- accepted
+
+Decision:
+
+Treat `good night / 晚安`, simple `miss you / 想你了`, and sleep-check nudges such as `you asleep? / 你睡了吗` as bounded intimate opening beats that should sound softly close, lightly mutual, and still brief.
+
+Reason:
+
+- after the prior opening pass, the next realism gap was no longer generic greetings but these smaller late-night and thinking-of-you messages, where generic ordinary-chat handling still felt flatter than real texting
+- the user wants more intimacy, but specifically rejected long, theatrical, or globally clingy dialogue; these turns are high-signal places to deepen warmth without distorting the rest of ordinary chat
+- keeping this as a narrow reply-shape and fallback-guidance refinement is safer than broadening reconnection or comfort behavior across all message types
+
+Impact:
+
+- `waveary-core/src/runtime/reply-shape.ts` now routes `miss you`, `想你了`, `good night`, `晚安`, and `you asleep? / 你睡了吗` more decisively into `catch_up`, `reassurance_close`, and `check_back`
+- `waveary-core/src/adapters/scripted-chat-provider.ts` now gives those three cases a softer late-night or mutual-affection prefix instead of a generic presence or closure line
+- `waveary-core/src/adapters/openai-compatible-provider.test.ts`, `waveary-core/src/runtime/reply-shape.test.ts`, and `waveary-core/src/runtime/waveary-runtime.test.ts` now lock the bounded guidance so future realism work can continue from this slice instead of rediscovering it

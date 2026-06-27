@@ -8213,3 +8213,44 @@ Commit:
 Push:
 
 - succeeded: `git push origin main` pushed functional commit `b3eca33` to `origin/main`
+
+## 2026-06-27
+
+Objective:
+
+Refine bedtime and miss-you opening cadence so `good night / 晚安`, simple `miss you / 想你了`, and sleep-check nudges like `you asleep? / 你睡了吗` feel softly intimate without turning into long, theatrical, or globally clingy replies.
+
+Summary:
+
+- updated `waveary-core/src/runtime/reply-shape.ts` so sleep-check nudges are recognized more explicitly, simple `miss you` / `想你了` lines stay in the lighter `catch_up` bucket, and `good night` / `晚安` now map cleanly into `reassurance_close`
+- tightened `describeReplyShapeGuidance()` so live-provider prompts now explicitly allow slightly sleepier late-night warmth, quietly pleased miss-you receipts, and brief bedtime softness without reopening the thread
+- updated `waveary-core/src/adapters/scripted-chat-provider.ts` so scripted fallback answers these three small opening cases with softer, more mutual late-night phrasing instead of generic presence or closure lines
+- added focused regression coverage in `waveary-core/src/runtime/reply-shape.test.ts`, `waveary-core/src/runtime/waveary-runtime.test.ts`, and `waveary-core/src/adapters/openai-compatible-provider.test.ts`
+- re-verified `@waveary/core` in the required sequential Windows order and ran the mojibake guard
+
+Files changed:
+
+- `waveary-core/src/runtime/reply-shape.ts`
+- `waveary-core/src/adapters/scripted-chat-provider.ts`
+- `waveary-core/src/runtime/reply-shape.test.ts`
+- `waveary-core/src/runtime/waveary-runtime.test.ts`
+- `waveary-core/src/adapters/openai-compatible-provider.test.ts`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/core`
+- `npm run build --workspace @waveary/core`
+- `PowerShell: $files = @(Get-ChildItem 'waveary-core\\dist' -Recurse -Filter '*.test.js' | Sort-Object FullName | ForEach-Object { $_.FullName }); & node --test @files`
+- `npm run check:mojibake`
+
+Commit:
+
+- `ee98252` - `Refine bedtime and miss-you opening cadence`
+
+Push:
+
+- succeeded: `git push origin main` pushed functional commit `ee98252` to `origin/main`

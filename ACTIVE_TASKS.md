@@ -29,8 +29,8 @@ Update it when:
 
 4. Continue the `waveary-core` dialogue-quality pass.
    Status: in progress
-   Current state: continuity-thread selection, reply-shape control, getting-to-know-you inference, identity-summary understanding, deterministic local-time narrowing, and many bounded ordinary-texting cadence cuts are already in place. The latest opening-realism pass is now complete too: first greetings, light check-backs, and plain return/status messages get more quietly affectionate guidance in both live-provider prompts and scripted fallback, so they can sound a little more like intimate texting without smearing that same closeness across all ordinary chat.
-   Next cut: continue the realism pass by extending this new intimate-opening cadence into one next bounded opening case such as `晚安 / 想你了 / 你睡了吗`, while preserving short, human, non-theatrical replies and keeping identity inference narrow.
+   Current state: continuity-thread selection, reply-shape control, getting-to-know-you inference, identity-summary understanding, deterministic local-time narrowing, and many bounded ordinary-texting cadence cuts are already in place. The latest opening-realism pass now also covers `good night / 晚安`, simple `miss you / 想你了`, and sleep-check nudges like `you asleep? / 你睡了吗`, so those small intimate openings stay short, softly close, and non-theatrical in both live-provider prompts and scripted fallback.
+   Next cut: continue the realism pass by extending this bounded intimate-opening cadence into one next small opening case such as `想我了吗 / 还没睡呀 / 刚刚梦到你了`, while preserving short, human, non-clingy replies and keeping identity inference narrow.
 
 5. Keep permissioned local-time awareness and local execution boundaries bounded and trustworthy.
    Status: in progress

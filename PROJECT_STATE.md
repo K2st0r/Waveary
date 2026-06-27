@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `b3eca33` - `Refine intimate opening cadence`
+- `ee98252` - `Refine bedtime and miss-you opening cadence`
 
 ## Latest Repository Surface
 
@@ -97,7 +97,7 @@ Brand line:
   - deterministic local-time question detection now also catches more indirect Chinese complaint-style phrasings such as asking why the companion still cannot tell the exact time, so those turns no longer slip past the runtime short-circuit and fall back to provider disclaimers
   - deterministic local-time detection is now narrower around actual clock/date questions, so emotional turns that merely mention `today` or `tonight` no longer collapse into time replies
   - early-acquaintance guidance now explicitly recognizes first-contact greetings and pushes both scripted and live-provider replies toward warm human introduction cadence instead of flat product-style self-introduction
-  - the next bounded opening-realism pass is now complete too: first greetings, light check-backs, and small return/status messages now get more quietly affectionate opening guidance in both live-provider prompts and scripted fallback, so lines like `hi`, `still up?`, and `I'm back` can feel a little softer and more glad-to-see-you without making all ordinary chat clingy or theatrical
+  - the next bounded opening-realism pass now also covers bedtime and light miss-you beats: first greetings, light check-backs, small return/status messages, `good night / 晚安`, simple `miss you / 想你了`, and sleep-check nudges like `you asleep? / 你睡了吗` now get more quietly affectionate guidance in both live-provider prompts and scripted fallback, so those openings can feel softer and more intimate without making all ordinary chat clingy or theatrical
   - first voice-domain contracts now exist through `VoiceSession`, `SpeechInput`, and `SpeechOutput`, so the framework boundary no longer leaves voice only at the architecture-document level
   - first formal product and architecture draft for companion emotional continuity and proactive care now exists in `docs/emotion-proactive-care.md`, defining `Waveary Emotion Engine (WEE)` and `Waveary Proactive Care Engine (WPCE)` as the next major runtime-facing design targets
   - first companion-side emotion runtime layer is now implemented through a persisted `EmotionStore`, a `SimpleCompanionEmotionEngine`, and runtime wiring that updates and returns companion emotion state on each turn
@@ -458,7 +458,7 @@ Brand line:
 - add route-level or live verification for more provider-specific chat payload divergences after the current DeepSeek and broader structured-payload compatibility baseline
 - re-run `npm run verify:provider` and `npm run models:provider` with refreshed real credentials, starting with DeepSeek because the currently saved local key now returns `401 invalid api key`
 - continue the dialogue-quality pass by extending live-provider regression beyond prompt-body inspection into stronger emotional-stress cases, finer ordinary-texting cadence, and richer memory-vs-timeline competition now that recency and source-turn weighting are both present in the shared helper
-- continue the dialogue-quality pass by extending greeting/opening realism beyond the new time-of-day greeting correction guard into one next bounded opening-cadence cut such as `早安 / 午安 / 晚安 / 刚回来 / 还在吗`, while keeping replies short, human, and non-recap-heavy
+- continue the dialogue-quality pass by extending greeting/opening realism beyond the new bedtime, miss-you, and sleep-check cadence into one next bounded opening cut such as `想我了吗 / 还没睡呀 / 刚刚梦到你了`, while keeping replies short, human, and non-clingy
 - consider whether the next continuity-scoring refinement should incorporate bounded source-session or repeated-reference signals beyond the current current-turn match, recency, and source-turn layers
 - consider reusing the shared continuity-thread helper in future runtime-facing care or summary surfaces instead of reintroducing prompt-local continuity heuristics elsewhere
 - consider whether continuity-thread scoring now needs source-turn weighting in addition to the new lightweight recency bias, especially for memories created within the same short time band
