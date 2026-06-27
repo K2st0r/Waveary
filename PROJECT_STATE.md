@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `6f9678c` - `Refine playful late-night opening cadence`
+- `4c0e60b` - `Center README hero fan artwork`
 
 ## Latest Repository Surface
 
@@ -466,7 +466,7 @@ Brand line:
 - add focused route-level and browser-facing coverage for any remaining persistence edge cases beyond the current file/sqlite symmetry path
 - continue polishing the split web shell by tightening session-management density below the console fold and improving message rhythm plus mixed-language balance in the dedicated chat page
 - visually verify and tune the new compact console toolbar plus non-session workspace flow in-browser, especially the internal scrolling behavior now that the marketing-style console intro has been suppressed
-- visually verify the new outward-fanned README hero banner on the live GitHub homepage, then only keep iterating if the repository header still feels cramped or under-dramatic after real README rendering
+- the README hero banner asset has now been rebuilt into a centered transparent fan composition with cleaner portrait-card isolation; only keep iterating if live GitHub rendering still shows a real balance issue
 - if future homepage polish touches the closing route section again, keep it as a homepage-ending promotional recap and do not reintroduce a separate roadmap page
 - if another shell-polish pass is needed, prefer targeted fixes for specific overflowing metadata rows or mobile breakpoints instead of broad console restructuring, because the current containment baseline for `#home`, `#chat`, and `#console` has now been browser-verified
 - keep iterating on the compact console shell only after visual verification shows a remaining real usability gap, instead of re-expanding it into explanatory blocks

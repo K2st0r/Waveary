@@ -2664,3 +2664,25 @@ Impact:
 - `waveary-core/src/runtime/reply-shape.ts` now protects `did you miss me? / 想我了吗` from being flattened into `practical` just because of the trailing question mark, and it routes lingering late-night and dream-style openers into the same bounded opening buckets
 - `waveary-core/src/adapters/scripted-chat-provider.ts` now gives those messages slightly teasing, softly awake, or quietly curious replies instead of generic follow-up pressure
 - regression coverage in `waveary-core/src/runtime/reply-shape.test.ts`, `waveary-core/src/runtime/waveary-runtime.test.ts`, and `waveary-core/src/adapters/openai-compatible-provider.test.ts` now locks this narrow late-night/playful opening slice for future turns
+
+## 2026-06-27 - README Hero Should Be A Centered Transparent Fan, Not A Full Banner Scene
+
+Status:
+
+- accepted
+
+Decision:
+
+The GitHub README hero should use a centered fan of portrait cards on a transparent background instead of a full baked banner scene with its own large background plate and title text inside the image.
+
+Reason:
+
+- the user explicitly wanted the portrait-card composition to keep the fanned-in-hand feeling while removing the extra background behind it
+- the previous raster banner felt visually offset and too heavy for the cleaner formal README direction
+- a transparent centered asset lets GitHub's page background do the work and avoids duplicating project title copy that already appears immediately below in the README
+
+Impact:
+
+- `docs/assets/readme-hero-fan.png` is now a lighter transparent PNG that isolates the portrait fan itself
+- the portrait fan is now centered more deliberately instead of drifting right inside a larger scene composition
+- future README hero iterations should stay focused on card balance, transparency, and composition rather than reintroducing background scenery or baked-in title text

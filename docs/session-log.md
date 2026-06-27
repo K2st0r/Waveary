@@ -8295,3 +8295,36 @@ Commit:
 Push:
 
 - succeeded: `git push origin main` pushed functional commit `6f9678c` to `origin/main`
+
+## 2026-06-27
+
+Objective:
+
+Refine the GitHub README hero so the portrait-card fan stays centered and clean without a baked background scene behind it.
+
+Summary:
+
+- rebuilt `docs/assets/readme-hero-fan.png` into a centered transparent portrait-fan composition using the existing Waveary question-mark portrait set
+- removed the old full-banner background and baked title/text treatment from the asset so the README's own typography can carry the identity below it
+- kept the outward fanned-card feeling while pulling the composition back toward the middle and tightening the visual weight for cleaner GitHub rendering
+
+Files changed:
+
+- `docs/assets/readme-hero-fan.png`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- visual inspection of `docs/assets/readme-hero-fan.png`
+- `git diff --stat`
+
+Commit:
+
+- `4c0e60b` - `Center README hero fan artwork`
+
+Push:
+
+- succeeded: `git push origin main` pushed functional commit `4c0e60b` to `origin/main`
