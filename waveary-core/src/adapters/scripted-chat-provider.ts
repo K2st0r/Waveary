@@ -256,6 +256,7 @@ function assembleReply(
   kind: "practical" | "ordinary" | "playful" | "reconnection" | "emotional",
   ordinarySubtype?:
     | "check_back"
+    | "catch_up"
     | "status_update"
     | "soft_update"
     | "micro_ack"
@@ -285,6 +286,15 @@ function assembleReply(
     const checkBackReply = maybeBuildCheckBackOrdinaryReply(prefix, ordinarySubtype);
     if (checkBackReply) {
       return checkBackReply;
+    }
+
+    const catchUpReply = maybeBuildCatchUpOrdinaryReply(
+      prefix,
+      continuity,
+      ordinarySubtype
+    );
+    if (catchUpReply) {
+      return catchUpReply;
     }
 
     const statusUpdateReply = maybeBuildStatusUpdateOrdinaryReply(
@@ -356,6 +366,7 @@ function maybeBuildStatusUpdateOrdinaryReply(
   followup: string,
   ordinarySubtype?:
     | "check_back"
+    | "catch_up"
     | "status_update"
     | "soft_update"
     | "micro_ack"
@@ -377,11 +388,41 @@ function maybeBuildStatusUpdateOrdinaryReply(
   return [prefix, onboardingPrompt || continuityBeat].filter(Boolean).join(" ").trim();
 }
 
+function maybeBuildCatchUpOrdinaryReply(
+  prefix: string,
+  continuity: string,
+  ordinarySubtype?:
+    | "check_back"
+    | "catch_up"
+    | "status_update"
+    | "soft_update"
+    | "micro_ack"
+    | "tone_repair"
+    | "delay_repair"
+    | "reassurance_close"
+    | "plain"
+): string | undefined {
+  if (ordinarySubtype !== "catch_up") {
+    return undefined;
+  }
+
+  const continuityBeat =
+    continuity &&
+    !continuity.includes("one-off message") &&
+    !continuity.includes("dry answer") &&
+    !continuity.includes("stay with what you just shared")
+      ? continuity
+      : "";
+
+  return [prefix, continuityBeat].filter(Boolean).join(" ").trim();
+}
+
 function maybeBuildSoftUpdateOrdinaryReply(
   prefix: string,
   continuity: string,
   ordinarySubtype?:
     | "check_back"
+    | "catch_up"
     | "status_update"
     | "soft_update"
     | "micro_ack"
@@ -409,6 +450,7 @@ function maybeBuildToneRepairOrdinaryReply(
   continuity: string,
   ordinarySubtype?:
     | "check_back"
+    | "catch_up"
     | "status_update"
     | "soft_update"
     | "micro_ack"
@@ -438,6 +480,7 @@ function maybeBuildDelayRepairOrdinaryReply(
   continuity: string,
   ordinarySubtype?:
     | "check_back"
+    | "catch_up"
     | "status_update"
     | "soft_update"
     | "micro_ack"
@@ -465,6 +508,7 @@ function maybeBuildReassuranceCloseOrdinaryReply(
   prefix: string,
   ordinarySubtype?:
     | "check_back"
+    | "catch_up"
     | "status_update"
     | "soft_update"
     | "micro_ack"
@@ -484,6 +528,7 @@ function maybeBuildMicroAckOrdinaryReply(
   prefix: string,
   ordinarySubtype?:
     | "check_back"
+    | "catch_up"
     | "status_update"
     | "soft_update"
     | "micro_ack"
@@ -503,6 +548,7 @@ function maybeBuildCheckBackOrdinaryReply(
   prefix: string,
   ordinarySubtype?:
     | "check_back"
+    | "catch_up"
     | "status_update"
     | "soft_update"
     | "micro_ack"

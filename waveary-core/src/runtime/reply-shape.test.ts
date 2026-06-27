@@ -132,6 +132,20 @@ test("deriveReplyShapeGuidance treats light check-back nudges as their own ordin
   assert.equal(chineseGuidance.maxFollowups, 0);
 });
 
+test("deriveReplyShapeGuidance treats light affectionate catch-up lines as their own ordinary subtype", () => {
+  const englishGuidance = deriveReplyShapeGuidance(createRequest("just thought of you"));
+  const chineseGuidance = deriveReplyShapeGuidance(
+    createRequest("\u521a\u521a\u60f3\u5230\u4f60\u4e86")
+  );
+
+  assert.equal(englishGuidance.kind, "ordinary");
+  assert.equal(englishGuidance.ordinarySubtype, "catch_up");
+  assert.equal(englishGuidance.maxFollowups, 0);
+  assert.equal(chineseGuidance.kind, "ordinary");
+  assert.equal(chineseGuidance.ordinarySubtype, "catch_up");
+  assert.equal(chineseGuidance.maxFollowups, 0);
+});
+
 test("deriveReplyShapeGuidance treats micro acknowledgments as their own short ordinary subtype", () => {
   const englishGuidance = deriveReplyShapeGuidance(createRequest("got it"));
   const chineseGuidance = deriveReplyShapeGuidance(createRequest("嗯嗯"));
@@ -268,6 +282,17 @@ test("describeReplyShapeGuidance includes check-back constraints", () => {
   assert.match(
     text,
     /For light check-back nudges, answer with a brief warm presence signal\./
+  );
+});
+
+test("describeReplyShapeGuidance includes catch-up constraints", () => {
+  const text = describeReplyShapeGuidance(
+    deriveReplyShapeGuidance(createRequest("missed you a little"))
+  );
+
+  assert.match(
+    text,
+    /For light affectionate catch-up or thinking-of-you openers, answer with one brief warm reconnection line\./
   );
 });
 

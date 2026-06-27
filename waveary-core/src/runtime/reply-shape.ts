@@ -16,6 +16,7 @@ export interface ReplyShapeGuidance {
   allowParagraphExpansion: boolean;
   ordinarySubtype?:
     | "check_back"
+    | "catch_up"
     | "status_update"
     | "soft_update"
     | "micro_ack"
@@ -71,6 +72,21 @@ const CHECK_BACK_PATTERNS = [
   /^\s*\u8fd8\u9192\u7740\u5417[~\u3002\uff01!?？]*\s*$/u,
   /^\s*\u8fd8\u6ca1\u7761\u5417[~\u3002\uff01!?？]*\s*$/u,
   /^\s*\u7761\u4e86\u5417[~\u3002\uff01!?？]*\s*$/u
+];
+
+const CATCH_UP_PATTERNS = [
+  /^\s*(?:hey(?:\s+you)?|hi(?:\s+you)?)(?:[,!.\s]+)?(?:just\s+)?(?:thinking of you|thought of you)(?:\s+a little)?\.?\s*$/i,
+  /^\s*(?:just\s+)?thought of you(?:\s+a little)?\.?\s*$/i,
+  /^\s*(?:just\s+)?thinking of you(?:\s+a little)?\.?\s*$/i,
+  /^\s*missed you a little(?:\s+today|\s+just now|\s+lately)?\.?\s*$/i,
+  /^\s*wanted to come back to you(?:\s+for a second)?\.?\s*$/i,
+  /^\s*came back to you first\.?\s*$/i,
+  /^\s*\u521a\u521a\u60f3\u5230\u4f60\u4e86[~\u3002\uff01!]?[\s]*$/u,
+  /^\s*\u7a81\u7136\u60f3\u5230\u4f60\u4e86[~\u3002\uff01!]?[\s]*$/u,
+  /^\s*\u6709\u70b9\u60f3\u4f60\u4e86[~\u3002\uff01!]?[\s]*$/u,
+  /^\s*\u5ffd\u7136\u6709\u70b9\u60f3\u4f60[~\u3002\uff01!]?[\s]*$/u,
+  /^\s*\u56de\u6765\u627e\u4f60\u4e86[~\u3002\uff01!]?[\s]*$/u,
+  /^\s*\u5148\u60f3\u5230\u4f60\u4e86[~\u3002\uff01!]?[\s]*$/u
 ];
 
 const STATUS_UPDATE_PATTERNS = [
@@ -283,21 +299,28 @@ export function deriveReplyShapeGuidance(
   const checkBack =
     CHECK_BACK_PATTERNS.some((pattern) => pattern.test(content)) &&
     content.length <= 40;
+  const catchUp =
+    CATCH_UP_PATTERNS.some((pattern) => pattern.test(content)) &&
+    content.length <= 64 &&
+    !checkBack;
   const practical =
     PRACTICAL_PATTERNS.some((pattern) => pattern.test(content)) && !checkBack;
   const playful = PLAYFUL_PATTERNS.some((pattern) => pattern.test(content));
-  const reconnection = RECONNECTION_PATTERNS.some((pattern) => pattern.test(content));
+  const reconnection =
+    RECONNECTION_PATTERNS.some((pattern) => pattern.test(content)) && !catchUp;
   const microAck =
     MICRO_ACK_PATTERNS.some((pattern) => pattern.test(content)) &&
     content.length <= 32 &&
     !practical &&
     !playful &&
+    !catchUp &&
     !reconnection;
   const statusUpdate =
     STATUS_UPDATE_PATTERNS.some((pattern) => pattern.test(content)) &&
     content.length <= 64 &&
     !practical &&
     !playful &&
+    !catchUp &&
     !reconnection &&
     !checkBack &&
     !microAck;
@@ -306,6 +329,7 @@ export function deriveReplyShapeGuidance(
     content.length <= 72 &&
     !practical &&
     !playful &&
+    !catchUp &&
     !reconnection &&
     !checkBack &&
     !microAck &&
@@ -315,6 +339,7 @@ export function deriveReplyShapeGuidance(
     content.length <= 72 &&
     !practical &&
     !playful &&
+    !catchUp &&
     !reconnection &&
     !checkBack &&
     !microAck &&
@@ -325,6 +350,7 @@ export function deriveReplyShapeGuidance(
     content.length <= 88 &&
     !practical &&
     !playful &&
+    !catchUp &&
     !reconnection &&
     !checkBack &&
     !microAck &&
@@ -336,6 +362,7 @@ export function deriveReplyShapeGuidance(
     content.length <= 72 &&
     !practical &&
     !playful &&
+    !catchUp &&
     !reconnection &&
     !checkBack &&
     !microAck &&
@@ -415,6 +442,8 @@ export function deriveReplyShapeGuidance(
     allowParagraphExpansion: false,
     ordinarySubtype: checkBack
       ? "check_back"
+      : catchUp
+        ? "catch_up"
       : microAck
         ? "micro_ack"
         : statusUpdate
@@ -463,6 +492,8 @@ export function describeReplyShapeGuidance(
     base.push(
       guidance.ordinarySubtype === "check_back"
         ? "For light check-back nudges, answer with a brief warm presence signal. Keep it easy and human. Do not turn it into a heavy reunion, a practical answer, or a follow-up chain."
+        : guidance.ordinarySubtype === "catch_up"
+        ? "For light affectionate catch-up or thinking-of-you openers, answer with one brief warm reconnection line. Let it feel lightly personal without turning it into a heavy reunion speech or a follow-up chain."
         : guidance.ordinarySubtype === "micro_ack"
         ? "For tiny confirmations or soft acknowledgments, prefer one very short human reply and usually stop there. Do not inflate the moment into continuity theater, recap, or a fresh question."
         : guidance.ordinarySubtype === "status_update"
