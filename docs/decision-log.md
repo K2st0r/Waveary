@@ -2532,3 +2532,25 @@ Impact:
 - `waveary-core/src/runtime/reply-shape.ts` now classifies a bounded set of English and Chinese tone-softener phrases as `ordinarySubtype: tone_repair`
 - `waveary-core/src/adapters/scripted-chat-provider.ts` now lets those repairs land with one brief warm reply and, at most, a tiny continuity beat if it naturally fits, instead of reopening the thread or dramatizing the apology
 - `waveary-core/src/runtime/reply-shape.test.ts`, `waveary-core/src/adapters/openai-compatible-provider.test.ts`, and `waveary-core/src/runtime/waveary-runtime.test.ts` now lock both prompt guidance and runtime brevity for this new ordinary-chat bucket
+
+## 2026-06-27 - Light Affectionate Catch-Up Openers Need Their Own Quiet Reconnection Cadence
+
+Status:
+
+- accepted
+
+Decision:
+
+Treat light affectionate catch-up lines such as `just thought of you`, `missed you a little`, `刚刚想到你了`, and similar low-intensity thinking-of-you openers as their own `catch_up` subtype inside ordinary chat.
+
+Reason:
+
+- the user wants Waveary's ordinary conversation to feel like real texting, and these soft reconnection openers are common human messages that should not jump straight into the heavier `reconnection` mode
+- leaving these lines under the broader reconnection matcher made the moment sound too dramatic for the actual message intensity
+- placing this cut in the shared reply-shape layer preserves the small-bounded realism strategy while keeping live-provider guidance and scripted fallback aligned
+
+Impact:
+
+- `waveary-core/src/runtime/reply-shape.ts` now classifies a bounded set of English and Chinese affectionate catch-up phrasings as `ordinarySubtype: catch_up`, and it lets this subtype outrank the broader reconnection matcher
+- `waveary-core/src/adapters/scripted-chat-provider.ts` now answers that subtype with one brief warm reconnection line and, at most, a tiny continuity beat instead of a heavier reunion speech or a follow-up chain
+- `waveary-core/src/runtime/reply-shape.test.ts`, `waveary-core/src/adapters/openai-compatible-provider.test.ts`, and `waveary-core/src/runtime/waveary-runtime.test.ts` now lock both prompt guidance and runtime brevity for this new ordinary-chat bucket

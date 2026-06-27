@@ -8047,3 +8047,44 @@ Commit:
 Push:
 
 - succeeded: `git push origin main` pushed functional commit `1ee0b4f` to `origin/main`
+
+## 2026-06-27
+
+Objective:
+
+Continue the everyday companion-realism pass by giving light affectionate catch-up and thinking-of-you openers their own brief, warm reconnection cadence.
+
+Summary:
+
+- updated `waveary-core/src/runtime/reply-shape.ts` so bounded low-intensity catch-up lines such as `just thought of you`, `missed you a little`, and `刚刚想到你了` are classified as `ordinarySubtype: catch_up`
+- kept the new subtype ahead of the broader reconnection matcher so these lighter messages stay in ordinary texting cadence instead of jumping into a heavier reunion mode
+- updated `waveary-core/src/adapters/scripted-chat-provider.ts` so scripted fallback answers that subtype with one brief warm reconnection line instead of reopening the thread with a follow-up or overplaying the moment
+- added focused regression coverage in `waveary-core/src/runtime/reply-shape.test.ts`, `waveary-core/src/adapters/openai-compatible-provider.test.ts`, and `waveary-core/src/runtime/waveary-runtime.test.ts`
+- re-verified `@waveary/core` in the required sequential Windows order: `check`, then `build`, then compiled `dist` tests
+
+Files changed:
+
+- `waveary-core/src/runtime/reply-shape.ts`
+- `waveary-core/src/adapters/scripted-chat-provider.ts`
+- `waveary-core/src/runtime/reply-shape.test.ts`
+- `waveary-core/src/adapters/openai-compatible-provider.test.ts`
+- `waveary-core/src/runtime/waveary-runtime.test.ts`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/core`
+- `npm run build --workspace @waveary/core`
+- PowerShell compiled-test verification via:
+  `$files = @(Get-ChildItem 'waveary-core\\dist' -Recurse -Filter '*.test.js' | Sort-Object FullName | ForEach-Object { $_.FullName }); & node --test @files`
+
+Commit:
+
+- `bd7117c` - `Add catch-up chat cadence`
+
+Push:
+
+- succeeded: `git push origin main` pushed functional commit `bd7117c` to `origin/main`
