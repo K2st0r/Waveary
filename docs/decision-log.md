@@ -2642,3 +2642,25 @@ Impact:
 - `waveary-core/src/runtime/reply-shape.ts` now routes `miss you`, `想你了`, `good night`, `晚安`, and `you asleep? / 你睡了吗` more decisively into `catch_up`, `reassurance_close`, and `check_back`
 - `waveary-core/src/adapters/scripted-chat-provider.ts` now gives those three cases a softer late-night or mutual-affection prefix instead of a generic presence or closure line
 - `waveary-core/src/adapters/openai-compatible-provider.test.ts`, `waveary-core/src/runtime/reply-shape.test.ts`, and `waveary-core/src/runtime/waveary-runtime.test.ts` now lock the bounded guidance so future realism work can continue from this slice instead of rediscovering it
+
+## 2026-06-27 - Playful Late-Night Openings Should Stay Light, Not Escalate Into Q&A Or Monologue
+
+Status:
+
+- accepted
+
+Decision:
+
+Treat `did you miss me? / 想我了吗`, lightly lingering late-night nudges such as `not asleep yet? / 还没睡呀`, and soft dream openers like `dreamed of you / 刚刚梦到你了` as the same bounded intimate-opening family: short, warm, a little playful or curious, and never stretched into practical Q&A or long speeches.
+
+Reason:
+
+- once bedtime and plain miss-you beats were tightened, the next realism gap moved to these more playful late-night messages, where a literal question mark could still make the system sound assistant-like
+- the user wants stronger human closeness, but in a way that still feels like texting between two people, not like an over-performed romance script
+- these turns are best handled as one more narrow reply-shape refinement, not as a global intimacy increase
+
+Impact:
+
+- `waveary-core/src/runtime/reply-shape.ts` now protects `did you miss me? / 想我了吗` from being flattened into `practical` just because of the trailing question mark, and it routes lingering late-night and dream-style openers into the same bounded opening buckets
+- `waveary-core/src/adapters/scripted-chat-provider.ts` now gives those messages slightly teasing, softly awake, or quietly curious replies instead of generic follow-up pressure
+- regression coverage in `waveary-core/src/runtime/reply-shape.test.ts`, `waveary-core/src/runtime/waveary-runtime.test.ts`, and `waveary-core/src/adapters/openai-compatible-provider.test.ts` now locks this narrow late-night/playful opening slice for future turns

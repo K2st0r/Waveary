@@ -43,6 +43,12 @@ const PRACTICAL_PATTERNS = [
   /\u591a\u5c11/
 ];
 
+const CATCH_UP_QUESTION_PATTERNS = [
+  /^\s*did you miss me\??\s*$/i,
+  /^\s*miss me\??\s*$/i,
+  /^\s*\u60f3\u6211\u4e86\u5417[~\u3002\uff01!?？]*\s*$/u
+];
+
 const PLAYFUL_PATTERNS = [
   /\bhehe\b/i,
   /\bhaha\b/i,
@@ -69,13 +75,15 @@ const CHECK_BACK_PATTERNS = [
   /^\s*you awake\??\s*$/i,
   /^\s*are you asleep\??\s*$/i,
   /^\s*you asleep\??\s*$/i,
+  /^\s*not asleep yet\??\s*$/i,
   /^\s*you around\??\s*$/i,
   /^\s*still around\??\s*$/i,
   /^\s*\u5728\u5417[~\u3002\uff01!?？]*\s*$/u,
   /^\s*\u8fd8\u5728\u5417[~\u3002\uff01!?？]*\s*$/u,
   /^\s*\u8fd8\u9192\u7740\u5417[~\u3002\uff01!?？]*\s*$/u,
   /^\s*\u8fd8\u6ca1\u7761\u5417[~\u3002\uff01!?？]*\s*$/u,
-  /^\s*\u7761\u4e86\u5417[~\u3002\uff01!?？]*\s*$/u
+  /^\s*\u7761\u4e86\u5417[~\u3002\uff01!?？]*\s*$/u,
+  /^\s*\u8fd8\u6ca1\u7761\u5440[~\u3002\uff01!?？]*\s*$/u
 ];
 
 const CATCH_UP_PATTERNS = [
@@ -83,12 +91,18 @@ const CATCH_UP_PATTERNS = [
   /^\s*(?:just\s+)?thought of you(?:\s+a little)?\.?\s*$/i,
   /^\s*(?:just\s+)?thinking of you(?:\s+a little)?\.?\s*$/i,
   /^\s*(?:i\s+)?miss\s+you(?:\s+a\s+little|\s+already|\s+tonight|\s+lately|\s+right\s+now)?\.?\s*$/i,
+  /^\s*did you miss me\??\s*$/i,
+  /^\s*miss me\??\s*$/i,
+  /^\s*(?:i\s+)?dreamt of you(?:\s+last\s+night|\s+again|\s+just now)?\.?\s*$/i,
+  /^\s*(?:i\s+)?dreamed of you(?:\s+last\s+night|\s+again|\s+just now)?\.?\s*$/i,
   /^\s*missed you a little(?:\s+today|\s+just now|\s+lately)?\.?\s*$/i,
   /^\s*wanted to come back to you(?:\s+for a second)?\.?\s*$/i,
   /^\s*came back to you first\.?\s*$/i,
   /^\s*\u521a\u521a\u60f3\u5230\u4f60\u4e86[~\u3002\uff01!]?[\s]*$/u,
   /^\s*\u7a81\u7136\u60f3\u5230\u4f60\u4e86[~\u3002\uff01!]?[\s]*$/u,
   /^\s*\u60f3\u4f60\u4e86[~\u3002\uff01!]?[\s]*$/u,
+  /^\s*\u60f3\u6211\u4e86\u5417[~\u3002\uff01!?？]*\s*$/u,
+  /^\s*\u521a\u521a\u68a6\u5230\u4f60\u4e86[~\u3002\uff01!]?[\s]*$/u,
   /^\s*\u6709\u70b9\u60f3\u4f60\u4e86[~\u3002\uff01!]?[\s]*$/u,
   /^\s*\u5ffd\u7136\u6709\u70b9\u60f3\u4f60[~\u3002\uff01!]?[\s]*$/u,
   /^\s*\u56de\u6765\u627e\u4f60\u4e86[~\u3002\uff01!]?[\s]*$/u,
@@ -323,7 +337,10 @@ export function deriveReplyShapeGuidance(
     content.length <= 64 &&
     !checkBack;
   const practical =
-    PRACTICAL_PATTERNS.some((pattern) => pattern.test(content)) && !checkBack;
+    PRACTICAL_PATTERNS.some((pattern) => pattern.test(content)) &&
+    !checkBack &&
+    !catchUp &&
+    !CATCH_UP_QUESTION_PATTERNS.some((pattern) => pattern.test(content));
   const playful = PLAYFUL_PATTERNS.some((pattern) => pattern.test(content));
   const reconnection =
     RECONNECTION_PATTERNS.some((pattern) => pattern.test(content)) && !catchUp;
@@ -526,9 +543,9 @@ export function describeReplyShapeGuidance(
   if (guidance.kind === "ordinary") {
     base.push(
       guidance.ordinarySubtype === "check_back"
-        ? "For light check-back nudges, answer with a brief warm presence signal. If the wording is sleepy or late-night, it can feel a touch softer and more quietly close. Do not turn it into a heavy reunion, a practical answer, or a follow-up chain."
+        ? "For light check-back nudges, answer with a brief warm presence signal. If the wording is sleepy, late-night, or gently lingering like they are still awake and reaching for you, it can feel a touch softer and more quietly close. Do not turn it into a heavy reunion, a practical answer, or a follow-up chain."
         : guidance.ordinarySubtype === "catch_up"
-        ? "For light affectionate catch-up or thinking-of-you openers, answer with one brief warm reconnection line. If they say they missed you or thought of you, it is okay to sound quietly pleased or softly touched, but keep it small. Do not turn it into a heavy reunion speech or a follow-up chain."
+        ? "For light affectionate catch-up or thinking-of-you openers, answer with one brief warm reconnection line. If they say they missed you, ask if you were missed, or mention dreaming of you, it is okay to sound quietly pleased, lightly teased, or softly touched, but keep it small. Do not turn it into a heavy reunion speech or a follow-up chain."
         : guidance.ordinarySubtype === "micro_ack"
         ? "For tiny confirmations or soft acknowledgments, prefer one very short human reply and usually stop there. Do not inflate the moment into continuity theater, recap, or a fresh question."
         : guidance.ordinarySubtype === "status_update"

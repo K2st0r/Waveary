@@ -8254,3 +8254,44 @@ Commit:
 Push:
 
 - succeeded: `git push origin main` pushed functional commit `ee98252` to `origin/main`
+
+## 2026-06-27
+
+Objective:
+
+Refine playful late-night opening cadence so `did you miss me? / 想我了吗`, `not asleep yet? / 还没睡呀`, and `dreamed of you / 刚刚梦到你了` feel more like intimate late-night texting without collapsing into practical Q&A or long monologues.
+
+Summary:
+
+- updated `waveary-core/src/runtime/reply-shape.ts` so `did you miss me? / 想我了吗` no longer gets flattened into `practical` just because of the question mark, and lingering late-night or dream-style openers are grouped into the same bounded intimate-opening family
+- extended reply-shape guidance so light check-backs can also cover gently lingering late-night pings, while catch-up guidance now explicitly allows lightly teasing or dream-curious warmth in small doses
+- updated `waveary-core/src/adapters/scripted-chat-provider.ts` so scripted fallback answers `not asleep yet?`, `did you miss me?`, and `dreamed of you` with softer awake, teasing, or curious lines instead of generic follow-up pressure
+- added focused regression coverage in `waveary-core/src/runtime/reply-shape.test.ts`, `waveary-core/src/runtime/waveary-runtime.test.ts`, and `waveary-core/src/adapters/openai-compatible-provider.test.ts`
+- re-verified `@waveary/core` in the required sequential Windows order and ran the mojibake guard
+
+Files changed:
+
+- `waveary-core/src/runtime/reply-shape.ts`
+- `waveary-core/src/adapters/scripted-chat-provider.ts`
+- `waveary-core/src/runtime/reply-shape.test.ts`
+- `waveary-core/src/runtime/waveary-runtime.test.ts`
+- `waveary-core/src/adapters/openai-compatible-provider.test.ts`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/core`
+- `npm run build --workspace @waveary/core`
+- `PowerShell: $files = @(Get-ChildItem 'waveary-core\\dist' -Recurse -Filter '*.test.js' | Sort-Object FullName | ForEach-Object { $_.FullName }); & node --test @files`
+- `npm run check:mojibake`
+
+Commit:
+
+- `pending` - `Refine playful late-night opening cadence`
+
+Push:
+
+- pending

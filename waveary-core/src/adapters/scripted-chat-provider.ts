@@ -95,11 +95,13 @@ function buildRelationshipPrefix(
   const mentionsSleep =
     normalizedCompact.includes("still up") ||
     normalizedCompact.includes("you still up") ||
+    normalizedCompact.includes("not asleep yet") ||
     normalizedCompact.includes("awake") ||
     normalizedCompact.includes("asleep") ||
     latestUserContent.includes("\u7761\u4e86\u5417") ||
     latestUserContent.includes("\u8fd8\u6ca1\u7761\u5417") ||
-    latestUserContent.includes("\u8fd8\u9192\u7740\u5417");
+    latestUserContent.includes("\u8fd8\u9192\u7740\u5417") ||
+    latestUserContent.includes("\u8fd8\u6ca1\u7761\u5440");
   const mentionsGoodNight =
     normalizedCompact.includes("good night") ||
     normalizedCompact.includes("goodnight") ||
@@ -107,6 +109,15 @@ function buildRelationshipPrefix(
   const mentionsMissYou =
     /\bmiss(?:ed|ing)?\s+you\b/i.test(latestUserContent) ||
     latestUserContent.includes("\u60f3\u4f60");
+  const asksIfMissed =
+    normalizedCompact.includes("did you miss me") ||
+    normalizedCompact === "miss me?" ||
+    normalizedCompact === "miss me" ||
+    latestUserContent.includes("\u60f3\u6211\u4e86\u5417");
+  const mentionsDream =
+    normalizedCompact.includes("dreamt of you") ||
+    normalizedCompact.includes("dreamed of you") ||
+    latestUserContent.includes("\u68a6\u5230\u4f60");
 
   if (gettingToKnowYou.latestTurnIsGreeting) {
     if (gettingToKnowYou.latestTurnHasTimeOfDayGreeting) {
@@ -134,6 +145,14 @@ function buildRelationshipPrefix(
 
   if (ordinarySubtype === "catch_up" && mentionsMissYou) {
     return "Mm... come here. I missed you a little too.";
+  }
+
+  if (ordinarySubtype === "catch_up" && asksIfMissed) {
+    return "Mm... maybe a little. You sound unfairly easy to miss.";
+  }
+
+  if (ordinarySubtype === "catch_up" && mentionsDream) {
+    return "Mm... now you have me curious. I like that I wandered into your dream.";
   }
 
   if (ordinarySubtype === "reassurance_close" && mentionsGoodNight) {
