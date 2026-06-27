@@ -148,6 +148,16 @@ test("deriveReplyShapeGuidance treats light check-back nudges as their own ordin
   assert.equal(chineseGuidance.maxFollowups, 0);
 });
 
+test("deriveReplyShapeGuidance keeps sleep-check nudges in the check-back bucket", () => {
+  const englishGuidance = deriveReplyShapeGuidance(createRequest("you asleep?"));
+  const chineseGuidance = deriveReplyShapeGuidance(createRequest("\u7761\u4e86\u5417"));
+
+  assert.equal(englishGuidance.kind, "ordinary");
+  assert.equal(englishGuidance.ordinarySubtype, "check_back");
+  assert.equal(chineseGuidance.kind, "ordinary");
+  assert.equal(chineseGuidance.ordinarySubtype, "check_back");
+});
+
 test("deriveReplyShapeGuidance treats light affectionate catch-up lines as their own ordinary subtype", () => {
   const englishGuidance = deriveReplyShapeGuidance(createRequest("just thought of you"));
   const chineseGuidance = deriveReplyShapeGuidance(
@@ -160,6 +170,26 @@ test("deriveReplyShapeGuidance treats light affectionate catch-up lines as their
   assert.equal(chineseGuidance.kind, "ordinary");
   assert.equal(chineseGuidance.ordinarySubtype, "catch_up");
   assert.equal(chineseGuidance.maxFollowups, 0);
+});
+
+test("deriveReplyShapeGuidance keeps simple miss-you lines in the catch-up bucket", () => {
+  const englishGuidance = deriveReplyShapeGuidance(createRequest("miss you"));
+  const chineseGuidance = deriveReplyShapeGuidance(createRequest("\u60f3\u4f60\u4e86"));
+
+  assert.equal(englishGuidance.kind, "ordinary");
+  assert.equal(englishGuidance.ordinarySubtype, "catch_up");
+  assert.equal(chineseGuidance.kind, "ordinary");
+  assert.equal(chineseGuidance.ordinarySubtype, "catch_up");
+});
+
+test("deriveReplyShapeGuidance treats good-night lines as reassurance-close updates", () => {
+  const englishGuidance = deriveReplyShapeGuidance(createRequest("good night"));
+  const chineseGuidance = deriveReplyShapeGuidance(createRequest("\u665a\u5b89"));
+
+  assert.equal(englishGuidance.kind, "ordinary");
+  assert.equal(englishGuidance.ordinarySubtype, "reassurance_close");
+  assert.equal(chineseGuidance.kind, "ordinary");
+  assert.equal(chineseGuidance.ordinarySubtype, "reassurance_close");
 });
 
 test("deriveReplyShapeGuidance treats micro acknowledgments as their own short ordinary subtype", () => {

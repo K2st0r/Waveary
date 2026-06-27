@@ -1535,6 +1535,10 @@ test("OpenAICompatibleChatProvider gives dedicated reassurance-close guidance fo
     instruction,
     /For gentle reassurance or soft rest-style closers, answer with a brief warm receipt\./
   );
+  assert.match(
+    instruction,
+    /Bedtime or good-night lines may feel a little softer, sleepier, or closer, but still brief\./
+  );
 });
 
 test("OpenAICompatibleChatProvider gives dedicated check-back guidance for light presence nudges", async () => {
@@ -1560,6 +1564,10 @@ test("OpenAICompatibleChatProvider gives dedicated check-back guidance for light
   assert.match(
     instruction,
     /For light check-back nudges, answer with a brief warm presence signal\./
+  );
+  assert.match(
+    instruction,
+    /If the wording is sleepy or late-night, it can feel a touch softer and more quietly close\./
   );
 });
 
@@ -1612,6 +1620,10 @@ test("OpenAICompatibleChatProvider gives dedicated catch-up guidance for light a
   assert.match(
     instruction,
     /For light affectionate catch-up or thinking-of-you openers, answer with one brief warm reconnection line\./
+  );
+  assert.match(
+    instruction,
+    /If they say they missed you or thought of you, it is okay to sound quietly pleased or softly touched, but keep it small\./
   );
 });
 

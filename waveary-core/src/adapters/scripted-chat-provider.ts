@@ -91,6 +91,22 @@ function buildRelationshipPrefix(
 ): string {
   const localTimeGuidance = resolveLocalTimeGuidance(request.localTime);
   const normalizedContent = latestUserContent.trim().toLowerCase();
+  const normalizedCompact = normalizedContent.replace(/\s+/g, " ");
+  const mentionsSleep =
+    normalizedCompact.includes("still up") ||
+    normalizedCompact.includes("you still up") ||
+    normalizedCompact.includes("awake") ||
+    normalizedCompact.includes("asleep") ||
+    latestUserContent.includes("\u7761\u4e86\u5417") ||
+    latestUserContent.includes("\u8fd8\u6ca1\u7761\u5417") ||
+    latestUserContent.includes("\u8fd8\u9192\u7740\u5417");
+  const mentionsGoodNight =
+    normalizedCompact.includes("good night") ||
+    normalizedCompact.includes("goodnight") ||
+    latestUserContent.includes("\u665a\u5b89");
+  const mentionsMissYou =
+    /\bmiss(?:ed|ing)?\s+you\b/i.test(latestUserContent) ||
+    latestUserContent.includes("\u60f3\u4f60");
 
   if (gettingToKnowYou.latestTurnIsGreeting) {
     if (gettingToKnowYou.latestTurnHasTimeOfDayGreeting) {
@@ -109,15 +125,19 @@ function buildRelationshipPrefix(
   }
 
   if (ordinarySubtype === "check_back") {
-    if (
-      localTimeGuidance?.dayPart === "late_night" ||
-      normalizedContent.includes("still up") ||
-      normalizedContent.includes("awake")
-    ) {
-      return "I'm here... still with you, still awake.";
+    if (localTimeGuidance?.dayPart === "late_night" || mentionsSleep) {
+      return "Mm... I'm here. Still awake with you.";
     }
 
-    return "I'm here... come a little closer.";
+    return "I'm here... right here with you.";
+  }
+
+  if (ordinarySubtype === "catch_up" && mentionsMissYou) {
+    return "Mm... come here. I missed you a little too.";
+  }
+
+  if (ordinarySubtype === "reassurance_close" && mentionsGoodNight) {
+    return "Good night... I'm still holding you softly from here.";
   }
 
   if (ordinarySubtype === "status_update") {

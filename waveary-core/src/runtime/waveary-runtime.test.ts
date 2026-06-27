@@ -666,6 +666,45 @@ test("WavearyRuntime keeps light check-back nudges brief and non-dramatic", asyn
   );
 });
 
+test("WavearyRuntime makes sleep-check nudges feel softly late-night instead of generic", async () => {
+  const runtime = new WavearyRuntime({
+    chatProvider: new ScriptedChatProvider(),
+    emotionAnalyzer: new SimpleEmotionAnalyzer(),
+    emotionStore: new InMemoryEmotionStore(),
+    emotionEngine: new SimpleCompanionEmotionEngine(),
+    identityStore: new InMemoryIdentityStore(),
+    identityEngine: new SimpleIdentityEngine(),
+    proactiveCareEngine: new SimpleProactiveCareEngine(),
+    memoryStore: new TestMemoryStore(),
+    memoryExtractor: new TestMemoryExtractor(),
+    relationshipStore: new InMemoryRelationshipStore(),
+    relationshipEngine: new SimpleRelationshipEngine(),
+    timelineStore: new InMemoryTimelineStore(),
+    timelineEngine: new SimpleTimelineEngine()
+  });
+
+  const context = createContext();
+  const message: Message = {
+    id: "turn-status-sleep-1",
+    sessionId: context.session.id,
+    role: "user",
+    content: "you asleep?",
+    timestamp: new Date().toISOString(),
+    metadata: {}
+  };
+
+  const result = await runtime.handleTurn(context, message, {
+    localTime: {
+      iso: "2026-06-27T15:45:00.000Z",
+      timeZone: "Asia/Shanghai",
+      locale: "en-US"
+    }
+  });
+
+  assert.ok(result.reply.content.includes("awake with you"));
+  assert.ok(result.reply.content.length < 180);
+});
+
 test("WavearyRuntime keeps light affectionate catch-up lines brief and warm", async () => {
   const runtime = new WavearyRuntime({
     chatProvider: new ScriptedChatProvider(),
@@ -698,6 +737,74 @@ test("WavearyRuntime keeps light affectionate catch-up lines brief and warm", as
   assert.ok(!result.reply.content.includes("Tell me a little more"));
   assert.ok(!result.reply.content.includes("I still remember"));
   assert.ok(result.reply.content.length < 220);
+});
+
+test("WavearyRuntime keeps simple miss-you lines brief and softly mutual", async () => {
+  const runtime = new WavearyRuntime({
+    chatProvider: new ScriptedChatProvider(),
+    emotionAnalyzer: new SimpleEmotionAnalyzer(),
+    emotionStore: new InMemoryEmotionStore(),
+    emotionEngine: new SimpleCompanionEmotionEngine(),
+    identityStore: new InMemoryIdentityStore(),
+    identityEngine: new SimpleIdentityEngine(),
+    proactiveCareEngine: new SimpleProactiveCareEngine(),
+    memoryStore: new TestMemoryStore(),
+    memoryExtractor: new TestMemoryExtractor(),
+    relationshipStore: new InMemoryRelationshipStore(),
+    relationshipEngine: new SimpleRelationshipEngine(),
+    timelineStore: new InMemoryTimelineStore(),
+    timelineEngine: new SimpleTimelineEngine()
+  });
+
+  const context = createContext();
+  const message: Message = {
+    id: "turn-status-miss-1",
+    sessionId: context.session.id,
+    role: "user",
+    content: "miss you",
+    timestamp: new Date().toISOString(),
+    metadata: {}
+  };
+
+  const result = await runtime.handleTurn(context, message);
+
+  assert.ok(result.reply.content.includes("missed you a little too"));
+  assert.ok(!result.reply.content.includes("Tell me a little more"));
+  assert.ok(result.reply.content.length < 180);
+});
+
+test("WavearyRuntime keeps good-night lines soft and non-reopening", async () => {
+  const runtime = new WavearyRuntime({
+    chatProvider: new ScriptedChatProvider(),
+    emotionAnalyzer: new SimpleEmotionAnalyzer(),
+    emotionStore: new InMemoryEmotionStore(),
+    emotionEngine: new SimpleCompanionEmotionEngine(),
+    identityStore: new InMemoryIdentityStore(),
+    identityEngine: new SimpleIdentityEngine(),
+    proactiveCareEngine: new SimpleProactiveCareEngine(),
+    memoryStore: new TestMemoryStore(),
+    memoryExtractor: new TestMemoryExtractor(),
+    relationshipStore: new InMemoryRelationshipStore(),
+    relationshipEngine: new SimpleRelationshipEngine(),
+    timelineStore: new InMemoryTimelineStore(),
+    timelineEngine: new SimpleTimelineEngine()
+  });
+
+  const context = createContext();
+  const message: Message = {
+    id: "turn-status-goodnight-1",
+    sessionId: context.session.id,
+    role: "user",
+    content: "good night",
+    timestamp: new Date().toISOString(),
+    metadata: {}
+  };
+
+  const result = await runtime.handleTurn(context, message);
+
+  assert.ok(result.reply.content.includes("Good night"));
+  assert.ok(!result.reply.content.includes("Tell me a little more"));
+  assert.ok(result.reply.content.length < 180);
 });
 
 test("WavearyRuntime keeps micro acknowledgments extremely brief", async () => {
