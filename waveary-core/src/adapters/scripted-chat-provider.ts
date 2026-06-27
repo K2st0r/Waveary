@@ -260,6 +260,7 @@ function assembleReply(
     | "status_update"
     | "soft_update"
     | "micro_ack"
+    | "self_conscious_softener"
     | "tone_repair"
     | "delay_repair"
     | "reassurance_close"
@@ -316,6 +317,15 @@ function assembleReply(
       return softUpdateReply;
     }
 
+    const selfConsciousSoftenerReply = maybeBuildSelfConsciousSoftenerOrdinaryReply(
+      prefix,
+      continuity,
+      ordinarySubtype
+    );
+    if (selfConsciousSoftenerReply) {
+      return selfConsciousSoftenerReply;
+    }
+
     const toneRepairReply = maybeBuildToneRepairOrdinaryReply(
       prefix,
       continuity,
@@ -370,6 +380,7 @@ function maybeBuildStatusUpdateOrdinaryReply(
     | "status_update"
     | "soft_update"
     | "micro_ack"
+    | "self_conscious_softener"
     | "tone_repair"
     | "delay_repair"
     | "reassurance_close"
@@ -397,6 +408,7 @@ function maybeBuildCatchUpOrdinaryReply(
     | "status_update"
     | "soft_update"
     | "micro_ack"
+    | "self_conscious_softener"
     | "tone_repair"
     | "delay_repair"
     | "reassurance_close"
@@ -426,6 +438,7 @@ function maybeBuildSoftUpdateOrdinaryReply(
     | "status_update"
     | "soft_update"
     | "micro_ack"
+    | "self_conscious_softener"
     | "tone_repair"
     | "delay_repair"
     | "reassurance_close"
@@ -445,6 +458,37 @@ function maybeBuildSoftUpdateOrdinaryReply(
   return [prefix, continuityBeat].filter(Boolean).join(" ").trim();
 }
 
+function maybeBuildSelfConsciousSoftenerOrdinaryReply(
+  prefix: string,
+  continuity: string,
+  ordinarySubtype?:
+    | "check_back"
+    | "catch_up"
+    | "status_update"
+    | "soft_update"
+    | "micro_ack"
+    | "self_conscious_softener"
+    | "tone_repair"
+    | "delay_repair"
+    | "reassurance_close"
+    | "plain"
+): string | undefined {
+  if (ordinarySubtype !== "self_conscious_softener") {
+    return undefined;
+  }
+
+  const continuityBeat =
+    continuity &&
+    !continuity.includes("one-off message") &&
+    !continuity.includes("stay with what you just shared") &&
+    !continuity.includes("dry answer") &&
+    !continuity.includes("longer thread")
+      ? continuity
+      : "";
+
+  return [prefix, continuityBeat].filter(Boolean).join(" ").trim();
+}
+
 function maybeBuildToneRepairOrdinaryReply(
   prefix: string,
   continuity: string,
@@ -454,6 +498,7 @@ function maybeBuildToneRepairOrdinaryReply(
     | "status_update"
     | "soft_update"
     | "micro_ack"
+    | "self_conscious_softener"
     | "tone_repair"
     | "delay_repair"
     | "reassurance_close"
@@ -484,6 +529,7 @@ function maybeBuildDelayRepairOrdinaryReply(
     | "status_update"
     | "soft_update"
     | "micro_ack"
+    | "self_conscious_softener"
     | "tone_repair"
     | "delay_repair"
     | "reassurance_close"
@@ -512,6 +558,7 @@ function maybeBuildReassuranceCloseOrdinaryReply(
     | "status_update"
     | "soft_update"
     | "micro_ack"
+    | "self_conscious_softener"
     | "tone_repair"
     | "delay_repair"
     | "reassurance_close"
@@ -532,6 +579,7 @@ function maybeBuildMicroAckOrdinaryReply(
     | "status_update"
     | "soft_update"
     | "micro_ack"
+    | "self_conscious_softener"
     | "tone_repair"
     | "delay_repair"
     | "reassurance_close"
@@ -552,6 +600,7 @@ function maybeBuildCheckBackOrdinaryReply(
     | "status_update"
     | "soft_update"
     | "micro_ack"
+    | "self_conscious_softener"
     | "tone_repair"
     | "delay_repair"
     | "reassurance_close"

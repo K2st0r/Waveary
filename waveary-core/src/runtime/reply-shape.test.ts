@@ -104,6 +104,22 @@ test("deriveReplyShapeGuidance treats small tone-softener messages as tone-repai
   assert.equal(chineseGuidance.maxFollowups, 0);
 });
 
+test("deriveReplyShapeGuidance treats light self-conscious softeners as their own ordinary subtype", () => {
+  const englishGuidance = deriveReplyShapeGuidance(
+    createRequest("hope that didn't sound weird")
+  );
+  const chineseGuidance = deriveReplyShapeGuidance(
+    createRequest("\u521a\u521a\u53ef\u80fd\u8bf4\u5f97\u6709\u70b9\u602a")
+  );
+
+  assert.equal(englishGuidance.kind, "ordinary");
+  assert.equal(englishGuidance.ordinarySubtype, "self_conscious_softener");
+  assert.equal(englishGuidance.maxFollowups, 0);
+  assert.equal(chineseGuidance.kind, "ordinary");
+  assert.equal(chineseGuidance.ordinarySubtype, "self_conscious_softener");
+  assert.equal(chineseGuidance.maxFollowups, 0);
+});
+
 test("deriveReplyShapeGuidance treats gentle reassurance closers as reassurance-close updates", () => {
   const englishGuidance = deriveReplyShapeGuidance(
     createRequest("get some rest then")
@@ -260,6 +276,17 @@ test("describeReplyShapeGuidance includes tone-repair constraints", () => {
   assert.match(
     text,
     /For small tone-repair or soft apology messages, let the repair land with one brief warm reply\./
+  );
+});
+
+test("describeReplyShapeGuidance includes self-conscious-softener constraints", () => {
+  const text = describeReplyShapeGuidance(
+    deriveReplyShapeGuidance(createRequest("not sure if that came out right"))
+  );
+
+  assert.match(
+    text,
+    /For light self-conscious softeners, answer briefly and warmly\./
   );
 });
 
