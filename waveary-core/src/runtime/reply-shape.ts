@@ -20,6 +20,7 @@ export interface ReplyShapeGuidance {
     | "status_update"
     | "soft_update"
     | "micro_ack"
+    | "self_conscious_softener"
     | "tone_repair"
     | "delay_repair"
     | "reassurance_close"
@@ -191,6 +192,17 @@ const TONE_REPAIR_PATTERNS = [
   /^\s*\u62b1\u6b49[\u5440\u554a]?[\uff0c,]?\u6211\u521a\u521a\u8bf4\u8bdd\u6709\u70b9\u51b2\u4e86[~\u3002\uff01!]?[\s]*$/u
 ];
 
+const SELF_CONSCIOUS_SOFTENER_PATTERNS = [
+  /^\s*hope (?:that|it) (?:did not|didn't) sound (?:too )?(?:weird|strange|awkward|off)\.?\s*$/i,
+  /^\s*maybe that was (?:a bit |a little )?(?:silly|weird|awkward|dumb)\.?\s*$/i,
+  /^\s*not sure if that came out right\.?\s*$/i,
+  /^\s*that probably sounded (?:dumb|weird|awkward|strange)\.?\s*$/i,
+  /^\s*sorry(?: if)? that might(?: have|'ve) been (?:a bit |a little )?(?:awkward|weird)\.?\s*$/i,
+  /^\s*\u5e0c\u671b\u6211\u521a\u521a\u90a3\u6837\u8bf4\u4e0d\u7b97\u5947\u602a[~\u3002\uff01!]?[\s]*$/u,
+  /^\s*\u521a\u521a\u53ef\u80fd\u8bf4\u5f97\u6709\u70b9\u602a[~\u3002\uff01!]?[\s]*$/u,
+  /^\s*\u4e0d\u77e5\u9053\u6211\u521a\u521a\u8bf4\u5f97\u4f1a\u4e0d\u4f1a\u6709\u70b9\u522b\u626d[~\u3002\uff01!]?[\s]*$/u
+];
+
 const REASSURANCE_CLOSE_PATTERNS = [
   /^\s*no worries(?:\s+then)?\.?\s*$/i,
   /^\s*it's okay(?:\s+then)?\.?\s*$/i,
@@ -357,6 +369,19 @@ export function deriveReplyShapeGuidance(
     !statusUpdate &&
     !softUpdate &&
     !delayRepair;
+  const selfConsciousSoftener =
+    SELF_CONSCIOUS_SOFTENER_PATTERNS.some((pattern) => pattern.test(content)) &&
+    content.length <= 88 &&
+    !practical &&
+    !playful &&
+    !catchUp &&
+    !reconnection &&
+    !checkBack &&
+    !microAck &&
+    !statusUpdate &&
+    !softUpdate &&
+    !delayRepair &&
+    !toneRepair;
   const reassuranceClose =
     REASSURANCE_CLOSE_PATTERNS.some((pattern) => pattern.test(content)) &&
     content.length <= 72 &&
@@ -369,7 +394,8 @@ export function deriveReplyShapeGuidance(
     !statusUpdate &&
     !softUpdate &&
     !delayRepair &&
-    !toneRepair;
+    !toneRepair &&
+    !selfConsciousSoftener;
 
   let kind: ReplyShapeKind = "ordinary";
   if (emotional) {
@@ -448,6 +474,8 @@ export function deriveReplyShapeGuidance(
         ? "micro_ack"
         : statusUpdate
         ? "status_update"
+        : selfConsciousSoftener
+          ? "self_conscious_softener"
         : toneRepair
           ? "tone_repair"
         : delayRepair
@@ -498,6 +526,8 @@ export function describeReplyShapeGuidance(
         ? "For tiny confirmations or soft acknowledgments, prefer one very short human reply and usually stop there. Do not inflate the moment into continuity theater, recap, or a fresh question."
         : guidance.ordinarySubtype === "status_update"
         ? "For simple status updates or check-ins, prefer one warm acknowledgment or one acknowledgment plus one tiny continuity beat. Do not turn it into analysis, recap, or a check-in questionnaire."
+        : guidance.ordinarySubtype === "self_conscious_softener"
+        ? "For light self-conscious softeners, answer briefly and warmly. Let the small vulnerability land without over-comforting it, correcting it, or turning it into a follow-up chain."
         : guidance.ordinarySubtype === "tone_repair"
         ? "For small tone-repair or soft apology messages, let the repair land with one brief warm reply. Do not turn it into a heavy emotional scene, a recap, or a follow-up chain."
         : guidance.ordinarySubtype === "delay_repair"

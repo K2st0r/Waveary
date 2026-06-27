@@ -2554,3 +2554,25 @@ Impact:
 - `waveary-core/src/runtime/reply-shape.ts` now classifies a bounded set of English and Chinese affectionate catch-up phrasings as `ordinarySubtype: catch_up`, and it lets this subtype outrank the broader reconnection matcher
 - `waveary-core/src/adapters/scripted-chat-provider.ts` now answers that subtype with one brief warm reconnection line and, at most, a tiny continuity beat instead of a heavier reunion speech or a follow-up chain
 - `waveary-core/src/runtime/reply-shape.test.ts`, `waveary-core/src/adapters/openai-compatible-provider.test.ts`, and `waveary-core/src/runtime/waveary-runtime.test.ts` now lock both prompt guidance and runtime brevity for this new ordinary-chat bucket
+
+## 2026-06-27 - Light Self-Conscious Softeners Need Their Own Gentle Landing Cadence
+
+Status:
+
+- accepted
+
+Decision:
+
+Treat light self-conscious softeners such as `hope that didn't sound weird`, `not sure if that came out right`, `刚刚可能说得有点怪`, and similar tiny awkwardness or self-consciousness lines as their own `self_conscious_softener` subtype inside ordinary chat.
+
+Reason:
+
+- the user wants everyday Waveary conversation to feel like real texting, and these small vulnerable softeners are common human message shapes that should not be inflated into emotional support scenes or flattened into generic ordinary chat
+- after `soft_update`, `delay_repair`, `reassurance_close`, `check_back`, `tone_repair`, and `catch_up`, this was the next bounded low-stakes cadence gap where assistant-like overreaction still breaks realism
+- placing this cut in the shared reply-shape layer keeps live-provider prompt guidance and scripted fallback aligned without reopening broader runtime or relationship architecture
+
+Impact:
+
+- `waveary-core/src/runtime/reply-shape.ts` now classifies a bounded set of English and Chinese awkwardness / self-consciousness lines as `ordinarySubtype: self_conscious_softener`
+- `waveary-core/src/adapters/scripted-chat-provider.ts` now lets that subtype land with one brief warm reply and, at most, a tiny continuity beat instead of over-comforting it, correcting it, or reopening the thread
+- `waveary-core/src/runtime/reply-shape.test.ts`, `waveary-core/src/adapters/openai-compatible-provider.test.ts`, and `waveary-core/src/runtime/waveary-runtime.test.ts` now lock both prompt guidance and runtime brevity for this new ordinary-chat bucket

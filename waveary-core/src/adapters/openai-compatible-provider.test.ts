@@ -1631,6 +1631,32 @@ test("OpenAICompatibleChatProvider gives dedicated tone-repair guidance for smal
   );
 });
 
+test("OpenAICompatibleChatProvider gives dedicated self-conscious-softener guidance for light awkwardness lines", async () => {
+  const instruction = await captureInstruction(
+    createRequest({
+      messages: [
+        {
+          id: "m1",
+          sessionId: "session-1",
+          role: "user",
+          content: "hope that didn't sound weird",
+          timestamp: new Date().toISOString(),
+          metadata: {}
+        }
+      ],
+      relevantMemories: [],
+      timeline: []
+    })
+  );
+
+  assert.match(instruction, /Current reply mode: ordinary\./);
+  assert.match(instruction, /Maximum natural follow-up questions: 0\./);
+  assert.match(
+    instruction,
+    /For light self-conscious softeners, answer briefly and warmly\./
+  );
+});
+
 test("OpenAICompatibleChatProvider gives the same micro-ack guidance for softer acknowledgment endings", async () => {
   const instruction = await captureInstruction(
     createRequest({

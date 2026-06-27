@@ -8088,3 +8088,43 @@ Commit:
 Push:
 
 - succeeded: `git push origin main` pushed functional commit `bd7117c` to `origin/main`
+
+## 2026-06-27
+
+Objective:
+
+Continue the everyday companion-realism pass by giving light self-conscious softeners their own brief, warm landing cadence.
+
+Summary:
+
+- updated `waveary-core/src/runtime/reply-shape.ts` so bounded low-intensity self-conscious lines such as `hope that didn't sound weird`, `not sure if that came out right`, and `刚刚可能说得有点怪` are classified as `ordinarySubtype: self_conscious_softener`
+- updated `waveary-core/src/adapters/scripted-chat-provider.ts` so scripted fallback answers that subtype with one brief warm landing line instead of over-comforting it, correcting it, or reopening the thread
+- added focused regression coverage in `waveary-core/src/runtime/reply-shape.test.ts`, `waveary-core/src/adapters/openai-compatible-provider.test.ts`, and `waveary-core/src/runtime/waveary-runtime.test.ts`
+- re-verified `@waveary/core` in the required sequential Windows order: `check`, then `build`, then compiled `dist` tests
+
+Files changed:
+
+- `waveary-core/src/runtime/reply-shape.ts`
+- `waveary-core/src/adapters/scripted-chat-provider.ts`
+- `waveary-core/src/runtime/reply-shape.test.ts`
+- `waveary-core/src/adapters/openai-compatible-provider.test.ts`
+- `waveary-core/src/runtime/waveary-runtime.test.ts`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/core`
+- `npm run build --workspace @waveary/core`
+- PowerShell compiled-test verification via:
+  `$files = @(Get-ChildItem 'waveary-core\\dist' -Recurse -Filter '*.test.js' | Sort-Object FullName | ForEach-Object { $_.FullName }); & node --test @files`
+
+Commit:
+
+- `pending` - `Add self-conscious-softener chat cadence`
+
+Push:
+
+- pending
