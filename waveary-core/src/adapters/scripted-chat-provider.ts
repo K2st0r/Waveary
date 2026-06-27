@@ -259,6 +259,7 @@ function assembleReply(
     | "status_update"
     | "soft_update"
     | "micro_ack"
+    | "tone_repair"
     | "delay_repair"
     | "reassurance_close"
     | "plain"
@@ -305,6 +306,15 @@ function assembleReply(
       return softUpdateReply;
     }
 
+    const toneRepairReply = maybeBuildToneRepairOrdinaryReply(
+      prefix,
+      continuity,
+      ordinarySubtype
+    );
+    if (toneRepairReply) {
+      return toneRepairReply;
+    }
+
     const delayRepairReply = maybeBuildDelayRepairOrdinaryReply(
       prefix,
       continuity,
@@ -349,6 +359,7 @@ function maybeBuildStatusUpdateOrdinaryReply(
     | "status_update"
     | "soft_update"
     | "micro_ack"
+    | "tone_repair"
     | "delay_repair"
     | "reassurance_close"
     | "plain"
@@ -374,6 +385,7 @@ function maybeBuildSoftUpdateOrdinaryReply(
     | "status_update"
     | "soft_update"
     | "micro_ack"
+    | "tone_repair"
     | "delay_repair"
     | "reassurance_close"
     | "plain"
@@ -392,6 +404,35 @@ function maybeBuildSoftUpdateOrdinaryReply(
   return [prefix, continuityBeat].filter(Boolean).join(" ").trim();
 }
 
+function maybeBuildToneRepairOrdinaryReply(
+  prefix: string,
+  continuity: string,
+  ordinarySubtype?:
+    | "check_back"
+    | "status_update"
+    | "soft_update"
+    | "micro_ack"
+    | "tone_repair"
+    | "delay_repair"
+    | "reassurance_close"
+    | "plain"
+): string | undefined {
+  if (ordinarySubtype !== "tone_repair") {
+    return undefined;
+  }
+
+  const continuityBeat =
+    continuity &&
+    !continuity.includes("one-off message") &&
+    !continuity.includes("stay with what you just shared") &&
+    !continuity.includes("dry answer") &&
+    !continuity.includes("longer thread")
+      ? continuity
+      : "";
+
+  return [prefix, continuityBeat].filter(Boolean).join(" ").trim();
+}
+
 function maybeBuildDelayRepairOrdinaryReply(
   prefix: string,
   continuity: string,
@@ -400,6 +441,7 @@ function maybeBuildDelayRepairOrdinaryReply(
     | "status_update"
     | "soft_update"
     | "micro_ack"
+    | "tone_repair"
     | "delay_repair"
     | "reassurance_close"
     | "plain"
@@ -426,6 +468,7 @@ function maybeBuildReassuranceCloseOrdinaryReply(
     | "status_update"
     | "soft_update"
     | "micro_ack"
+    | "tone_repair"
     | "delay_repair"
     | "reassurance_close"
     | "plain"
@@ -444,6 +487,7 @@ function maybeBuildMicroAckOrdinaryReply(
     | "status_update"
     | "soft_update"
     | "micro_ack"
+    | "tone_repair"
     | "delay_repair"
     | "reassurance_close"
     | "plain"
@@ -462,6 +506,7 @@ function maybeBuildCheckBackOrdinaryReply(
     | "status_update"
     | "soft_update"
     | "micro_ack"
+    | "tone_repair"
     | "delay_repair"
     | "reassurance_close"
     | "plain"

@@ -88,6 +88,22 @@ test("deriveReplyShapeGuidance treats small apology repair messages as delay-rep
   assert.equal(chineseGuidance.maxFollowups, 0);
 });
 
+test("deriveReplyShapeGuidance treats small tone-softener messages as tone-repair updates", () => {
+  const englishGuidance = deriveReplyShapeGuidance(
+    createRequest("didn't mean to sound harsh")
+  );
+  const chineseGuidance = deriveReplyShapeGuidance(
+    createRequest("\u4e0d\u662f\u6545\u610f\u51f6\u4f60\u7684")
+  );
+
+  assert.equal(englishGuidance.kind, "ordinary");
+  assert.equal(englishGuidance.ordinarySubtype, "tone_repair");
+  assert.equal(englishGuidance.maxFollowups, 0);
+  assert.equal(chineseGuidance.kind, "ordinary");
+  assert.equal(chineseGuidance.ordinarySubtype, "tone_repair");
+  assert.equal(chineseGuidance.maxFollowups, 0);
+});
+
 test("deriveReplyShapeGuidance treats gentle reassurance closers as reassurance-close updates", () => {
   const englishGuidance = deriveReplyShapeGuidance(
     createRequest("get some rest then")
@@ -219,6 +235,17 @@ test("describeReplyShapeGuidance includes delay-repair constraints", () => {
   assert.match(
     text,
     /For small apology or delayed-reply repair messages, answer like a real person resuming the thread\./
+  );
+});
+
+test("describeReplyShapeGuidance includes tone-repair constraints", () => {
+  const text = describeReplyShapeGuidance(
+    deriveReplyShapeGuidance(createRequest("sorry if that came off a bit cold"))
+  );
+
+  assert.match(
+    text,
+    /For small tone-repair or soft apology messages, let the repair land with one brief warm reply\./
   );
 });
 
