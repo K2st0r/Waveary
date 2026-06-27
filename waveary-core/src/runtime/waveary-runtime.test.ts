@@ -344,9 +344,13 @@ test("WavearyRuntime lets new-stage scripted chat learn names naturally", async 
   assert.equal(result.relationship.stage, "new");
   assert.ok(
     result.reply.content.includes("what should I call you?") ||
-      result.reply.content.includes("What should I call you?") ||
-      result.reply.content.includes("feel a little new to me right now"),
+      result.reply.content.includes("What should I call you?"),
     "new-stage scripted reply should invite the user's preferred name naturally"
+  );
+  assert.ok(
+    result.reply.content.includes("there you are") ||
+      result.reply.content.includes("lovely in that new kind of way"),
+    "new-stage greeting should feel a little more softly intimate"
   );
 });
 
@@ -586,6 +590,43 @@ test("WavearyRuntime keeps gentle reassurance closers brief and non-reopening", 
   assert.ok(result.reply.content.length < 180);
 });
 
+test("WavearyRuntime makes plain return messages feel a little more glad-to-see-you", async () => {
+  const runtime = new WavearyRuntime({
+    chatProvider: new ScriptedChatProvider(),
+    emotionAnalyzer: new SimpleEmotionAnalyzer(),
+    emotionStore: new InMemoryEmotionStore(),
+    emotionEngine: new SimpleCompanionEmotionEngine(),
+    identityStore: new InMemoryIdentityStore(),
+    identityEngine: new SimpleIdentityEngine(),
+    proactiveCareEngine: new SimpleProactiveCareEngine(),
+    memoryStore: new TestMemoryStore(),
+    memoryExtractor: new TestMemoryExtractor(),
+    relationshipStore: new InMemoryRelationshipStore(),
+    relationshipEngine: new SimpleRelationshipEngine(),
+    timelineStore: new InMemoryTimelineStore(),
+    timelineEngine: new SimpleTimelineEngine()
+  });
+
+  const context = createContext();
+  const message: Message = {
+    id: "turn-status-return-1",
+    sessionId: context.session.id,
+    role: "user",
+    content: "I'm back.",
+    timestamp: new Date().toISOString(),
+    metadata: {}
+  };
+
+  const result = await runtime.handleTurn(context, message);
+
+  assert.ok(result.reply.content.includes("There you are"));
+  assert.ok(
+    result.reply.content.includes("happy to see you come back") ||
+      result.reply.content.includes("glad"),
+    "return-message reply should sound softly glad"
+  );
+});
+
 test("WavearyRuntime keeps light check-back nudges brief and non-dramatic", async () => {
   const runtime = new WavearyRuntime({
     chatProvider: new ScriptedChatProvider(),
@@ -618,6 +659,11 @@ test("WavearyRuntime keeps light check-back nudges brief and non-dramatic", asyn
   assert.ok(!result.reply.content.includes("Tell me a little more"));
   assert.ok(!result.reply.content.includes("I still remember"));
   assert.ok(result.reply.content.length < 180);
+  assert.ok(
+    result.reply.content.includes("I'm here") ||
+      result.reply.content.includes("still with you"),
+    "check-back reply should sound present and a little close"
+  );
 });
 
 test("WavearyRuntime keeps light affectionate catch-up lines brief and warm", async () => {

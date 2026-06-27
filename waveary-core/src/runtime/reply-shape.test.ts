@@ -257,6 +257,22 @@ test("describeReplyShapeGuidance includes soft-update constraints", () => {
   );
 });
 
+test("describeReplyShapeGuidance includes more affectionate check-back constraints", () => {
+  const text = describeReplyShapeGuidance(
+    deriveReplyShapeGuidance(createRequest("still up?"))
+  );
+
+  assert.match(text, /quietly affectionate or a little glad they reached for you/i);
+});
+
+test("describeReplyShapeGuidance includes more affectionate return-update constraints", () => {
+  const text = describeReplyShapeGuidance(
+    deriveReplyShapeGuidance(createRequest("I'm back."))
+  );
+
+  assert.match(text, /softly glad to have them here/i);
+});
+
 test("describeReplyShapeGuidance includes delay-repair constraints", () => {
   const text = describeReplyShapeGuidance(
     deriveReplyShapeGuidance(createRequest("just saw this"))

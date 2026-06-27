@@ -8168,3 +8168,48 @@ Commit:
 Push:
 
 - succeeded: `git push origin main` pushed functional commit `e9669f9` to `origin/main`
+
+## 2026-06-27
+
+Objective:
+
+Refine intimate opening cadence so first greetings, light check-backs, and small return/status messages feel more softly close and glad-to-see-you without making all ordinary chat clingy or theatrical.
+
+Summary:
+
+- updated `waveary-core/src/runtime/getting-to-know-you.ts` so first-contact naming and greeting guidance now explicitly allows more soft closeness, quiet delight, and a more already-glad-to-see-you feel in greeting-sized openings
+- updated `waveary-core/src/runtime/reply-shape.ts` so `check_back` and `status_update` guidance now permits a little more quiet affection and return-message warmth while still forbidding heavy reunion scenes, recap, or follow-up chains
+- updated `waveary-core/src/adapters/openai-compatible-provider.ts` so live-provider instructions now explicitly say greetings, check-backs, and small return messages can feel closer to intimate texting than customer support, and tightened the `new` relationship-stage distance wording accordingly
+- updated `waveary-core/src/adapters/scripted-chat-provider.ts` so scripted fallback now gives targeted softer openings for first greetings, `still up?`-style nudges, and plain return messages like `I'm back`
+- added focused regression coverage in `waveary-core/src/runtime/getting-to-know-you.test.ts`, `waveary-core/src/runtime/reply-shape.test.ts`, `waveary-core/src/adapters/openai-compatible-provider.test.ts`, and `waveary-core/src/runtime/waveary-runtime.test.ts`
+- re-verified `@waveary/core` in the required sequential Windows order and ran the mojibake guard because this pass touched Chinese-adjacent greeting guidance files
+
+Files changed:
+
+- `waveary-core/src/adapters/openai-compatible-provider.ts`
+- `waveary-core/src/adapters/openai-compatible-provider.test.ts`
+- `waveary-core/src/adapters/scripted-chat-provider.ts`
+- `waveary-core/src/runtime/getting-to-know-you.ts`
+- `waveary-core/src/runtime/getting-to-know-you.test.ts`
+- `waveary-core/src/runtime/reply-shape.ts`
+- `waveary-core/src/runtime/reply-shape.test.ts`
+- `waveary-core/src/runtime/waveary-runtime.test.ts`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/core`
+- `npm run build --workspace @waveary/core`
+- `PowerShell: $files = @(Get-ChildItem 'waveary-core\\dist' -Recurse -Filter '*.test.js' | Sort-Object FullName | ForEach-Object { $_.FullName }); & node --test @files`
+- `npm run check:mojibake`
+
+Commit:
+
+- `pending` - `Refine intimate opening cadence`
+
+Push:
+
+- `pending`

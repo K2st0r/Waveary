@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `e9669f9` - `Refine time-of-day greeting cadence`
+- `pending` - `Refine intimate opening cadence`
 
 ## Latest Repository Surface
 
@@ -97,6 +97,7 @@ Brand line:
   - deterministic local-time question detection now also catches more indirect Chinese complaint-style phrasings such as asking why the companion still cannot tell the exact time, so those turns no longer slip past the runtime short-circuit and fall back to provider disclaimers
   - deterministic local-time detection is now narrower around actual clock/date questions, so emotional turns that merely mention `today` or `tonight` no longer collapse into time replies
   - early-acquaintance guidance now explicitly recognizes first-contact greetings and pushes both scripted and live-provider replies toward warm human introduction cadence instead of flat product-style self-introduction
+  - the next bounded opening-realism pass is now complete too: first greetings, light check-backs, and small return/status messages now get more quietly affectionate opening guidance in both live-provider prompts and scripted fallback, so lines like `hi`, `still up?`, and `I'm back` can feel a little softer and more glad-to-see-you without making all ordinary chat clingy or theatrical
   - first voice-domain contracts now exist through `VoiceSession`, `SpeechInput`, and `SpeechOutput`, so the framework boundary no longer leaves voice only at the architecture-document level
   - first formal product and architecture draft for companion emotional continuity and proactive care now exists in `docs/emotion-proactive-care.md`, defining `Waveary Emotion Engine (WEE)` and `Waveary Proactive Care Engine (WPCE)` as the next major runtime-facing design targets
   - first companion-side emotion runtime layer is now implemented through a persisted `EmotionStore`, a `SimpleCompanionEmotionEngine`, and runtime wiring that updates and returns companion emotion state on each turn

@@ -151,6 +151,8 @@ test("OpenAICompatibleChatProvider strengthens companionship guidance in the ins
     instruction,
     /Do not sound like an essayist, coach, or polished support agent when a smaller human reply would feel more real\./
   );
+  assert.match(instruction, /quietly affectionate and a little glad to see the user/i);
+  assert.match(instruction, /feel closer to intimate texting than to customer support/i);
 });
 
 test("OpenAICompatibleChatProvider includes concept-level identity summary guidance in the instruction prompt", async () => {
@@ -992,7 +994,7 @@ test("OpenAICompatibleChatProvider guides natural mutual discovery when the user
   );
   assert.match(
     instruction,
-    /Getting-to-know-you guidance: The user is asking who you are or what to call you\. Answer with warmth and a little personality, do not sound like a branded self-introduction, let them rename you if they want, and if it feels natural ask what you should call them in return\./
+    /Getting-to-know-you guidance: The user is asking who you are or what to call you\. Answer with warmth, soft closeness, and a little personality, do not sound like a branded self-introduction, let them rename you if they want, and if it feels natural ask what you should call them in return\./
   );
   assert.match(
     instruction,
@@ -1027,7 +1029,7 @@ test("OpenAICompatibleChatProvider treats a plain greeting like warm first conta
 
   assert.match(
     instruction,
-    /Getting-to-know-you guidance: This is a first-contact greeting\. Sound like a real person meeting someone with a little warmth or playful closeness, not like a product introduction\./
+    /Getting-to-know-you guidance: This is a first-contact greeting\. Sound like a real person meeting someone with a little warmth, soft closeness, and quiet delight, not like a product introduction\./
   );
 });
 

@@ -2598,3 +2598,25 @@ Impact:
 - `waveary-core/src/runtime/getting-to-know-you.ts` now distinguishes explicit time-of-day greetings from generic greetings and tells first-contact replies to stay greeting-sized, lightly corrective at most, and non-recap-heavy
 - `waveary-core/src/adapters/openai-compatible-provider.ts` now explicitly tells live providers not to sound like a clock app, not to narrate the time transition, and not to ask stiff follow-ups about the whole morning or afternoon after a light correction
 - `waveary-core/src/runtime/getting-to-know-you.test.ts` and `waveary-core/src/adapters/openai-compatible-provider.test.ts` now lock this tighter greeting realism into regression coverage
+
+## 2026-06-27 - Increase Intimacy First In Openings, Not Everywhere
+
+Status:
+
+- accepted
+
+Decision:
+
+When pushing Waveary toward a more intimate, more human-feeling companion tone, increase closeness first in greeting/opening beats such as first hellos, light check-backs, and small return messages, instead of globally making all ordinary chat more affectionate.
+
+Reason:
+
+- the user explicitly wants the companion to feel more `亲昵`, but rejected stiff, overlong, or theatrically poetic lines
+- small openings like `hi`, `still up?`, or `I'm back` are where human warmth is most legible and least likely to distort practical or emotional turns
+- spreading the same stronger closeness across every ordinary message would quickly make the companion sound clingy, scripted, or tonally inaccurate
+
+Impact:
+
+- `waveary-core/src/runtime/getting-to-know-you.ts` now frames first-contact greetings with more soft closeness and quiet delight
+- `waveary-core/src/runtime/reply-shape.ts` now explicitly allows a little more quiet affection for `check_back` and softly glad-to-see-you warmth for `status_update`
+- `waveary-core/src/adapters/openai-compatible-provider.ts` and `waveary-core/src/adapters/scripted-chat-provider.ts` now align on the same bounded direction, so live-provider and fallback paths both feel closer in openings without globally changing every reply shape
