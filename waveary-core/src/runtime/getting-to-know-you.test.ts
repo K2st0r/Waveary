@@ -81,6 +81,7 @@ test("describeGettingToKnowYouGuidance keeps new-stage discovery natural and bou
       latestTurnAskedCompanionName: true,
       latestTurnAskedForPlayfulCompanion: false,
       latestTurnIsGreeting: false,
+      latestTurnHasTimeOfDayGreeting: false,
       shouldInviteUserName: true,
       shouldInviteCompanionNaming: true,
       shouldInviteStylePreference: true
@@ -101,6 +102,7 @@ test("describeGettingToKnowYouGuidance pushes first greetings toward warm human 
       latestTurnAskedCompanionName: false,
       latestTurnAskedForPlayfulCompanion: false,
       latestTurnIsGreeting: true,
+      latestTurnHasTimeOfDayGreeting: false,
       shouldInviteUserName: true,
       shouldInviteCompanionNaming: true,
       shouldInviteStylePreference: true
@@ -112,6 +114,27 @@ test("describeGettingToKnowYouGuidance pushes first greetings toward warm human 
   assert.match(guidance, /first-contact greeting/i);
   assert.match(guidance, /real person meeting someone/i);
   assert.match(guidance, /continuous caring bond/i);
+});
+
+test("describeGettingToKnowYouGuidance keeps first time-of-day greetings small and natural", () => {
+  const guidance = describeGettingToKnowYouGuidance(
+    {
+      desiredStyleDescriptors: [],
+      latestTurnAskedCompanionName: false,
+      latestTurnAskedForPlayfulCompanion: false,
+      latestTurnIsGreeting: true,
+      latestTurnHasTimeOfDayGreeting: true,
+      shouldInviteUserName: true,
+      shouldInviteCompanionNaming: true,
+      shouldInviteStylePreference: true
+    },
+    "new",
+    "ordinary"
+  );
+
+  assert.match(guidance, /time-of-day greeting/i);
+  assert.match(guidance, /one small natural greeting-sized line/i);
+  assert.match(guidance, /do not ask broad recap questions about the whole morning, afternoon, or day segment/i);
 });
 
 test("deriveGettingToKnowYouState does not mistake emotional follow-ups for a user name", () => {
@@ -238,7 +261,59 @@ test("deriveGettingToKnowYouState recognizes simple greetings as first-contact t
   );
 
   assert.equal(state.latestTurnIsGreeting, true);
+  assert.equal(state.latestTurnHasTimeOfDayGreeting, false);
   assert.equal(state.shouldInviteUserName, true);
+});
+
+test("deriveGettingToKnowYouState recognizes time-of-day greetings distinctly", () => {
+  const englishState = deriveGettingToKnowYouState(
+    createRequest({
+      user: {
+        id: "user-1",
+        displayName: "User",
+        profileTraits: ["reflective"],
+        preferences: ["continuity"]
+      },
+      messages: [
+        {
+          id: "m1",
+          sessionId: "session-1",
+          role: "user",
+          content: "Good afternoon",
+          timestamp: new Date().toISOString(),
+          metadata: {}
+        }
+      ],
+      relevantMemories: []
+    })
+  );
+
+  const chineseState = deriveGettingToKnowYouState(
+    createRequest({
+      user: {
+        id: "user-1",
+        displayName: "User",
+        profileTraits: ["reflective"],
+        preferences: ["continuity"]
+      },
+      messages: [
+        {
+          id: "m1",
+          sessionId: "session-1",
+          role: "user",
+          content: "\u5348\u5b89\u5440",
+          timestamp: new Date().toISOString(),
+          metadata: {}
+        }
+      ],
+      relevantMemories: []
+    })
+  );
+
+  assert.equal(englishState.latestTurnIsGreeting, true);
+  assert.equal(englishState.latestTurnHasTimeOfDayGreeting, true);
+  assert.equal(chineseState.latestTurnIsGreeting, true);
+  assert.equal(chineseState.latestTurnHasTimeOfDayGreeting, true);
 });
 
 test("deriveGettingToKnowYouState accepts I'm called introductions", () => {

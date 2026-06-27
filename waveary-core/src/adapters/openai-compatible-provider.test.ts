@@ -78,6 +78,14 @@ test("OpenAICompatibleChatProvider injects local time context into the instructi
   assert.match(body.messages[0]?.content ?? "", /Local time zone: Asia\/Shanghai\./);
   assert.match(body.messages[0]?.content ?? "", /Local daypart: evening \(hour 21\)\./);
   assert.match(body.messages[0]?.content ?? "", /use this local time context directly/i);
+  assert.match(
+    body.messages[0]?.content ?? "",
+    /If the user greets you with a time-of-day word that does not match the local daypart, you may correct it lightly, but keep it small and natural\./
+  );
+  assert.match(
+    body.messages[0]?.content ?? "",
+    /do not ask stiff follow-ups such as whether the morning was stable/i
+  );
 });
 
 test("OpenAICompatibleChatProvider strengthens companionship guidance in the instruction prompt", async () => {

@@ -8,6 +8,7 @@ export interface GettingToKnowYouState {
   latestTurnAskedCompanionName: boolean;
   latestTurnAskedForPlayfulCompanion: boolean;
   latestTurnIsGreeting: boolean;
+  latestTurnHasTimeOfDayGreeting: boolean;
   shouldInviteUserName: boolean;
   shouldInviteCompanionNaming: boolean;
   shouldInviteStylePreference: boolean;
@@ -132,15 +133,44 @@ const GREETING_PATTERNS = [
   /\bhey\b/i,
   /\bhey there\b/i,
   /\bgood morning\b/i,
+  /\bgood afternoon\b/i,
   /\bgood evening\b/i,
+  /\bgood night\b/i,
+  /^\s*morning\b/i,
+  /^\s*afternoon\b/i,
+  /^\s*evening\b/i,
   /\bnice to meet you\b/i,
   /^\s*yo\b/i,
   /^\s*\u4f60\u597d/,
   /^\s*\u4f60\u597d\u5440/,
   /^\s*\u55e8/,
   /^\s*\u54c8\u55bd/,
+  /^\s*\u65e9\u5b89/,
+  /^\s*\u4e0a\u5348\u597d/,
+  /^\s*\u4e2d\u5348\u597d/,
+  /^\s*\u5348\u5b89/,
+  /^\s*\u4e0b\u5348\u597d/,
+  /^\s*\u665a\u5b89/,
+  /^\s*\u665a\u4e0a\u597d/,
   /^\s*\u5728\u5417/,
   /\u5f88\u9ad8\u5174\u8ba4\u8bc6\u4f60/
+];
+
+const TIME_OF_DAY_GREETING_PATTERNS = [
+  /\bgood morning\b/i,
+  /\bgood afternoon\b/i,
+  /\bgood evening\b/i,
+  /\bgood night\b/i,
+  /^\s*morning\b/i,
+  /^\s*afternoon\b/i,
+  /^\s*evening\b/i,
+  /^\s*\u65e9\u5b89/,
+  /^\s*\u4e0a\u5348\u597d/,
+  /^\s*\u4e2d\u5348\u597d/,
+  /^\s*\u5348\u5b89/,
+  /^\s*\u4e0b\u5348\u597d/,
+  /^\s*\u665a\u5b89/,
+  /^\s*\u665a\u4e0a\u597d/
 ];
 
 const STYLE_DESCRIPTOR_PATTERNS: Array<{ descriptor: string; pattern: RegExp }> = [
@@ -184,6 +214,9 @@ export function deriveGettingToKnowYouState(
       pattern.test(latestUserMessage)
     ),
     latestTurnIsGreeting: GREETING_PATTERNS.some((pattern) => pattern.test(latestUserMessage)),
+    latestTurnHasTimeOfDayGreeting: TIME_OF_DAY_GREETING_PATTERNS.some((pattern) =>
+      pattern.test(latestUserMessage)
+    ),
     shouldInviteUserName: !userPreferredName && userDisplayNameLooksDefault,
     shouldInviteCompanionNaming: !companionAssignedName,
     shouldInviteStylePreference: desiredStyleDescriptors.length === 0
@@ -215,6 +248,10 @@ export function describeGettingToKnowYouGuidance(
   }
 
   if (state.latestTurnIsGreeting) {
+    if (state.latestTurnHasTimeOfDayGreeting) {
+      return "This is a first-contact time-of-day greeting. Answer with one small natural greeting-sized line, like a real person hearing a soft hello. If the time-of-day wording is slightly off for the local time, a tiny light correction is enough; do not make a scene of it. Do not ask broad recap questions about the whole morning, afternoon, or day segment.";
+    }
+
     return "This is a first-contact greeting. Sound like a real person meeting someone with a little warmth or playful closeness, not like a product introduction. Treat it as the beginning of one continuous caring bond, and if it fits ask only one light getting-to-know-you question.";
   }
 
