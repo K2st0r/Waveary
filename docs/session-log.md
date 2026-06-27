@@ -8128,3 +8128,43 @@ Commit:
 Push:
 
 - succeeded: `git push origin main` pushed functional commit `d91411b` to `origin/main`
+
+## 2026-06-27
+
+Objective:
+
+Refine time-of-day greeting realism so wrong-daypart greetings stay lightly human instead of turning into narrated time correction or stiff recap questions.
+
+Summary:
+
+- updated `waveary-core/src/runtime/getting-to-know-you.ts` so early-acquaintance state now tracks explicit time-of-day greetings separately from generic greetings, including English and Chinese variants such as `good afternoon` and `午安`
+- updated `describeGettingToKnowYouGuidance()` so first-contact time-of-day greetings get one small natural greeting-sized reply, allow only tiny local-time correction, and explicitly avoid broad recap questions about the whole morning, afternoon, or day segment
+- updated `waveary-core/src/adapters/openai-compatible-provider.ts` so live-provider local-time instructions now explicitly forbid clock-app phrasing, narrated time-transition lines, and stiff recap questions after a light daypart correction
+- added focused regression coverage in `waveary-core/src/runtime/getting-to-know-you.test.ts` and `waveary-core/src/adapters/openai-compatible-provider.test.ts`
+- re-verified `@waveary/core` in the required sequential Windows order and ran the mojibake guard because this work touched Chinese-facing greeting patterns
+
+Files changed:
+
+- `waveary-core/src/adapters/openai-compatible-provider.ts`
+- `waveary-core/src/adapters/openai-compatible-provider.test.ts`
+- `waveary-core/src/runtime/getting-to-know-you.ts`
+- `waveary-core/src/runtime/getting-to-know-you.test.ts`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/core`
+- `npm run build --workspace @waveary/core`
+- `PowerShell: $files = @(Get-ChildItem 'waveary-core\\dist' -Recurse -Filter '*.test.js' | Sort-Object FullName | ForEach-Object { $_.FullName }); & node --test @files`
+- `npm run check:mojibake`
+
+Commit:
+
+- `pending` - `Refine time-of-day greeting cadence`
+
+Push:
+
+- pending

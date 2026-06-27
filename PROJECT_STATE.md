@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `d91411b` - `Add self-conscious-softener chat cadence`
+- `pending` - `Refine time-of-day greeting cadence`
 
 ## Latest Repository Surface
 
@@ -457,7 +457,7 @@ Brand line:
 - add route-level or live verification for more provider-specific chat payload divergences after the current DeepSeek and broader structured-payload compatibility baseline
 - re-run `npm run verify:provider` and `npm run models:provider` with refreshed real credentials, starting with DeepSeek because the currently saved local key now returns `401 invalid api key`
 - continue the dialogue-quality pass by extending live-provider regression beyond prompt-body inspection into stronger emotional-stress cases, finer ordinary-texting cadence, and richer memory-vs-timeline competition now that recency and source-turn weighting are both present in the shared helper
-- continue the dialogue-quality pass by extending the low-stakes short-texting cadence beyond status updates, tiny confirmations, softer micro-ack endings, deferential closers, soft updates, reassurance closers, light check-back nudges, small tone-repair softeners, light affectionate catch-up openers, and light self-conscious softeners into one next bounded everyday-message bucket such as shy low-stakes compliments, while keeping emotional-first handling and identity inference narrow
+- continue the dialogue-quality pass by extending greeting/opening realism beyond the new time-of-day greeting correction guard into one next bounded opening-cadence cut such as `早安 / 午安 / 晚安 / 刚回来 / 还在吗`, while keeping replies short, human, and non-recap-heavy
 - consider whether the next continuity-scoring refinement should incorporate bounded source-session or repeated-reference signals beyond the current current-turn match, recency, and source-turn layers
 - consider reusing the shared continuity-thread helper in future runtime-facing care or summary surfaces instead of reintroducing prompt-local continuity heuristics elsewhere
 - consider whether continuity-thread scoring now needs source-turn weighting in addition to the new lightweight recency bias, especially for memories created within the same short time band

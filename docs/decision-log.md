@@ -2576,3 +2576,25 @@ Impact:
 - `waveary-core/src/runtime/reply-shape.ts` now classifies a bounded set of English and Chinese awkwardness / self-consciousness lines as `ordinarySubtype: self_conscious_softener`
 - `waveary-core/src/adapters/scripted-chat-provider.ts` now lets that subtype land with one brief warm reply and, at most, a tiny continuity beat instead of over-comforting it, correcting it, or reopening the thread
 - `waveary-core/src/runtime/reply-shape.test.ts`, `waveary-core/src/adapters/openai-compatible-provider.test.ts`, and `waveary-core/src/runtime/waveary-runtime.test.ts` now lock both prompt guidance and runtime brevity for this new ordinary-chat bucket
+
+## 2026-06-27 - Time-Of-Day Greeting Corrections Must Stay Tiny And Human
+
+Status:
+
+- accepted
+
+Decision:
+
+When the user opens with a time-of-day greeting such as `good afternoon` or `午安`, Waveary should treat it as its own first-contact greeting shape. If the wording does not match the local daypart, any correction must stay tiny, natural, and present-focused instead of sounding like a clock app or asking recap-heavy follow-ups.
+
+Reason:
+
+- the user explicitly rejected lines like `看错了时间，那午安呀。从早到中午，我还在这里。上午过得还安稳吗？` as stiff, fake-gentle, and unlike real texting
+- the existing local-time guidance told providers to use local time truthfully, but it still left too much room for narrated time-segment correction and broad recap questions
+- this was safest to fix inside early-acquaintance greeting guidance plus the live-provider local-time instruction block, so both greeting detection and provider behavior tighten together without touching unrelated runtime areas
+
+Impact:
+
+- `waveary-core/src/runtime/getting-to-know-you.ts` now distinguishes explicit time-of-day greetings from generic greetings and tells first-contact replies to stay greeting-sized, lightly corrective at most, and non-recap-heavy
+- `waveary-core/src/adapters/openai-compatible-provider.ts` now explicitly tells live providers not to sound like a clock app, not to narrate the time transition, and not to ask stiff follow-ups about the whole morning or afternoon after a light correction
+- `waveary-core/src/runtime/getting-to-know-you.test.ts` and `waveary-core/src/adapters/openai-compatible-provider.test.ts` now lock this tighter greeting realism into regression coverage

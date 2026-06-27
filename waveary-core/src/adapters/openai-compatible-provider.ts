@@ -343,7 +343,9 @@ function buildDeveloperInstruction(request: ChatProviderRequest): string {
           ? `Local daypart: ${localTimeGuidance.dayPart} (hour ${localTimeGuidance.hour}).`
           : null,
         describeLocalDayPartTone(localTimeGuidance) ?? null,
-        "If the user asks what time it is, what day it is, or refers to today/tonight/tomorrow, use this local time context directly instead of claiming you lack real-time awareness."
+        "If the user asks what time it is, what day it is, or refers to today/tonight/tomorrow, use this local time context directly instead of claiming you lack real-time awareness.",
+        "If the user greets you with a time-of-day word that does not match the local daypart, you may correct it lightly, but keep it small and natural. Do not sound like a clock app, do not narrate the time transition, and do not ask stiff follow-ups such as whether the morning was stable or how the whole day segment went.",
+        "After a light time-of-day correction, continue like a real person would: one warm natural line is enough, and if you ask anything, keep it casual and present-focused."
       ]
         .filter((line): line is string => Boolean(line))
         .join("\n")
