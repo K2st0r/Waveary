@@ -519,13 +519,13 @@ export function describeReplyShapeGuidance(
   if (guidance.kind === "ordinary") {
     base.push(
       guidance.ordinarySubtype === "check_back"
-        ? "For light check-back nudges, answer with a brief warm presence signal. Keep it easy and human. Do not turn it into a heavy reunion, a practical answer, or a follow-up chain."
+        ? "For light check-back nudges, answer with a brief warm presence signal. It is okay to sound a little quietly affectionate or a little glad they reached for you, as long as it stays natural. Do not turn it into a heavy reunion, a practical answer, or a follow-up chain."
         : guidance.ordinarySubtype === "catch_up"
         ? "For light affectionate catch-up or thinking-of-you openers, answer with one brief warm reconnection line. Let it feel lightly personal without turning it into a heavy reunion speech or a follow-up chain."
         : guidance.ordinarySubtype === "micro_ack"
         ? "For tiny confirmations or soft acknowledgments, prefer one very short human reply and usually stop there. Do not inflate the moment into continuity theater, recap, or a fresh question."
         : guidance.ordinarySubtype === "status_update"
-        ? "For simple status updates or check-ins, prefer one warm acknowledgment or one acknowledgment plus one tiny continuity beat. Do not turn it into analysis, recap, or a check-in questionnaire."
+        ? "For simple status updates or check-ins, prefer one warm acknowledgment or one acknowledgment plus one tiny continuity beat. If the user is back, home, awake, or just arrived, it is okay to sound a little softly glad to have them here. Do not turn it into analysis, recap, or a check-in questionnaire."
         : guidance.ordinarySubtype === "self_conscious_softener"
         ? "For light self-conscious softeners, answer briefly and warmly. Let the small vulnerability land without over-comforting it, correcting it, or turning it into a follow-up chain."
         : guidance.ordinarySubtype === "tone_repair"

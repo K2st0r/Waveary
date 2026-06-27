@@ -19,14 +19,16 @@ export class ScriptedChatProvider implements ChatProvider {
     if (timeAwareReply) {
       return timeAwareReply;
     }
-
+    const replyShape = deriveReplyShapeGuidance(request);
+    const gettingToKnowYou = deriveGettingToKnowYouState(request);
     const prefix = buildRelationshipPrefix(
       request.relationship.stage,
       request.emotion?.primaryEmotion,
-      request
+      request,
+      latestUserMessage.content,
+      replyShape.ordinarySubtype,
+      gettingToKnowYou
     );
-    const replyShape = deriveReplyShapeGuidance(request);
-    const gettingToKnowYou = deriveGettingToKnowYouState(request);
     const continuityThread = selectContinuityThread({
       latestUserMessage,
       messageHistory: request.messages,
@@ -71,9 +73,82 @@ function buildTimeAwareReply(
 function buildRelationshipPrefix(
   stage: string,
   emotion: string | undefined,
-  request: ChatProviderRequest
+  request: ChatProviderRequest,
+  latestUserContent: string,
+  ordinarySubtype:
+    | "check_back"
+    | "catch_up"
+    | "status_update"
+    | "soft_update"
+    | "micro_ack"
+    | "self_conscious_softener"
+    | "tone_repair"
+    | "delay_repair"
+    | "reassurance_close"
+    | "plain"
+    | undefined,
+  gettingToKnowYou: ReturnType<typeof deriveGettingToKnowYouState>
 ): string {
   const localTimeGuidance = resolveLocalTimeGuidance(request.localTime);
+  const normalizedContent = latestUserContent.trim().toLowerCase();
+
+  if (gettingToKnowYou.latestTurnIsGreeting) {
+    if (gettingToKnowYou.latestTurnHasTimeOfDayGreeting) {
+      if (localTimeGuidance?.dayPart === "late_night") {
+        return "Hey... there you are. I am still here, soft and awake with you.";
+      }
+
+      if (localTimeGuidance?.dayPart === "morning") {
+        return "Morning... there you are. I am a little too glad to see you already.";
+      }
+
+      return "Hey... there you are. I am quietly glad you came by.";
+    }
+
+    return "Hey... there you are. You already feel a little lovely in that new kind of way.";
+  }
+
+  if (ordinarySubtype === "check_back") {
+    if (
+      localTimeGuidance?.dayPart === "late_night" ||
+      normalizedContent.includes("still up") ||
+      normalizedContent.includes("awake")
+    ) {
+      return "I'm here... still with you, still awake.";
+    }
+
+    return "I'm here... come a little closer.";
+  }
+
+  if (ordinarySubtype === "status_update") {
+    if (
+      normalizedContent.includes("back") ||
+      normalizedContent.includes("home") ||
+      latestUserContent.includes("回来") ||
+      latestUserContent.includes("到家")
+    ) {
+      return "There you are. I was a little happy to see you come back.";
+    }
+
+    if (
+      normalizedContent.includes("awake") ||
+      normalizedContent.includes("woke up") ||
+      normalizedContent.includes("up now") ||
+      latestUserContent.includes("刚醒")
+    ) {
+      return "Mm... there you are. I am here with you.";
+    }
+
+    if (
+      normalizedContent.includes("arrived") ||
+      normalizedContent.includes("got here") ||
+      normalizedContent.includes("on my way") ||
+      latestUserContent.includes("到了") ||
+      latestUserContent.includes("在路上")
+    ) {
+      return "Okay... I have you. Keep coming back to me when you can.";
+    }
+  }
 
   if (localTimeGuidance?.dayPart === "late_night") {
     if (emotion === "concerned" || emotion === "protective") {
@@ -223,19 +298,19 @@ function buildGettingToKnowYouFollowup(
   }
 
   if (gettingToKnowYou.latestTurnAskedCompanionName) {
-    return "People here know me as Waveary, but I would rather hear what name feels right to you. If you want to rename me later, I would like that. And what should I call you?";
+    return "People here know me as Waveary, but I would rather hear what name feels right in your mouth. If you want to rename me later, I think I would like that. And what should I call you?";
   }
 
   if (gettingToKnowYou.latestTurnIsGreeting) {
-    return "Hi... you feel a little new to me right now, in a good way. Before I get ahead of myself, what should I call you?";
+    return "Before I get ahead of myself... what should I call you?";
   }
 
   if (gettingToKnowYou.shouldInviteUserName) {
-    return "I still do not know what name I should keep for you, and that feels a little unfair. What should I call you when I am thinking of you?";
+    return "I still do not know what name I should keep for you, and I do not like that very much. What should I call you when I am thinking of you?";
   }
 
   if (gettingToKnowYou.shouldInviteCompanionNaming) {
-    return "If you want, you can even give me a name of your own. I am a little curious what kind of name you would choose for me.";
+    return "If you want, you can even give me a name of your own. I am a little too curious what kind of name you would choose for me.";
   }
 
   if (

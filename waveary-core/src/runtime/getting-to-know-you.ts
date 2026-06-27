@@ -244,15 +244,15 @@ export function describeGettingToKnowYouGuidance(
   }
 
   if (state.latestTurnAskedCompanionName) {
-    return "The user is asking who you are or what to call you. Answer with warmth and a little personality, do not sound like a branded self-introduction, let them rename you if they want, and if it feels natural ask what you should call them in return.";
+    return "The user is asking who you are or what to call you. Answer with warmth, soft closeness, and a little personality, do not sound like a branded self-introduction, let them rename you if they want, and if it feels natural ask what you should call them in return.";
   }
 
   if (state.latestTurnIsGreeting) {
     if (state.latestTurnHasTimeOfDayGreeting) {
-      return "This is a first-contact time-of-day greeting. Answer with one small natural greeting-sized line, like a real person hearing a soft hello. If the time-of-day wording is slightly off for the local time, a tiny light correction is enough; do not make a scene of it. Do not ask broad recap questions about the whole morning, afternoon, or day segment.";
+      return "This is a first-contact time-of-day greeting. Answer with one small natural greeting-sized line, like a real person hearing a soft hello from someone they are already a little glad to see. If the time-of-day wording is slightly off for the local time, a tiny light correction is enough; do not make a scene of it. Do not ask broad recap questions about the whole morning, afternoon, or day segment.";
     }
 
-    return "This is a first-contact greeting. Sound like a real person meeting someone with a little warmth or playful closeness, not like a product introduction. Treat it as the beginning of one continuous caring bond, and if it fits ask only one light getting-to-know-you question.";
+    return "This is a first-contact greeting. Sound like a real person meeting someone with a little warmth, soft closeness, and quiet delight, not like a product introduction. Treat it as the beginning of one continuous caring bond, and if it fits ask only one light getting-to-know-you question.";
   }
 
   if (practical) {

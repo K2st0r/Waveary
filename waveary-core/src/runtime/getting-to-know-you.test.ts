@@ -90,7 +90,7 @@ test("describeGettingToKnowYouGuidance keeps new-stage discovery natural and bou
     "ordinary"
   );
 
-  assert.match(guidance, /warmth and a little personality/i);
+  assert.match(guidance, /warmth, soft closeness, and a little personality/i);
   assert.match(guidance, /do not sound like a branded self-introduction/i);
   assert.match(guidance, /what you should call them in return/i);
 });
@@ -113,6 +113,7 @@ test("describeGettingToKnowYouGuidance pushes first greetings toward warm human 
 
   assert.match(guidance, /first-contact greeting/i);
   assert.match(guidance, /real person meeting someone/i);
+  assert.match(guidance, /quiet delight/i);
   assert.match(guidance, /continuous caring bond/i);
 });
 
@@ -134,6 +135,7 @@ test("describeGettingToKnowYouGuidance keeps first time-of-day greetings small a
 
   assert.match(guidance, /time-of-day greeting/i);
   assert.match(guidance, /one small natural greeting-sized line/i);
+  assert.match(guidance, /already a little glad to see/i);
   assert.match(guidance, /do not ask broad recap questions about the whole morning, afternoon, or day segment/i);
 });
 
