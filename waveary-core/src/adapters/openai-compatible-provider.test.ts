@@ -1579,6 +1579,32 @@ test("OpenAICompatibleChatProvider gives dedicated micro-ack guidance for tiny c
   );
 });
 
+test("OpenAICompatibleChatProvider gives dedicated tone-repair guidance for small soft apologies", async () => {
+  const instruction = await captureInstruction(
+    createRequest({
+      messages: [
+        {
+          id: "m1",
+          sessionId: "session-1",
+          role: "user",
+          content: "sorry, I was a little sharp just now",
+          timestamp: new Date().toISOString(),
+          metadata: {}
+        }
+      ],
+      relevantMemories: [],
+      timeline: []
+    })
+  );
+
+  assert.match(instruction, /Current reply mode: ordinary\./);
+  assert.match(instruction, /Maximum natural follow-up questions: 0\./);
+  assert.match(
+    instruction,
+    /For small tone-repair or soft apology messages, let the repair land with one brief warm reply\./
+  );
+});
+
 test("OpenAICompatibleChatProvider gives the same micro-ack guidance for softer acknowledgment endings", async () => {
   const instruction = await captureInstruction(
     createRequest({

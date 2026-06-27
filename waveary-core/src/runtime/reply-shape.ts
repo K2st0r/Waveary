@@ -19,6 +19,7 @@ export interface ReplyShapeGuidance {
     | "status_update"
     | "soft_update"
     | "micro_ack"
+    | "tone_repair"
     | "delay_repair"
     | "reassurance_close"
     | "plain";
@@ -158,6 +159,20 @@ const DELAY_REPAIR_PATTERNS = [
   /^\s*\u624d\u770b\u5230[~\u3002\uff01!]?[\s]*$/u,
   /^\s*\u521a\u770b\u5230[~\u3002\uff01!]?[\s]*$/u,
   /^\s*\u65b9\u624d\u5728\u5fd9[~\u3002\uff01!]?[\s]*$/u
+];
+
+const TONE_REPAIR_PATTERNS = [
+  /^\s*sorry if (?:that|i)\s+(?:came off|came across)\s+(?:a bit |a little )?(?:cold|sharp|harsh|off|distant)\.?\s*$/i,
+  /^\s*sorry(?:,)?\s*i was a little\s+(?:sharp|cold|harsh|off|distant)(?:\s+just now)?\.?\s*$/i,
+  /^\s*sorry(?:,)?\s*i sounded\s+(?:a bit |a little )?(?:cold|sharp|harsh|off|distant)\.?\s*$/i,
+  /^\s*(?:i\s+)?did(?: not|n't)\s+mean to sound\s+(?:cold|sharp|harsh|off|distant)\.?\s*$/i,
+  /^\s*(?:i\s+)?did(?: not|n't)\s+mean to be\s+(?:cold|sharp|harsh|distant)\.?\s*$/i,
+  /^\s*my bad(?:,)?\s*i was a little\s+(?:sharp|cold|off)\.?\s*$/i,
+  /^\s*\u62b1\u6b49[\u5440\u554a]?[\uff0c,]?\u521a\u521a\u8bed\u6c14(?:\u6709\u70b9|\u6709\u4e9b)?\u91cd\u4e86[~\u3002\uff01!]?[\s]*$/u,
+  /^\s*\u4e0d\u662f\u6545\u610f\u51f6\u4f60\u7684[~\u3002\uff01!]?[\s]*$/u,
+  /^\s*\u521a\u624d\u4e0d\u662f\u60f3\u51b7\u4f60\u7684[~\u3002\uff01!]?[\s]*$/u,
+  /^\s*\u62b1\u6b49[\u5440\u554a]?[\uff0c,]?\u8ba9\u4f60\u89c9\u5f97\u6211\u6709\u70b9\u51b7[~\u3002\uff01!]?[\s]*$/u,
+  /^\s*\u62b1\u6b49[\u5440\u554a]?[\uff0c,]?\u6211\u521a\u521a\u8bf4\u8bdd\u6709\u70b9\u51b2\u4e86[~\u3002\uff01!]?[\s]*$/u
 ];
 
 const REASSURANCE_CLOSE_PATTERNS = [
@@ -305,6 +320,17 @@ export function deriveReplyShapeGuidance(
     !microAck &&
     !statusUpdate &&
     !softUpdate;
+  const toneRepair =
+    TONE_REPAIR_PATTERNS.some((pattern) => pattern.test(content)) &&
+    content.length <= 88 &&
+    !practical &&
+    !playful &&
+    !reconnection &&
+    !checkBack &&
+    !microAck &&
+    !statusUpdate &&
+    !softUpdate &&
+    !delayRepair;
   const reassuranceClose =
     REASSURANCE_CLOSE_PATTERNS.some((pattern) => pattern.test(content)) &&
     content.length <= 72 &&
@@ -315,7 +341,8 @@ export function deriveReplyShapeGuidance(
     !microAck &&
     !statusUpdate &&
     !softUpdate &&
-    !delayRepair;
+    !delayRepair &&
+    !toneRepair;
 
   let kind: ReplyShapeKind = "ordinary";
   if (emotional) {
@@ -392,6 +419,8 @@ export function deriveReplyShapeGuidance(
         ? "micro_ack"
         : statusUpdate
         ? "status_update"
+        : toneRepair
+          ? "tone_repair"
         : delayRepair
           ? "delay_repair"
           : softUpdate
@@ -438,6 +467,8 @@ export function describeReplyShapeGuidance(
         ? "For tiny confirmations or soft acknowledgments, prefer one very short human reply and usually stop there. Do not inflate the moment into continuity theater, recap, or a fresh question."
         : guidance.ordinarySubtype === "status_update"
         ? "For simple status updates or check-ins, prefer one warm acknowledgment or one acknowledgment plus one tiny continuity beat. Do not turn it into analysis, recap, or a check-in questionnaire."
+        : guidance.ordinarySubtype === "tone_repair"
+        ? "For small tone-repair or soft apology messages, let the repair land with one brief warm reply. Do not turn it into a heavy emotional scene, a recap, or a follow-up chain."
         : guidance.ordinarySubtype === "delay_repair"
         ? "For small apology or delayed-reply repair messages, answer like a real person resuming the thread. Keep it brief, warm, and do not turn the apology into a heavy emotional scene."
         : guidance.ordinarySubtype === "reassurance_close"
