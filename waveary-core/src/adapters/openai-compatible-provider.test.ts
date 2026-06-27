@@ -1567,7 +1567,7 @@ test("OpenAICompatibleChatProvider gives dedicated check-back guidance for light
   );
   assert.match(
     instruction,
-    /If the wording is sleepy or late-night, it can feel a touch softer and more quietly close\./
+    /If the wording is sleepy, late-night, or gently lingering like they are still awake and reaching for you, it can feel a touch softer and more quietly close\./
   );
 });
 
@@ -1623,7 +1623,7 @@ test("OpenAICompatibleChatProvider gives dedicated catch-up guidance for light a
   );
   assert.match(
     instruction,
-    /If they say they missed you or thought of you, it is okay to sound quietly pleased or softly touched, but keep it small\./
+    /If they say they missed you, ask if you were missed, or mention dreaming of you, it is okay to sound quietly pleased, lightly teased, or softly touched, but keep it small\./
   );
 });
 

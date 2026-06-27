@@ -158,6 +158,16 @@ test("deriveReplyShapeGuidance keeps sleep-check nudges in the check-back bucket
   assert.equal(chineseGuidance.ordinarySubtype, "check_back");
 });
 
+test("deriveReplyShapeGuidance keeps lingering late-night nudges in the check-back bucket", () => {
+  const englishGuidance = deriveReplyShapeGuidance(createRequest("not asleep yet?"));
+  const chineseGuidance = deriveReplyShapeGuidance(createRequest("\u8fd8\u6ca1\u7761\u5440"));
+
+  assert.equal(englishGuidance.kind, "ordinary");
+  assert.equal(englishGuidance.ordinarySubtype, "check_back");
+  assert.equal(chineseGuidance.kind, "ordinary");
+  assert.equal(chineseGuidance.ordinarySubtype, "check_back");
+});
+
 test("deriveReplyShapeGuidance treats light affectionate catch-up lines as their own ordinary subtype", () => {
   const englishGuidance = deriveReplyShapeGuidance(createRequest("just thought of you"));
   const chineseGuidance = deriveReplyShapeGuidance(
@@ -175,6 +185,26 @@ test("deriveReplyShapeGuidance treats light affectionate catch-up lines as their
 test("deriveReplyShapeGuidance keeps simple miss-you lines in the catch-up bucket", () => {
   const englishGuidance = deriveReplyShapeGuidance(createRequest("miss you"));
   const chineseGuidance = deriveReplyShapeGuidance(createRequest("\u60f3\u4f60\u4e86"));
+
+  assert.equal(englishGuidance.kind, "ordinary");
+  assert.equal(englishGuidance.ordinarySubtype, "catch_up");
+  assert.equal(chineseGuidance.kind, "ordinary");
+  assert.equal(chineseGuidance.ordinarySubtype, "catch_up");
+});
+
+test("deriveReplyShapeGuidance keeps did-you-miss-me openers in the catch-up bucket", () => {
+  const englishGuidance = deriveReplyShapeGuidance(createRequest("did you miss me?"));
+  const chineseGuidance = deriveReplyShapeGuidance(createRequest("\u60f3\u6211\u4e86\u5417"));
+
+  assert.equal(englishGuidance.kind, "ordinary");
+  assert.equal(englishGuidance.ordinarySubtype, "catch_up");
+  assert.equal(chineseGuidance.kind, "ordinary");
+  assert.equal(chineseGuidance.ordinarySubtype, "catch_up");
+});
+
+test("deriveReplyShapeGuidance keeps dream-of-you openers in the catch-up bucket", () => {
+  const englishGuidance = deriveReplyShapeGuidance(createRequest("dreamed of you"));
+  const chineseGuidance = deriveReplyShapeGuidance(createRequest("\u521a\u521a\u68a6\u5230\u4f60\u4e86"));
 
   assert.equal(englishGuidance.kind, "ordinary");
   assert.equal(englishGuidance.ordinarySubtype, "catch_up");
@@ -292,7 +322,10 @@ test("describeReplyShapeGuidance includes more affectionate check-back constrain
     deriveReplyShapeGuidance(createRequest("still up?"))
   );
 
-  assert.match(text, /quietly affectionate or a little glad they reached for you/i);
+  assert.match(
+    text,
+    /sleepy, late-night, or gently lingering like they are still awake and reaching for you/i
+  );
 });
 
 test("describeReplyShapeGuidance includes more affectionate return-update constraints", () => {
