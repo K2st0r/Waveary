@@ -8366,3 +8366,38 @@ Commit:
 Push:
 
 - succeeded: `git push origin main` pushed functional commit `fc5a50b` to `origin/main`
+
+## 2026-06-28
+
+Objective:
+
+Make the GitHub page usable for people who do not already know how to run or deploy a JavaScript monorepo.
+
+Summary:
+
+- rewrote `README.md` into a clearer GitHub homepage entrypoint with real startup commands, ZIP-download instructions, provider setup steps, common commands, local data notes, and basic troubleshooting
+- added `docs/deployment-guide.md` as a dedicated step-by-step deployment guide covering local startup, ZIP usage, provider configuration, local persistence, Linux self-hosting, and reverse proxy basics
+- grounded the new documentation against the repository's real scripts and runtime behavior instead of inventing a new deployment flow
+- re-verified the repository build through `npm run web:build` and reran the mojibake guard because the work replaced major user-facing documentation
+
+Files changed:
+
+- `README.md`
+- `docs/deployment-guide.md`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run web:build`
+- `npm run check:mojibake`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending

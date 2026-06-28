@@ -2708,3 +2708,25 @@ Impact:
 - `waveary-web/public/brand/waveary-logo-mark.svg` now stores the production web mark for the approved echo-ring identity
 - `waveary-web/public/brand/waveary-logo-lockup.svg` now stores a matching bilingual lockup for future documentation or interface use
 - `waveary-web/src/App.tsx`, `waveary-web/src/styles.css`, and `waveary-web/index.html` now surface the same dedicated Waveary mark in the topbar and browser tab
+
+## 2026-06-28 - GitHub Onboarding Should Be Written For People Who Cannot Infer The Startup Path
+
+Status:
+
+- accepted
+
+Decision:
+
+Rewrite the repository README and add a dedicated deployment guide so a user who downloads the project from GitHub can start, configure, and self-host Waveary by following explicit steps instead of reverse-engineering the monorepo.
+
+Reason:
+
+- the user explicitly pointed out that ordinary visitors to the GitHub page still would not know how to use or deploy the project
+- the previous README emphasized identity and architecture, but did not serve as a reliable operator-facing entrypoint for ZIP-download users or first-time self-hosters
+- the repository already has real scripts for local run, preview, provider setup, provider verification, and memory reset, so the missing piece was accurate onboarding documentation rather than new runtime code
+
+Impact:
+
+- `README.md` is being rewritten into a user-facing entrypoint with real startup commands, ZIP-user instructions, server deployment entrypoints, and troubleshooting
+- `docs/deployment-guide.md` now exists as the longer step-by-step deployment document for local use and Linux server self-hosting
+- future documentation polish should keep the README practical first, with product identity supporting it instead of obscuring the startup path

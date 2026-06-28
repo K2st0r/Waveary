@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `fc5a50b` - `Integrate Waveary web logo assets`
+- pending functional commit - rewrite onboarding docs and deployment guide
 
 ## Latest Repository Surface
 
@@ -25,6 +25,7 @@ Brand line:
 - GitHub description: `回响之境 Waveary｜开源数字生命陪伴框架 / Open source digital life companion framework for memory, relationship, timeline, emotion, and voice.`
 - GitHub topics: `waveary`, `hui-xiang-zhi-jing`, `digital-life-companion`, `digital-companion`, `ai-companion`, `companion-framework`, `companion-ai`, `llm-framework`, `long-term-memory`, `memory-framework`, `memory-engine`, `relationship-engine`, `timeline-engine`, `voice-agent`, `emotional-ai`, `open-source`
 - homepage: `https://github.com/K2st0r/Waveary#readme`
+- GitHub onboarding docs are being rewritten so non-developer users can run Waveary locally or self-host it by following explicit step-by-step instructions
 
 ## Modules
 
@@ -415,7 +416,7 @@ Brand line:
 - continue the live-provider dialogue regression pass beyond the new prompt-body coverage into richer emotional-stress, reconnection, practical-question cadence, and multi-turn mutual-discovery competition cases
 - continue the markdown-backed companion-soul rollout by turning it into the next bounded runtime improvements for first-turn naming cadence, softer self-reveal, and more human remembered-name usage before attempting any broader relationship-architecture refactor
 - continue the new user-facing identity-summary surface by deciding whether the next cut should add correction provenance / user-pinned understanding hints, or another bounded runtime-side refinement for stale-vs-fresh summary conflict resolution
-- visually verify the new web-logo integration in the live header and browser tab, then keep tightening the dedicated chat surface and console shell around clearer operational polish
+- after the onboarding-doc pass, verify the rewritten GitHub README and deployment guide render clearly on GitHub, then return to shell polish and brand cleanup with the new user-facing docs in place
 - continue the continuity-thread quality pass beyond short carry-over follow-ups into pronoun-heavy multi-turn topic persistence, so turns like "that part still hurts" or "I am not over it yet" can stay anchored even when the user is more oblique
 - continue the continuity-thread quality pass beyond short, emotional, low-affect pronoun, inferential, and weaker unsettled carry-over follow-ups into the next bounded drift cases, so the system can stay anchored without over-blending unrelated nearby topics
 - continue hardening early-acquaintance inference beyond emotional-state false positives, identity-style self-description, quoted name-sharing, `my name's` introductions, `I'm called` introductions, parenthesized name-sharing, and `call me` follow-up/scheduling/sequencing/callback false positives into the next bounded ambiguous introduction cases, but keep the parser narrow enough that ordinary emotional sentences are never treated as confirmed names
