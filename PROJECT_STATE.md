@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- pending functional commit - formalize Waveary web logo integration
+- `fc5a50b` - `Integrate Waveary web logo assets`
 
 ## Latest Repository Surface
 
