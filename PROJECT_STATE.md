@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `pending` - `Split GitHub docs by language`
+- `bc51aa7` - `Split GitHub docs by language`
 
 ## Latest Repository Surface
 
