@@ -29,8 +29,8 @@ Update it when:
 
 4. Make GitHub onboarding usable for non-developers.
    Status: in progress
-   Current state: the GitHub-facing onboarding path has been rewritten around the real scripts, and both `README.md` and `docs/deployment-guide.md` are now being upgraded into bilingual English/Chinese instructions so non-technical users can follow local startup, ZIP usage, provider setup, and self-hosting without reverse-engineering the monorepo.
-   Next cut: visually review the rendered GitHub README, then decide whether the next repo-facing documentation pass should add richer bilingual screenshots or keep the page text-first and lean.
+   Current state: the GitHub-facing onboarding path is now being reshaped from mixed bilingual pages into separate English and Simplified Chinese documents, with `README.md` as the English entrypoint, `README.zh-CN.md` as the Chinese homepage, and matching split deployment guides so users can switch language cleanly without reading mixed paragraphs.
+   Next cut: visually review the rendered GitHub language-switch links and decide whether the next repo-facing doc pass should add screenshots or keep the onboarding page text-first and lightweight.
 
 5. Continue the `waveary-core` dialogue-quality pass.
    Status: in progress

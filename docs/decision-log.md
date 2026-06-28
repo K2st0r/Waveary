@@ -2752,3 +2752,25 @@ Impact:
 - `README.md` now mirrors its core startup, ZIP-user, deployment, commands, troubleshooting, and contribution sections in English and Chinese
 - `docs/deployment-guide.md` now provides the same bilingual treatment for local startup, provider setup, persistence, Linux deployment, and reverse-proxy instructions
 - future public-repo documentation polish should preserve this bilingual baseline instead of drifting back to English-only onboarding
+
+## 2026-06-28 - Public GitHub Docs Should Switch Languages, Not Mix Them Inline
+
+Status:
+
+- accepted
+
+Decision:
+
+The public GitHub-facing docs should use separate language documents with explicit switch links, instead of mixing English and Chinese inside the same README and deployment page.
+
+Reason:
+
+- the user explicitly asked for direct language switching instead of mixed bilingual paragraphs
+- mixed-language onboarding is workable, but it reads less cleanly on GitHub and feels less like a formal open-source project homepage
+- separate language pages keep the repository homepage easier to scan while still preserving full Chinese accessibility
+
+Impact:
+
+- `README.md` is now the English homepage with a top-level link to `README.zh-CN.md`
+- `README.zh-CN.md` now exists as the Simplified Chinese homepage mirror
+- `docs/deployment-guide.md` and `docs/deployment-guide.zh-CN.md` now form a matching English/Chinese deployment-guide pair with switch links

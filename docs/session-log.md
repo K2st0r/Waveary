@@ -8435,3 +8435,40 @@ Commit:
 Push:
 
 - succeeded: `git push origin main` pushed functional commit `498ad44` to `origin/main`
+
+## 2026-06-28
+
+Objective:
+
+Replace mixed bilingual GitHub docs with explicit English / Simplified Chinese language-switch pages so the repository homepage reads like a cleaner formal open-source project.
+
+Summary:
+
+- rewrote `README.md` back into an English-first GitHub homepage and added an explicit switch link to the new `README.zh-CN.md`
+- added `README.zh-CN.md` as the Simplified Chinese homepage counterpart, covering the same startup, ZIP-user, deployment, commands, troubleshooting, and repository-structure guidance without inline English mixing
+- split the deployment guide the same way into `docs/deployment-guide.md` and `docs/deployment-guide.zh-CN.md`, each with a top language switch link
+- re-verified the language-split doc pass with `git diff` and `npm run check:mojibake`, while leaving unrelated frontend/logo work untouched
+
+Files changed:
+
+- `README.md`
+- `README.zh-CN.md`
+- `docs/deployment-guide.md`
+- `docs/deployment-guide.zh-CN.md`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `git diff -- README.md README.zh-CN.md docs/deployment-guide.md docs/deployment-guide.zh-CN.md`
+- `npm run check:mojibake`
+
+Commit:
+
+- `pending` - `Split GitHub docs by language`
+
+Push:
+
+- `pending`
