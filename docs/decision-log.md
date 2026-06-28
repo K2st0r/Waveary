@@ -2774,3 +2774,25 @@ Impact:
 - `README.md` is now the English homepage with a top-level link to `README.zh-CN.md`
 - `README.zh-CN.md` now exists as the Simplified Chinese homepage mirror
 - `docs/deployment-guide.md` and `docs/deployment-guide.zh-CN.md` now form a matching English/Chinese deployment-guide pair with switch links
+
+## 2026-06-28 - The Sticky Topbar Must Use Transparent Brand Assets, Not Draft Raster Logos
+
+Status:
+
+- accepted
+
+Decision:
+
+The live `waveary-web` sticky topbar must use transparent vector brand assets and a quieter surrounding shell treatment, instead of routing the visible header through standalone raster logo drafts that carry their own background plate.
+
+Reason:
+
+- the user explicitly rejected the current topbar logo because it looked ugly and still appeared to carry a bad square background
+- the root cause was not only the surrounding header chrome; the current visible identity still felt too close to a standalone logo draft, and the live shell needed cleaner transparent brand assets plus calmer surrounding treatment
+- the header is a product-shell surface, so it needs a clean mark that can sit inside the navigation without reading like an inserted poster or exported mockup
+
+Impact:
+
+- `waveary-web/public/brand/waveary-logo-mark.svg` and `waveary-web/public/brand/waveary-logo-lockup.svg` now use a cleaner hand-drawn open-ring direction instead of the earlier heavier echo-ring geometry
+- `waveary-web/src/styles.css` now reduces the sticky shell heaviness and removes the extra decorative underline drift around the logo lockup
+- future shell polish should keep the live header on transparent vector assets only and leave raster logo explorations as references, not active UI dependencies

@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `bc51aa7` - `Split GitHub docs by language`
+- `pending` - topbar logo polish not committed yet
 
 ## Latest Repository Surface
 
@@ -26,6 +26,7 @@ Brand line:
 - GitHub topics: `waveary`, `hui-xiang-zhi-jing`, `digital-life-companion`, `digital-companion`, `ai-companion`, `companion-framework`, `companion-ai`, `llm-framework`, `long-term-memory`, `memory-framework`, `memory-engine`, `relationship-engine`, `timeline-engine`, `voice-agent`, `emotional-ai`, `open-source`
 - homepage: `https://github.com/K2st0r/Waveary#readme`
 - GitHub onboarding docs are now being split into language-switched English and Simplified Chinese documents so the repository homepage no longer mixes both languages inside the same page flow
+- the active web shell now avoids using the earlier raster logo draft in the sticky topbar and instead returns to a transparent vector brand mark, with a quieter header treatment so the logo reads more like a formal identity asset than an inserted image
 
 ## Modules
 
@@ -433,6 +434,7 @@ Brand line:
 - decide whether Gemini should stay TTS-only for now or later receive a separate audio-understanding / transcription adapter instead of being forced into the current provider-backed STT contract
 - use the new repo-side mojibake guard whenever a future Waveary work block edits Chinese-facing copy, and keep broad historical Chinese cleanup isolated from unrelated feature work
 - keep future shell polish focused on the lower workspace stage and inner panel density; do not bloat the top workspace-tab strip when the real complaint is about the operational panels below
+- keep the sticky topbar on transparent vector brand assets only; do not route the live header back through standalone raster logo drafts with baked backgrounds, because that regresses the formal shell identity immediately
 - keep future voice-shell checks focused on true UI regressions now that shared, dedicated OpenAI-compatible, Doubao, and local branches have all been browser-verified against the routing card
 - confirm the dedicated local-bridge voice path in-browser now that its optional auth slot stays visible in the same credential area instead of disappearing with the old conditional rendering
 - test the dedicated voice-provider path end-to-end in the browser by saving a separate真人语音 provider and confirming the delivery hint still shapes playback when chat stays on a different vendor

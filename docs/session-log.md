@@ -8472,3 +8472,39 @@ Commit:
 Push:
 
 - succeeded: `git push origin main` pushed functional commit `bc51aa7` to `origin/main`
+
+## 2026-06-28
+
+Objective:
+
+Remove the ugly draft raster logo from the live Waveary sticky topbar and tighten the brand presentation so the web shell looks more formal and less like a pasted image.
+
+Summary:
+
+- rebuilt `waveary-web/public/brand/waveary-logo-mark.svg` and `waveary-web/public/brand/waveary-logo-lockup.svg` into a cleaner open-ring hand-drawn direction that better matches the milk-white / black-ink shell without a boxed background
+- tightened `waveary-web/src/styles.css` around the topbar by reducing shell heaviness, removing the extra decorative underline around the brand lockup, and calming the surrounding brand text treatment
+- re-verified the web build and reran the mojibake guard; also confirmed the local dev page remained reachable during this pass
+
+Files changed:
+
+- `waveary-web/src/styles.css`
+- `waveary-web/public/brand/waveary-logo-mark.svg`
+- `waveary-web/public/brand/waveary-logo-lockup.svg`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run build --workspace @waveary/web`
+- `npm run check:mojibake`
+- `Invoke-WebRequest -UseBasicParsing http://127.0.0.1:4173`
+
+Commit:
+
+- `pending`
+
+Push:
+
+- `pending`
