@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `pending` - `Make GitHub docs bilingual`
+- `498ad44` - `Make GitHub docs bilingual`
 
 ## Latest Repository Surface
 
