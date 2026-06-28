@@ -8328,3 +8328,41 @@ Commit:
 Push:
 
 - succeeded: `git push origin main` pushed functional commit `4c0e60b` to `origin/main`
+
+## 2026-06-28
+
+Objective:
+
+Turn the approved Waveary logo direction into a real web-shell identity asset.
+
+Summary:
+
+- replaced the draft `waveary-web/public/brand/` logo files with clean production SVG assets for the approved echo-ring mark and a matching bilingual lockup
+- updated `waveary-web/src/App.tsx` and `waveary-web/src/styles.css` so the sticky topbar now carries the dedicated Waveary logo mark beside the bilingual text lockup
+- replaced the old inline favicon data URI in `waveary-web/index.html` with the dedicated Waveary brand mark so the browser tab and the app shell now share one identity source
+- verified the web build and reran the mojibake guard because this work touched the Chinese-facing title path
+
+Files changed:
+
+- `waveary-web/public/brand/waveary-logo-mark.svg`
+- `waveary-web/public/brand/waveary-logo-lockup.svg`
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `waveary-web/index.html`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run build --workspace @waveary/web`
+- `npm run check:mojibake`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending

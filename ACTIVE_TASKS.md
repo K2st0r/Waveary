@@ -24,8 +24,8 @@ Update it when:
 
 3. Keep polishing the `waveary-web` home / console shell.
    Status: in progress
-   Current state: the homepage first screen is tighter, the hero fits better on common desktop heights, the doodle layer uses a broader black-and-white asset set, the README hero banner has been rebuilt into a centered transparent portrait-fan asset for cleaner GitHub rendering, the console uses a denser control-desk shell, the provider/model setup remains visible through dedicated status surfacing, the chat composer keeps settings on the left and actions on the right, and the provider workspace now clearly distinguishes unsaved draft credentials from the active saved runtime config.
-   Next cut: visually verify the provider draft/saved-state truthfulness in-browser, then decide whether the next highest-value shell step is correction provenance / pinning for companion understanding, or a smaller remembered-name / vibe continuity surface beside it.
+   Current state: the homepage first screen is tighter, the hero fits better on common desktop heights, the doodle layer uses a broader black-and-white asset set, the README hero banner has been rebuilt into a centered transparent portrait-fan asset for cleaner GitHub rendering, the console uses a denser control-desk shell, the provider/model setup remains visible through dedicated status surfacing, the chat composer keeps settings on the left and actions on the right, the provider workspace now clearly distinguishes unsaved draft credentials from the active saved runtime config, and the topbar plus browser tab now use a dedicated Waveary echo-ring brand mark.
+   Next cut: visually verify the provider draft/saved-state truthfulness and new brand-mark balance in-browser, then decide whether the next highest-value shell step is correction provenance / pinning for companion understanding, or a smaller remembered-name / vibe continuity surface beside it.
 
 4. Continue the `waveary-core` dialogue-quality pass.
    Status: in progress

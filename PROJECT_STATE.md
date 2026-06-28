@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `4c0e60b` - `Center README hero fan artwork`
+- pending functional commit - formalize Waveary web logo integration
 
 ## Latest Repository Surface
 
@@ -116,6 +116,7 @@ Brand line:
   - standalone React and Vite workspace exists
   - local product context is now documented in `waveary-web/PRODUCT.md` so future frontend redesign or polish passes can resume with stable product intent
   - official homepage is implemented
+  - the web shell now uses a dedicated Waveary echo-ring logo mark in the sticky header and favicon path instead of the earlier temporary inline icon
   - product positioning, engine stack, provider compatibility, roadmap, and repository structure are presented in the first page
   - homepage information architecture now separates brand vision, framework positioning, and the companion console so the product no longer reads like one long debug dashboard
   - homepage visual system now separates a high-confidence brand layer from a cinematic runtime shell so the site reads more like a formal AI framework homepage than a dark admin prototype
@@ -414,7 +415,7 @@ Brand line:
 - continue the live-provider dialogue regression pass beyond the new prompt-body coverage into richer emotional-stress, reconnection, practical-question cadence, and multi-turn mutual-discovery competition cases
 - continue the markdown-backed companion-soul rollout by turning it into the next bounded runtime improvements for first-turn naming cadence, softer self-reveal, and more human remembered-name usage before attempting any broader relationship-architecture refactor
 - continue the new user-facing identity-summary surface by deciding whether the next cut should add correction provenance / user-pinned understanding hints, or another bounded runtime-side refinement for stale-vs-fresh summary conflict resolution
-- visually verify the chat composer reorder and new `Enter`-to-send flow in-browser, then keep tightening the dedicated chat surface around shorter everyday cadence and warmer first-contact behavior
+- visually verify the new web-logo integration in the live header and browser tab, then keep tightening the dedicated chat surface and console shell around clearer operational polish
 - continue the continuity-thread quality pass beyond short carry-over follow-ups into pronoun-heavy multi-turn topic persistence, so turns like "that part still hurts" or "I am not over it yet" can stay anchored even when the user is more oblique
 - continue the continuity-thread quality pass beyond short, emotional, low-affect pronoun, inferential, and weaker unsettled carry-over follow-ups into the next bounded drift cases, so the system can stay anchored without over-blending unrelated nearby topics
 - continue hardening early-acquaintance inference beyond emotional-state false positives, identity-style self-description, quoted name-sharing, `my name's` introductions, `I'm called` introductions, parenthesized name-sharing, and `call me` follow-up/scheduling/sequencing/callback false positives into the next bounded ambiguous introduction cases, but keep the parser narrow enough that ordinary emotional sentences are never treated as confirmed names

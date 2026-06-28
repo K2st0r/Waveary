@@ -5372,9 +5372,16 @@ export function App(): ReactElement {
 
       <header className="topbar">
         <div className="brand-lockup">
-          <span className="brand-mark">Waveary</span>
-          <span className="brand-subtitle">{copy.brandSubtitle}</span>
-          <span className="brand-caption">{copy.brandCaption}</span>
+          <img
+            alt="Waveary logo"
+            className="brand-lockup-mark"
+            src="/brand/waveary-logo-mark.svg"
+          />
+          <div className="brand-lockup-copy">
+            <span className="brand-mark">Waveary</span>
+            <span className="brand-subtitle">{copy.brandSubtitle}</span>
+            <span className="brand-caption">{copy.brandCaption}</span>
+          </div>
         </div>
 
         <div className="topbar-utility">

@@ -2686,3 +2686,25 @@ Impact:
 - `docs/assets/readme-hero-fan.png` is now a lighter transparent PNG that isolates the portrait fan itself
 - the portrait fan is now centered more deliberately instead of drifting right inside a larger scene composition
 - future README hero iterations should stay focused on card balance, transparency, and composition rather than reintroducing background scenery or baked-in title text
+
+## 2026-06-28 - The Web Shell Should Adopt The Approved Echo-Ring Logo
+
+Status:
+
+- accepted
+
+Decision:
+
+Adopt the approved Waveary echo-ring direction as the formal web-shell logo, and use the same mark for the browser favicon instead of keeping the older temporary inline icon.
+
+Reason:
+
+- the user accepted the stronger generated logo direction and wanted it turned into a practical project asset instead of leaving it as an isolated draft
+- the current topbar still depended on a text-only brand lockup, while the browser tab still used an earlier placeholder icon that no longer matched the chosen identity
+- using one dedicated brand source across the sticky header and favicon reduces future frontend drift and gives later homepage or README polish a stable visual anchor
+
+Impact:
+
+- `waveary-web/public/brand/waveary-logo-mark.svg` now stores the production web mark for the approved echo-ring identity
+- `waveary-web/public/brand/waveary-logo-lockup.svg` now stores a matching bilingual lockup for future documentation or interface use
+- `waveary-web/src/App.tsx`, `waveary-web/src/styles.css`, and `waveary-web/index.html` now surface the same dedicated Waveary mark in the topbar and browser tab
