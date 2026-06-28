@@ -29,8 +29,8 @@ Update it when:
 
 4. Make GitHub onboarding usable for non-developers.
    Status: in progress
-   Current state: the old README mixed product positioning and technical notes but still left non-technical users unclear on how to actually start Waveary. The real startup path has now been revalidated against existing scripts: `npm run web:dev` for local development, `npm run web:preview` for local production preview, `npm run setup:provider` for interactive provider setup, and `.waveary/` for saved local runtime data.
-   Next cut: finish the dedicated deployment guide pass, then visually review the GitHub README and confirm the instructions are simple enough for users who download the ZIP and just want to run the project.
+   Current state: the GitHub-facing onboarding path has been rewritten around the real scripts, and both `README.md` and `docs/deployment-guide.md` are now being upgraded into bilingual English/Chinese instructions so non-technical users can follow local startup, ZIP usage, provider setup, and self-hosting without reverse-engineering the monorepo.
+   Next cut: visually review the rendered GitHub README, then decide whether the next repo-facing documentation pass should add richer bilingual screenshots or keep the page text-first and lean.
 
 5. Continue the `waveary-core` dialogue-quality pass.
    Status: in progress

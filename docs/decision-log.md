@@ -2730,3 +2730,25 @@ Impact:
 - `README.md` is being rewritten into a user-facing entrypoint with real startup commands, ZIP-user instructions, server deployment entrypoints, and troubleshooting
 - `docs/deployment-guide.md` now exists as the longer step-by-step deployment document for local use and Linux server self-hosting
 - future documentation polish should keep the README practical first, with product identity supporting it instead of obscuring the startup path
+
+## 2026-06-28 - Public GitHub Docs Should Be Bilingual, Not English-Only
+
+Status:
+
+- accepted
+
+Decision:
+
+The repository-facing onboarding documents should be written in both English and Chinese, starting with `README.md` and `docs/deployment-guide.md`, instead of leaving the practical startup and deployment path English-only.
+
+Reason:
+
+- the user explicitly asked that the GitHub page content be available in both Chinese and English
+- Waveary's public identity and likely user base are bilingual, so an English-only onboarding pass still leaves a large part of the intended audience with unnecessary friction
+- the most important repository-facing docs are operational, so bilingual structure matters more here than broad marketing copy expansion
+
+Impact:
+
+- `README.md` now mirrors its core startup, ZIP-user, deployment, commands, troubleshooting, and contribution sections in English and Chinese
+- `docs/deployment-guide.md` now provides the same bilingual treatment for local startup, provider setup, persistence, Linux deployment, and reverse-proxy instructions
+- future public-repo documentation polish should preserve this bilingual baseline instead of drifting back to English-only onboarding

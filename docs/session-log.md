@@ -8401,3 +8401,37 @@ Commit:
 Push:
 
 - succeeded: `git push origin main` pushed functional commit `f7be35e` to `origin/main`
+
+## 2026-06-28
+
+Objective:
+
+Make the GitHub-facing onboarding documents bilingual so both Chinese and English readers can follow startup and deployment steps directly from the repository page.
+
+Summary:
+
+- rewrote `README.md` into a bilingual English/Chinese GitHub homepage entrypoint while preserving the practical startup path, ZIP-user instructions, provider setup flow, commands, troubleshooting, and repository structure notes
+- rewrote `docs/deployment-guide.md` into a matching bilingual deployment and operations guide covering local startup, provider verification, persistence, Linux self-hosting, and reverse-proxy setup
+- re-verified the new Chinese-facing additions with `git diff` and `npm run check:mojibake` so this pass does not reintroduce fresh mojibake while leaving unrelated frontend/logo work untouched
+
+Files changed:
+
+- `README.md`
+- `docs/deployment-guide.md`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `git diff -- README.md docs/deployment-guide.md`
+- `npm run check:mojibake`
+
+Commit:
+
+- `pending` - `Make GitHub docs bilingual`
+
+Push:
+
+- `pending`

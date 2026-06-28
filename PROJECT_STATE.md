@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `f7be35e` - `Rewrite GitHub onboarding docs`
+- `pending` - `Make GitHub docs bilingual`
 
 ## Latest Repository Surface
 
@@ -25,7 +25,7 @@ Brand line:
 - GitHub description: `回响之境 Waveary｜开源数字生命陪伴框架 / Open source digital life companion framework for memory, relationship, timeline, emotion, and voice.`
 - GitHub topics: `waveary`, `hui-xiang-zhi-jing`, `digital-life-companion`, `digital-companion`, `ai-companion`, `companion-framework`, `companion-ai`, `llm-framework`, `long-term-memory`, `memory-framework`, `memory-engine`, `relationship-engine`, `timeline-engine`, `voice-agent`, `emotional-ai`, `open-source`
 - homepage: `https://github.com/K2st0r/Waveary#readme`
-- GitHub onboarding docs are being rewritten so non-developer users can run Waveary locally or self-host it by following explicit step-by-step instructions
+- GitHub onboarding docs now include bilingual `README.md` and `docs/deployment-guide.md` guidance so both English and Chinese readers can follow local run and self-hosting steps
 
 ## Modules
 
