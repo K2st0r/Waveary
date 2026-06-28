@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `pending` - topbar logo polish not committed yet
+- `3deec88` - `Polish topbar brand mark presentation`
 
 ## Latest Repository Surface
 
