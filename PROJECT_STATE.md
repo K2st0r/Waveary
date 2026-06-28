@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- pending functional commit - rewrite onboarding docs and deployment guide
+- `f7be35e` - `Rewrite GitHub onboarding docs`
 
 ## Latest Repository Surface
 
