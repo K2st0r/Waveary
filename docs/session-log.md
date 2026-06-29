@@ -8542,3 +8542,42 @@ Commit:
 Push:
 
 - succeeded: `git push origin main` pushed functional commit `9130493` and continuity commit `db7ee60` to `origin/main`
+
+## 2026-06-29
+
+Objective:
+
+Refactor the live Waveary runtime shell into one OpenClaw-style left-sidebar app frame so chat and console share the same primary navigation surface instead of falling back to a top runtime nav.
+
+Summary:
+
+- kept the shared `waveary-web` runtime on the new left-sidebar shell where branding, language switch, session switching, control entrypoints, runtime summary, and version all live in one persistent rail
+- removed the last stale topbar-responsive CSS remnants so the runtime shell no longer visually implies that the old top navigation still exists
+- injected the web app version through `vite.config.ts` so the sidebar footer can show a real runtime version without relying on an undefined global
+- verified the current `#chat` and `#console` shell visually against the local dev server, then recorded the left-sidebar-shell decision and preference in continuity files so later work does not drift back toward a page-like top navigation layout
+
+Files changed:
+
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `waveary-web/vite.config.ts`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/product-preferences.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run build --workspace @waveary/web`
+- `npm run check:mojibake`
+- visual browser verification of `http://127.0.0.1:4173/#chat`
+- visual browser verification of `http://127.0.0.1:4173/#console`
+
+Commit:
+
+- `pending` - `Refactor runtime shell into shared left sidebar`
+
+Push:
+
+- pending

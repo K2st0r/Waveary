@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `9130493` - `Remove internal product home from default flow`
+- `pending` - `Refactor runtime shell into shared left sidebar`
 
 ## Latest Repository Surface
 
@@ -26,7 +26,8 @@ Brand line:
 - GitHub topics: `waveary`, `hui-xiang-zhi-jing`, `digital-life-companion`, `digital-companion`, `ai-companion`, `companion-framework`, `companion-ai`, `llm-framework`, `long-term-memory`, `memory-framework`, `memory-engine`, `relationship-engine`, `timeline-engine`, `voice-agent`, `emotional-ai`, `open-source`
 - homepage: `https://github.com/K2st0r/Waveary#readme`
 - GitHub onboarding docs are now being split into language-switched English and Simplified Chinese documents so the repository homepage no longer mixes both languages inside the same page flow
-- the active web shell now avoids using the earlier raster logo draft in the sticky topbar and instead returns to a transparent vector brand mark, with a quieter header treatment so the logo reads more like a formal identity asset than an inserted image
+- the active web shell now uses one shared left runtime sidebar for branding, sessions, console entrypoints, and version display, instead of the earlier top navigation shell
+- the active runtime shell no longer depends on the old sticky topbar navigation, and the remaining live brand surface stays on transparent vector assets instead of raster logo drafts
 
 ## Modules
 
@@ -119,6 +120,7 @@ Brand line:
   - local product context is now documented in `waveary-web/PRODUCT.md` so future frontend redesign or polish passes can resume with stable product intent
   - official homepage is implemented
   - the in-product default route now lands on `#chat` instead of the old internal `#home`, so the product flow opens directly into usage surfaces while external homepage/marketing direction can live separately
+  - the runtime shell now uses one shared left sidebar for brand, session switching, console entrypoints, and version display across chat and console instead of the earlier top navigation pattern
   - the web shell now uses a dedicated Waveary echo-ring logo mark in the sticky header and favicon path instead of the earlier temporary inline icon
   - product positioning, engine stack, provider compatibility, roadmap, and repository structure are presented in the first page
   - homepage information architecture now separates brand vision, framework positioning, and the companion console so the product no longer reads like one long debug dashboard

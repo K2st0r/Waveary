@@ -2818,3 +2818,25 @@ Impact:
 - `waveary-web/src/App.tsx` now defaults the product route to `#chat` and removes the top-level internal `Home` nav item from the product shell
 - legacy hashes such as `#home`, `#framework`, and `#roadmap` now resolve into the active product flow instead of preserving the old internal homepage as a required runtime destination
 - future `waveary-web` cleanup can remove or extract the dormant homepage rendering more safely without changing the now-stable product entry behavior
+
+## 2026-06-29 - The Runtime Shell Should Use One Left Sidebar Instead Of Returning To A Top Navigation
+
+Status:
+
+- accepted
+
+Decision:
+
+The live Waveary runtime shell should use one persistent left sidebar as its primary navigation and control surface, with branding, session switching, console entrypoints, and version display all living there. The old top runtime navigation should not return.
+
+Reason:
+
+- the user explicitly asked for an `OpenClaw`-style client layout where the left side owns the product shell and the right side only changes the active content
+- once the runtime stopped depending on the internal homepage, the remaining top navigation became redundant and made the product feel more like a web page than a focused client surface
+- keeping one app-wide sidebar reduces shell duplication between chat and console, preserves a stronger operational rhythm, and makes later polish less likely to drift back into mixed marketing/runtime scaffolding
+
+Impact:
+
+- `waveary-web/src/App.tsx` now renders one shared `renderAppSidebar()` shell across runtime pages instead of restoring the earlier top navigation pattern
+- `waveary-web/src/styles.css` now treats the left rail as the persistent product shell and drops the last stale topbar-responsive remnants from active styling
+- future shell polish should tighten sidebar density, right-pane rhythm, and mobile collapse behavior within this left-sidebar architecture instead of reintroducing a top navigation bar
