@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `pending` - `Refactor runtime shell into shared left sidebar`
+- `7db5bae` - `Refactor runtime shell into shared left sidebar`
 
 ## Latest Repository Surface
 
