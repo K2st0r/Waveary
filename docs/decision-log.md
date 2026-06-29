@@ -2796,3 +2796,25 @@ Impact:
 - `waveary-web/public/brand/waveary-logo-mark.svg` and `waveary-web/public/brand/waveary-logo-lockup.svg` now use a cleaner hand-drawn open-ring direction instead of the earlier heavier echo-ring geometry
 - `waveary-web/src/styles.css` now reduces the sticky shell heaviness and removes the extra decorative underline drift around the logo lockup
 - future shell polish should keep the live header on transparent vector assets only and leave raster logo explorations as references, not active UI dependencies
+
+## 2026-06-29 - The Product Runtime Should No Longer Depend On An Internal Homepage
+
+Status:
+
+- accepted
+
+Decision:
+
+The in-product Waveary runtime should no longer open on or depend on an internal `#home` page. The default product entry should land directly on active product surfaces such as chat or console, while marketing-style homepage presentation can live separately from the runtime flow.
+
+Reason:
+
+- the user explicitly asked to remove the product homepage from the in-product experience
+- the current internal homepage mixes framework presentation with product use flow, which adds friction once the user is already inside the product
+- separating marketing and runtime surfaces reduces product-shell clutter and aligns better with the user's direction that the official homepage should live outside the actual operating surface
+
+Impact:
+
+- `waveary-web/src/App.tsx` now defaults the product route to `#chat` and removes the top-level internal `Home` nav item from the product shell
+- legacy hashes such as `#home`, `#framework`, and `#roadmap` now resolve into the active product flow instead of preserving the old internal homepage as a required runtime destination
+- future `waveary-web` cleanup can remove or extract the dormant homepage rendering more safely without changing the now-stable product entry behavior

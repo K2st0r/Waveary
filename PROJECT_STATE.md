@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `3deec88` - `Polish topbar brand mark presentation`
+- `9130493` - `Remove internal product home from default flow`
 
 ## Latest Repository Surface
 
@@ -118,6 +118,7 @@ Brand line:
   - standalone React and Vite workspace exists
   - local product context is now documented in `waveary-web/PRODUCT.md` so future frontend redesign or polish passes can resume with stable product intent
   - official homepage is implemented
+  - the in-product default route now lands on `#chat` instead of the old internal `#home`, so the product flow opens directly into usage surfaces while external homepage/marketing direction can live separately
   - the web shell now uses a dedicated Waveary echo-ring logo mark in the sticky header and favicon path instead of the earlier temporary inline icon
   - product positioning, engine stack, provider compatibility, roadmap, and repository structure are presented in the first page
   - homepage information architecture now separates brand vision, framework positioning, and the companion console so the product no longer reads like one long debug dashboard
@@ -300,6 +301,7 @@ Brand line:
   - now uses a single-page anchor-navigation homepage where the first screen stays framework-introduction-first instead of leading with runtime controls
   - now uses shorter hash-based page views so the homepage stays brand-first while console tooling, dedicated chat, and roadmap live on separate screens
   - now keeps all explanatory framework material on the homepage while reserving the console page for system management and the chat page for the active dialogue only
+  - now also treats legacy `#home`, `#framework`, and `#roadmap` hashes as compatibility aliases that land on `#chat`, so the product no longer depends on an internal homepage entrypoint
   - now expects homepage doodle assets under `waveary-web/public/images/doodles/`, with final asset generation intended to come from the local tool `C:\Users\13571\Desktop\micu-image-20260608.html`
   - current doodle assets under that path are now real generated PNGs rather than transparent placeholders, and future refreshes should preserve the same low-complexity `gpt-image-2` generation strategy that avoided repeated `524` gateway timeouts
   - current homepage doodle inventory now includes correspondence-style objects in addition to study and youth-memory objects, and those extra assets are already wired into the homepage background layer
@@ -418,6 +420,7 @@ Brand line:
 - continue the markdown-backed companion-soul rollout by turning it into the next bounded runtime improvements for first-turn naming cadence, softer self-reveal, and more human remembered-name usage before attempting any broader relationship-architecture refactor
 - continue the new user-facing identity-summary surface by deciding whether the next cut should add correction provenance / user-pinned understanding hints, or another bounded runtime-side refinement for stale-vs-fresh summary conflict resolution
 - after the onboarding-doc pass, verify the rewritten GitHub README and deployment guide render clearly on GitHub, then return to shell polish and brand cleanup with the new user-facing docs in place
+- now that the product no longer defaults into the internal homepage, decide whether the next `waveary-web` shell cut should fully remove dormant in-product homepage rendering or keep it only as a separate future marketing surface outside the product runtime
 - continue the continuity-thread quality pass beyond short carry-over follow-ups into pronoun-heavy multi-turn topic persistence, so turns like "that part still hurts" or "I am not over it yet" can stay anchored even when the user is more oblique
 - continue the continuity-thread quality pass beyond short, emotional, low-affect pronoun, inferential, and weaker unsettled carry-over follow-ups into the next bounded drift cases, so the system can stay anchored without over-blending unrelated nearby topics
 - continue hardening early-acquaintance inference beyond emotional-state false positives, identity-style self-description, quoted name-sharing, `my name's` introductions, `I'm called` introductions, parenthesized name-sharing, and `call me` follow-up/scheduling/sequencing/callback false positives into the next bounded ambiguous introduction cases, but keep the parser narrow enough that ordinary emotional sentences are never treated as confirmed names

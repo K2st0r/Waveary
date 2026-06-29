@@ -8508,3 +8508,37 @@ Commit:
 Push:
 
 - succeeded: `git push origin main` pushed functional commit `3deec88` to `origin/main`
+
+## 2026-06-29
+
+Objective:
+
+Remove the internal product homepage from the default Waveary runtime flow so the product opens directly into chat/console usage surfaces instead of a mixed marketing-runtime landing page.
+
+Summary:
+
+- updated `waveary-web/src/App.tsx` so the runtime now defaults to `#chat` when no hash is present and no longer exposes the internal `Home` page in the top product navigation
+- added compatibility routing so legacy `#home`, `#framework`, and `#roadmap` hashes now land on the active product flow instead of depending on the old internal homepage
+- retargeted the remaining console-side shortcut away from the old homepage route so the console no longer points back into an internal product landing page
+- re-verified the web build and reran the mojibake guard, then recorded the runtime-vs-marketing separation decision in continuity files for future shell cleanup
+
+Files changed:
+
+- `waveary-web/src/App.tsx`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run build --workspace @waveary/web`
+- `npm run check:mojibake`
+
+Commit:
+
+- `9130493` - `Remove internal product home from default flow`
+
+Push:
+
+- pending
