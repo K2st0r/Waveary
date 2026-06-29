@@ -7289,6 +7289,24 @@ export function App(): ReactElement {
         <section className="section-grid section-block chat-page-section" id="chat">
           <div className="chat-page-shell">
             <div className="chat-page-header">
+              <div className="chat-page-header-bar">
+                <div className="chat-page-header-copy">
+                  <span className="section-caption">{copy.runtime.caption}</span>
+                  <strong>{locale === "zh" ? "瀵硅瘽椤甸潰" : "Conversation"}</strong>
+                  <span className="chat-page-header-note">{copy.slogan}</span>
+                </div>
+                <div className="chat-page-header-brand">
+                  <img
+                    alt="Waveary logo"
+                    className="chat-page-header-mark"
+                    src="/brand/waveary-logo-mark.svg"
+                  />
+                  <div className="chat-page-header-brand-copy">
+                    <strong>Waveary</strong>
+                    <span>{copy.brandSubtitle}</span>
+                  </div>
+                </div>
+              </div>
               <div className="section-heading compact-heading chat-page-heading">
                 <span className="section-caption">{copy.runtime.caption}</span>
                 <h2>{locale === "zh" ? "对话页面" : "Conversation"}</h2>
