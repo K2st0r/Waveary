@@ -4701,10 +4701,6 @@ export function App(): ReactElement {
             }
           ] as const
         };
-  const navigationItems: ReadonlyArray<{ page: AppPage; label: string }> = [
-    { page: "console", label: copy.nav[4] },
-    { page: "chat", label: locale === "zh" ? "对话" : "Chat" },
-  ];
   const consoleWorkspaceLabels: Record<Exclude<ConsoleWorkspace, "voice">, string> =
     locale === "zh"
       ? {
@@ -4744,6 +4740,7 @@ export function App(): ReactElement {
         ? "实时对话、真人语音和本地 / 国内语音供应路径。"
         : "Realtime conversation, natural voice, and shared or dedicated voice routing."
   } satisfies Record<ConsoleWorkspace, string>;
+  const appVersion = `v${import.meta.env.VITE_APP_VERSION ?? "0.1.0"}`;
   const activeBurnPortrait = heroPortraitCards[activeBurnPortraitIndex] ?? heroPortraitCards[0]!;
 
   useEffect(() => {
@@ -5364,40 +5361,25 @@ export function App(): ReactElement {
     );
   }
 
-  return (
-    <div className="page-shell">
-      <div className="ambient ambient-left" />
-      <div className="ambient ambient-right" />
-
-      <header className="topbar">
-        <div className="brand-lockup">
-          <img
-            alt="Waveary logo"
-            className="brand-lockup-mark"
-            src="/brand/waveary-logo-mark.svg"
-          />
-          <div className="brand-lockup-copy">
-            <span className="brand-mark">Waveary</span>
-            <span className="brand-subtitle">{copy.brandSubtitle}</span>
-            <span className="brand-caption">{copy.brandCaption}</span>
+  function renderAppSidebar(): ReactElement {
+    return (
+      <aside className="app-sidebar">
+        <div className="app-sidebar-top">
+          <div className="brand-lockup app-sidebar-brand">
+            <img
+              alt="Waveary logo"
+              className="brand-lockup-mark"
+              src="/brand/waveary-logo-mark.svg"
+            />
+            <div className="brand-lockup-copy">
+              <span className="brand-mark">Waveary</span>
+              <span className="brand-subtitle">{copy.brandSubtitle}</span>
+              <span className="brand-caption">{copy.brandCaption}</span>
+            </div>
           </div>
-        </div>
 
-        <div className="topbar-utility">
-          <span className="topbar-note">{copy.slogan}</span>
-          <div className="topbar-controls">
-            <nav className="topnav">
-              {navigationItems.map((item) => (
-                <button
-                  className={`topnav-link ${currentPage === item.page ? "topnav-link-active" : ""}`}
-                  key={item.page}
-                  onClick={() => navigateTo(item.page)}
-                  type="button"
-                >
-                  {item.label}
-                </button>
-              ))}
-            </nav>
+          <div className="app-sidebar-note">
+            <span>{copy.slogan}</span>
             <div className="language-toggle" aria-label={locale === "zh" ? "界面语言切换" : "Interface language switch"}>
               <button
                 className={`language-toggle-button ${locale === "zh" ? "language-toggle-button-active" : ""}`}
@@ -5415,10 +5397,110 @@ export function App(): ReactElement {
               </button>
             </div>
           </div>
-        </div>
-      </header>
 
-      <main className={`page-main page-main-${currentPage}`}>
+          <div className="app-sidebar-create">
+            <button className="button button-primary app-sidebar-create-button" onClick={() => void handleCreateSession()} type="button">
+              {locale === "zh" ? "+ 新会话" : "+ New Session"}
+            </button>
+          </div>
+        </div>
+
+        <div className="app-sidebar-body">
+          <section className="app-sidebar-section">
+            <div className="app-sidebar-section-label">{locale === "zh" ? "最近" : "Recent"}</div>
+            <div className="app-sidebar-session-list">
+              {chatSessions.length > 0 ? (
+                chatSessions.map((session) => {
+                  const isActive = session.sessionId === activeSessionId;
+                  const isMain = session.sessionId === defaultSessionId;
+
+                  return (
+                    <button
+                      className={`app-sidebar-session-item ${isActive ? "app-sidebar-session-item-active" : ""}`}
+                      key={session.sessionId}
+                      onClick={() => void handleSessionChange(session.sessionId)}
+                      type="button"
+                    >
+                      <div className="app-sidebar-session-title-row">
+                        <strong>{session.title}</strong>
+                        {isMain ? (
+                          <span className="app-sidebar-session-badge">{copy.runtime.main}</span>
+                        ) : null}
+                      </div>
+                      <span>{formatSessionTimestamp(session.updatedAt, locale)}</span>
+                    </button>
+                  );
+                })
+              ) : (
+                <div className="app-sidebar-empty">
+                  {locale === "zh" ? "还没有会话，先创建一个。" : "No sessions yet. Create one first."}
+                </div>
+              )}
+            </div>
+          </section>
+
+          <section className="app-sidebar-section">
+            <div className="app-sidebar-section-label">{locale === "zh" ? "聊天" : "Chat"}</div>
+            <div className="app-sidebar-nav-list">
+              <button
+                className={`app-sidebar-nav-item ${currentPage === "chat" ? "app-sidebar-nav-item-active" : ""}`}
+                onClick={() => navigateTo("chat")}
+                type="button"
+              >
+                <strong>{locale === "zh" ? "对话" : "Conversation"}</strong>
+                <span>{activeSession ? activeSession.title : copy.runtime.noLocalSession}</span>
+              </button>
+            </div>
+          </section>
+
+          <section className="app-sidebar-section">
+            <div className="app-sidebar-section-label">{locale === "zh" ? "控制" : "Control"}</div>
+            <div className="app-sidebar-nav-list">
+              {consoleWorkspaceOrder.map((workspace) => {
+                const isActive = currentPage === "console" && activeConsoleWorkspace === workspace;
+
+                return (
+                  <button
+                    className={`app-sidebar-nav-item ${isActive ? "app-sidebar-nav-item-active" : ""}`}
+                    key={workspace}
+                    onClick={() => {
+                      setActiveConsoleWorkspace(workspace);
+                      navigateTo("console");
+                    }}
+                    type="button"
+                  >
+                    <strong>{consoleWorkspaceLabelsResolved[workspace]}</strong>
+                    <span>{consoleWorkspaceDescriptionsResolved[workspace]}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        </div>
+
+        <div className="app-sidebar-footer">
+          <div className="app-sidebar-runtime">
+            <span>{configuredProviderLabel}</span>
+            <span>{configuredModelLabel}</span>
+            <span>{sessionSummaryLabel}</span>
+          </div>
+          <div className="app-sidebar-version">
+            <span>{locale === "zh" ? "版本" : "Version"}</span>
+            <strong>{appVersion}</strong>
+          </div>
+        </div>
+      </aside>
+    );
+  }
+
+  return (
+    <div className="page-shell">
+      <div className="ambient ambient-left" />
+      <div className="ambient ambient-right" />
+
+      <div className="app-shell">
+        {renderAppSidebar()}
+        <main className={`page-main page-main-${currentPage}`}>
         {currentPage === "home" ? (
           <div className="home-doodle-layer" aria-hidden="true">
             {homeDoodles.map((doodle) => (
@@ -5687,308 +5769,201 @@ export function App(): ReactElement {
         </section>
         ) : null}
 
-        {currentPage === "console" ? (
-        <section className="section-grid section-block console-section console-section-shell" id="console">
-          <div className="console-shell">
-            <div className="console-toolbar">
-              <div className="console-toolbar-block">
-                <span className="section-caption">{copy.console.caption}</span>
-                <strong>{consoleWorkspaceLabelsResolved[activeConsoleWorkspace]}</strong>
-                <small>
-                  {activeConsoleWorkspace === "provider"
-                    ? configuredRuntimeLabel
-                    : activeConsoleWorkspace === "sessions"
-                      ? `${sessionSummaryLabel}${copy.formatting.sep}${archiveSummaryLabel}`
-                      : activeConsoleWorkspace === "care"
-                        ? copy.runtime.proactiveCareTag
-                        : runtimeStateLabel}
-                </small>
-              </div>
-              <div className="console-toolbar-actions">
-                <button
-                  className={`button button-secondary ${activeConsoleWorkspace === "provider" ? "console-provider-shortcut-active" : ""}`}
-                  onClick={() => setActiveConsoleWorkspace("provider")}
-                  type="button"
-                >
-                  {locale === "zh" ? "模型接入" : "Model setup"}
-                </button>
-                <button className="button button-primary" onClick={() => navigateTo("chat")} type="button">
-                  {locale === "zh" ? "进入对话" : "Open chat"}
-                </button>
-              </div>
-            </div>
-            <div className="console-intro">
-              <div className="console-masthead">
-                <div className="section-heading console-heading">
-                  <span className="section-caption">{copy.console.caption}</span>
-                  <h2>{copy.console.title}</h2>
-                  <p>{copy.console.description}</p>
-                </div>
-
-                <div className="console-quick-panel">
-                  <span className="mini-heading">{locale === "zh" ? "当前状态" : "Current status"}</span>
-                  <strong>{chatReady ? copy.runtime.runtimeReady : copy.runtime.setupRequired}</strong>
-                  <p>
-                    {locale === "zh"
-                      ? "把框架解释留在首页，把配置、会话与运行状态留在这里。当前页面应该像系统桌面，而不是第二个营销首屏。"
-                      : "Keep setup, sessions, and runtime state here. This page should read like a system desk, not a second landing page."}
-                  </p>
-                  <div className="console-actions">
-                    <button className="button button-primary" onClick={() => navigateTo("chat")} type="button">
-                      {locale === "zh" ? "进入对话页" : "Open chat"}
-                    </button>
-                    <button className="button button-secondary" onClick={() => setActiveConsoleWorkspace("provider")} type="button">
-                      {locale === "zh" ? "返回模型配置" : "Back to provider setup"}
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <div className="console-status-board">
-                {copy.console.summary.map(([label, description], index) => (
-                  <article className="console-summary-card" key={label}>
-                    <span className="console-summary-label">{label}</span>
-                    <strong>
-                      {index === 0
-                        ? configuredRuntimeLabel
-                        : index === 1
-                          ? sessionSummaryLabel
-                          : index === 2
-                            ? runtimeStateLabel
-                            : archiveSummaryLabel}
-                    </strong>
-                    <p>{description}</p>
-                  </article>
-                ))}
-              </div>
-
-              <div className="console-flow-strip">
-                {copy.console.flow.map(([surface, title, description]) => (
-                  <article className="console-flow-card" key={surface}>
-                    <span>{surface}</span>
-                    <strong>{title}</strong>
-                    <p>{description}</p>
-                  </article>
-                ))}
-              </div>
-
-              <div className="console-workspace-bar">
-                {consoleWorkspaceOrder.map((workspace) => (
-                  <button
-                    className={`console-workspace-tab ${activeConsoleWorkspace === workspace ? "console-workspace-tab-active" : ""}`}
-                    key={workspace}
-                    onClick={() => setActiveConsoleWorkspace(workspace)}
-                    type="button"
-                  >
-                    <span>{consoleWorkspaceLabelsResolved[workspace]}</span>
-                    <small>{consoleWorkspaceDescriptionsResolved[workspace]}</small>
-                  </button>
-                ))}
-              </div>
-              <div className="console-status-strip">
-                <span>{configuredRuntimeLabel}</span>
-                <span>{configuredProviderLabel}</span>
-                <span>{configuredModelLabel}</span>
-                <span>{sessionSummaryLabel}</span>
-                <span>{runtimeStateLabel}</span>
-              </div>
-            </div>
-          </div>
-        </section>
-        ) : null}
-
         {currentPage === "console" && activeConsoleWorkspace === "provider" ? (
         <section className="section-grid section-block console-stage console-stage-compact feature-band" id="setup">
-          <div className="section-heading console-stage-heading">
-            <span className="section-caption">{copy.setup.caption}</span>
-            <h2>{copy.setup.title}</h2>
-            <p>{copy.setup.description}</p>
-          </div>
-
-          <div className="setup-layout console-workspace-stage">
-            <div className="panel setup-overview-panel console-workspace-panel">
-              <div className="panel-header">
-                <span>{copy.setup.sequence}</span>
-                <span className="panel-tag">{copy.setup.interactive}</span>
+            <div className="console-pane-main">
+              <div className="console-pane-heading">
+                <span className="section-caption">{copy.setup.caption}</span>
+                <h2>{copy.setup.title}</h2>
+                <p>{copy.setup.description}</p>
               </div>
-              <div className="console-workspace-scroll">
-              <ol className="step-list">
-                {copy.setup.steps.map((step) => (
-                  <li key={step}>{step}</li>
-                ))}
-              </ol>
 
-              <div className="saved-config-block">
-                <div className="mini-heading">{copy.setup.savedConfiguration}</div>
-                {savedConfig ? (
-                  <div className="saved-config-card">
-                    <div>
-                      <span className="saved-label">{copy.setup.provider}</span>
-                      <strong>{savedConfig.provider}</strong>
-                    </div>
-                    <div>
-                      <span className="saved-label">{copy.setup.model}</span>
-                      <strong>{savedConfig.model}</strong>
-                    </div>
-                    <div>
-                      <span className="saved-label">{copy.setup.baseUrl}</span>
-                      <code>{savedConfig.baseURL}</code>
-                    </div>
-                    <div>
-                      <span className="saved-label">{locale === "zh" ? "API Key（部分隐藏）" : "API Key (masked)"}</span>
-                      <code>{maskSecret(savedConfig.apiKey)}</code>
-                    </div>
+              <div className="setup-layout console-workspace-stage">
+                <div className="panel setup-overview-panel console-workspace-panel">
+                  <div className="panel-header">
+                    <span>{copy.setup.sequence}</span>
+                    <span className="panel-tag">{copy.setup.interactive}</span>
                   </div>
-                ) : (
-                  <p className="provider-note">{copy.setup.noSavedConfiguration}</p>
-                )}
-              </div>
-
-              <div className="saved-config-block">
-                <div className="mini-heading">{locale === "zh" ? "当前生效状态" : "Active Runtime Status"}</div>
-                <div className={`provider-draft-status-card ${providerDraftMatchesSaved ? "provider-draft-status-card-synced" : "provider-draft-status-card-pending"}`}>
-                  <div className="provider-draft-status-header">
-                    <strong>{providerDraftStateLabel}</strong>
-                    <span className="provider-draft-status-pill">{providerRuntimeNotice}</span>
-                  </div>
-                  <p>{providerDraftStatusMessage}</p>
-                </div>
-              </div>
-
-              <div className="saved-config-block">
-                <div className="mini-heading">{copy.setup.presetCoverage}</div>
-                <div className="provider-list">
-                  {presets.map((preset) => (
-                    <span className="provider-chip" key={preset.id}>
-                      {preset.label}
-                    </span>
-                  ))}
-                </div>
-              </div>
-              </div>
-            </div>
-
-            <div className="panel provider-console-panel console-workspace-panel">
-              <div className="panel-header">
-                <span>{copy.setup.setupConsole}</span>
-                <span className="panel-tag">{copy.setup.localApi}</span>
-              </div>
-              <div className="console-workspace-scroll">
-              <div
-                className={`status-banner ${
-                  loadState === "error" || modelsState === "error" || saveState === "error"
-                    ? "status-banner-error"
-                    : "status-banner-info"
-                }`}
-              >
-                {statusMessage}
-              </div>
-
-              <div className={`provider-draft-inline-banner ${providerDraftMatchesSaved ? "provider-draft-inline-banner-synced" : "provider-draft-inline-banner-pending"}`}>
-                <strong>{locale === "zh" ? "当前输入" : "Current Draft"}</strong>
-                <span>{providerDraftStateLabel}</span>
-                <p>{providerDraftStatusMessage}</p>
-              </div>
-
-              <div className="provider-form-grid">
-                <label className="form-field">
-                  <span>{copy.setup.provider}</span>
-                  <select value={selectedProvider} onChange={handleProviderChange} disabled={isBusy}>
-                    <option value="">{copy.setup.providerPlaceholder}</option>
-                    {presets.map((preset) => (
-                      <option key={preset.id} value={preset.id}>
-                        {preset.label}
-                      </option>
+                  <div className="console-workspace-scroll">
+                  <ol className="step-list">
+                    {copy.setup.steps.map((step) => (
+                      <li key={step}>{step}</li>
                     ))}
-                  </select>
-                </label>
+                  </ol>
 
-                <label className="form-field form-field-wide">
-                  <span>{copy.setup.baseUrl}</span>
-                  <input
-                    type="text"
-                    value={baseURL}
-                    onChange={(event) => setBaseURL(event.target.value)}
-                    placeholder="https://api.example.com/v1"
-                    disabled={isBusy}
-                  />
-                </label>
+                  <div className="saved-config-block">
+                    <div className="mini-heading">{copy.setup.savedConfiguration}</div>
+                    {savedConfig ? (
+                      <div className="saved-config-card">
+                        <div>
+                          <span className="saved-label">{copy.setup.provider}</span>
+                          <strong>{savedConfig.provider}</strong>
+                        </div>
+                        <div>
+                          <span className="saved-label">{copy.setup.model}</span>
+                          <strong>{savedConfig.model}</strong>
+                        </div>
+                        <div>
+                          <span className="saved-label">{copy.setup.baseUrl}</span>
+                          <code>{savedConfig.baseURL}</code>
+                        </div>
+                        <div>
+                          <span className="saved-label">{locale === "zh" ? "API Key（部分隐藏）" : "API Key (masked)"}</span>
+                          <code>{maskSecret(savedConfig.apiKey)}</code>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="provider-note">{copy.setup.noSavedConfiguration}</p>
+                    )}
+                  </div>
 
-                <label className="form-field form-field-wide">
-                  <span>{copy.setup.apiKey}</span>
-                  <input
-                    type="password"
-                    value={apiKey}
-                    onChange={(event) => setApiKey(event.target.value)}
-                    placeholder="sk-..."
-                    disabled={isBusy}
-                  />
-                </label>
+                  <div className="saved-config-block">
+                    <div className="mini-heading">{locale === "zh" ? "当前生效状态" : "Active Runtime Status"}</div>
+                    <div className={`provider-draft-status-card ${providerDraftMatchesSaved ? "provider-draft-status-card-synced" : "provider-draft-status-card-pending"}`}>
+                      <div className="provider-draft-status-header">
+                        <strong>{providerDraftStateLabel}</strong>
+                        <span className="provider-draft-status-pill">{providerRuntimeNotice}</span>
+                      </div>
+                      <p>{providerDraftStatusMessage}</p>
+                    </div>
+                  </div>
 
-                <div className="provider-hint">
-                  <span className="mini-heading">{copy.setup.selectedPreset}</span>
-                  <p>
-                    {selectedPreset
-                      ? `${selectedPreset.label} ${copy.setup.selectedPresetSuffix}`
-                      : copy.setup.selectedPresetFallback}
-                  </p>
+                  <div className="saved-config-block">
+                    <div className="mini-heading">{copy.setup.presetCoverage}</div>
+                    <div className="provider-list">
+                      {presets.map((preset) => (
+                        <span className="provider-chip" key={preset.id}>
+                          {preset.label}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  </div>
+                </div>
+
+                <div className="panel provider-console-panel console-workspace-panel">
+                  <div className="panel-header">
+                    <span>{copy.setup.setupConsole}</span>
+                    <span className="panel-tag">{copy.setup.localApi}</span>
+                  </div>
+                  <div className="console-workspace-scroll">
+                  <div
+                    className={`status-banner ${
+                      loadState === "error" || modelsState === "error" || saveState === "error"
+                        ? "status-banner-error"
+                        : "status-banner-info"
+                    }`}
+                  >
+                    {statusMessage}
+                  </div>
+
+                  <div className={`provider-draft-inline-banner ${providerDraftMatchesSaved ? "provider-draft-inline-banner-synced" : "provider-draft-inline-banner-pending"}`}>
+                    <strong>{locale === "zh" ? "当前输入" : "Current Draft"}</strong>
+                    <span>{providerDraftStateLabel}</span>
+                    <p>{providerDraftStatusMessage}</p>
+                  </div>
+
+                  <div className="provider-form-grid">
+                    <label className="form-field">
+                      <span>{copy.setup.provider}</span>
+                      <select value={selectedProvider} onChange={handleProviderChange} disabled={isBusy}>
+                        <option value="">{copy.setup.providerPlaceholder}</option>
+                        {presets.map((preset) => (
+                          <option key={preset.id} value={preset.id}>
+                            {preset.label}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+
+                    <label className="form-field form-field-wide">
+                      <span>{copy.setup.baseUrl}</span>
+                      <input
+                        type="text"
+                        value={baseURL}
+                        onChange={(event) => setBaseURL(event.target.value)}
+                        placeholder="https://api.example.com/v1"
+                        disabled={isBusy}
+                      />
+                    </label>
+
+                    <label className="form-field form-field-wide">
+                      <span>{copy.setup.apiKey}</span>
+                      <input
+                        type="password"
+                        value={apiKey}
+                        onChange={(event) => setApiKey(event.target.value)}
+                        placeholder="sk-..."
+                        disabled={isBusy}
+                      />
+                    </label>
+
+                    <div className="provider-hint">
+                      <span className="mini-heading">{copy.setup.selectedPreset}</span>
+                      <p>
+                        {selectedPreset
+                          ? `${selectedPreset.label} ${copy.setup.selectedPresetSuffix}`
+                          : copy.setup.selectedPresetFallback}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="console-actions">
+                    <button
+                      className="button button-secondary"
+                      onClick={() => void loadInitialState()}
+                      disabled={loadState === "loading"}
+                    >
+                      {locale === "zh"
+                        ? loadState === "loading"
+                          ? "正在刷新供应商..."
+                          : "刷新供应商"
+                        : loadState === "loading"
+                          ? "Refreshing providers..."
+                          : "Refresh providers"}
+                    </button>
+                    <button className="button button-primary" onClick={() => void handleFetchModels()} disabled={!canFetchModels}>
+                      {modelsState === "loading" ? copy.setup.fetchingModels : copy.setup.fetchModels}
+                    </button>
+                  </div>
+
+                  <div className="models-section">
+                    <div className="mini-heading">{copy.setup.models}</div>
+                    {models.length > 0 ? (
+                      <label className="form-field">
+                        <span>{copy.setup.model}</span>
+                        <select
+                          value={selectedModel}
+                          onChange={(event) => setSelectedModel(event.target.value)}
+                          disabled={isBusy}
+                        >
+                          {models.map((model) => (
+                            <option key={model.id} value={model.id}>
+                              {formatModelOptionLabel(model)}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    ) : (
+                      <p className="provider-note">{copy.setup.modelsHint}</p>
+                    )}
+                  </div>
+
+                  <div className="console-actions">
+                    <button className="button button-secondary" onClick={() => void handleSaveConfig()} disabled={!canSaveConfig}>
+                      {saveState === "loading" ? copy.setup.saving : copy.setup.saveConfig}
+                    </button>
+                  </div>
+                  </div>
                 </div>
               </div>
-
-              <div className="console-actions">
-                <button
-                  className="button button-secondary"
-                  onClick={() => void loadInitialState()}
-                  disabled={loadState === "loading"}
-                >
-                  {locale === "zh"
-                    ? loadState === "loading"
-                      ? "正在刷新供应商..."
-                      : "刷新供应商"
-                    : loadState === "loading"
-                      ? "Refreshing providers..."
-                      : "Refresh providers"}
-                </button>
-                <button className="button button-primary" onClick={() => void handleFetchModels()} disabled={!canFetchModels}>
-                  {modelsState === "loading" ? copy.setup.fetchingModels : copy.setup.fetchModels}
-                </button>
-              </div>
-
-              <div className="models-section">
-                <div className="mini-heading">{copy.setup.models}</div>
-                {models.length > 0 ? (
-                  <label className="form-field">
-                    <span>{copy.setup.model}</span>
-                    <select
-                      value={selectedModel}
-                      onChange={(event) => setSelectedModel(event.target.value)}
-                      disabled={isBusy}
-                    >
-                      {models.map((model) => (
-                        <option key={model.id} value={model.id}>
-                          {formatModelOptionLabel(model)}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                ) : (
-                  <p className="provider-note">{copy.setup.modelsHint}</p>
-                )}
-              </div>
-
-              <div className="console-actions">
-                <button className="button button-secondary" onClick={() => void handleSaveConfig()} disabled={!canSaveConfig}>
-                  {saveState === "loading" ? copy.setup.saving : copy.setup.saveConfig}
-                </button>
-              </div>
-              </div>
             </div>
-          </div>
         </section>
         ) : null}
 
         {currentPage === "console" && activeConsoleWorkspace === "voice" ? (
         <section className="section-grid section-block console-stage console-stage-compact" id="console-voice">
+            <div className="console-pane-main">
           <div className="section-heading console-stage-heading">
             <span className="section-caption">{copy.runtime.caption}</span>
             <h2>{locale === "zh" ? "语音控制台" : "Voice console"}</h2>
@@ -6214,6 +6189,7 @@ export function App(): ReactElement {
               </div>
             </div>
           </div>
+            </div>
         </section>
         ) : null}
 
@@ -6221,6 +6197,7 @@ export function App(): ReactElement {
         activeConsoleWorkspace !== "provider" &&
         activeConsoleWorkspace !== "voice" ? (
         <section className="section-grid section-block console-stage console-stage-compact" id="console-manage">
+            <div className="console-pane-main">
           <div className="section-heading console-stage-heading">
             <span className="section-caption">{copy.runtime.caption}</span>
             <h2>{locale === "zh" ? "会话与持久化控制台" : "Session and persistence console"}</h2>
@@ -7304,6 +7281,7 @@ export function App(): ReactElement {
             </div>
           </div>
           ) : null}
+            </div>
         </section>
         ) : null}
 
@@ -7319,17 +7297,6 @@ export function App(): ReactElement {
                     ? "这里只保留当前会话与输入输出，让陪伴本身比配置、诊断与管理更靠前。"
                     : "This page keeps only the active conversation and composer so companionship stays ahead of setup, diagnostics, and management."}
                 </p>
-              </div>
-
-              <div className="chat-page-actions">
-                <div className="chat-session-inline">
-                  <span className="chat-session-inline-label">{locale === "zh" ? "当前会话" : "Active session"}</span>
-                  <strong>{activeSession ? activeSession.title : copy.runtime.noLocalSession}</strong>
-                  <span>{chatReady ? copy.runtime.runtimeReady : copy.runtime.setupRequired}</span>
-                </div>
-                <button className="button button-secondary" onClick={() => navigateTo("console")} type="button">
-                  {locale === "zh" ? "打开控制台" : "Open console"}
-                </button>
               </div>
             </div>
 
@@ -7635,7 +7602,8 @@ export function App(): ReactElement {
           </div>
         </section>
         ) : null}
-      </main>
+        </main>
+      </div>
     </div>
   );
 }

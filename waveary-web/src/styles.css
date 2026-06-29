@@ -1,5 +1,3 @@
-@import url("https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&family=Ma+Shan+Zheng&family=Noto+Sans+SC:wght@400;500;700;800&display=swap");
-
 :root {
   color-scheme: light;
   --bg: #f7f4ee;
@@ -131,35 +129,11 @@ textarea {
     radial-gradient(circle at 64% 44%, rgba(0, 0, 0, 0.14) 0 0.06rem, transparent 0.11rem);
 }
 
-.topbar,
 .section-grid {
   position: relative;
   z-index: 2;
   width: min(calc(100% - 2rem), var(--max-width));
   margin: 0 auto;
-}
-
-.topbar {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1.5rem;
-  padding: 1rem 1.2rem;
-  position: sticky;
-  top: 0.8rem;
-  z-index: 10;
-}
-
-.topbar::before {
-  position: absolute;
-  inset: 0;
-  border: 1px solid rgba(20, 17, 13, 0.11);
-  border-radius: 999px;
-  background: rgba(250, 247, 241, 0.8);
-  box-shadow: 0 10px 20px rgba(40, 33, 24, 0.035);
-  backdrop-filter: blur(8px);
-  content: "";
-  z-index: -1;
 }
 
 .brand-lockup {
@@ -203,39 +177,6 @@ textarea {
   text-transform: uppercase;
 }
 
-.topbar-utility {
-  display: grid;
-  justify-items: end;
-  gap: 0.55rem;
-}
-
-.topbar-controls {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-}
-
-.topbar-note {
-  color: var(--muted-strong);
-  font-family: "Caveat", "Ma Shan Zheng", cursive;
-  font-size: 0.96rem;
-  letter-spacing: 0.03em;
-  transform: rotate(-1deg);
-  white-space: nowrap;
-  opacity: 0.92;
-}
-
-.topnav {
-  display: flex;
-  align-items: center;
-  gap: 1.15rem;
-  color: var(--muted);
-  font-size: 0.95rem;
-  padding-top: 0.2rem;
-}
-
 .language-toggle {
   display: inline-flex;
   align-items: center;
@@ -276,49 +217,205 @@ textarea {
   color: #fffaf3;
 }
 
-.topnav-link {
-  position: relative;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: inherit;
-  cursor: pointer;
-  padding-bottom: 0.15rem;
-  transition: color 160ms ease;
-}
-
-.topnav-link::after {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -0.32rem;
-  height: 2px;
-  background: var(--accent);
-  content: "";
-  opacity: 0;
-  transform: scaleX(0.35);
-  transform-origin: left center;
-  transition:
-    opacity 180ms ease,
-    transform 180ms ease;
-}
-
-.topnav-link:hover,
-.topnav-link-active {
-  color: var(--text-strong);
-}
-
-.topnav-link:hover::after,
-.topnav-link-active::after {
-  opacity: 1;
-  transform: scaleX(1);
-}
-
 .page-main {
   display: grid;
-  padding-bottom: 6rem;
-  min-height: calc(100dvh - 6rem);
+  padding: 2rem 0 3rem;
+  min-height: 100dvh;
   align-content: start;
+}
+
+.app-shell {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: minmax(18rem, 20rem) minmax(0, 1fr);
+  min-height: 100dvh;
+}
+
+.app-sidebar {
+  position: sticky;
+  top: 0;
+  align-self: start;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 1rem;
+  min-height: 100dvh;
+  padding: 1.2rem 1rem 1rem;
+  border-right: 1px solid rgba(21, 18, 15, 0.08);
+  background:
+    linear-gradient(180deg, rgba(251, 248, 242, 0.94), rgba(244, 239, 231, 0.92)),
+    rgba(251, 248, 242, 0.94);
+  box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.48);
+}
+
+.app-sidebar-top,
+.app-sidebar-body,
+.app-sidebar-footer {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.app-sidebar-brand {
+  align-items: flex-start;
+}
+
+.app-sidebar-note {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.app-sidebar-note span {
+  color: var(--muted-strong);
+  font-family: "Caveat", "Ma Shan Zheng", cursive;
+  font-size: 1rem;
+  line-height: 1.2;
+  letter-spacing: 0.03em;
+  transform: rotate(-1deg);
+}
+
+.app-sidebar-create-button {
+  width: 100%;
+  min-height: 3.25rem;
+  transform: none;
+}
+
+.app-sidebar-body {
+  align-content: start;
+  overflow: hidden;
+}
+
+.app-sidebar-section {
+  display: grid;
+  gap: 0.72rem;
+  min-width: 0;
+}
+
+.app-sidebar-section-label {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding-inline: 0.25rem;
+}
+
+.app-sidebar-session-list,
+.app-sidebar-nav-list {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.app-sidebar-session-item,
+.app-sidebar-nav-item {
+  display: grid;
+  gap: 0.28rem;
+  width: 100%;
+  padding: 0.88rem 0.95rem;
+  border: 1px solid rgba(21, 18, 15, 0.08);
+  border-radius: 1.1rem;
+  background: rgba(255, 253, 249, 0.72);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    transform 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.app-sidebar-session-item:hover,
+.app-sidebar-nav-item:hover {
+  transform: translateY(-1px);
+  border-color: rgba(21, 18, 15, 0.18);
+}
+
+.app-sidebar-session-item-active,
+.app-sidebar-nav-item-active {
+  border-color: rgba(233, 164, 160, 0.58);
+  background:
+    linear-gradient(180deg, rgba(253, 236, 233, 0.98), rgba(255, 250, 246, 0.92)),
+    rgba(255, 250, 246, 0.92);
+  box-shadow: 0 10px 24px rgba(112, 74, 66, 0.08);
+}
+
+.app-sidebar-session-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.app-sidebar-session-title-row strong,
+.app-sidebar-nav-item strong {
+  color: var(--text-strong);
+  font-size: 0.96rem;
+  line-height: 1.3;
+}
+
+.app-sidebar-session-item span,
+.app-sidebar-nav-item span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.42;
+}
+
+.app-sidebar-session-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 1.5rem;
+  padding: 0 0.5rem;
+  border-radius: 999px;
+  background: rgba(21, 18, 15, 0.08);
+  color: var(--text);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.app-sidebar-empty {
+  padding: 0.95rem 1rem;
+  border: 1px dashed rgba(21, 18, 15, 0.12);
+  border-radius: 1rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+  line-height: 1.5;
+  background: rgba(255, 252, 247, 0.68);
+}
+
+.app-sidebar-footer {
+  align-content: end;
+}
+
+.app-sidebar-runtime,
+.app-sidebar-version {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.9rem 0.95rem;
+  border: 1px solid rgba(21, 18, 15, 0.08);
+  border-radius: 1rem;
+  background: rgba(255, 253, 249, 0.72);
+}
+
+.app-sidebar-runtime span,
+.app-sidebar-version span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.app-sidebar-version {
+  grid-template-columns: 1fr auto;
+  align-items: center;
+}
+
+.app-sidebar-version strong {
+  color: var(--text-strong);
+  font-family: "IBM Plex Mono", "Cascadia Code", Consolas, monospace;
+  font-size: 0.84rem;
 }
 
 .page-main-home {
@@ -1676,26 +1773,47 @@ textarea {
   padding-bottom: 1.35rem;
 }
 
+.console-pane-main {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.console-pane-heading {
+  display: grid;
+  gap: 0.4rem;
+  padding: 0.25rem 0.2rem 0;
+}
+
+.console-pane-heading h2 {
+  margin: 0;
+  color: var(--text-strong);
+  font-size: clamp(1.85rem, 2.7vw, 2.45rem);
+  line-height: 1.05;
+}
+
+.console-pane-heading p {
+  margin: 0;
+  max-width: 42rem;
+  color: var(--muted);
+  line-height: 1.58;
+}
+
 .console-shell {
   position: relative;
   overflow: hidden;
-  padding: 1.3rem;
-  border: 2px solid rgba(21, 18, 15, 0.22);
-  border-radius: 36px;
+  padding: 1rem;
+  border: 1px solid rgba(21, 18, 15, 0.12);
+  border-radius: 1.6rem;
   background:
-    linear-gradient(180deg, rgba(255, 252, 247, 0.82), rgba(245, 237, 226, 0.98)),
+    linear-gradient(180deg, rgba(255, 253, 249, 0.9), rgba(244, 238, 230, 0.98)),
     rgba(248, 241, 232, 0.94);
-  box-shadow: var(--shadow-console);
+  box-shadow: 0 20px 36px rgba(33, 25, 17, 0.06);
 }
 
 .console-shell::before {
-  position: absolute;
-  inset: 0;
-  background:
-    repeating-linear-gradient(135deg, rgba(0, 0, 0, 0.035) 0 2px, transparent 2px 18px);
-  content: "";
-  opacity: 0.08;
-  pointer-events: none;
+  display: none;
+  content: none;
 }
 
 .console-shell > * {
@@ -1869,16 +1987,7 @@ textarea {
 }
 
 .console-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.8rem;
-  margin-bottom: 0.75rem;
-  padding: 0.78rem 0.9rem;
-  border: 1.5px solid rgba(21, 18, 15, 0.12);
-  border-radius: var(--radius-card);
-  background: rgba(255, 251, 246, 0.86);
-  box-shadow: var(--shadow-soft);
+  display: none;
 }
 
 .console-toolbar-block {
@@ -1917,9 +2026,7 @@ textarea {
 }
 
 .console-workspace-bar {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 0.62rem;
+  display: none;
 }
 
 .console-workspace-tab {
@@ -1967,10 +2074,7 @@ textarea {
 }
 
 .console-status-strip {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 0.55rem;
-  margin-top: 0.68rem;
+  display: none;
 }
 
 .console-status-strip span {
@@ -2009,7 +2113,7 @@ textarea {
 .session-panel-grid,
 .console-workspace-stage {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(18rem, 0.82fr) minmax(0, 1.18fr);
   gap: 1rem;
 }
 
@@ -2205,8 +2309,8 @@ textarea {
 .provider-form-grid,
 .session-reference-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem;
+  grid-template-columns: minmax(16rem, 0.7fr) minmax(0, 1fr);
+  gap: 0.85rem;
 }
 
 .provider-form-grid > *,
@@ -2348,13 +2452,13 @@ textarea {
 
 .console-diagnostics-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(320px, 0.86fr);
+  grid-template-columns: minmax(0, 1.1fr) minmax(18rem, 0.9fr);
   gap: 1rem;
   align-items: start;
 }
 
 .console-workspace-panel {
-  min-height: calc(100dvh - 13.5rem);
+  min-height: calc(100dvh - 12.4rem);
 }
 
 .console-workspace-panel,
@@ -2378,7 +2482,7 @@ textarea {
 .insight-stack,
 .session-list {
   min-height: 0;
-  max-height: calc(100dvh - 18rem);
+  max-height: calc(100dvh - 16.7rem);
   overflow-y: auto;
   overflow-x: hidden;
   padding-right: 0.15rem;
@@ -2395,7 +2499,13 @@ textarea {
 .session-panel,
 .insight-panel,
 .console-export-panel {
-  padding: 1rem;
+  padding: 0.9rem;
+  border: 1px solid rgba(21, 18, 15, 0.1);
+  border-radius: 1.2rem;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(248, 242, 233, 0.96)),
+    var(--surface-console);
+  box-shadow: 0 14px 28px rgba(33, 25, 17, 0.05);
 }
 
 .runtime-main-column,
@@ -2416,31 +2526,17 @@ textarea {
   position: relative;
   overflow: hidden;
   background:
-    repeating-linear-gradient(180deg, rgba(48, 40, 33, 0.05) 0 1px, transparent 1px 2.3rem),
-    linear-gradient(180deg, rgba(255, 252, 247, 0.9), rgba(244, 235, 223, 0.98));
+    linear-gradient(180deg, rgba(255, 254, 251, 0.98), rgba(247, 241, 232, 0.98));
 }
 
 .chat-panel::before {
-  position: absolute;
-  top: 1.2rem;
-  bottom: 1.2rem;
-  left: 2rem;
-  width: 2px;
-  background: rgba(141, 58, 49, 0.18);
-  content: "";
-  pointer-events: none;
+  display: none;
+  content: none;
 }
 
 .chat-panel::after {
-  position: absolute;
-  top: 1rem;
-  right: 1.4rem;
-  color: rgba(21, 18, 15, 0.58);
-  font-family: "Caveat", "Ma Shan Zheng", cursive;
-  font-size: 1.2rem;
-  content: "journal page";
-  transform: rotate(4deg);
-  pointer-events: none;
+  display: none;
+  content: none;
 }
 
 .chat-page-section {
@@ -2449,41 +2545,27 @@ textarea {
 
 .chat-page-shell {
   display: grid;
-  gap: 0.9rem;
+  gap: 0.7rem;
+  min-width: 0;
 }
 
 .chat-page-header {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: end;
-  gap: 1rem;
-  margin: 0 auto;
-  max-width: 62rem;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  gap: 0.85rem;
 }
 
 .chat-page-heading {
-  max-width: 31rem;
+  max-width: 38rem;
 }
 
 .chat-page-heading h2 {
-  font-size: clamp(2.5rem, 5vw, 4.3rem);
-}
-
-.chat-page-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.9rem;
-  justify-self: end;
-  flex-wrap: wrap;
-  justify-content: flex-end;
+  font-size: clamp(2.1rem, 4vw, 3rem);
 }
 
 .chat-status-strip {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.8rem;
-  margin: 0 auto;
-  max-width: 62rem;
+  display: none;
 }
 
 .chat-status-card {
@@ -2523,11 +2605,11 @@ textarea {
   align-items: center;
   gap: 0.8rem;
   min-width: 0;
-  padding: 0.75rem 0.95rem;
-  border: 1.5px solid rgba(21, 18, 15, 0.14);
+  padding: 0.68rem 0.88rem;
+  border: 1px solid rgba(21, 18, 15, 0.12);
   border-radius: 999px;
-  background: rgba(255, 251, 246, 0.9);
-  box-shadow: var(--shadow-soft);
+  background: rgba(255, 253, 248, 0.92);
+  box-shadow: none;
 }
 
 .chat-session-inline-label {
@@ -2551,21 +2633,26 @@ textarea {
 }
 
 .chat-panel-focused {
-  min-height: calc(100dvh - 13rem);
-  max-width: 62rem;
+  min-height: calc(100dvh - 11.25rem);
+  max-width: 70rem;
   width: 100%;
   margin: 0 auto;
-  padding: 1.1rem 1.2rem 1.35rem;
+  padding: 0.95rem 1rem 1rem;
+  border: 1px solid rgba(21, 18, 15, 0.12);
+  border-radius: 1.45rem;
+  box-shadow: 0 18px 34px rgba(33, 25, 17, 0.06);
   grid-template-rows: auto minmax(0, 1fr) auto;
 }
 
 .chat-panel-focused .panel-header {
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.2rem;
+  padding-bottom: 0.7rem;
+  border-bottom: 1px solid rgba(21, 18, 15, 0.08);
 }
 
 .chat-panel-focused .chat-log {
-  min-height: 35rem;
-  max-height: calc(100dvh - 20rem);
+  min-height: 34rem;
+  max-height: calc(100dvh - 18.4rem);
 }
 
 .chat-page-note {
@@ -2708,73 +2795,49 @@ textarea {
 
 .chat-log {
   display: grid;
-  gap: 0.85rem;
-  min-height: 28rem;
+  gap: 0.72rem;
+  min-height: 24rem;
   max-height: 38rem;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 0.15rem 0.15rem 0.15rem 1.5rem;
+  padding: 0.35rem 0.2rem 0.4rem;
   scroll-padding-bottom: 1.25rem;
 }
 
 .chat-bubble {
   width: fit-content;
-  max-width: min(100% - 0.8rem, 48rem);
+  max-width: min(100%, 42rem);
   min-width: 0;
-  padding: 1rem 1rem 0.9rem 1.15rem;
-  border: 0;
-  border-radius: 0;
-  box-shadow: none;
-  transform: rotate(-0.3deg);
+  padding: 0.92rem 1rem;
+  border: 1px solid rgba(21, 18, 15, 0.1);
+  border-radius: 1.2rem;
+  box-shadow: 0 10px 18px rgba(33, 25, 17, 0.04);
+  transform: none;
   position: relative;
   overflow: hidden;
 }
 
 .chat-bubble-user {
   justify-self: end;
-  background:
-    linear-gradient(180deg, rgba(251, 242, 229, 0.98), rgba(246, 235, 220, 0.98));
-  transform: rotate(0.8deg);
-  border-left: 3px solid rgba(21, 18, 15, 0.18);
+  background: rgba(30, 25, 20, 0.94);
+  border-color: rgba(30, 25, 20, 0.94);
 }
 
 .chat-bubble-assistant {
   justify-self: start;
-  background:
-    linear-gradient(180deg, rgba(255, 253, 249, 0.98), rgba(248, 241, 232, 0.98));
-  transform: rotate(-0.6deg);
-  border-left: 3px solid rgba(71, 64, 58, 0.16);
-}
-
-.chat-bubble::after {
-  position: absolute;
-  right: 0.4rem;
-  bottom: -0.7rem;
-  color: rgba(21, 18, 15, 0.26);
-  font-family: "Caveat", "Ma Shan Zheng", cursive;
-  font-size: 1rem;
-  content: "~";
-}
-
-.chat-bubble-user::after {
-  content: "me";
-  bottom: -0.82rem;
-}
-
-.chat-bubble-assistant::after {
-  content: "echo";
-  bottom: -0.82rem;
+  background: rgba(255, 253, 250, 0.97);
+  border-color: rgba(21, 18, 15, 0.08);
 }
 
 .chat-role {
   display: inline-block;
-  margin-bottom: 0.45rem;
-  color: rgba(21, 18, 15, 0.64);
-  font-family: "Caveat", "Ma Shan Zheng", cursive;
-  font-size: 1.02rem;
+  margin-bottom: 0.35rem;
+  color: rgba(21, 18, 15, 0.56);
+  font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+  font-size: 0.78rem;
   font-weight: 700;
-  letter-spacing: 0.03em;
-  text-transform: none;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .chat-bubble p,
@@ -2787,8 +2850,8 @@ textarea {
 .chat-bubble p {
   color: #211a14;
   font-family: "Caveat", "Ma Shan Zheng", cursive;
-  font-size: 1.42rem;
-  line-height: 1.52;
+  font-size: 1.18rem;
+  line-height: 1.62;
   letter-spacing: 0.01em;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
@@ -2796,24 +2859,25 @@ textarea {
 }
 
 .chat-bubble-user p {
-  font-family: "Ma Shan Zheng", "Caveat", cursive;
-  font-size: 1.24rem;
-  line-height: 1.72;
-  letter-spacing: 0.01em;
+  color: rgba(255, 251, 244, 0.96);
+  font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+  font-size: 1rem;
+  line-height: 1.62;
+  letter-spacing: 0;
 }
 
 .chat-bubble-assistant p {
   font-family: "Caveat", "Ma Shan Zheng", cursive;
-  font-size: 1.48rem;
-  line-height: 1.5;
-  letter-spacing: 0.015em;
+  font-size: 1.22rem;
+  line-height: 1.64;
+  letter-spacing: 0.01em;
 }
 
 .chat-composer {
   display: grid;
-  gap: 0.9rem;
-  margin-top: 1rem;
-  padding-top: 0.9rem;
+  gap: 0.75rem;
+  margin-top: 0.7rem;
+  padding-top: 0.8rem;
   border-top: 1px solid rgba(21, 18, 15, 0.08);
 }
 
@@ -2875,9 +2939,9 @@ textarea {
 
 .chat-composer-toolbar {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: space-between;
-  gap: 0.9rem;
+  gap: 0.75rem;
   flex-wrap: wrap;
 }
 
@@ -2892,9 +2956,9 @@ textarea {
 
 .chat-composer-side-actions {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: flex-start;
-  gap: 0.65rem;
+  gap: 0.55rem;
   flex: 1 1 26rem;
   min-width: 0;
   flex-wrap: wrap;
@@ -2921,10 +2985,10 @@ textarea {
 
 .chat-voice-controls-compact {
   min-width: 0;
-  padding: 0.5rem 0.75rem;
-  border: 1.5px solid rgba(21, 18, 15, 0.12);
-  border-radius: 1rem;
-  background: rgba(255, 252, 247, 0.9);
+  padding: 0.45rem 0.65rem;
+  border: 1px solid rgba(21, 18, 15, 0.12);
+  border-radius: 0.95rem;
+  background: rgba(255, 252, 247, 0.92);
 }
 
 .console-voice-controls {
@@ -2933,17 +2997,17 @@ textarea {
 
 .voice-config-grid {
   display: grid;
-  gap: 0.9rem;
+  gap: 0.8rem;
   width: 100%;
 }
 
 .voice-config-section {
   display: grid;
   gap: 0.8rem;
-  padding: 0.95rem 1rem;
-  border: 1.5px solid rgba(21, 18, 15, 0.12);
-  border-radius: var(--radius-card);
-  background: rgba(255, 251, 246, 0.74);
+  padding: 0.85rem 0.9rem;
+  border: 1px solid rgba(21, 18, 15, 0.12);
+  border-radius: 1rem;
+  background: rgba(255, 253, 249, 0.92);
 }
 
 .voice-config-section-wide {
@@ -2969,7 +3033,7 @@ textarea {
 .voice-config-fields {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.8rem;
+  gap: 0.7rem;
 }
 
 .voice-config-section:nth-of-type(2) .voice-config-fields {
@@ -3009,8 +3073,8 @@ textarea {
 .chat-voice-compact-summary {
   display: grid;
   gap: 0.12rem;
-  min-width: 9.5rem;
-  max-width: 14rem;
+  min-width: 8rem;
+  max-width: 12rem;
   padding: 0.05rem 0.15rem;
 }
 
@@ -3467,14 +3531,13 @@ textarea {
 }
 
 .chat-composer textarea {
-  min-height: 8rem;
+  min-height: 5.5rem;
+  max-height: 12rem;
   resize: vertical;
-  font-family: "Caveat", "Ma Shan Zheng", cursive;
-  font-size: 1.32rem;
-  line-height: 1.6;
-  background:
-    repeating-linear-gradient(180deg, rgba(48, 40, 33, 0.05) 0 1px, transparent 1px 2.15rem),
-    rgba(255, 252, 247, 0.96);
+  font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+  font-size: 1rem;
+  line-height: 1.62;
+  background: rgba(255, 255, 255, 0.98);
 }
 
 .chat-composer-main-actions .button {
@@ -3486,12 +3549,12 @@ textarea {
   place-items: center;
   min-height: 16rem;
   padding: 1rem;
-  border: 2px dashed rgba(21, 18, 15, 0.16);
-  border-radius: var(--radius-card);
+  border: 1px dashed rgba(21, 18, 15, 0.14);
+  border-radius: 1.15rem;
   color: var(--muted);
   text-align: center;
   font-family: "Caveat", "Ma Shan Zheng", cursive;
-  font-size: 1.24rem;
+  font-size: 1.1rem;
 }
 
 .signal-metrics {
@@ -3823,6 +3886,15 @@ textarea {
 }
 
 @media (max-width: 900px) {
+  .console-two-pane {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .console-side-nav {
+    position: static;
+    min-height: auto;
+  }
+
   .home-doodle-layer {
     inset: 8rem 0 0;
   }
@@ -4034,12 +4106,6 @@ textarea {
     min-height: 29rem;
   }
 
-  .topbar {
-    flex-direction: column;
-    align-items: flex-start;
-    padding-inline: 0.9rem;
-  }
-
   .brand-lockup {
     gap: 0.78rem;
   }
@@ -4049,21 +4115,7 @@ textarea {
     height: 3.05rem;
   }
 
-  .topbar-utility {
-    justify-items: start;
-  }
-
-  .topbar-controls {
-    justify-content: flex-start;
-  }
-
-  .topnav {
-    flex-wrap: wrap;
-    gap: 0.85rem 1rem;
-  }
-
-  .section-grid,
-  .topbar {
+  .section-grid {
     width: min(calc(100% - 1.25rem), var(--max-width));
   }
 
