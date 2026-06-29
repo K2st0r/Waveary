@@ -1414,7 +1414,7 @@ function parsePageLocation(hash: string): PageLocation {
   const normalized = hash.replace(/^#/, "").trim();
 
   if (!normalized) {
-    return { page: "home" };
+    return { page: "chat" };
   }
 
   const [rawPage, rawSection] = normalized.split("/", 2);
@@ -1427,12 +1427,12 @@ function parsePageLocation(hash: string): PageLocation {
     case "chat":
       return withSection("chat");
     case "roadmap":
-      return { page: "home", sectionId: "roadmap" };
+      return { page: "chat" };
     case "framework":
-      return withSection("home");
+      return { page: "chat" };
     case "home":
     default:
-      return withSection("home");
+      return { page: "chat" };
   }
 }
 
@@ -1668,7 +1668,7 @@ export function App(): ReactElement {
   const [activeConsoleWorkspace, setActiveConsoleWorkspace] = useState<ConsoleWorkspace>("provider");
   const [currentPage, setCurrentPage] = useState<AppPage>(() => {
     if (typeof window === "undefined") {
-      return "home";
+      return "chat";
     }
 
     return parsePageLocation(window.location.hash).page;
@@ -1878,7 +1878,7 @@ export function App(): ReactElement {
     };
 
     if (!window.location.hash) {
-      window.history.replaceState(null, "", "#home");
+      window.history.replaceState(null, "", "#chat");
     }
 
     handleHashChange();
@@ -4702,7 +4702,6 @@ export function App(): ReactElement {
           ] as const
         };
   const navigationItems: ReadonlyArray<{ page: AppPage; label: string }> = [
-    { page: "home", label: copy.nav[0] },
     { page: "console", label: copy.nav[4] },
     { page: "chat", label: locale === "zh" ? "对话" : "Chat" },
   ];
@@ -5732,14 +5731,14 @@ export function App(): ReactElement {
                   <p>
                     {locale === "zh"
                       ? "把框架解释留在首页，把配置、会话与运行状态留在这里。当前页面应该像系统桌面，而不是第二个营销首屏。"
-                      : "Keep the framework story on the homepage and keep setup, sessions, and runtime state here. This page should read like a system desk, not a second landing hero."}
+                      : "Keep setup, sessions, and runtime state here. This page should read like a system desk, not a second landing page."}
                   </p>
                   <div className="console-actions">
                     <button className="button button-primary" onClick={() => navigateTo("chat")} type="button">
                       {locale === "zh" ? "进入对话页" : "Open chat"}
                     </button>
-                    <button className="button button-secondary" onClick={() => navigateTo("home", "roadmap")} type="button">
-                      {locale === "zh" ? "查看项目路线" : "View project route"}
+                    <button className="button button-secondary" onClick={() => setActiveConsoleWorkspace("provider")} type="button">
+                      {locale === "zh" ? "返回模型配置" : "Back to provider setup"}
                     </button>
                   </div>
                 </div>
