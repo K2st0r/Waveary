@@ -49,6 +49,28 @@ Impact:
 - `README.md` now links to the commercialization guidance from both the top link cluster and the brand-assets section
 - future repo policy work should extend this dedicated page instead of bloating the main README with longer legal prose
 
+## 2026-07-01 - Editions And Cooperation Should Live On A Dedicated Public Page
+
+Status:
+
+- accepted
+
+Decision:
+
+Waveary should present `CE / Cloud / Enterprise` and official cooperation boundaries through a dedicated public page, instead of leaving that packaging story implicit or scattered across chat history and small README fragments.
+
+Reason:
+
+- the user explicitly wants the GitHub surface to look more like a formal project, with a clearer official packaging story
+- visitors need one stable place to understand what exists today, what is only a future direction, and when official brand use becomes a cooperation question
+- pairing the editions page with the commercialization page keeps the open-code / reserved-brand split understandable without overloading the main README
+
+Impact:
+
+- the repository now includes `docs/editions.md` and `docs/editions.zh-CN.md`
+- both public README entry pages now link to commercialization and editions guidance
+- the public Chinese README now also states the correct `Apache License 2.0` code license and mirrors the reserved-brand explanation instead of leaving a stale `MIT` line at the bottom
+
 ## 2026-06-24 - Companion Soul Should Live In Markdown And Center One Continuous Caring Bond
 
 Status:

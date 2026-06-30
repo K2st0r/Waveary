@@ -8756,6 +8756,43 @@ Push:
 
 - succeeded: `git push origin main` pushed functional commit `c93ac72` to `origin/main`
 
+## 2026-07-01
+
+Objective:
+
+Add a dedicated editions page and finish the public README cleanup so the GitHub-facing English and Chinese entry pages present licensing, commercialization, and packaging consistently.
+
+Summary:
+
+- added `docs/editions.md` and `docs/editions.zh-CN.md` to explain `Waveary CE`, future `Waveary Cloud`, future `Waveary Enterprise`, and official cooperation boundaries
+- updated `README.md` to link both commercialization and editions guidance from the top link cluster, documentation list, and brand-assets section
+- updated `README.zh-CN.md` to link the new commercialization and editions pages, corrected the license section to `Apache License 2.0`, and added the missing Chinese brand / official-assets notice
+- verified that the current public README and deployment-guide surfaces no longer show the earlier public-facing mojibake or the stale `MIT` claim in the Chinese README
+
+Files changed:
+
+- `docs/editions.md`
+- `docs/editions.zh-CN.md`
+- `README.md`
+- `README.zh-CN.md`
+- `ACTIVE_TASKS.md`
+- `PROJECT_STATE.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check:mojibake`
+- `Select-String -Path README.zh-CN.md -Pattern 'MIT License|Apache License 2.0|品牌与官方素材说明|商业使用与品牌授权说明|版本规划'`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
 ## 2026-07-01 - Continuity Sync
 
 Objective:

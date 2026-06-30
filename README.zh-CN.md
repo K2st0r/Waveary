@@ -22,7 +22,9 @@
 [ZIP 用户](#zip-用户使用说明) ·
 [部署](#服务器部署) ·
 [常用命令](#常用命令) ·
-[文档](#文档)
+[文档](#文档) ·
+[商业使用](./docs/commercial-use.zh-CN.md) ·
+[版本规划](./docs/editions.zh-CN.md)
 
 </div>
 
@@ -303,6 +305,10 @@ waveary/
 - [English README](./README.md)
 - [中文部署指南](./docs/deployment-guide.zh-CN.md)
 - [Deployment Guide](./docs/deployment-guide.md)
+- [商业使用与品牌授权说明](./docs/commercial-use.zh-CN.md)
+- [Commercial Use And Brand Licensing](./docs/commercial-use.md)
+- [Waveary 版本规划](./docs/editions.zh-CN.md)
+- [Waveary Editions](./docs/editions.md)
 - [项目状态](./PROJECT_STATE.md)
 - [项目愿景](./docs/vision.md)
 - [架构设计](./docs/architecture.md)
@@ -323,4 +329,13 @@ waveary/
 
 ## 许可证
 
-本项目基于 [MIT License](./LICENSE) 开源。
+本项目源代码基于 [Apache License 2.0](./LICENSE) 开源。
+
+## 品牌与官方素材说明
+
+- 本仓库源代码遵循 [Apache License 2.0](./LICENSE)。
+- `Waveary`、`回响之境`、官方 Logo、人物卡、插画、宣传视觉等官方品牌素材，不随 Apache 2.0 一并授权。
+- 个人学习、研究、评估、二次开发代码层面的使用，遵循 Apache 2.0。
+- 如需在商业分发、商业托管、商业包装产品中使用官方名称、Logo 或官方视觉资产，需事先取得书面许可。
+- Fork 可以依法使用代码，但不得冒充官方项目，也不得未经许可沿用官方品牌对外发布。
+- 详见 [TRADEMARKS.md](./TRADEMARKS.md)、[BRAND-ASSETS.md](./BRAND-ASSETS.md)、[商业使用与品牌授权说明](./docs/commercial-use.zh-CN.md) 与 [Waveary 版本规划](./docs/editions.zh-CN.md)。

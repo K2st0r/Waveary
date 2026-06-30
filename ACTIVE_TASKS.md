@@ -29,8 +29,8 @@ Update it when:
 
 4. Make GitHub onboarding usable for non-developers.
    Status: in progress
-   Current state: the GitHub-facing onboarding path is now being reshaped from mixed bilingual pages into separate English and Simplified Chinese documents, with `README.md` as the English entrypoint, `README.zh-CN.md` as the Chinese homepage, and matching split deployment guides so users can switch language cleanly without reading mixed paragraphs. The repo now also has explicit code-vs-brand boundary docs through `TRADEMARKS.md`, `BRAND-ASSETS.md`, and `NOTICE`, while `README.md` now matches the real `Apache-2.0` code license instead of the older stale `MIT` label.
-   Next cut: visually review the rendered GitHub language-switch links and notice layout, then decide whether the next repo-facing doc pass should add screenshots, a dedicated editions page, or a future license-contact channel once the current commercialization note page is settled.
+   Current state: the GitHub-facing onboarding path now includes separate English and Simplified Chinese README / deployment pages, explicit code-vs-brand boundary docs through `TRADEMARKS.md`, `BRAND-ASSETS.md`, and `NOTICE`, a dedicated commercialization page, a dedicated editions page, and a corrected Chinese README license section that no longer falsely says `MIT`.
+   Next cut: visually review the rendered GitHub pages as a whole and decide whether the next repo-facing doc pass should add screenshots, a contact channel, or a more polished top-of-readme project overview block.
 
 5. Continue the `waveary-core` dialogue-quality pass.
    Status: in progress
