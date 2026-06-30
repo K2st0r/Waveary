@@ -8661,6 +8661,42 @@ Push:
 
 Objective:
 
+Remove redundant sidebar routing and tighten the left app rail so the runtime reads more like a direct client shell and less like a labeled site map.
+
+Summary:
+
+- updated `waveary-web/src/App.tsx` so the left sidebar no longer shows a separate `进入对话 / Open chat` destination, the session-management entry now uses the compact shared workspace label instead of `人物 / 记忆 / 迁移`, and the extra console-side `进入对话页 / Open chat page` shortcut is gone
+- updated `waveary-web/src/styles.css` so sidebar destinations now read as denser title-only items instead of two-line explanatory cards
+- updated continuity docs so future shell work preserves the user-requested rule: the sidebar should be single-line, direct, and free of duplicated chat-entry concepts
+
+Files changed:
+
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/product-preferences.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run check --workspace @waveary/web`
+- `npm run check:mojibake`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-30
+
+Objective:
+
 Finish the left-sidebar shell grouping pass so the non-provider console workspaces stop feeling like placeholder note cards and start reading like real client work areas.
 
 Summary:

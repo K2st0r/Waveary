@@ -5224,7 +5224,7 @@ export function App(): ReactElement {
     locale === "zh"
       ? {
           provider: "模型接入",
-          sessions: "会话档案",
+          sessions: "会话管理",
           skills: "技能",
           channels: "通道",
           care: "主动关怀",
@@ -5233,43 +5233,16 @@ export function App(): ReactElement {
         }
       : {
           provider: "Provider",
-          sessions: "Sessions",
+          sessions: "Session Manager",
           skills: "Skills",
           channels: "Channels",
           care: "Care",
           runtime: "Runtime",
           settings: "Settings"
         };
-  const consoleWorkspaceDescriptions: Record<Exclude<ConsoleWorkspace, "voice">, string> =
-    locale === "zh"
-      ? {
-          provider: "供应商、密钥、模型发现与运行路径固定。",
-          sessions: "会话身份、持久化、导入导出与权限中心。",
-          skills: "浏览器、本地控制、提醒与扩展能力入口。",
-          channels: "桌面通知、飞书、企微与后续外部消息连接。",
-          care: "主动关怀策略、通知与本地检查循环。",
-          runtime: "当前关系、记忆、时间轴与导出结果。",
-          settings: "权限、数据、界面与桌面端行为设置。"
-        }
-      : {
-          provider: "Vendor setup, credentials, model discovery, and one stable runtime path.",
-          sessions: "Session identity, persistence, import/export, and the permission center.",
-          skills: "Browser, local-control, care, and extension capability entrypoints.",
-          channels: "Desktop notifications, Feishu, WeCom, and future external message links.",
-          care: "Proactive-care policy, browser delivery, and bounded local checks.",
-          runtime: "Current relationship, memory, timeline, and structured export output.",
-          settings: "Permissions, data, interface, and desktop-behavior controls."
-        };
   const consoleWorkspaceLabelsResolved = {
     ...consoleWorkspaceLabels,
     voice: locale === "zh" ? "语音设置" : "Voice"
-  } satisfies Record<ConsoleWorkspace, string>;
-  const consoleWorkspaceDescriptionsResolved = {
-    ...consoleWorkspaceDescriptions,
-    voice:
-      locale === "zh"
-        ? "实时对话、真人语音和本地 / 国内语音供应路径。"
-        : "Realtime conversation, natural voice, and shared or dedicated voice routing."
   } satisfies Record<ConsoleWorkspace, string>;
   const consoleStageHeadingTitle =
     activeConsoleWorkspace === "sessions"
@@ -6438,26 +6411,6 @@ export function App(): ReactElement {
         <div className="app-sidebar-body">
           <section className="app-sidebar-section">
             <div className="app-sidebar-section-header">
-              <div className="app-sidebar-section-label">{locale === "zh" ? "对话" : "Conversation"}</div>
-            </div>
-            <div className="app-sidebar-nav-list">
-              <button
-                className={`app-sidebar-nav-item ${currentPage === "chat" ? "app-sidebar-nav-item-active" : ""}`}
-                onClick={() => navigateTo("chat")}
-                type="button"
-              >
-                <strong>{locale === "zh" ? "进入对话" : "Open chat"}</strong>
-                <span>
-                  {locale === "zh"
-                    ? "把陪伴本身放在最前面。"
-                    : "Keep the companion itself front and center."}
-                </span>
-              </button>
-            </div>
-          </section>
-
-          <section className="app-sidebar-section">
-            <div className="app-sidebar-section-header">
               <div className="app-sidebar-section-label">{locale === "zh" ? "会话" : "Sessions"}</div>
               <button
                 className={`app-sidebar-section-toggle ${sidebarSessionsCollapsed ? "app-sidebar-section-toggle-collapsed" : ""}`}
@@ -6478,12 +6431,7 @@ export function App(): ReactElement {
                 }}
                 type="button"
               >
-                <strong>{locale === "zh" ? "人物 / 记忆 / 迁移" : "Profiles / Memory / Transfer"}</strong>
-                <span>
-                  {locale === "zh"
-                    ? "人物档案、持久化、导入导出都收在这里。"
-                    : "Profiles, persistence, and import/export live here."}
-                </span>
+                <strong>{consoleWorkspaceLabelsResolved.sessions}</strong>
               </button>
               {chatSessions.length > 0 ? (
                 chatSessions.map((session) => {
@@ -6566,7 +6514,6 @@ export function App(): ReactElement {
                     type="button"
                   >
                     <strong>{consoleWorkspaceLabelsResolved[workspace]}</strong>
-                    <span>{consoleWorkspaceDescriptionsResolved[workspace]}</span>
                   </button>
                 );
               })}
@@ -6587,7 +6534,6 @@ export function App(): ReactElement {
                 type="button"
               >
                 <strong>{consoleWorkspaceLabelsResolved.settings}</strong>
-                <span>{consoleWorkspaceDescriptionsResolved.settings}</span>
               </button>
             </div>
           </section>
@@ -7210,9 +7156,6 @@ export function App(): ReactElement {
                     : locale === "zh"
                       ? "开始实时对话"
                       : "Start live chat"}
-                </button>
-                <button className="button button-secondary" onClick={() => navigateTo("chat")} type="button">
-                  {locale === "zh" ? "进入对话页" : "Open chat page"}
                 </button>
               </div>
               {voiceConfigState === "error" ? (

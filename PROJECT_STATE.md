@@ -30,6 +30,7 @@ Brand line:
 - the active runtime shell no longer depends on the old sticky topbar navigation, and the remaining live brand surface stays on transparent vector assets instead of raster logo drafts
 - the web session layer now also persists per-session companion-profile setup beyond creation time, so portrait, companion naming, user naming, vibe, style, and preferred voice hints can be edited later and survive export/import
 - the current console information architecture now treats `Conversation / Sessions / Control / Settings` as the stable top-level client grouping, instead of flattening persona, skills, and settings into competing same-level tabs
+- the left runtime sidebar now also uses title-only direct destinations, with no explanatory subtitle lines and no redundant dedicated `进入对话 / Open chat` entry when session selection already opens chat
 - the new `skills`, `channels`, and `settings` workspaces now also follow the same single-stage tabbed control-desk pattern already used by `provider` and `sessions`, so future shell work should extend that shared pattern instead of reintroducing mixed explanatory card walls
 - the grouped console workspaces now also use denser two-column stage fills where appropriate, so sparse surfaces such as `skills`, `channels`, and `settings` no longer drift back into placeholder-like half-empty panels while `sessions/profile` also uses a tighter left-right balance
 
@@ -487,6 +488,7 @@ Brand line:
 - if future homepage polish touches the closing route section again, keep it as a homepage-ending promotional recap and do not reintroduce a separate roadmap page
 - if another shell-polish pass is needed, prefer targeted fixes for specific overflowing metadata rows or mobile breakpoints instead of broad console restructuring, because the current containment baseline for `#home`, `#chat`, and `#console` has now been browser-verified
 - keep iterating on the compact console shell only after visual verification shows a remaining real usability gap, instead of re-expanding it into explanatory blocks
+- keep the left sidebar as a direct action list: title-only labels, no subtitle blurbs, no duplicate `enter chat` shortcut, and no separate quasi-chat persona/memory entry outside the session-management workspace
 - keep public repository guidance about external code borrowing generic; do not publish named third-party borrowing lists in-repo, and review any reuse case-by-case before code is brought in
 - run a focused browser pass for homepage doodle density, fade rhythm, and overall visual balance now that the doodle set includes both the original study objects and the new paper-memory objects
 - visually verify and, only if needed, tighten any remaining console workspace that still forces awkward external page scrolling after the latest compact-shell pass

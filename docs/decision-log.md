@@ -2840,3 +2840,25 @@ Impact:
 - `waveary-web/src/App.tsx` now renders one shared `renderAppSidebar()` shell across runtime pages instead of restoring the earlier top navigation pattern
 - `waveary-web/src/styles.css` now treats the left rail as the persistent product shell and drops the last stale topbar-responsive remnants from active styling
 - future shell polish should tighten sidebar density, right-pane rhythm, and mobile collapse behavior within this left-sidebar architecture instead of reintroducing a top navigation bar
+
+## 2026-06-30 - The Sidebar Should Use Direct Labels And Avoid Redundant Chat Entry Points
+
+Status:
+
+- accepted
+
+Decision:
+
+The left runtime sidebar should use one-line direct labels only and should not carry duplicated chat-entry concepts. Selecting a session is already the way into chat, so the sidebar should not also expose a separate `进入对话 / Open chat` destination. Persona, memory, persistence, and transfer management should remain inside the session-management workspace rather than appearing as a second quasi-chat entry.
+
+Reason:
+
+- the user explicitly asked for single-line title-only sidebar entries with no explanatory subtitle text
+- the previous shell still exposed both a dedicated chat button and a separate `人物 / 记忆 / 迁移` entry near the session list, which made the client feel redundant and harder to scan
+- the runtime is meant to feel like a focused client, so the shell should prefer direct operational labels over duplicated conceptual routing
+
+Impact:
+
+- `waveary-web/src/App.tsx` now removes the standalone sidebar `Open chat` entry and the extra console-side `Open chat page` shortcut
+- the sidebar session-management entry now uses the same compact workspace label as the internal console workspace instead of a second explanatory phrase
+- `waveary-web/src/styles.css` now supports a denser title-only sidebar rhythm, and future shell work should keep the sidebar as a direct action list rather than reintroducing subtitle copy or duplicate destinations
