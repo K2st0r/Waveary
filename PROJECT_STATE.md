@@ -16,7 +16,7 @@ What is remembered returns as an echo.
 
 ## Latest Verified Commit
 
-- `b1ba191` - `Sync editions docs continuity log`
+- `9342cd9` - `Rewrite continuity docs`
 
 ## Repository Surface
 
