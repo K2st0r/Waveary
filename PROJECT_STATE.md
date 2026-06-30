@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `9965738` - `Polish grouped console workspace density`
+- `a7f3034` - `Simplify sidebar shell entrypoints`
 
 ## Latest Repository Surface
 

@@ -8618,11 +8618,11 @@ Verification:
 
 Commit:
 
-- pending
+- `a7f3034` - `Simplify sidebar shell entrypoints`
 
 Push:
 
-- pending
+- succeeded: `git push origin main` pushed functional commit `a7f3034` to `origin/main`
 
 ## 2026-06-30
 
