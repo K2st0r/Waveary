@@ -8733,6 +8733,29 @@ Push:
 
 - pending
 
+## 2026-07-01 - Editions Docs Sync
+
+Objective:
+
+Record the real commit and push result for the editions page and public README cleanup pass.
+
+Summary:
+
+- the editions / README public-doc cleanup pass was committed and pushed successfully
+
+Verification:
+
+- `git log --oneline -3`
+- `git status --short -b`
+
+Commit:
+
+- `7f6651d` - `Add editions and README doc polish`
+
+Push:
+
+- succeeded: `git push origin main` pushed functional commit `7f6651d` to `origin/main`
+
 ## 2026-07-01 - Commercial Use Docs Sync
 
 Objective:
