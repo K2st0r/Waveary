@@ -22,7 +22,8 @@
 [ZIP Users](#for-zip-download-users) ·
 [Deploy](#deploy-on-a-server) ·
 [Commands](#common-commands) ·
-[Docs](#documentation)
+[Docs](#documentation) ·
+[Commercial Use](./docs/commercial-use.md)
 
 </div>
 
@@ -302,6 +303,8 @@ Module roles:
 
 - [Chinese README](./README.zh-CN.md)
 - [Deployment Guide](./docs/deployment-guide.md)
+- [Commercial Use And Brand Licensing](./docs/commercial-use.md)
+- [商业使用与品牌授权说明](./docs/commercial-use.zh-CN.md)
 - [中文部署指南](./docs/deployment-guide.zh-CN.md)
 - [Project State](./PROJECT_STATE.md)
 - [Vision](./docs/vision.md)
@@ -329,6 +332,7 @@ Basic flow:
 - Commercial use of the official marks or official brand assets requires prior written permission.
 - Forks may use the code under Apache 2.0, but must not imply official affiliation or ship under the official Waveary branding without permission.
 - See [TRADEMARKS.md](./TRADEMARKS.md) and [BRAND-ASSETS.md](./BRAND-ASSETS.md).
+- A practical usage guide is here: [Commercial Use And Brand Licensing](./docs/commercial-use.md).
 
 ## License
 

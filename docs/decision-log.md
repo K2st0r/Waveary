@@ -27,6 +27,28 @@ Impact:
 - the live web shell sidebar now carries a compact legal notice so the product surface also states that the code is open while the official brand and character visuals remain reserved
 - any future `personal free / commercial negotiate` restriction on the code itself must be handled as a separate licensing decision, not implied by the current Apache code license
 
+## 2026-07-01 - Explain Commercial Use Through A Separate Policy Page, Not Through Ambiguous README Fragments
+
+Status:
+
+- accepted
+
+Decision:
+
+Waveary should explain practical commercial use, rebranding expectations, and official-brand permission boundaries through a dedicated policy page, instead of leaving that information scattered across short README bullets.
+
+Reason:
+
+- the user wants a clearer answer to `personal free / commercial use / brand use` without accidentally rewriting the current code license into something it is not
+- a dedicated page is easier to keep truthful than trying to compress those nuances into one short README line
+- this also gives future GitHub visitors one stable place to understand what they can do with the code and when they need separate brand permission
+
+Impact:
+
+- the repository now includes `docs/commercial-use.md` and `docs/commercial-use.zh-CN.md`
+- `README.md` now links to the commercialization guidance from both the top link cluster and the brand-assets section
+- future repo policy work should extend this dedicated page instead of bloating the main README with longer legal prose
+
 ## 2026-06-24 - Companion Soul Should Live In Markdown And Center One Continuous Caring Bond
 
 Status:

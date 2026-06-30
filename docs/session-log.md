@@ -8755,6 +8755,41 @@ Push:
 
 - succeeded: `git push origin main` pushed functional commit `d5ff7ca` to `origin/main`
 
+## 2026-07-01
+
+Objective:
+
+Add a dedicated commercialization guidance page so GitHub visitors can understand code use, rebranding expectations, and official-brand permission boundaries without guessing from short license notes.
+
+Summary:
+
+- added `docs/commercial-use.md` and `docs/commercial-use.zh-CN.md`
+- updated `README.md` to link the new commercialization guidance from the top link cluster, documentation list, and brand-assets section
+- updated continuity docs so future repo policy work extends the dedicated commercialization page instead of overloading the main README
+
+Files changed:
+
+- `docs/commercial-use.md`
+- `docs/commercial-use.zh-CN.md`
+- `README.md`
+- `ACTIVE_TASKS.md`
+- `PROJECT_STATE.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `git diff -- docs/commercial-use.md docs/commercial-use.zh-CN.md README.md ACTIVE_TASKS.md PROJECT_STATE.md docs/decision-log.md docs/session-log.md`
+- `npm run check:mojibake`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
 Push:
 
 - pending
