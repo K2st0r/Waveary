@@ -8581,3 +8581,322 @@ Commit:
 Push:
 
 - succeeded: `git push origin main` pushed functional commit `7db5bae` to `origin/main`
+
+## 2026-06-29
+
+Objective:
+
+Turn the new session persona work into a real session-scoped companion-profile layer and tighten the chat shell so the runtime feels more like a usable client than a scattered prototype.
+
+Summary:
+
+- extended `waveary-web/server/chat-session-store.ts` with a dedicated companion-profile update result and route-facing update function so session personas can be edited after creation without breaking export/import continuity
+- updated `waveary-web/server/provider-api.ts` to expose `/api/chat/sessions/profile`, and added matching route coverage in `waveary-web/server/provider-api.test.ts`
+- hardened `waveary-web/server/chat-session-store.test.ts` against Windows temp-dir `EPERM` cleanup races in `beforeEach`
+- updated `waveary-web/src/App.tsx` so new-session drafting and active-session companion editing are separate states, the chat shell now shows portrait-backed session identity, empty chat turns now guide the user through the first line more naturally, and the right utility rail now carries the compact voice/status echo instead of leaving extra voice blocks under the composer
+- updated `waveary-web/src/styles.css` so the left session rail, active chat header, richer empty state, right utility rail, and session companion editor all align with the current client-style shell rather than reintroducing long stacked dashboard panels
+
+Files changed:
+
+- `waveary-web/server/chat-session-store.ts`
+- `waveary-web/server/provider-api.ts`
+- `waveary-web/server/chat-session-store.test.ts`
+- `waveary-web/server/provider-api.test.ts`
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/product-preferences.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run test --workspace @waveary/web`
+- `npm run build --workspace @waveary/web`
+- `npm run build:server --workspace @waveary/web`
+- `npm run check:mojibake`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-30
+
+Objective:
+
+Tighten the grouped console shell after the first information-architecture pass so the sparse `skills / channels / settings` surfaces and the `sessions / profile` stage feel more like a real client and less like placeholder note cards.
+
+Summary:
+
+- updated `waveary-web/src/App.tsx` so the sparse grouped workspaces now reuse fuller two-column stage structure instead of falling back to single floating cards, adding compact right-side status rails for `skills`, `channels`, and `settings` sub-surfaces where the earlier pass still felt half-empty
+- tightened the `sessions / profile` stage balance so the left session list column no longer visually dominates the workspace while the active companion archive and right-side summary cards occupy the control desk more intentionally
+- updated `waveary-web/src/styles.css` with only bounded shell-support classes for denser stage fills, better left-right stage ratios, and action placement that settles at the bottom of the active control panel instead of floating mid-surface
+- re-verified the grouped shell through real browser screenshots after the code pass, keeping this change scoped to shell density and layout rhythm only without touching provider, session persistence, or voice routing behavior
+
+Files changed:
+
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+
+Verification:
+
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run check --workspace @waveary/web`
+- `npm run check:mojibake`
+- `node output/playwright/shell-check/console-workspace-check.mjs`
+
+Commit:
+
+- `9965738` - `Polish grouped console workspace density`
+
+Push:
+
+- succeeded: `git push origin main` pushed functional commit `9965738` to `origin/main`
+
+## 2026-06-30
+
+Objective:
+
+Finish the left-sidebar shell grouping pass so the non-provider console workspaces stop feeling like placeholder note cards and start reading like real client work areas.
+
+Summary:
+
+- updated `waveary-web/src/App.tsx` so the new `skills`, `channels`, and `settings` workspaces use the same single-stage internal-tab pattern as the reshaped `provider` and `sessions` workspaces instead of remaining flat explanatory panels
+- kept the top-level sidebar hierarchy explicit as `Conversation / Sessions / Control / Settings`, preserving the product decision that persona/profile, capabilities, and global settings should not compete as same-level tabs
+- turned the new grouped workspaces into more truthful product surfaces with direct actions and routing handoffs, such as jumping from skills into provider/session/care areas and keeping permission/data/desktop concerns inside settings
+- updated `waveary-web/src/styles.css` with only minimal supporting polish so the new grouped workspaces share the same panel rhythm and card height expectations as the rest of the control desk
+
+Files changed:
+
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `ACTIVE_TASKS.md`
+- `PROJECT_STATE.md`
+- `docs/product-preferences.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run check --workspace @waveary/web`
+- `npm run check:mojibake`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-30
+
+Objective:
+
+Remove the intrusive chat-top persona strip regression and restate the intended local persistence split: `SQLite` for live runtime state, `JSON` for portable companion-session export/import.
+
+Summary:
+
+- updated `waveary-web/src/App.tsx` so the active chat view no longer keeps the forced companion/session header above the message canvas, keeps only the lighter dismissible restore-history notice, and makes session-export copy explicit that the package carries companion profile, portrait, voice preferences, history, memory, relationship state, timeline, and latest insights together
+- updated `waveary-web/src/styles.css` so the focused chat panel now uses a stable three-row `notice / log / composer` layout, the restore notice sits in a thin dedicated top row, and dismissing that notice no longer risks visually hiding the composer
+- updated `ACTIVE_TASKS.md` and `docs/product-preferences.md` so future shell work preserves this direction: profile editing stays in the session/profile flow, large persona cards stay out of the active chat canvas, and `SQLite` remains the primary local runtime store while `JSON` stays the transport layer for migration
+
+Files changed:
+
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `ACTIVE_TASKS.md`
+- `docs/product-preferences.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run check --workspace @waveary/web`
+- `npm run check:mojibake`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-30
+
+Objective:
+
+Polish two remaining chat-shell irritants without another broad pass: replace the left-rail `Show / Hide` collapse copy with arrow-only toggles, and turn the restored-history banner into a closable top notice.
+
+Summary:
+
+- updated `waveary-web/src/App.tsx` so the session and control collapse triggers now behave like compact arrow-only toggles instead of showing `Show / Hide` text, and the restored-history notice now renders as a dedicated closable top banner instead of a permanently pinned inline status block
+- updated `waveary-web/src/styles.css` so those collapse toggles read like small client-style arrow controls and the restored-history notice sits more lightly at the top of chat with its own close affordance
+- kept the changes bounded to the live shell only, without reopening the larger session, provider, or voice layout structure from the previous pass
+
+## 2026-06-30
+
+Objective:
+
+Finish the sidebar collapse-header micro-pass so the chat shell matches the intended compact client pattern: title on the left, arrow-only toggle on the right.
+
+Summary:
+
+- updated `waveary-web/src/App.tsx` so both sidebar sections now render their title and collapse trigger inside one shared header row instead of as stacked separate blocks
+- updated `waveary-web/src/styles.css` so the toggle sits on the right edge of the section header while preserving the existing arrow states: expanded uses `▾` and collapsed uses `▸`
+- kept the change intentionally narrow so the recent restore-banner, chat-header, provider, and voice-shell work would not regress
+
+Files changed:
+
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/web`
+- `npm run check:mojibake`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-30
+
+Objective:
+
+Untangle the noisiest console workspaces by turning sessions into a tabbed single-stage workspace and turning model setup into a model-category navigation surface.
+
+Summary:
+
+- updated `waveary-web/src/App.tsx` so the provider workspace now uses compact internal category tabs for `language / voice / vision / image / video`, keeping language-model setup and voice-model setup separate instead of stacked in one long block
+- updated `waveary-web/src/App.tsx` so the sessions workspace now uses one focused tabbed stage for `profile / session / storage / transfer / permissions`, instead of showing a broad two-column wall of unrelated cards at once
+- updated `waveary-web/src/styles.css` so those new internal tabs, single-stage work panels, transfer split, and workspace summaries keep the console denser and more legible without reopening the broader shell structure
+- kept the change bounded to workspace information architecture and layout only, leaving the underlying provider, voice, persistence, import/export, and permission handlers intact
+
+Files changed:
+
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/product-preferences.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/web`
+- `npm run check:mojibake`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-30
+
+Objective:
+
+Finish the provider workspace transition so `模型接入` stops feeling half-split: remove the low-value secondary summary feel, keep one main control stage, and expose non-chat capability config plus speech-recognition model selection directly in the UI.
+
+Summary:
+
+- updated `waveary-web/server/model-config.ts` plus `waveary-web/server/provider-api.ts` so `speech / vision / image / video` capability configs are persisted and served through first-class API routes instead of an implied file-edit workflow
+- updated `waveary-web/src/App.tsx` so the provider workspace now uses one denser main stage for `language / voice / vision / image / video`, reuses a shared capability-panel renderer for non-chat model surfaces, and surfaces `STT model` directly inside the voice workspace
+- updated `waveary-web/src/styles.css` so the provider stage now aligns with the compact control-desk direction: fewer explanation cards, stronger top-row signal pills, and a more consistent two-column operational grid inside the main stage
+- verified the focused shell change through `npx tsc --noEmit -p waveary-web/tsconfig.json`, `npm run check --workspace @waveary/web`, `npm run check:mojibake`, and an HTTP reachability check against the current local dev page
+
+Files changed:
+
+- `waveary-web/server/model-config.ts`
+- `waveary-web/server/provider-api.ts`
+- `waveary-web/server/provider-api.test.ts`
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `ACTIVE_TASKS.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run check --workspace @waveary/web`
+- `npm run check:mojibake`
+- `PowerShell: (Invoke-WebRequest -UseBasicParsing http://127.0.0.1:4173).StatusCode`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+Files changed:
+
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/web`
+- `npm run check:mojibake`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-06-29
+
+Objective:
+
+Tighten the Waveary chat and console shell without another broad rewrite: compact the left rail, merge voice access into provider setup, and reduce the chat-page top-strip footprint.
+
+Summary:
+
+- updated `waveary-web/src/App.tsx` so the left sidebar no longer exposes a separate voice workspace in navigation, the provider workspace now embeds the existing voice controls, the chat-session top strip can be dismissed, and the sidebar gained compact collapse toggles for session and control blocks
+- updated `waveary-web/src/styles.css` so the left rail is narrower and denser, control cards are more compact, the chat-session strip is thinner with a close button, redundant second-line session-vibe copy is visually removed, and the provider workspace now has an integrated voice-access section
+- kept the old dedicated voice workspace code path dormant rather than deleting it outright, so future refactors can still reuse it if needed without risking this shell stabilization pass
+- verified that the shell pass is type-safe through `npm run check --workspace @waveary/web`; direct `vite build` remains blocked by an existing workspace-level `@waveary/core` package-entry resolution issue unrelated to this UI change
+
+Files changed:
+
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/web`
+- `npm run check:mojibake`
+- `npm run build --workspace @waveary/web` failed because Vite could not resolve the current `@waveary/core` package entry during config bundling
+
+Commit:
+
+- pending
+
+Push:
+
+- pending

@@ -15,7 +15,7 @@ Brand line:
 
 ## Latest Verified Commit
 
-- `7db5bae` - `Refactor runtime shell into shared left sidebar`
+- `9965738` - `Polish grouped console workspace density`
 
 ## Latest Repository Surface
 
@@ -28,6 +28,10 @@ Brand line:
 - GitHub onboarding docs are now being split into language-switched English and Simplified Chinese documents so the repository homepage no longer mixes both languages inside the same page flow
 - the active web shell now uses one shared left runtime sidebar for branding, sessions, console entrypoints, and version display, instead of the earlier top navigation shell
 - the active runtime shell no longer depends on the old sticky topbar navigation, and the remaining live brand surface stays on transparent vector assets instead of raster logo drafts
+- the web session layer now also persists per-session companion-profile setup beyond creation time, so portrait, companion naming, user naming, vibe, style, and preferred voice hints can be edited later and survive export/import
+- the current console information architecture now treats `Conversation / Sessions / Control / Settings` as the stable top-level client grouping, instead of flattening persona, skills, and settings into competing same-level tabs
+- the new `skills`, `channels`, and `settings` workspaces now also follow the same single-stage tabbed control-desk pattern already used by `provider` and `sessions`, so future shell work should extend that shared pattern instead of reintroducing mixed explanatory card walls
+- the grouped console workspaces now also use denser two-column stage fills where appropriate, so sparse surfaces such as `skills`, `channels`, and `settings` no longer drift back into placeholder-like half-empty panels while `sessions/profile` also uses a tighter left-right balance
 
 ## Modules
 
@@ -93,7 +97,8 @@ Brand line:
   - the concept-level identity-summary derivation is now more precise across ordinary chat, emotional turns, and relationship-warming turns: casual cadence preferences no longer get over-promoted into vulnerability, emotional support needs now distinguish loneliness and overwhelm from generic sadness/anxiety, and bond summaries can preserve naming/ritual/reconnection trust cues instead of collapsing back to only generic continuity
   - the newest identity-summary pass now also suppresses older generic comfort themes when a fresher loneliness / overwhelm / anxiety signal clearly calls for a more specific care need
   - that same concept-level understanding is now also surfaced truthfully through `waveary-web` session snapshots, chat-turn payloads, import/export validation, and a user-facing runtime understanding panel, so Waveary's continuity layer is no longer hidden only inside prompt assembly
-  - the runtime understanding panel is now also lightly correctable in place through the web UI, so the active session's concept-level identity summary can be edited, persisted, mirrored back into `latestInsights`, and reused by future turns without forcing the user through a rigid persona setup form
+- the runtime understanding panel is now also lightly correctable in place through the web UI, so the active session's concept-level identity summary can be edited, persisted, mirrored back into `latestInsights`, and reused by future turns without forcing the user through a rigid persona setup form
+- the `waveary-web` session shell now also carries a first true companion-profile edit path: session snapshots and lists persist the profile, the create-session route already accepts it, a dedicated session-profile update route now exists, and the chat/console UI now surfaces portrait-backed session identity instead of treating the persona choice as one-shot setup only
   - permissioned local time context can now be injected into normal chat turns so the companion can answer time/date-style questions from the user's device-local clock without claiming it lacks real-time awareness
   - local time context now also resolves a bounded daypart hint so late-night and evening turns can bias toward softer companion tone without expanding into broader desktop-awareness inputs
   - direct local time/date/day questions now also short-circuit inside `WavearyRuntime` through a shared deterministic reply helper before provider generation, so real providers can no longer ignore the supplied local clock context and fall back to generic "I do not know the time" disclaimers
@@ -439,6 +444,8 @@ Brand line:
 - decide whether Gemini should stay TTS-only for now or later receive a separate audio-understanding / transcription adapter instead of being forced into the current provider-backed STT contract
 - use the new repo-side mojibake guard whenever a future Waveary work block edits Chinese-facing copy, and keep broad historical Chinese cleanup isolated from unrelated feature work
 - keep future shell polish focused on the lower workspace stage and inner panel density; do not bloat the top workspace-tab strip when the real complaint is about the operational panels below
+- the latest shell pass now keeps voice setup inside the provider workspace, uses collapsible left-rail modules, and lets the compact chat session strip be dismissed, so future shell work should extend that denser client direction instead of bringing back duplicated setup blocks or a dedicated voice page
+- the follow-up shell polish now also uses arrow-only sidebar collapse controls and a dismissible restored-history notice near the top of chat, so future cleanup should preserve that quieter client-like behavior instead of bringing back `Show / Hide` copy or a permanently pinned restore banner
 - keep the sticky topbar on transparent vector brand assets only; do not route the live header back through standalone raster logo drafts with baked backgrounds, because that regresses the formal shell identity immediately
 - keep future voice-shell checks focused on true UI regressions now that shared, dedicated OpenAI-compatible, Doubao, and local branches have all been browser-verified against the routing card
 - confirm the dedicated local-bridge voice path in-browser now that its optional auth slot stays visible in the same credential area instead of disappearing with the old conditional rendering
@@ -474,6 +481,7 @@ Brand line:
 - decide whether to harden `@waveary/core`'s Windows test script so it rebuilds or expands compiled test-file arguments more robustly, since the current `npm run test --workspace @waveary/core` path can misbehave if relied on alone after source edits
 - add focused route-level and browser-facing coverage for any remaining persistence edge cases beyond the current file/sqlite symmetry path
 - continue polishing the split web shell by tightening session-management density below the console fold and improving message rhythm plus mixed-language balance in the dedicated chat page
+- continue polishing the split web shell by deciding whether more of the now-working companion-profile editing flow should move out of the broad session console card into a slimmer inline side surface once the current in-browser balance is verified
 - visually verify and tune the new compact console toolbar plus non-session workspace flow in-browser, especially the internal scrolling behavior now that the marketing-style console intro has been suppressed
 - the README hero banner asset has now been rebuilt into a centered transparent fan composition with cleaner portrait-card isolation; only keep iterating if live GitHub rendering still shows a real balance issue
 - if future homepage polish touches the closing route section again, keep it as a homepage-ending promotional recap and do not reintroduce a separate roadmap page
@@ -492,6 +500,8 @@ Brand line:
 - consider replacing current raw portrait PNGs with lighter optimized delivery assets once the final portrait set is approved
 - validate the bilingual home / console / chat shell in a broader browser pass and tune any remaining spacing, wrapping, or readability issues caused by mixed Chinese and English line lengths
 - consider a follow-up web pass focused specifically on richer chat-page signal affordances that do not drag diagnostics clutter back into the conversation view
+- preserve the compact sidebar-header rule in the chat shell: section title on the left, arrow-only collapse toggle on the right, expanded as a down arrow and collapsed as a right arrow
+- preserve the compact control-desk rule inside console workspaces too: when one workspace owns many controls, prefer one stable stage with small internal category tabs instead of one long mixed card wall
 - keep session import semantic hardening paused here unless a real malformed package reveals another high-value cross-structure gap
 - consider adding finer-grained session controls such as export/import or per-session persistence diagnostics after the current reset capability
 - keep using the new post-commit test-memory reset flow before live behavior checks so stale local chat history does not leak into fresh companion-quality verification
@@ -516,6 +526,7 @@ Brand line:
 - the new `npm run check:mojibake` guard only scans changed added lines for obvious corruption patterns; it reduces repeat mistakes but does not replace a dedicated full-document Chinese cleanup pass
 - `npx tsc --noEmit -p waveary-web/tsconfig.server.json` is not a trustworthy verification command in this workspace right now because its standalone resolution still reports broader historical workspace-type issues even when the package build/test flow passes; prefer `npm run test --workspace @waveary/web` or `npm run build:server --workspace @waveary/web` for server-side voice verification until that separate tsconfig issue is deliberately cleaned up
 - `waveary-web/src/App.tsx` no longer has the newest visible mojibake in the dedicated voice credential block, but broader document-level cleanup is still outstanding and should stay isolated from active feature work
+- direct `npm run build --workspace @waveary/web` is currently blocked again by a workspace-level `@waveary/core` package entry resolution failure in Vite config bundling, even though `npm run check --workspace @waveary/web` now passes and the current shell edits are type-safe; treat that package-entry issue as separate from this shell pass
 - provider and voice setup still use different persistence ergonomics today: provider chat runtime only uses explicitly saved config, while many voice fields save on blur, so future console changes should keep that distinction legible instead of implying all edited credentials are already active
 - direct deletion of `.waveary/chat-sessions.db` is not a reliable live-reset strategy on Windows while the web server is running, because SQLite file locks can block removal; prefer the local reset API path first
 - the first provider-backed STT browser path now uses browser-side speech-activity heuristics rather than a fixed short timer, but it is still not a server-grounded VAD, interruption-capable loop, or full duplex transport
