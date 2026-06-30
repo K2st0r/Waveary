@@ -11,6 +11,7 @@ Only write preferences here when they are likely to remain useful over time.
 - Waveary must be understood as an open source digital life companion framework, not an AI girlfriend project, AI boyfriend project, or generic chatbot wrapper.
 - The brand line is `念念不忘，终有回响。`
 - The product should feel like a continuity layer for life companionship, not like a roleplay shell or benchmark-driven assistant skin.
+- Keep the source code open under the repository code license, but reserve the official `Waveary / 回响之境` name, logos, portrait cards, and official visual assets separately from that code license.
 
 ## Product Priorities
 

@@ -6548,6 +6548,11 @@ export function App(): ReactElement {
             <span>{locale === "zh" ? "版本" : "Version"}</span>
             <strong>{appVersion}</strong>
           </div>
+          <p className="app-sidebar-legal-note">
+            {locale === "zh"
+              ? "代码遵循 Apache-2.0；Waveary、回响之境、Logo 与官方人物视觉保留权利。"
+              : "Code: Apache-2.0. `Waveary`, `回响之境`, logos, and official character art are reserved."}
+          </p>
         </div>
       </aside>
     );

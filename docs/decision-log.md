@@ -4,6 +4,29 @@ This file records important product, architecture, and workflow decisions for Pr
 
 Use it to preserve the reason behind major choices so future Codex sessions do not repeat or undo settled work.
 
+## 2026-07-01 - Keep Code Open And Reserve The Official Brand Separately
+
+Status:
+
+- accepted
+
+Decision:
+
+Waveary should keep its source code under the repository's open-source code license, while reserving the official `Waveary / 回响之境` name, logos, portrait-card identity, and other official brand assets separately through explicit repository notices.
+
+Reason:
+
+- the user wants the project to remain freely usable for personal learning and building, while still protecting the official product identity from direct copying, impersonation, or unauthorized commercial brand reuse
+- the current repository license is already `Apache-2.0`, which keeps the code open but does not grant trademark rights
+- separating code rights from brand rights is the cleanest near-term protection path without pretending the code license alone can enforce commercial branding restrictions
+
+Impact:
+
+- the repository now includes `TRADEMARKS.md`, `BRAND-ASSETS.md`, and `NOTICE`
+- `README.md` now correctly states `Apache License 2.0` and adds a brand / official-assets reservation section
+- the live web shell sidebar now carries a compact legal notice so the product surface also states that the code is open while the official brand and character visuals remain reserved
+- any future `personal free / commercial negotiate` restriction on the code itself must be handled as a separate licensing decision, not implied by the current Apache code license
+
 ## 2026-06-24 - Companion Soul Should Live In Markdown And Center One Continuous Caring Bond
 
 Status:

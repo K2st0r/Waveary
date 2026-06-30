@@ -26,6 +26,7 @@ Brand line:
 - GitHub topics: `waveary`, `hui-xiang-zhi-jing`, `digital-life-companion`, `digital-companion`, `ai-companion`, `companion-framework`, `companion-ai`, `llm-framework`, `long-term-memory`, `memory-framework`, `memory-engine`, `relationship-engine`, `timeline-engine`, `voice-agent`, `emotional-ai`, `open-source`
 - homepage: `https://github.com/K2st0r/Waveary#readme`
 - GitHub onboarding docs are now being split into language-switched English and Simplified Chinese documents so the repository homepage no longer mixes both languages inside the same page flow
+- the repository now also separates code-license rights from brand rights explicitly: source code remains under `Apache-2.0`, while `Waveary / 回响之境`, official logos, portrait cards, and official visual assets are now reserved through `TRADEMARKS.md`, `BRAND-ASSETS.md`, `NOTICE`, and a compact in-product sidebar notice
 - the active web shell now uses one shared left runtime sidebar for branding, sessions, console entrypoints, and version display, instead of the earlier top navigation shell
 - the active runtime shell no longer depends on the old sticky topbar navigation, and the remaining live brand surface stays on transparent vector assets instead of raster logo drafts
 - the web session layer now also persists per-session companion-profile setup beyond creation time, so portrait, companion naming, user naming, vibe, style, and preferred voice hints can be edited later and survive export/import

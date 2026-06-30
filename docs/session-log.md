@@ -8689,6 +8689,50 @@ Commit:
 
 - pending
 
+## 2026-07-01
+
+Objective:
+
+Add first explicit trademark and brand-asset reservation notices so Waveary can keep the code open while protecting the official product identity.
+
+Summary:
+
+- added `TRADEMARKS.md`, `BRAND-ASSETS.md`, and `NOTICE` to separate brand / official-asset rights from the Apache 2.0 code license
+- corrected `README.md` so its public license badge and license section now match the real repository license (`Apache-2.0` instead of the stale `MIT` wording)
+- added a brand / trademark / official-assets reservation section to `README.md`
+- updated `README.zh-CN.md` license badge to match `Apache-2.0`
+- added a compact legal notice to the live left sidebar in `waveary-web/src/App.tsx`
+- updated continuity docs so future sessions preserve the split between open code and reserved brand assets
+
+Files changed:
+
+- `README.md`
+- `README.zh-CN.md`
+- `TRADEMARKS.md`
+- `BRAND-ASSETS.md`
+- `NOTICE`
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `docs/product-preferences.md`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/decision-log.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `git diff -- README.md README.zh-CN.md TRADEMARKS.md BRAND-ASSETS.md waveary-web/src/App.tsx waveary-web/src/styles.css`
+- `npm run check:mojibake`
+- `npm run check --workspace @waveary/web`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
 Push:
 
 - pending
