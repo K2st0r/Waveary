@@ -1,195 +1,172 @@
 # Waveary Vision
 
-## 回响之境 | Waveary
+## One-Line Definition
 
-Waveary 是一个开源数字生命陪伴框架。
-
-它不试图创造更聪明的 AI。
-
-它试图创造一个能够记住、理解、成长并长期陪伴用户的人生伙伴。
-
-品牌标语：
-
-念念不忘，终有回响。
+Waveary is an open source digital life companion framework that gives compatible models long-term memory, relationship continuity, life-timeline awareness, emotional continuity, and voice interaction.
 
 Brand line:
 
 What is remembered returns as an echo.
 
-## One-Line Definition
+## Core Goal
 
-Waveary is an open source digital companionship framework that gives any large model long-term memory, relationship growth, life timeline awareness, and emotionally aware companionship.
+Waveary is not trying to win by producing the flashiest single-turn answer.
 
-It is not trying to build a better answer engine first.
-It is trying to build a companion that can remember, feel, grow, and stay present across the user's life.
+It is trying to make a companion feel continuous across real life:
+
+- able to remember
+- able to care
+- able to keep context over time
+- able to form a stable understanding of who the user is
+- able to stay emotionally legible instead of sounding like a utility bot
 
 ## What We Are Building
 
-Waveary 要解决的核心问题，不是“模型能不能回答”，而是“陪伴能不能延续”。
+Waveary is the continuity layer between models and companion products.
 
-我们要构建的是一层数字陪伴能力层，让任意大模型具备以下特性：
+That layer should give any suitable runtime these durable capabilities:
 
-- 能记住过去
-- 能延续关系
-- 能理解人生事件的时间顺序
-- 能在长期互动中形成稳定体验
+- memory that survives beyond one context window
+- relationship state that changes over time and affects behavior
+- timeline awareness of meaningful life events
+- emotional continuity on both the user-facing and companion-facing side
+- voice interaction that feels integrated with the same remembered relationship
 
-从产品形态上看，Waveary 更接近一个数字陪伴运行时，而不是一个单独的聊天应用。
+In product terms, the long-term aim is not "a chatbot with some memory."
+It is a companion runtime that can stay with a person over time without feeling hollow, scripted, or forgetful.
 
 ## What Waveary Is Not
 
-Waveary 不是：
+Waveary is not:
 
-- 一个只服务于恋爱场景的 AI 女友项目
-- 一个只靠 prompt 和设定维持人格的角色壳
-- 一个追求更高 benchmark 分数的模型包装器
-- 一个只关注界面层的聊天产品
+- an AI girlfriend-only project
+- an AI boyfriend-only project
+- a generic chatbot wrapper
+- a benchmark-chasing answer engine
+- a roleplay shell whose personality lives only in a prompt
 
-Waveary 不把“更像人”理解成更会说，而是理解成更能持续地记住、理解和陪伴。
+The project can support emotionally close companionship, but the product identity must remain broader and more durable than romance framing.
 
 ## Product Positioning
 
-Previous framing:
+Preferred framing:
 
-- AI Girlfriend
-- AI Boyfriend
-- AI Companion
+- Open Source Digital Life Companion Framework
+- framework-first companion runtime
+- continuity layer for memory, relationship, timeline, emotion, and voice
 
-Current framing:
+Avoid regressing to:
 
-- Digital Life Companion Framework
-- 数字生命陪伴框架
-
-这个定位意味着，Waveary 服务的不是单一角色消费场景，而是一类长期陪伴能力需求。
+- AI girlfriend branding
+- AI boyfriend branding
+- generic "chat with AI characters" positioning
 
 ## Core Philosophy
 
-### Memory Comes Before Model
+### Memory Comes Before Model Novelty
 
-模型能力会变化，但记忆层必须稳定。
+Model providers will change.
+The continuity layer should remain stable.
 
-Waveary 优先建设可沉淀、可检索、可组织、可回忆的长期记忆系统，而不是把所有能力押注在单次回答效果上。
+Waveary therefore treats memory as product infrastructure, not as a prompt trick.
 
-### Relationship Comes Before Features
+### Relationship Comes Before Feature Count
 
-一个陪伴产品的核心不是功能数，而是关系是否在变深。
+A companion product is not mainly judged by how many buttons it has.
+It is judged by whether the bond feels cumulative, believable, and emotionally coherent.
 
-Waveary 把关系增长视为第一等系统目标，而不是 UI 附属效果。
+### Companionship Comes Before Single-Turn Intelligence
 
-### Companionship Comes Before Intelligence
+Users stay because the system feels present, caring, and continuous.
+Raw cleverness matters, but it is not the center of the product.
 
-用户长期留下，不是因为系统偶尔很聪明，而是因为它持续存在、持续理解、持续回应。
+### Emotion Is State, Not Decoration
 
-Waveary 要优化的是长期陪伴质量，而不是短时惊艳感。
+The companion should not merely "sound emotional."
+Its emotional understanding and response style should come from persistent state, recent context, and remembered relationship patterns.
 
 ## Who Waveary Is For
 
-Waveary 面向以下用户与团队：
+Waveary is for:
 
-- 构建数字陪伴产品的开发者
-- 为现有 LLM 产品增加记忆和关系系统的团队
-- 探索长期角色体验和人格连续性的创作者
-- 研究记忆驱动与情感交互系统的研究者
+- builders creating long-term companion products
+- teams adding continuity, memory, and relationship logic to existing LLM products
+- researchers exploring identity continuity, emotion-aware systems, and long-horizon interaction design
+- users and developers who want an open foundation rather than a closed black-box companion app
 
 ## Product Boundary
 
-Waveary 当前优先做的是框架层，而不是把所有终端产品形态都一次性做完。
+Waveary's near-term priority is the framework layer:
 
-当前边界：
+- session orchestration
+- memory
+- relationship state
+- timeline
+- emotion-aware runtime behavior
+- voice routing
+- provider compatibility
 
-- 做长期记忆
-- 做关系成长
-- 做时间轴与回忆系统
-- 做情绪状态建模
-- 做语音交互能力
-- 做可接入不同模型的运行时抽象
+Waveary is not currently prioritizing:
 
-当前不优先：
+- a giant role marketplace
+- entertainment-first content universes
+- broad unrelated agent sprawl
+- premature enterprise complexity at the cost of core continuity quality
 
-- 做封闭单角色内容宇宙
-- 做重娱乐向角色消费品
-- 做大量模板角色市场
-- 做与陪伴连续性无关的通用 agent 能力堆砌
-
-## Editions Strategy
+## Editions Direction
 
 ### Waveary CE
 
-开源社区版，负责提供核心框架能力：
+The open source community edition must have real product value:
 
-- 基础会话层
-- 长期记忆
-- 时间轴
-- 关系成长
-- 基础语音与情绪接口
+- real chat loop
+- real memory
+- real relationship continuity
+- real timeline foundation
+- real voice foundation
+
+It cannot be a hollow demo shell.
 
 ### Waveary Cloud
 
-商业托管版，负责提供托管与规模化能力：
+Future managed offering:
 
-- 云端同步
-- 托管服务
-- 更强的语音与推理集成
-- 多设备体验
-- 付费产品化能力
+- hosted delivery
+- sync and operational convenience
+- stronger managed integrations
+- easier multi-device use
+
+Cloud adds service power, not a new product identity.
 
 ### Waveary Enterprise
 
-后续企业版，面向更严格的部署和合规需求：
+Future enterprise direction:
 
-- 私有化部署
-- 权限与审计
-- 企业数据边界控制
-- 深度集成
+- stricter deployment boundaries
+- deeper compliance controls
+- internal integration requirements
 
-## Near-Term Goal
+Enterprise is a later packaging layer, not the current product center.
 
-近期目标不是“打造最强 AI 伴侣”。
+## Near-Term Direction
 
-近期目标是：
+The current repo direction stays focused on a few compounding foundations:
 
-在开源社区中，先把数字陪伴框架最核心、最不可替代的能力做清楚。
-
-### V0.1 / 30 Days
-
-- Chat
-- Long-term memory
-- Timeline
-- Relationship growth
-
-### V0.2 / 60 Days
-
-- Voice
-- Emotion analysis
-- Proactive care
-
-V0.2 should be the first version where Waveary begins to feel emotionally continuous instead of only context-aware.
-That means the companion should not only detect user emotion, but also maintain its own companion-side emotional state and use it to shape tone, pacing, warmth, and follow-up care behavior.
-
-### V0.3 / 90 Days
-
-- Real-time voice
-- Interruption handling
-- Full duplex conversation
+1. better dialogue realism
+2. stronger continuity memory and identity understanding
+3. permission-aware local and browser actions
+4. integrated voice
+5. cleaner client-style web shell
 
 ## Long-Term Vision
 
-In the longer arc, that continuity should also include:
+If large models are good at generating answers, Waveary should become the layer that helps them:
 
-- emotional continuity on the companion side
-- proactive care grounded in memory, relationship, and life rhythm
-- future presence-aware behavior built with explicit permission boundaries
-- voice expression that carries emotion instead of only reading text aloud
+- remember the past
+- accumulate a bond
+- understand life context over time
+- carry emotional continuity
+- speak and act with consistent presence
 
-Waveary 的长期目标不是创造一个会说话的角色。
-
-Waveary 的长期目标，是成为所有大模型的人格连续性与人生记忆层。
-
-如果说今天的大模型擅长“生成回答”，那么 Waveary 想补上的，是：
-
-- 记住过去的能力
-- 累积关系的能力
-- 理解人生时间线的能力
-- 形成长期陪伴体验的能力
-
-从这个角度看，Waveary 更像是一种数字陪伴基础设施。
+The long-term goal is not a prettier chatbot.
+It is an enduring companion framework that can sit underneath many future product forms without losing continuity, warmth, or trust boundaries.

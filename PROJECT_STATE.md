@@ -1,6 +1,6 @@
 # Project State
 
-If a new Codex session starts in this repository, use `waveary-continuity-guard` immediately and rebuild context from this file plus `docs/session-log.md` and `docs/decision-log.md`.
+If a new Codex session starts in this repository, use `waveary-continuity-guard` first, then rebuild context from this file, `ACTIVE_TASKS.md`, `docs/decision-log.md`, and `docs/session-log.md`.
 
 ## Project
 
@@ -8,537 +8,110 @@ Waveary is an open source digital life companion framework.
 
 Brand line:
 
-蹇靛康涓嶅繕锛岀粓鏈夊洖鍝嶃€?
+What is remembered returns as an echo.
+
 ## Current Branch
 
 - `main`
 
 ## Latest Verified Commit
 
-- `a7f3034` - `Simplify sidebar shell entrypoints`
+- `b1ba191` - `Sync editions docs continuity log`
 
-## Latest Repository Surface
+## Repository Surface
 
 - GitHub repository: `https://github.com/K2st0r/Waveary`
 - visibility: `public`
 - default branch: `main`
-- GitHub description: `回响之境 Waveary｜开源数字生命陪伴框架 / Open source digital life companion framework for memory, relationship, timeline, emotion, and voice.`
-- GitHub topics: `waveary`, `hui-xiang-zhi-jing`, `digital-life-companion`, `digital-companion`, `ai-companion`, `companion-framework`, `companion-ai`, `llm-framework`, `long-term-memory`, `memory-framework`, `memory-engine`, `relationship-engine`, `timeline-engine`, `voice-agent`, `emotional-ai`, `open-source`
-- homepage: `https://github.com/K2st0r/Waveary#readme`
-- GitHub onboarding docs are now being split into language-switched English and Simplified Chinese documents so the repository homepage no longer mixes both languages inside the same page flow
-- the repository now also separates code-license rights from brand rights explicitly: source code remains under `Apache-2.0`, while `Waveary / 回响之境`, official logos, portrait cards, and official visual assets are now reserved through `TRADEMARKS.md`, `BRAND-ASSETS.md`, `NOTICE`, and a compact in-product sidebar notice
-- the repository now also has dedicated commercialization guidance through `docs/commercial-use.md` and `docs/commercial-use.zh-CN.md`, so future repo work can link users to one practical explanation of code use, rebranding expectations, and when official brand permission is required
-- the repository now also has dedicated editions guidance through `docs/editions.md` and `docs/editions.zh-CN.md`, and the public Chinese README no longer claims the project is under `MIT`; the public repo-facing docs now present `CE / Cloud / Enterprise`, commercial-brand boundaries, and Apache-2.0 consistently across English and Chinese entry pages
-- the active web shell now uses one shared left runtime sidebar for branding, sessions, console entrypoints, and version display, instead of the earlier top navigation shell
-- the active runtime shell no longer depends on the old sticky topbar navigation, and the remaining live brand surface stays on transparent vector assets instead of raster logo drafts
-- the web session layer now also persists per-session companion-profile setup beyond creation time, so portrait, companion naming, user naming, vibe, style, and preferred voice hints can be edited later and survive export/import
-- the current console information architecture now treats `Conversation / Sessions / Control / Settings` as the stable top-level client grouping, instead of flattening persona, skills, and settings into competing same-level tabs
-- the left runtime sidebar now also uses title-only direct destinations, with no explanatory subtitle lines and no redundant dedicated `进入对话 / Open chat` entry when session selection already opens chat
-- the new `skills`, `channels`, and `settings` workspaces now also follow the same single-stage tabbed control-desk pattern already used by `provider` and `sessions`, so future shell work should extend that shared pattern instead of reintroducing mixed explanatory card walls
-- the grouped console workspaces now also use denser two-column stage fills where appropriate, so sparse surfaces such as `skills`, `channels`, and `settings` no longer drift back into placeholder-like half-empty panels while `sessions/profile` also uses a tighter left-right balance
+- public code license: `Apache-2.0`
+- official brand, logos, portrait cards, and other official visual assets are reserved separately through `TRADEMARKS.md`, `BRAND-ASSETS.md`, and `NOTICE`
+- public onboarding now uses separate English and Simplified Chinese docs instead of mixed inline bilingual pages
 
 ## Modules
 
 - `waveary-core`
-  - TypeScript runtime skeleton is implemented
-  - in-memory relationship, timeline, emotion, and scripted chat adapters are implemented
-  - runnable demo flow exists through root `examples/`
-  - Node-based runtime tests are implemented
-  - OpenAI-compatible multi-provider chat integration is implemented
-  - provider model discovery interface is implemented
-  - provider model discovery now normalizes multiple OpenAI-compatible `/models` payload shapes, deduplicates repeated IDs, and preserves optional label/context window metadata
-  - provider request compatibility now includes provider-specific base URL normalization and responses-role fallback handling for DeepSeek-style OpenAI-compatible differences
-  - provider compatibility now also tolerates model discovery without a preselected chat model, nested `/models` containers, alternate model metadata field names, and broader structured text payload shapes across chat-completions and responses-style providers
-  - provider verification CLI scaffolding now exists so saved or environment-supplied provider credentials can be checked end-to-end for model discovery and one real chat turn without changing the web runtime path
-  - runtime dialogue scaffolding now biases more strongly toward companion-style continuity by using relationship-stage-aware reply guidance, less mechanical memory phrasing, and more behavior-driven relationship growth signals
-  - dialogue quality has now been pushed further through context-sensitive memory recall thresholds, persisted `lastRecalledAt` updates, richer user-emotion detection, more stateful companion-emotion transitions, and clearer reply-distance differences across `new`, `warming`, and `growing` relationship stages
-  - real-provider dialogue guidance now also names a current-turn focus plus one primary continuity thread, keeps extra recalled memories in a secondary block, and becomes more conservative about forcing weak memory links into emotionally heavy turns
-  - shared continuity-thread selection now lives in `waveary-core` runtime code and is reused by both the OpenAI-compatible provider path and the scripted provider path, so primary-thread choice, emotional-turn conservatism, and current-turn focus summarization no longer drift apart across those reply surfaces
-  - shared continuity-thread selection now also ranks recalled memory candidates by match to the latest user turn instead of always trusting array order, so real-provider prompt guidance can keep the primary thread aligned with the user's most recent concern in multi-turn conversations
-  - shared continuity-thread selection now also keeps weak timeline threads restrained during emotionally heavy turns instead of automatically treating a low-signal life event as strong anchoring material, closing the earlier asymmetry between weak-memory and weak-timeline handling
-  - when a timeline event becomes the primary continuity thread, the secondary recalled-memory list now reflects current-turn relevance order rather than raw retrieval order, so supporting memories stay aligned with the user's immediate concern
-  - shared continuity-thread selection now also gives a small recency bonus to newer memory candidates, so near-tied relevance cases favor fresher remembered threads instead of being decided by retrieval order alone
-  - shared continuity-thread selection now also gives a very light source-turn bonus to memories tied to more recent user turns, so semantically tied same-age memories follow the live conversation arc instead of falling back to array order
-  - shared continuity-thread selection now also blends short carry-over user follow-ups such as "still scared about that" with the immediately previous user turn, so continuity matching and prompt focus can stay on the live underlying topic instead of treating the follow-up fragment as a fresh isolated request
-  - shared continuity-thread selection now also treats more oblique emotional carry-over turns such as "that part still hurts", "I am not over it yet", and `我还没过去，还是那个感觉` as continuation of the immediately previous user topic when the new message is short, elliptical, and still emotionally attached to the same thread
-  - shared continuity-thread selection now also treats low-affect pronoun follow-ups such as `It just feels strange now.` as continuation of the immediately previous user topic when the message is short, referential, and still describing the same unresolved thread
-  - shared continuity-thread selection now also treats short inferential carry-over turns such as `Maybe that's why I can't settle tonight.` as continuation of the immediately previous user topic when the user is still drawing a causal line from that unresolved thread instead of introducing a new subject
-  - shared continuity-thread selection now also treats weaker unsettled inferential follow-ups such as `Probably why everything feels a bit unsettled tonight.` as continuation of the immediately previous user topic when the user is still describing the emotional aftereffect of that same unresolved thread instead of opening a new topic
-  - shared reply-shape guidance now classifies current turns into practical / ordinary / playful / reconnection / emotional modes so Waveary can control reply length, emotional lead-in, and follow-up count through one runtime-facing layer instead of ad hoc prompt wording
-  - live-provider prompt assembly now also incorporates richer persona defaults including speaking style, emotional style, humor style, conversation-length preference, and follow-up style, making the companion feel more consistently person-like without broad architecture changes
-  - scripted fallback replies now also consume that same reply-shape layer, so ordinary turns stop drifting back into fixed three-part speeches when the real provider path is unavailable
-  - the first reply-realism tightening pass is now complete too: ordinary low-intensity turns now usually avoid a trailing question, softer support-seeking lines are classified as emotional earlier, provider prompt guidance now pushes harder against essayistic or support-agent cadence, and scripted fallback now preserves new-stage naming warmth plus growing-stage continuity while still keeping everyday replies shorter
-  - the next reply-realism pass now also treats light status-update turns such as `I'm home now`, `I'm back`, `just finished`, `I'm on my way`, `I arrived`, `just woke up`, `我到了`, `在路上`, and `刚醒` as their own ordinary-chat subtype, so both live-provider prompts and scripted fallback replies answer them with a short warm acknowledgment instead of stretching them into assistant-like recap or follow-up cadence
-  - early-acquaintance name inference now also rejects light status-update tokens such as `home`, `done`, `on`, `awake`, and `arrived`, so ordinary check-in texts no longer pollute remembered preferred-name state
-  - the newest reply-realism pass now also treats tiny confirmations such as `got it`, `okay`, `sure`, `收到`, `知道了`, and `嗯嗯` as a dedicated `micro_ack` ordinary-chat subtype, so both live-provider prompts and scripted fallback replies answer them with one very short human acknowledgment instead of continuity theater, recap, or a fresh question
-  - that same `micro_ack` path now also covers softer light-close variants such as `okay then`, `gotcha`, `sounds good then`, `知道啦`, `收到啦`, `好喔`, `好哦`, `好啦`, and `行呀`, so everyday low-stakes texting can end cleanly without drifting back into recap or follow-up pressure
-  - the newest reply-realism cut now also folds lightly deferential low-stakes closers such as `we can do that then`, `that works then`, `guess that's fine then`, `那行吧`, `先这样`, and `那就先这样` into that same `micro_ack` track, so small hesitant closers still get one short human line instead of reopening the conversation artificially
-  - the next bounded reply-realism cut now also treats lightly hedged everyday updates such as `maybe a bit later`, `I think I'll head back soon`, `可能晚点`, and similar quiet plan confirmations as a dedicated `soft_update` ordinary-chat subtype, so both live-provider guidance and scripted fallback replies answer them like a quick warm human text instead of recap or follow-up pressure
-  - the next bounded reply-realism cut now also treats light check-back nudges such as `you there?`, `still up?`, `还醒着吗`, and `在吗` as a dedicated `check_back` ordinary-chat subtype, so gentle presence checks get one brief warm signal instead of being misread as practical Q&A or overplayed as a heavier reconnection scene
-  - the next bounded reply-realism cut now also treats small tone-softener lines such as `didn't mean to sound harsh`, `sorry if that came off a bit cold`, `不是故意凶你的`, and similar low-intensity interpersonal repairs as a dedicated `tone_repair` ordinary-chat subtype, so small human softeners can land briefly and warmly without escalating into a heavy apology scene or a forced follow-up
-  - the next bounded reply-realism cut now also treats light affectionate catch-up lines such as `just thought of you`, `missed you a little`, `刚刚想到你了`, and similar low-intensity thinking-of-you openers as a dedicated `catch_up` ordinary-chat subtype, so gentle reconnection can stay brief and warm without jumping straight into the heavier `reconnection` mode
-  - the next bounded reply-realism cut now also treats light self-conscious softeners such as `hope that didn't sound weird`, `not sure if that came out right`, and `刚刚可能说得有点怪` as a dedicated `self_conscious_softener` ordinary-chat subtype, so small awkwardness or self-consciousness can land with one brief warm human reply instead of being over-comforted, corrected, or turned into a follow-up chain
-  - the `new` relationship stage now also has a dedicated getting-to-know-you helper that can infer preferred user name, user-given companion nickname, and desired companion vibe from chat history plus recalled memories
-  - live-provider prompt assembly now also injects explicit getting-to-know-you guidance so early turns can ask one natural discovery question at a time instead of sounding like a configured persona form
-  - live-provider regression now explicitly covers practical new-stage turns, emotional new-stage turns, reconnection cadence, and `what should I call you` mutual-discovery prompts so prompt-shape drift is less likely to silently reintroduce long assistant-style replies or block early natural acquaintance
-  - getting-to-know-you guidance now prioritizes direct companion-name questions ahead of generic practical-turn deflection, fixing the earlier bug where `What should I call you?` was misclassified as a plain practical request and lost the mutual-discovery path
-  - getting-to-know-you name inference now rejects obvious emotional-state false positives such as `I am still scared about that`, `I am not over it yet`, and similar non-introduction wording, so shared-history prompt guidance no longer degrades into fake preferred names like `still` or `not`
-  - getting-to-know-you name inference now also rejects identity-style self-description starters such as `I'm the kind of person...` and `I'm someone who...`, so broader self-description no longer pollutes preferred-name memory with fake names like `the` or `someone`
-  - getting-to-know-you name inference now also accepts quoted natural name-sharing phrasing such as `You can call me "Aki".`, so light conversational wrappers around real name-sharing no longer get missed
-  - getting-to-know-you name inference now also accepts natural `my name's Aki` introductions, so one of the most common spoken self-introduction forms no longer gets missed during early acquaintance
-  - getting-to-know-you name inference now also accepts natural `I'm called Aki` introductions, so this lighter spoken self-introduction form no longer gets missed and no longer degrades into the fake preferred name `called`
-  - getting-to-know-you name inference now also accepts parenthesized name-sharing phrasing such as `You can call me (Aki).`, so light aside-style self-introductions no longer get missed when the intent is still explicit
-  - getting-to-know-you name inference now also rejects `call me if ...` and `call me when ...` follow-up phrasing, so ordinary care or scheduling language no longer degrades into fake preferred names like `if` or `when`
-  - getting-to-know-you name inference now also rejects `call me later`, `call me tomorrow`, `call me tonight`, and similar scheduling follow-ups, so plain contact-planning language no longer degrades into fake preferred names like `later` or `tomorrow`
-  - getting-to-know-you name inference now also rejects `call me once ...`, `call me after ...`, and similar sequencing follow-ups, so step-order contact language no longer degrades into fake preferred names like `once` or `after`
-  - getting-to-know-you name inference now also rejects `call me back ...` follow-ups, so normal callback language no longer degrades into fake preferred names like `back`
-  - scripted fallback replies now also mirror that early-acquaintance behavior by naturally asking what to call the user, letting the user name the companion, or learning desired presence style when the turn is light enough
-  - a new markdown-first `waveary-dataset/` layer now stores companion soul, conversation rules, and healthy-boundary guidance so the product's emotional core does not depend only on scattered prompt lines
-  - live-provider prompt assembly now also treats relationship stage as quiet internal calibration rather than a visible script, reinforces one continuous caring bond, discourages flat branded self-introductions, and explicitly supports healthy real-world bonds instead of isolating the user
-  - scripted first-contact fallback copy is now warmer and less brand-flat when the user asks the companion's name or opens with a simple hello, keeping mutual naming more natural
-  - a first bounded concept-level identity-summary layer now exists through a persisted `IdentitySummary` domain object plus `SimpleIdentityEngine`, so Waveary can retain a stable higher-level understanding of the user's self-concept, recurring needs, bond themes, and companion stance instead of relying only on raw memory fragments
-  - concept-level identity summaries are now persisted with session state, injected into the live-provider prompt as a dedicated understanding block, and lightly reused by the scripted fallback path so real-provider and fallback continuity drift less
-  - the concept-level identity-summary derivation is now more precise across ordinary chat, emotional turns, and relationship-warming turns: casual cadence preferences no longer get over-promoted into vulnerability, emotional support needs now distinguish loneliness and overwhelm from generic sadness/anxiety, and bond summaries can preserve naming/ritual/reconnection trust cues instead of collapsing back to only generic continuity
-  - the newest identity-summary pass now also suppresses older generic comfort themes when a fresher loneliness / overwhelm / anxiety signal clearly calls for a more specific care need
-  - that same concept-level understanding is now also surfaced truthfully through `waveary-web` session snapshots, chat-turn payloads, import/export validation, and a user-facing runtime understanding panel, so Waveary's continuity layer is no longer hidden only inside prompt assembly
-- the runtime understanding panel is now also lightly correctable in place through the web UI, so the active session's concept-level identity summary can be edited, persisted, mirrored back into `latestInsights`, and reused by future turns without forcing the user through a rigid persona setup form
-- the `waveary-web` session shell now also carries a first true companion-profile edit path: session snapshots and lists persist the profile, the create-session route already accepts it, a dedicated session-profile update route now exists, and the chat/console UI now surfaces portrait-backed session identity instead of treating the persona choice as one-shot setup only
-  - permissioned local time context can now be injected into normal chat turns so the companion can answer time/date-style questions from the user's device-local clock without claiming it lacks real-time awareness
-  - local time context now also resolves a bounded daypart hint so late-night and evening turns can bias toward softer companion tone without expanding into broader desktop-awareness inputs
-  - direct local time/date/day questions now also short-circuit inside `WavearyRuntime` through a shared deterministic reply helper before provider generation, so real providers can no longer ignore the supplied local clock context and fall back to generic "I do not know the time" disclaimers
-  - deterministic local-time question detection now also catches more indirect Chinese complaint-style phrasings such as asking why the companion still cannot tell the exact time, so those turns no longer slip past the runtime short-circuit and fall back to provider disclaimers
-  - deterministic local-time detection is now narrower around actual clock/date questions, so emotional turns that merely mention `today` or `tonight` no longer collapse into time replies
-  - early-acquaintance guidance now explicitly recognizes first-contact greetings and pushes both scripted and live-provider replies toward warm human introduction cadence instead of flat product-style self-introduction
-  - the next bounded opening-realism pass now also covers playful late-night beats layered on top of the earlier bedtime slice: first greetings, light check-backs, small return/status messages, `good night / 晚安`, simple `miss you / 想你了`, sleep-check nudges like `you asleep? / 你睡了吗`, lightly lingering late-night pings like `not asleep yet? / 还没睡呀`, playful miss-checks like `did you miss me? / 想我了吗`, and soft dream openers like `dreamed of you / 刚刚梦到你了` now get more quietly affectionate guidance in both live-provider prompts and scripted fallback, so those openings can feel softer and more intimate without making all ordinary chat clingy or theatrical
-  - first voice-domain contracts now exist through `VoiceSession`, `SpeechInput`, and `SpeechOutput`, so the framework boundary no longer leaves voice only at the architecture-document level
-  - first formal product and architecture draft for companion emotional continuity and proactive care now exists in `docs/emotion-proactive-care.md`, defining `Waveary Emotion Engine (WEE)` and `Waveary Proactive Care Engine (WPCE)` as the next major runtime-facing design targets
-  - first companion-side emotion runtime layer is now implemented through a persisted `EmotionStore`, a `SimpleCompanionEmotionEngine`, and runtime wiring that updates and returns companion emotion state on each turn
-  - first `WPCE` decision-only runtime layer is now implemented through proactive care domain types, a `SimpleProactiveCareEngine`, and a dedicated `evaluateProactiveCare()` runtime path that combines policy, relationship stage, interaction gap, and companion emotion without generating outbound messages yet
-- persisted session state contract and repository-backed runtime state adapter are implemented
-  - SQLite persisted session state repository is implemented
-  - persisted session state now also carries per-session proactive-care policy plus care-state counters so `WPCE` evaluation can survive restarts and respect saved user settings
+  - runtime orchestration, provider abstraction, dialogue shaping, relationship state, time-aware helpers, and permission-aware action intent handling are implemented
+  - current quality work focuses on more human reply cadence, stronger continuity-thread selection, concept-level identity summaries, and bounded local-time / local-action behavior
 - `waveary-memory`
-  - independent package exists
-  - simple memory extractor exists
-  - in-memory memory store exists
-  - Node-based extractor and store tests are implemented
-  - memory extraction now condenses longer user turns into shorter recall-friendly memory fragments instead of storing the entire sentence verbatim by default
-  - memory extraction now also preserves early acquaintance details such as shared names, user-given companion nicknames, and desired companion vibe as durable memory candidates instead of treating them as generic chat text
-- `waveary-web`
-  - standalone React and Vite workspace exists
-  - local product context is now documented in `waveary-web/PRODUCT.md` so future frontend redesign or polish passes can resume with stable product intent
-  - official homepage is implemented
-  - the in-product default route now lands on `#chat` instead of the old internal `#home`, so the product flow opens directly into usage surfaces while external homepage/marketing direction can live separately
-  - the runtime shell now uses one shared left sidebar for brand, session switching, console entrypoints, and version display across chat and console instead of the earlier top navigation pattern
-  - the web shell now uses a dedicated Waveary echo-ring logo mark in the sticky header and favicon path instead of the earlier temporary inline icon
-  - product positioning, engine stack, provider compatibility, roadmap, and repository structure are presented in the first page
-  - homepage information architecture now separates brand vision, framework positioning, and the companion console so the product no longer reads like one long debug dashboard
-  - homepage visual system now separates a high-confidence brand layer from a cinematic runtime shell so the site reads more like a formal AI framework homepage than a dark admin prototype
-  - the repository README hero banner now uses an outward-fanned question-mark portrait composition with deeper paper layering and stronger brand-poster contrast so the GitHub homepage lands more like a deliberate project cover than a plain documentation header
-  - homepage top section now behaves as a single-page framework introduction with anchor navigation, a pure introduction-first first screen, and the interactive console deferred until later sections
-  - browser-native provider setup flow is implemented through local `/api/provider/*` routes
-  - provider model discovery routes now return normalized model descriptors even when upstream vendors use broader OpenAI-compatible payload variants
-  - provider model selection UI now surfaces normalized model labels plus optional context-window hints returned by compatible providers
-  - provider setup now also distinguishes unsaved draft inputs from the saved runtime config, so edited API keys no longer look broken when chat is still using the last saved provider state
-  - first in-browser runtime chat shell is implemented through local `/api/chat/turn`
-  - local browser chat session persistence is implemented through `.waveary/chat-sessions.json`
-  - local persistence backend switching between JSON file and SQLite is implemented through local `/api/chat/persistence`
-  - Node-based regression tests now cover local persistence backend switching and cross-backend state synchronization
-  - Node-based route tests now cover `/api/chat/persistence` response shape and runtime cache reset behavior
-  - Node-based route tests now cover session listing, session loading, rename, delete, and default-session protection behavior
-  - runtime-side SQLite session repositories are now closed during backend resets and snapshot-only loads so repeated Windows verification does not leak file handles
-  - session persistence UI now surfaces backend-by-backend sync state, last migration metadata, differing session counts, and latest write timestamps
-  - main-session default plus optional additional chat sessions are implemented in the web layer
-  - active sessions can now be reset locally without deleting the session identity, including the default main companion session
-  - persisted session snapshots now surface memory archive, relationship snapshot, and timeline history through the local API and browser UI
-  - active sessions can now be exported as structured JSON packages from the local API and browser UI
-  - exported session packages can now be imported as brand-new local sessions through the local API and browser UI
-  - browser export now downloads a real `.json` file and browser import now supports selecting a local `.json` file in addition to paste input
-  - malformed session imports now return structured validation diagnostics and the browser UI renders field-level import failure details
-  - current browser session package shape is now documented for external tooling, with a sample export file under `docs/examples/`
-  - browser import/export controls now surface session package rules, required top-level fields, required snapshot arrays, and a loadable sample package through a local `/api/chat/session/format` route
-  - browser session export packages now emit explicit `schemaVersion` metadata, while import stays backward-compatible with legacy unversioned packages and rejects unsupported future versions clearly
-  - browser session import validation now checks richer snapshot structures, including relationship payloads, latest insight payloads, memory metadata, and timeline metadata before restore
-  - browser session import validation now also rejects cross-field semantic inconsistencies such as mismatched session IDs and timestamps that exceed `snapshot.updatedAt` or `exportedAt`
-  - browser session import validation now also rejects out-of-order message timestamps and backward-moving timeline sequences inside snapshot and latest-insight arrays
-  - browser session import validation now also rejects duplicate message IDs inside a single imported snapshot
-  - browser session import validation now also rejects duplicate memory and timeline IDs inside a single imported snapshot
-  - browser session import validation now also rejects `latestInsights.timeline` entries that do not correspond to the imported snapshot timeline
-  - browser session import validation now also rejects `latestInsights.recalledMemories` and `latestInsights.storedMemories` entries that do not correspond to the imported memory archive
-  - browser session import validation now also rejects `latestInsights.relationship` payloads that drift away from `snapshot.relationship`
-  - browser session import validation now also keeps `identitySummary` consistent across `snapshot.identitySummary` and `snapshot.latestInsights.identitySummary` instead of letting higher-level continuity silently disappear on export/import
-  - current cross-structure import hardening pass is complete through relationship, memory, and timeline summary consistency; deeper content-level duplicate checks are deferred for later
-  - non-default sessions can now be renamed and deleted through the web session layer
-  - all persisted chat sessions can now be cleared together through `POST /api/chat/sessions/reset-all`, while preserving the default session shell for the next live run
-  - the repository now includes a root `npm run reset:test-memory` command that prefers the local reset-all API and falls back to deleting only chat-memory files under `.waveary/`, preserving provider and voice config
-  - Windows-safe local dev and preview entrypoints are implemented for the current workspace path setup
-  - package boundary is documented for future provider setup and runtime UI work
-  - homepage now supports direct Chinese and English switching through a local UI toggle
-  - homepage copy, console labels, provider setup flow labels, session management labels, runtime panels, and the homepage project-route close are now bilingual
-  - language switching now stays local to presentation state and does not reset the user's in-progress provider form input or current runtime page state
-  - the public web surface is now split into shorter hash-routed views for home, console, and chat instead of one very long landing page
-  - the old standalone roadmap page has now been retired in favor of a stronger homepage-closing `Project Route / 项目路线` section that reads as completed product progression rather than a future wishlist
-  - the old `#roadmap` hash is still preserved as a compatibility redirect into the homepage closing section, so earlier links and buttons do not break
-  - framework and positioning explanation is now fully absorbed into the homepage instead of living on a separate framework page
-  - the management console now focuses on provider setup, session controls, persistence switching, import/export, and runtime diagnostics
-  - the management console now also exposes persisted `WPCE` policy/state controls and read-only evaluation output for the active session
-  - the current web surface now provides the first permissioned proactive-care delivery path through browser-local notifications triggered from manual `WPCE` evaluation results
-  - the console now also includes a first explicit permission center so users can set local consent preferences for notifications, proactive delivery, time awareness, desktop presence, and future local actions
-  - normal browser chat turns now send explicit local time context only when `timeAwareness` permission is allowed, reusing the existing permission center instead of adding a separate hidden time toggle
-  - the default companion posture now moves closer to autonomous care: new sessions start with proactive care enabled, browser-local proactive check loops default on until the user changes them, and the default local permission profile now keeps proactive notifications and time awareness open while leaving higher-trust local actions at ask-first instead of deny-by-default
-  - proactive browser notifications now also soften their lead sentence by morning / evening / late-night daypart when `timeAwareness` is allowed, without changing `WPCE` policy or outreach frequency
-  - the `WPCE` console decision card now mirrors that same daypart-aware tone in its top-level summary copy, so the local console and browser notification surfaces describe the same recommendation style
-  - proactive browser notifications and the `WPCE` console summary now both read from one shared presentation-layer proactive message composer instead of duplicating separate tone logic
-  - that shared proactive message composer now returns structured draft fields including `tone`, `deliveryKind`, and `suggestedMessage`, so the current UI is no longer limited to raw prose-only summary composition
-  - the proactive message composer now also lives in a dedicated `waveary-web` utility module instead of remaining embedded inside `App.tsx`, reducing UI-surface coupling before any future API exposure
-  - `/api/chat/proactive/evaluate` now also returns a server-generated proactive message draft, so the `WPCE` console card and browser notification path can consume one route-visible draft contract instead of recomputing message copy independently in the browser
-  - the web console now also exposes an explicit browser-local proactive check loop that periodically re-evaluates `WPCE` only while the current tab is open and visible, with a user-controlled interval and no hidden background automation
-  - proactive browser-notification delivery now also records per-session reachout counters and last-delivery time so subsequent `WPCE` evaluations can suppress repeated outreach until the user replies
-  - successful new user turns now automatically clear persisted `WPCE` unanswered-reachout state so proactive care can reopen naturally after the user responds without erasing daily send counts or the last reachout timestamp
-  - proactive-care evaluation output and browser notification copy now translate raw `WPCE` intent, urgency, and reason codes into user-facing Chinese and English labels instead of exposing internal engine enums directly
-  - the `WPCE` console decision card now visually separates affirmative reachout recommendations from policy-blocked evaluations through distinct summary copy, badge states, and surface treatment, so users can scan the outcome without parsing every field
-  - the live conversation experience now has its own dedicated chat page with a stripped-down journal-style canvas and composer
-  - the chat page now also surfaces a compact permission tray beside the composer, so time awareness, proactive notifications, desktop presence, and local-action intent can be adjusted in conversation without sending users back to the console
-  - the chat composer now also exposes direct `limited / high-permission / full-access` mode switches beside send controls, mapping the live conversation surface onto the existing permission model without removing the lower-level detail popover
-  - the chat page now also consolidates session, voice-routing, and permission state into a dedicated top status strip, removes the redundant extra live-chat entry from the compact voice summary, and auto-scrolls to the newest turn so the conversation stays anchored on the latest exchange
-  - `localActions` has now graduated from a UI-only preference slot into the first real ask-first execution path: chat turns can propose a pending local action card for simple open-url / open-folder / launch-app intents, and the user must explicitly confirm before any local execution happens
-  - the chat page now also auto-executes detected local actions immediately when the active conversation permission is `full-access`, while `high-permission` and lower modes still preserve the explicit confirmation card
-  - same-turn local action handling is now reply-consistent under `full-access`: `/api/chat/turn` receives the current local-action permission, auto-runs supported actions server-side when permission is `allow`, and returns an execution-consistent assistant reply instead of leaving a contradictory model disclaimer beside a successful local action
-  - browser `open_url` local actions now run through a Waveary-managed Playwright persistent browser context instead of delegating directly to the system shell, giving the project its first reusable browser automation footing without rewriting the wider local-action trust boundary
-  - the managed browser layer now also exposes bounded same-origin `/api/browser/*` routes for current-page inspection, visible-text extraction, and page-text search, so Waveary can begin reading and navigating the browser state it opened without jumping to a free-form web agent
-  - the managed browser layer now also supports listing visible clickable elements and clicking a matched element by visible text through bounded `/api/browser/*` routes, so browser control can advance one stable interaction step beyond pure page reading while remaining explicit and auditable
-  - those bounded browser read and click capabilities now also flow through the existing chat-side pending-action card and `full-access` auto-run path, so they are no longer trapped behind standalone browser routes with no conversation-level permission wiring
-  - default natural-language search-site opens now prefer `Bing` over `Google` on the local browser path for mainland-China usability, while explicit URLs still open exactly as given
-  - the managed browser layer can now also open the first visible result link, or the first visible link whose text matches a requested phrase, through the same permissioned local-action path instead of requiring raw click-text phrasing every time
-  - the managed browser layer can now also open an explicit visible result index such as the second or third result through the same permissioned local-action path, so simple disambiguation no longer requires a broader browser agent
-  - browser action execution notes can now return grounded companion-side summaries such as page-reading excerpts, page-search matches, clickable-target lists, and click-follow-up state instead of always reusing the older open-site wording
-  - local-action reply wording now stays more companion-like after execution or dismissal, so successful browser opens no longer read like a sterile audit log or drift into made-up “virtual homepage” narration
-  - Chinese open-site detection now recognizes broader Bilibili phrasing such as `打开哔哩哔哩` in addition to raw English `open bilibili`
-  - the managed browser layer now also supports a bounded fill-and-submit step: visible inputs can be filled and then explicitly submitted through Enter / form-submit behavior, `/api/browser/fill-submit` exposes that primitive directly, and natural chat requests such as `fill search with Waveary and submit` now follow the same permissioned pending-local-action path
-  - managed browser fill-submit now performs the real fill and submit through Playwright-side locators instead of relying on DOM-only synthetic submit events, so navigation actually occurs when the page accepts the action
-  - managed browser fill matching now also includes a search-intent fallback for search-box-like inputs such as Google's visible `textarea[name=q][role=combobox]`, so generic requests like `fill search with Waveary and submit` no longer miss that class of field
-  - Waveary browser automation now resolves its default `.waveary` data directory from the repository root during both source and compiled server runs, preventing managed browser state from splitting between root `.waveary` and `waveary-web/.waveary`
-  - live local verification now confirms that opening Google and then running fill-submit for `search -> Waveary` triggers a real navigation away from the homepage; on the current network path Google answers with its anti-automation `sorry` page, which confirms submit/navigation happened even though the search results are gated
-  - the web server now exposes a first `/api/voice/speak` route that initially returned an emotion-aware browser speech plan instead of hard-wiring speech behavior directly inside the UI layer
-  - `/api/voice/speak` now attempts a real provider-backed TTS request first by reusing the saved OpenAI-compatible provider config against `/audio/speech`, then falls back to browser speech planning if the provider path is unavailable or fails
-  - provider-backed TTS now also supports explicit saved voice configuration and quality-oriented presets through `/api/voice/config`, `.waveary/voice-config.json`, and a compact chat-page voice control strip for profile / model / voice selection
-  - provider-backed TTS now also supports an explicit `shared chat provider / dedicated voice provider` split, so真人语音 can run on a stronger OpenAI-compatible TTS endpoint even when normal chat stays on a different model vendor
-  - the dedicated真人语音 path now also supports a first non-OpenAI-compatible domestic adapter through Doubao TTS, now migrated onto OpenSpeech v3 `x-api-key + resourceId + voice` routing instead of the older `appId / cluster` contract
-  - legacy local Doubao voice config values now auto-normalize on load and save, correcting older saved `/api/v1` base URLs, mistaken `resourceId = apiKey` carryover, and the legacy `BV001_streaming` default before the browser console or voice route reuses them
-  - the dedicated真人语音 path now also supports a first generic local/self-hosted HTTP bridge for GPT-SoVITS / CosyVoice style engines, with dedicated `engine / endpointPath / speaker / referenceVoiceId` settings layered into the same saved voice config flow
-  - the chat-page voice strip now also exposes the richer local/self-hosted tuning fields already supported by the backend bridge, including `textLanguage`, `promptLanguage`, `referenceTranscript`, `stylePrompt`, `styleStrength`, `temperature`, and `topP`, while keeping those controls local-provider-only instead of spilling them across the whole voice UI
-  - the chat page now includes a first voice strip with `auto speak`, `speak reply`, and `stop` controls, and voice playback now supports both provider-returned audio and browser speech fallback while still following reply emotion and relationship stage
-  - normal chat turns now also emit a structured companion delivery hint covering style, pace, closeness, and expressiveness, so reply speech no longer depends only on raw text plus generic emotion inference
-  - the chat page now also supports first-cut browser microphone capture and speech-to-text input through the Web Speech API, drafting live transcript text into the composer and sending the final recognized turn through the normal chat flow
-  - this first speech-input slice stays browser-native and chat-bounded: start/stop listening, live draft updates, final-turn auto-send, and localized unsupported-browser fallback instead of a new server STT path
-  - the chat page now also supports a continuous live voice conversation mode that keeps alternating between microphone listening and spoken replies, automatically resuming listening after each reply instead of stopping after one speech turn
-  - `/api/voice/speak`, browser speech planning, and provider-backed TTS instruction building now all consume that shared delivery hint, keeping chat/runtime emotional intent more aligned with final spoken output across browser, OpenAI-compatible, Doubao, and local self-hosted voice paths
-  - console initialization now treats `/api/voice/config` as an optional capability instead of a hard prerequisite, so a missing or stale local voice route no longer wipes out provider presets, saved provider selection, or model setup visibility
-  - current-page search intent detection now runs before the narrower Bilibili follow-up probe, preventing `search this page for ...` turns from accidentally falling into the managed-browser follow-up path
-  - `provider-api` route tests now explicitly close managed browser automation between cases, preventing the managed Playwright layer from leaving hanging handles in compiled server-test runs
+  - memory persistence and retrieval layer exists conceptually and is partially embodied through current session persistence, recall logic, and identity-summary storage
+  - long-term direction remains system-first memory, not prompt-only stitched history
 - `waveary-voice`
-  - independent workspace package exists
-  - first `TextToSpeechRequest` / `TextToSpeechResult` contracts are implemented
-  - first browser-native TTS planner is implemented through `BrowserSpeechPlanner`
-  - Node-based planner tests are implemented
-  - first OpenAI-compatible provider-backed TTS adapter is now implemented through `OpenAICompatibleTextToSpeechProvider`, returning base64 audio plus playback metadata while preserving the shared voice contract boundary
-  - first provider-specific domestic adapter is now implemented through `DoubaoTextToSpeechProvider`
-  - first generic local HTTP TTS bridge is now implemented through `LocalHttpTextToSpeechProvider`, accepting either raw audio responses or normalized JSON base64 audio payloads from self-hosted engines
-  - that generic local bridge now also forwards richer realism-oriented engine parameters plus the shared companion delivery hint, so self-hosted voice no longer drops either local engine tuning context or relationship-aware spoken-delivery intent
-  - Fish Audio now also exists as a dedicated provider family through `FishAudioTextToSpeechProvider` and `FishAudioSpeechToTextProvider`, so Waveary can test a non-OpenAI-compatible commercial voice stack without pushing vendor-specific transport details into the wider chat-provider layer
-  - Fish Audio catalog, TTS, and STT failures now surface explicit upstream connectivity diagnostics such as `UND_ERR_CONNECT_TIMEOUT` instead of collapsing into a generic `fetch failed`, so live console testing can distinguish network reachability issues from route or config regressions
-  - Gemini TTS now also exists as a dedicated voice-provider family through `GeminiTextToSpeechProvider`, with official prebuilt voice-name selection, dedicated routing diagnostics, and console preset support kept separate from the OpenAI-compatible speech path
-  - Gemini voice onboarding now also includes a dedicated `Gemini TTS (Micu Relay)` preset, and static Gemini model selection can now branch by preset so Micu relay uses the Micu-recognized `gemini-2.5-flash-tts-preview` and `gemini-2.5-pro-tts-preview` names instead of defaulting users back onto the unsupported `gemini-3.1-flash-tts-preview` alias
-  - the first local-action execution surface stays intentionally narrow and auditable inside `waveary-web`: proposal detection is rule-based, execution is permission-gated, denied policy blocks execution, ask-first requires one explicit approval click, and dismissing the card clears the pending action from persisted session state`r`n  - executed and dismissed local actions now also append a small assistant-side audit note into persisted chat history, so trust-visible action outcomes survive reloads and restored sessions instead of living only in transient UI state
-  - the visible persisted-session archive panel has been removed from the runtime rail so the console reads less like a raw internal debug dump
-  - the split home / console / chat shell now has a stronger page-by-page hierarchy: the homepage reads more like a formal project front page, the console reads more like a system desk, and the chat page is more tightly focused on the active conversation surface
-  - homepage hero now includes a portrait-memory visual layer with drifting hand-drawn question-mark portraits and a burn-to-ash memory focal animation
-  - homepage portrait assets now live under `waveary-web/public/images/portraits` so the public brand surface can be refined without touching provider, session, or chat logic
-  - current portrait set now covers a broader youthful companion range instead of one repeated anonymous-boy style, though a stricter 1:1 gender-balanced and more deliberately framed next asset pass is still recommended
-  - homepage burn vignette now rotates through multiple portrait cards instead of repeatedly burning one fixed image
-  - homepage burn vignette now uses a hand-drawn lighter asset under `waveary-web/public/images/hero/lighter.png` instead of a pure CSS block lighter
-  - burn timing, glow, scorch, and ash motion are now tuned together so the portrait burn cycle reads more like one repeated memory ritual than one static decorative loop
-  - homepage lighter flame now uses a multi-layer animated flame stack with halo, outer flame, inner flame, and core so the burn focal point feels more like a real lighter flame than a flat icon
-  - homepage lighter flame anchor is now nudged slightly further left and upward across desktop and mobile breakpoints so the burn contact point aligns more tightly with the lighter nozzle
-  - homepage lighter flame anchor has received one additional micro-adjustment farther left/up so the visible ignition point sits closer to the lighter tip without shifting the burn animation itself
-  - homepage first screen is now compressed so slogan, framework copy, and portrait burn stage fit more fully on open without forcing an immediate downward scroll on desktop
-  - homepage hero definition copy now uses shorter two-note summary cards instead of a taller stacked list, reducing first-screen height while preserving positioning clarity
-  - homepage now includes drifting black doodle background objects outside the portrait stage so the milk-white surface feels more like a lived memory board than a blank landing page
-  - homepage doodle layer now resolves through image asset paths under `waveary-web/public/images/doodles` instead of binding the long-term design to CSS-drawn fake object shapes
-  - homepage doodle placeholder PNGs have now been replaced with real black-and-white generated object assets under `waveary-web/public/images/doodles`
-  - the current doodle asset pass was generated successfully only after constraining requests to `gpt-image-2`, `1024x1024`, transparent background, one image per request, and short low-complexity prompts because longer prompts or heavier requests frequently timed out through the current network path with `524`
-  - the homepage doodle set now also includes memory-archive paper objects such as stamp, envelope, train ticket, and postcard so the background feels denser and more aligned with letters, keepsakes, and lived traces
-  - console intro now includes an explicit workspace switcher so provider setup, session controls, proactive care, and runtime observation no longer read like one long vertically stacked tools page
-  - console runtime body is now split by active workspace, keeping the top-level system summary stable while swapping only the focused operational surface below it
-  - the console page now also exposes a tighter top toolbar and suppresses the earlier intro / summary / flow marketing block so the page reads more like a control desk than a second landing section
-  - homepage hero and top doodle layer are now compressed further so the opening screen fits more comfortably on common desktop heights without immediately feeling below-the-fold
-  - the console shell is now tighter again through denser workspace tabs, a compact status strip, reduced shell padding, and shorter viewport-based panel heights so the operational surface stays closer to one-screen use
-  - the console now also keeps provider/model setup explicitly reachable through a fixed toolbar shortcut back to `模型接入 / Model setup`, separate provider/model status pills, and an automatic return to the provider workspace whenever the runtime is not fully configured, so the model selector can no longer feel like it disappeared behind another workspace
-  - the latest shell-polish pass now keeps long chat replies, status labels, saved config snippets, and console metadata inside their cards through stronger shrink-and-wrap rules instead of forcing awkward horizontal overflow
-  - the dedicated `#chat` canvas now constrains message bubbles with internal wrapping and hidden horizontal overflow, so long companion replies no longer require dragging sideways to read the end of a sentence
-  - the homepage burn-photo stage is now larger on desktop and mobile, with bigger drifting polaroids and a larger active burn card so the hero memory composition reads as one complete first-screen vignette instead of a clipped side module
-  - the console now also has a dedicated voice workspace, so realtime voice controls, provider routing, local bridge tuning, and current voice state no longer have to live inside the chat page
-  - the chat page voice surface is now compact again: it keeps only the live-voice entry, a small current-voice summary, and a direct jump back to the console voice workspace instead of exposing the full provider form inline
-  - the voice workspace now also starts moving toward provider-style onboarding: it can list dedicated voice-provider presets, fetch real voice-model catalogs for OpenAI-compatible vendors through `/api/voice/catalog`, and fall back to provider-mapped or manual voice entry where no shared cross-vendor voice-list API exists
-  - the voice workspace onboarding is now tighter on the frontend too: provider presets reset stale catalog state, discovered voice models render with normalized labels, and dedicated vendors such as Doubao or local bridges now switch the voice field into explicit manual input instead of pretending a universal selectable voice list exists
-  - the voice workspace now also upgrades select-mode voice vendors into a searchable picker, and the dedicated Doubao preset auto-loads its curated supported speaker catalog on selection so users can search voices immediately instead of first seeing the old generic fallback list
-  - the voice workspace output-selection section now renders its searchable voice picker as a full-width vertical control inside the panel instead of a narrow inline pill plus floating popover, preventing the earlier “13 voices loaded but nothing visible in the dropdown” confusion and removing the rightward layout pressure from the voice card
-  - the split Doubao browser verification loop is now fully closed in the live console: the v3 `Doubao TTS` preset visibly exposes the in-panel searchable curated speaker picker plus `Resource ID`, and switching to `Doubao TTS (Legacy App)` visibly flips the credential area over to the legacy `App ID` route
-  - the chat page has now also been browser-verified end to end with the chat model still on DeepSeek while dedicated voice stays on `doubao-legacy`; live request capture confirmed the page sends `/api/chat/turn` first, then forwards the reply plus delivery hint and saved dedicated voice config into `/api/voice/speak`, which returns `provider = doubao-legacy`, `mode = audio`, and `routing.target = provider-audio`
-  - the voice workspace now also exposes a broader preset roster for domestic and compatible voice vendors, switches the dedicated provider form by vendor type instead of showing one fixed block, and uses the right-side console area as a live guidance panel so users can see what the current provider path expects
-  - the dedicated voice-provider form now keeps `Voice Key` in a fixed visible credential slot inside the console instead of hiding that field behind non-local-only branching, and the local bridge path now shows the same slot as an optional auth field rather than making it disappear entirely
-  - the latest visible mojibake in that dedicated voice credential block has now been repaired with encoding-safe literals, while the surrounding voice-provider logic remains unchanged
-  - voice-provider preset switching now also clears stale provider-specific `model` and `voice` values instead of letting Doubao or other previous-vendor values leak into the next dedicated provider path, and server-side voice-config normalization now preserves explicit empty values so manual-entry compatible vendors can stay blank until the user fills them
-  - the console workspaces now share one unified stage shell across provider, voice, sessions, care, and runtime views, with matched panel heights and internal scroll regions so workspace switching no longer feels like jumping between mismatched page layouts
-  - the top workspace tabs have been restored to the tighter compact height, while the lower console workspace panels themselves are now taller so the operational surface has more room without inflating the navigation strip
-
-## Provider Flow
-
-- `npm run setup:provider`
-  - choose provider
-  - enter API key
-  - fetch available models
-  - choose one model
-  - save config to `.waveary/provider-config.json`
-- `npm run demo:provider`
-  - loads saved provider config and runs the runtime with a real model provider
-
-## Web Surface
-
+  - dedicated package boundary exists
+  - provider-backed voice routing, separate voice config, Doubao variants, vendor presets, searchable speaker picking, STT upload path, and first interruption-safe browser live-chat loop are in place
+  - deeper duplex transport and broader provider-specific STT support are still pending
 - `waveary-web`
-  - owns the official web interface layer
-  - ships a formal project homepage and a working provider setup console
-  - now presents the brand layer and the product-shell layer as separate sections, with a console summary band ahead of setup and runtime details
-  - now uses a single-page anchor-navigation homepage where the first screen stays framework-introduction-first instead of leading with runtime controls
-  - now uses shorter hash-based page views so the homepage stays brand-first while console tooling, dedicated chat, and roadmap live on separate screens
-  - now keeps all explanatory framework material on the homepage while reserving the console page for system management and the chat page for the active dialogue only
-  - now also treats legacy `#home`, `#framework`, and `#roadmap` hashes as compatibility aliases that land on `#chat`, so the product no longer depends on an internal homepage entrypoint
-  - now expects homepage doodle assets under `waveary-web/public/images/doodles/`, with final asset generation intended to come from the local tool `C:\Users\13571\Desktop\micu-image-20260608.html`
-  - current doodle assets under that path are now real generated PNGs rather than transparent placeholders, and future refreshes should preserve the same low-complexity `gpt-image-2` generation strategy that avoided repeated `524` gateway timeouts
-  - current homepage doodle inventory now includes correspondence-style objects in addition to study and youth-memory objects, and those extra assets are already wired into the homepage background layer
-  - can list provider presets, fetch models through the selected provider key, and save local config
-  - saving `/api/provider/config` now also resets cached chat runtime sessions immediately, so a same-session provider or API-key change cannot keep sending chat turns through a stale in-memory provider config
-  - can run a first browser chat flow and render memory, relationship, emotion, and timeline signals
-  - can now capture microphone speech in supported browsers and turn it into the next local chat turn without leaving the chat page
-  - can now transcribe microphone audio through a provider-backed `/api/voice/transcribe` path whenever the active voice route is shared-compatible or dedicated-compatible, while honestly falling back to browser speech recognition when provider STT is unavailable
-  - saved voice config now also persists `sttModel`, so compatible speech transcription no longer has to be hardwired to one provider default
-  - the current provider-backed STT browser loop now uses client-side speech-activity monitoring to stop after detected post-speech silence, while still keeping a max-duration safety cap instead of pretending full duplex or interruption handling already exists
-  - now exposes a read-only `/api/chat/proactive/evaluate` route so the current `WPCE` decision path can be inspected from the local web runtime without generating outbound messages
-  - now exposes `/api/chat/proactive/settings` so per-session proactive-care policy and care-state counters can be saved, reloaded, exported, imported, and reused by later `WPCE` evaluations
-  - restores local chat history and latest runtime signals after dev server restart
-  - can switch local chat persistence between `.waveary/chat-sessions.json` and `.waveary/chat-sessions.db`
-  - supports a default main companion session plus user-created additional sessions with rename and delete management
-  - now boots reliably through `npm run web:dev` on the current Windows + Chinese-path workspace
+  - active official runtime surface
+  - current shell uses one persistent left sidebar instead of the old top navigation
+  - sessions persist companion-profile setup, export/import metadata, runtime understanding, and local history
+  - provider/model setup, voice setup, and grouped control workspaces exist in the console shell
+- `waveary-dataset`
+  - markdown-first companion soul, conversation rules, and healthy-boundary guidance exist here and should remain the source of truth for companion philosophy
 
-## Continuity Layer
+## Current Product Shape
 
-- `PROJECT_STATE.md` remains the source of truth for current architecture, verified commit state, and next recommended step
-- `ACTIVE_TASKS.md` now tracks the live implementation queue so a resumed session can continue the current cut without reconstructing it from chat history
-- `docs/product-preferences.md` now records durable product, tone, trust-boundary, and workflow preferences that should survive heavy context compression
-- `docs/session-log.md` and `docs/decision-log.md` continue to serve as chronological execution and architecture records
-- `docs/market-benchmark-2026-06.md` now captures mature-market companion patterns from Replika, Nomi, Kindroid, Character.AI, and selected China products so future Waveary product work can reuse one concrete benchmark instead of redoing surface-level competitor research
-- the repository now also has a changed-files mojibake guard at `tools/check-mojibake.mjs`, exposed through `npm run check:mojibake`, so Chinese-copy edits can be validated mechanically instead of relying only on terminal rendering
-- the voice routes now also expose explicit routing diagnostics, so the console and playback layer can tell whether Waveary is ready for provider-backed audio, which required fields are still missing, and why the last playback fell back to browser speech
-- the voice console status card now reads shared-mode provider type, label, and guidance from the real routing diagnostics instead of accidentally reusing the last dedicated-provider preset, so shared chat-provider routing no longer gets mislabeled as Doubao in the right-side status panel
+- the product should be understood as a framework-first companion runtime, not an AI girlfriend / boyfriend app and not a generic chatbot skin
+- the default in-product route is the active runtime surface, not an internal homepage
+- the web shell direction is a compact client-style layout:
+  - left sidebar for navigation and session/control entrypoints
+  - chat as the primary companion surface
+  - console as a denser control desk rather than a marketing page
+- local persistence direction remains:
+  - `SQLite` for live runtime state
+  - `JSON` for import/export and migration packages
 
-## Verified Commands
+## Active Priorities
 
-- `npm run check --workspace @waveary/web`
-- `npm run test --workspace @waveary/web`
-- `npm run check`
-- `npm run test`
-- `npm run demo`
-- `npm run web:dev`
-- `npm run web:build`
-- `Invoke-RestMethod http://127.0.0.1:4173/api/voice/config`
-- `Invoke-RestMethod -Method Post http://127.0.0.1:4173/api/voice/speak`
-- `GET /api/browser/page` route-level coverage via `npm run test --workspace @waveary/web`
-- `POST /api/browser/extract-text` route-level coverage via `npm run test --workspace @waveary/web`
-- `POST /api/browser/search-text` route-level coverage via `npm run test --workspace @waveary/web`
-- `POST /api/browser/clickable-elements` route-level coverage via `npm run test --workspace @waveary/web`
-- `POST /api/browser/click-text` route-level coverage via `npm run test --workspace @waveary/web`
-- `npm run demo:provider` shows required provider configuration guidance
-- `npm run setup:provider` is available for interactive provider selection and config saving
-- `npm run test --workspace @waveary/core`
-- `npm run test --workspace @waveary/memory`
-- `npm run build:server --workspace @waveary/web`
-- `npm run build:server --workspace @waveary/web`
-- `npm run verify:provider`
-- `npm run models:provider`
-- `node --test waveary-web/dist-server/server/provider-api.test.js`
-- `Invoke-WebRequest http://127.0.0.1:4173/api/chat/session`
-- `Invoke-WebRequest http://127.0.0.1:4173/api/chat/sessions`
-- `Invoke-WebRequest http://127.0.0.1:4173/api/chat/sessions/rename`
-- `Invoke-WebRequest http://127.0.0.1:4173/api/chat/sessions/delete`
-- `Invoke-WebRequest http://127.0.0.1:4173/api/chat/persistence`
-- `Invoke-WebRequest http://127.0.0.1:4173/api/chat/persistence` live switch verified with `file -> sqlite`
-- `Invoke-WebRequest http://127.0.0.1:4173/api/chat/persistence` live switch verified with `sqlite -> file`
-- `Invoke-WebRequest http://127.0.0.1:4173/`
-- `Invoke-WebRequest http://127.0.0.1:4173/api/provider/presets`
-- `Invoke-WebRequest http://127.0.0.1:4173/api/chat/turn`
-- desktop and mobile browser layout verification for `http://127.0.0.1:4173/` via Playwright screenshot pass after the landing-page hierarchy refactor
-- `python C:\Users\13571\.codex\skills\.system\skill-creator\scripts\quick_validate.py C:\Users\13571\.codex\skills\waveary-continuity-guard`
-- `npx --yes --package @playwright/cli playwright-cli -s=waveary-homepage-polish open http://127.0.0.1:4173/ --headed`
-- `npx --yes --package @playwright/cli playwright-cli -s=waveary-homepage-polish resize 1440 1200`
-- `npx --yes --package @playwright/cli playwright-cli -s=waveary-homepage-polish snapshot`
-- `npx --yes --package @playwright/cli playwright-cli -s=waveary-homepage-polish screenshot`
-- `npm run check --workspace @waveary/web`
-- `npm run web:build`
-- `ssh -o StrictHostKeyChecking=accept-new -T git@github.com`
-- `git push origin main` via SSH remote `git@github.com:K2st0r/-Waveary-.git`
-- `curl.exe -I http://127.0.0.1:4173/`
-- Playwright browser verification for `#home`, `#framework`, and `#console` on `http://127.0.0.1:4173/`
-- Playwright browser verification for `#console` and `#chat` on `http://127.0.0.1:4173/`
-- Playwright browser verification for refreshed `#home`, `#console`, and `#chat` first screens on `http://127.0.0.1:4173/`
+1. Extend the bounded browser-action path without breaking permission clarity.
+2. Continue the first `waveary-voice` delivery path, especially the next cut after the current interruption-safe browser loop.
+3. Keep polishing the `waveary-web` shell density and proportion without reintroducing long scrolling control walls.
+4. Continue the `waveary-core` dialogue-quality pass toward shorter, more human, emotionally believable companion replies.
+5. Keep public onboarding and brand-rights documentation clean, accurate, and easy for non-developers to follow.
+
+## Verified Baseline Commands
+
+These are the latest trustworthy verification paths recorded in the repo before this continuity-doc cleanup block:
+
 - `npm run check --workspace @waveary/core`
-- PowerShell compiled-test verification for `waveary-core/dist/**/*.test.js` via `node --test`
-- `npm run test --workspace @waveary/core`
-- `npx tsc --noEmit -p waveary-web/tsconfig.json`
-- `npm run check --workspace @waveary/voice`
-- `npm run test --workspace @waveary/voice`
-- `npm run build:server --workspace @waveary/web`
-- `npm run test --workspace @waveary/web`
-- `npx tsc --noEmit -p waveary-web/tsconfig.json`
-- `npm run reset:test-memory`
-- direct Node `fetch` probes against `https://openspeech.bytedance.com/api/v3/tts/unidirectional`
-- live browser verification on `http://127.0.0.1:4173/#console` for the dedicated Doubao voice workspace after restarting the local dev server
-- `npm run check:mojibake`
-- `npx tsc --noEmit -p waveary-web/tsconfig.server.json`
-- `npm run test --workspace @waveary/web`
-- `npm run web:build`
-- `npx tsc --noEmit -p waveary-web/tsconfig.json`
-- `npm run check:mojibake`
-- `npm run web:build`
-- `npm run check --workspace @waveary/voice`
-- `npm run test --workspace @waveary/voice`
-- `npm run build:server --workspace @waveary/web`
-- `node --test waveary-web/dist-server/server/provider-api.test.js`
-- `node --test waveary-web/dist-server/server/chat-session-store.test.js`
+- `npm run build --workspace @waveary/core`
+- PowerShell compiled test pass for `waveary-core/dist/*.test.js`
 - `npm run check --workspace @waveary/web`
 - `npm run test --workspace @waveary/web`
-- `npm run web:build`
+- `npm run build --workspace @waveary/web`
+- `npm run build:server --workspace @waveary/web`
 - `npx tsc --noEmit -p waveary-web/tsconfig.json`
+- `npm run check:mojibake`
 
-## Decision Sources
+## Current Worktree Notes
 
-- `docs/decision-log.md`
+The worktree is currently dirty outside this continuity-doc task. Do not revert these unrelated changes unless explicitly asked:
 
-## Next Steps
+- modified: `docs/product-preferences.md`
+- modified: `waveary-web/index.html`
+- modified: `waveary-web/public/images/portraits/portrait-04.png`
+- modified: `waveary-web/server/chat-session-store.test.ts`
+- modified: `waveary-web/server/chat-session-store.ts`
+- modified: `waveary-web/server/provider-api.test.ts`
+- modified: `waveary-web/server/provider-api.ts`
+- modified: `waveary-web/src/styles.css`
+- untracked: `docs/assets/waveary-logo-lockup.svg`
+- untracked: `docs/assets/waveary-logo-mark.svg`
+- untracked: `docs/assets/waveary-logo-preview.html`
+- untracked: `output/`
+- untracked: `waveary-web/public/brand/waveary-logo-final-draft-11.png`
+- untracked: `waveary-web/server/model-config.ts`
 
-- extend the bounded browser layer into one next explicit interaction such as richer multi-field targeting or an `open nth result` primitive, now that the live `#chat` result-opening path has been re-verified against the current dev server
-- keep extending the browser-action layer one auditable primitive at a time instead of widening into a broad free-form browser agent
-- continue the live-provider dialogue regression pass beyond the new prompt-body coverage into richer emotional-stress, reconnection, practical-question cadence, and multi-turn mutual-discovery competition cases
-- continue the markdown-backed companion-soul rollout by turning it into the next bounded runtime improvements for first-turn naming cadence, softer self-reveal, and more human remembered-name usage before attempting any broader relationship-architecture refactor
-- continue the new user-facing identity-summary surface by deciding whether the next cut should add correction provenance / user-pinned understanding hints, or another bounded runtime-side refinement for stale-vs-fresh summary conflict resolution
-- after the onboarding-doc pass, verify the rewritten GitHub README and deployment guide render clearly on GitHub, then return to shell polish and brand cleanup with the new user-facing docs in place
-- now that the product no longer defaults into the internal homepage, decide whether the next `waveary-web` shell cut should fully remove dormant in-product homepage rendering or keep it only as a separate future marketing surface outside the product runtime
-- continue the continuity-thread quality pass beyond short carry-over follow-ups into pronoun-heavy multi-turn topic persistence, so turns like "that part still hurts" or "I am not over it yet" can stay anchored even when the user is more oblique
-- continue the continuity-thread quality pass beyond short, emotional, low-affect pronoun, inferential, and weaker unsettled carry-over follow-ups into the next bounded drift cases, so the system can stay anchored without over-blending unrelated nearby topics
-- continue hardening early-acquaintance inference beyond emotional-state false positives, identity-style self-description, quoted name-sharing, `my name's` introductions, `I'm called` introductions, parenthesized name-sharing, and `call me` follow-up/scheduling/sequencing/callback false positives into the next bounded ambiguous introduction cases, but keep the parser narrow enough that ordinary emotional sentences are never treated as confirmed names
-- decide whether the next truthful web-facing companion-quality surface should show remembered names / vibe continuity lightly beside the new understanding panel, without regressing into a required persona setup form
-  - decide whether the next identity-summary cut should add correction provenance / pinning first, or one more bounded refinement for conflict resolution between old stable themes and newly detected higher-signal care needs
-  - if the summary layer still drifts toward stale generic comfort wording under conflict, add one more explicit suppression rule before broadening the schema
-- start the next voice implementation cut by pushing the current browser voice loop closer to true realtime duplex, beginning with interruption-safe reply stop/resume behavior and a tighter listen-speak handoff instead of broadening vendor coverage first
-- after that interruption-focused pass, decide whether the next highest-value voice step is wider provider-specific STT coverage such as Doubao/local or a deeper transport upgrade beyond the current browser-side speech-activity heuristics
-- replace the current fixed short capture window in provider-backed STT with a more truthful turn-end detector or streaming transport before claiming realtime voice is close to done
-- add focused browser-side or component-level regression coverage for the new silence-based provider STT stop logic so later realtime voice work does not regress it silently
-- decide whether the next voice implementation cut after this first STT slice should be interruption/full duplex first, or wider provider-specific STT support such as Doubao/local
-- re-run the dedicated Fish Audio browser verification pass once the current machine can actually reach `https://api.fish.audio`, then verify catalog fetch, saved voice-model ID entry, provider-backed playback, and provider-backed microphone transcription end to end
-- run one focused browser pass for the Gemini dedicated voice route with both the official preset and the new `Gemini TTS (Micu Relay)` preset, especially preset selection, static model/voice switching, config save, and provider-backed playback with a real key that actually has access to the selected Micu relay model
-- decide whether Gemini should stay TTS-only for now or later receive a separate audio-understanding / transcription adapter instead of being forced into the current provider-backed STT contract
-- use the new repo-side mojibake guard whenever a future Waveary work block edits Chinese-facing copy, and keep broad historical Chinese cleanup isolated from unrelated feature work
-- keep future shell polish focused on the lower workspace stage and inner panel density; do not bloat the top workspace-tab strip when the real complaint is about the operational panels below
-- the latest shell pass now keeps voice setup inside the provider workspace, uses collapsible left-rail modules, and lets the compact chat session strip be dismissed, so future shell work should extend that denser client direction instead of bringing back duplicated setup blocks or a dedicated voice page
-- the follow-up shell polish now also uses arrow-only sidebar collapse controls and a dismissible restored-history notice near the top of chat, so future cleanup should preserve that quieter client-like behavior instead of bringing back `Show / Hide` copy or a permanently pinned restore banner
-- keep the sticky topbar on transparent vector brand assets only; do not route the live header back through standalone raster logo drafts with baked backgrounds, because that regresses the formal shell identity immediately
-- keep future voice-shell checks focused on true UI regressions now that shared, dedicated OpenAI-compatible, Doubao, and local branches have all been browser-verified against the routing card
-- confirm the dedicated local-bridge voice path in-browser now that its optional auth slot stays visible in the same credential area instead of disappearing with the old conditional rendering
-- test the dedicated voice-provider path end-to-end in the browser by saving a separate真人语音 provider and confirming the delivery hint still shapes playback when chat stays on a different vendor
-- decide the next voice cut after this shell-stability pass: provider-backed STT, or a truer realtime duplex / interruption pass first
-- verify the restored provider console end-to-end in the browser against the currently running local dev server, then decide whether to also harden the underlying voice route startup path so `/api/voice/config` stops returning `404`
-- decide the next voice cut after the new continuous browser voice loop: provider-backed STT, or a truer realtime duplex / interruption pass first
-- consider whether the saved voice profile should stay local-only for CE or later become part of user-facing companionship preference portability
-- keep future realtime voice and full-duplex work behind the new `waveary-voice` package boundary instead of blending media logic into `waveary-web` directly
-- continue refining the new three-step chat permission presets so the difference between `high-permission` and `full-access` stays legible now that `full-access` also returns same-turn execution-consistent replies instead of showing a contradiction between model text and local action outcome
-- add a focused browser pass for chat-integrated browser actions so the live `#chat` page is re-verified end-to-end against page-read, page-search, clickable-list, and click-by-text flows, not only route-level tests
-- extend the new Playwright-backed browser path from current-page info, extract-text, page-search, clickable-list, click-by-text, and nth-result opening into one next bounded interaction cut such as explicit link selection or richer form-field targeting, while keeping permission prompts, auditability, and revocation explicit
-- consider showing a user-facing indicator in the console or chat flow when a proactive care wait-state has been cleared by a real reply, so the permissioned care loop is more legible
-- consider distinguishing affirmative proactive recommendations from blocked evaluations more visually in the console card now that their text is user-facing
-- consider exposing a smaller single-line status echo near the evaluate button so the latest `WPCE` conclusion remains visible even when the full decision card scrolls out of view
-- keep future desktop awareness or action work behind a separate permissioned presence layer instead of mixing it directly into chat reply generation
-- extend the new permissioned local-time path into richer presence-aware context only after the user can review and grant each source separately, instead of letting time awareness silently expand into broader desktop awareness
-- continue tightening deterministic local-time detection around additional natural Chinese phrasings before expanding the same path into any broader presence-aware inputs
-- consider surfacing the current permissioned local daypart in the console or chat shell only if it improves legibility without making the conversation surface feel diagnostic
-- consider moving the new daypart-aware notification tone into a shared proactive-message formatter once browser notifications stop being the only delivery channel
-- consider extracting the new console-summary and notification-copy helpers into one shared proactive presentation module if a second non-browser delivery surface is added
-- use the new route-visible proactive draft contract as the source for any next delivery surface, instead of recomputing outbound copy per-surface in the browser
-- consider whether the draft contract should stay a `waveary-web` server concern for now or move into a more shared runtime-facing layer before scheduled delivery work begins
-- consider whether the new browser-local proactive loop should surface a small in-chat or console-side 鈥渨atching鈥?indicator so the user can tell when bounded local care checks are active
-- expand provider-specific chat request normalization where "OpenAI-compatible" vendors diverge beyond the current shared `/chat/completions` and `/responses` paths
-- add route-level or live verification for more provider-specific chat payload divergences after the current DeepSeek and broader structured-payload compatibility baseline
-- re-run `npm run verify:provider` and `npm run models:provider` with refreshed real credentials, starting with DeepSeek because the currently saved local key now returns `401 invalid api key`
-- continue the dialogue-quality pass by extending live-provider regression beyond prompt-body inspection into stronger emotional-stress cases, finer ordinary-texting cadence, and richer memory-vs-timeline competition now that recency and source-turn weighting are both present in the shared helper
-- continue the dialogue-quality pass by extending greeting/opening realism beyond the new bedtime, miss-you, playful miss-check, lingering-late-night, and dream-opening cadence into one next bounded opening cut such as `睡不着 / 忽然就想来找你 / 差点就想给你发消息了`, while keeping replies short, human, and non-clingy
-- consider whether the next continuity-scoring refinement should incorporate bounded source-session or repeated-reference signals beyond the current current-turn match, recency, and source-turn layers
-- consider reusing the shared continuity-thread helper in future runtime-facing care or summary surfaces instead of reintroducing prompt-local continuity heuristics elsewhere
-- consider whether continuity-thread scoring now needs source-turn weighting in addition to the new lightweight recency bias, especially for memories created within the same short time band
-- decide whether to harden `@waveary/core`'s Windows test script so it rebuilds or expands compiled test-file arguments more robustly, since the current `npm run test --workspace @waveary/core` path can misbehave if relied on alone after source edits
-- add focused route-level and browser-facing coverage for any remaining persistence edge cases beyond the current file/sqlite symmetry path
-- continue polishing the split web shell by tightening session-management density below the console fold and improving message rhythm plus mixed-language balance in the dedicated chat page
-- continue polishing the split web shell by deciding whether more of the now-working companion-profile editing flow should move out of the broad session console card into a slimmer inline side surface once the current in-browser balance is verified
-- visually verify and tune the new compact console toolbar plus non-session workspace flow in-browser, especially the internal scrolling behavior now that the marketing-style console intro has been suppressed
-- the README hero banner asset has now been rebuilt into a centered transparent fan composition with cleaner portrait-card isolation; only keep iterating if live GitHub rendering still shows a real balance issue
-- if future homepage polish touches the closing route section again, keep it as a homepage-ending promotional recap and do not reintroduce a separate roadmap page
-- if another shell-polish pass is needed, prefer targeted fixes for specific overflowing metadata rows or mobile breakpoints instead of broad console restructuring, because the current containment baseline for `#home`, `#chat`, and `#console` has now been browser-verified
-- keep iterating on the compact console shell only after visual verification shows a remaining real usability gap, instead of re-expanding it into explanatory blocks
-- keep the left sidebar as a direct action list: title-only labels, no subtitle blurbs, no duplicate `enter chat` shortcut, and no separate quasi-chat persona/memory entry outside the session-management workspace
-- keep public repository guidance about external code borrowing generic; do not publish named third-party borrowing lists in-repo, and review any reuse case-by-case before code is brought in
-- run a focused browser pass for homepage doodle density, fade rhythm, and overall visual balance now that the doodle set includes both the original study objects and the new paper-memory objects
-- visually verify and, only if needed, tighten any remaining console workspace that still forces awkward external page scrolling after the latest compact-shell pass
-- if a later console refinement is needed, preserve the new invariant that all workspaces share the same stage footprint and prefer inner-panel scrolling over reintroducing long outer-page scroll
-- expand the new ask-first local action layer beyond the first safe open-url / open-folder / launch-app set, while keeping every higher-trust action explicit, revocable, and auditable
-- consider whether the next local-action pass should add richer action summaries or per-action approval history now that completed and dismissed actions already leave a small completed-action echo in chat
-- continue the homepage portrait system with a more deliberate `4 male / 4 female` hand-drawn polaroid-style set so the visual range feels broader and less clustered around one youth archetype
-- consider replacing the current chroma-keyed lighter cutout with a cleaner native-alpha illustration once a final asset pass is approved
-- consider a follow-up homepage motion pass that adds a slightly stronger heat shimmer or ember flicker only if it stays subtle and does not overcomplicate the hero
-- verify the latest lighter flame anchor visually in the browser and stop adjusting once the burn point feels locked, then keep homepage polish focused on asset quality instead of more positional churn
-- consider replacing current raw portrait PNGs with lighter optimized delivery assets once the final portrait set is approved
-- validate the bilingual home / console / chat shell in a broader browser pass and tune any remaining spacing, wrapping, or readability issues caused by mixed Chinese and English line lengths
-- consider a follow-up web pass focused specifically on richer chat-page signal affordances that do not drag diagnostics clutter back into the conversation view
-- preserve the compact sidebar-header rule in the chat shell: section title on the left, arrow-only collapse toggle on the right, expanded as a down arrow and collapsed as a right arrow
-- preserve the compact control-desk rule inside console workspaces too: when one workspace owns many controls, prefer one stable stage with small internal category tabs instead of one long mixed card wall
-- keep session import semantic hardening paused here unless a real malformed package reveals another high-value cross-structure gap
-- consider adding finer-grained session controls such as export/import or per-session persistence diagnostics after the current reset capability
-- keep using the new post-commit test-memory reset flow before live behavior checks so stale local chat history does not leak into fresh companion-quality verification
-- consider surfacing richer archive filtering or grouped recall views now that persisted session intelligence is visible in the browser
-- consider adding import or downloadable file export flows now that structured session export is available
-- consider validating downloadable file-based import/export or partial merge tools now that session migration is possible in-browser
-- consider adding stronger schema validation and user-facing import diagnostics for malformed session files
-- consider extending the versioned session package contract with deeper semantic checks beyond ordering and duplicate IDs, such as archive de-duplication across related structures
-- consider planning the next schema migration rule before any non-backward-compatible session package change lands
-- consider hardening workspace build scripts further against transient Windows dist-lock races
-- keep updating `PROJECT_STATE.md` and `docs/session-log.md` after each verified work block
-- keep `ACTIVE_TASKS.md` and `docs/product-preferences.md` short, current, and high-signal so they stay useful under heavy long-term use
-- keep `START_HERE.md` and continuity files aligned with current workflow
+## Next Recommended Step
+
+- return to product work in one bounded block only after this continuity-doc cleanup is committed and pushed
+- first product-side follow-up should stay within one of the current active priorities from `ACTIVE_TASKS.md`, not broad multi-surface rewrites
+- keep future Chinese-text cleanup separate from feature work unless the change is strictly local and verified with `git diff` plus `npm run check:mojibake`
 
 ## Open Issues
 
-- `npm run web:build` should not be executed in parallel with another root build command because package `dist` cleanup can race on Windows
-- `npm run build --workspace @waveary/core` should not be run in parallel with compiled `waveary-core/dist` test execution on this Windows workspace, because the shared `dist` directory can produce misleading false regressions even when the source change is correct
-- `npm run web:build` can still fail on Windows with `EPERM` while removing `waveary-core/dist` if a prior build or process is holding the directory, even when narrower `@waveary/web` test and typecheck verification succeeds
-- a stale local dev server can still make browser verification lie about already-fixed voice-config behavior, because the browser may keep talking to older server code until the local `web:dev` process is restarted; recheck live voice-route conclusions against the running server version before assuming the repository fix failed
-- several repository files already contain historical mojibake in Chinese copy, and fresh PowerShell / Windows shell edits can make diagnosis misleading because console rendering is not byte-faithful; treat Chinese-text cleanup as a separate deliberate pass, and verify future Chinese copy edits with `git diff` instead of trusting raw terminal output alone
-- the new `npm run check:mojibake` guard only scans changed added lines for obvious corruption patterns; it reduces repeat mistakes but does not replace a dedicated full-document Chinese cleanup pass
-- `npx tsc --noEmit -p waveary-web/tsconfig.server.json` is not a trustworthy verification command in this workspace right now because its standalone resolution still reports broader historical workspace-type issues even when the package build/test flow passes; prefer `npm run test --workspace @waveary/web` or `npm run build:server --workspace @waveary/web` for server-side voice verification until that separate tsconfig issue is deliberately cleaned up
-- `waveary-web/src/App.tsx` no longer has the newest visible mojibake in the dedicated voice credential block, but broader document-level cleanup is still outstanding and should stay isolated from active feature work
-- direct `npm run build --workspace @waveary/web` is currently blocked again by a workspace-level `@waveary/core` package entry resolution failure in Vite config bundling, even though `npm run check --workspace @waveary/web` now passes and the current shell edits are type-safe; treat that package-entry issue as separate from this shell pass
-- provider and voice setup still use different persistence ergonomics today: provider chat runtime only uses explicitly saved config, while many voice fields save on blur, so future console changes should keep that distinction legible instead of implying all edited credentials are already active
-- direct deletion of `.waveary/chat-sessions.db` is not a reliable live-reset strategy on Windows while the web server is running, because SQLite file locks can block removal; prefer the local reset API path first
-- the first provider-backed STT browser path now uses browser-side speech-activity heuristics rather than a fixed short timer, but it is still not a server-grounded VAD, interruption-capable loop, or full duplex transport
-- live Fish Audio verification is currently blocked by upstream reachability from this machine: direct requests to `api.fish.audio:443` time out before any HTTP response, so current failures reflect network access rather than a known Waveary route bug
-- Micu relay does not currently expose `gemini-3.1-flash-tts-preview` on the tested key path; direct probes returned `503 model_not_found`, while `gemini-2.5-flash-tts-preview` and `gemini-2.5-pro-tts-preview` were recognized by Micu but returned `403` on the provided key because that token does not currently have access to those models
-- the dedicated Doubao route now succeeds end to end on the provided real key when it uses the current documented `seed-tts-2.0` resource ID, a current 2.0 speaker such as `zh_female_gaolengyujie_uranus_bigtts`, and a parser that accepts the real newline-delimited chunked success stream instead of assuming one JSON object
-- ad hoc direct-shell Doubao probes on this Windows / PowerShell setup can still mislead if Chinese text is sent through a non-UTF-8-safe path; use UTF-8-safe payload construction or the repo/runtime verification path before concluding that upstream returned `No readable text!`
-- stale local `web:dev` processes can still serve older voice-runtime code and produce misleading browser fallback reasons; restart the local dev server before trusting a browser-side Doubao voice conclusion after backend changes
-- live Doubao speaker discovery is now intentionally separate from the working OpenSpeech TTS route: TTS still uses `x-api-key + resourceId`, while full `ListSpeakers` discovery needs Volcengine `AccessKey ID + Secret Access Key`
-- the current local verification baseline is split: live route probes already confirm both `doubao` v3 and `doubao-legacy` return provider audio through `/api/voice/speak`, while the browser console has only been visually confirmed on the legacy preset so far
+- Windows builds can still race or fail around shared `dist` cleanup, especially when build and test flows overlap
+- standalone `npx tsc --noEmit -p waveary-web/tsconfig.server.json` is still not the most trustworthy server-side verification path; prefer package-level build/test commands
+- stale local `web:dev` processes can mislead browser verification by serving older server code
+- provider and voice setup still have different save ergonomics, which can confuse runtime expectations
+- the browser live-chat voice path is not yet a true full-duplex transport
+- live Fish Audio verification is currently blocked by upstream reachability from this machine
+- some historical repository files still contain mojibake outside this cleanup scope; treat broad encoding repair as deliberate documentation work, not incidental feature cleanup
