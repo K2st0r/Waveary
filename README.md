@@ -23,7 +23,8 @@
 [Deploy](#deploy-on-a-server) ·
 [Commands](#common-commands) ·
 [Docs](#documentation) ·
-[Commercial Use](./docs/commercial-use.md)
+[Commercial Use](./docs/commercial-use.md) ·
+[Editions](./docs/editions.md)
 
 </div>
 
@@ -305,6 +306,8 @@ Module roles:
 - [Deployment Guide](./docs/deployment-guide.md)
 - [Commercial Use And Brand Licensing](./docs/commercial-use.md)
 - [商业使用与品牌授权说明](./docs/commercial-use.zh-CN.md)
+- [Waveary Editions](./docs/editions.md)
+- [Waveary 版本规划](./docs/editions.zh-CN.md)
 - [中文部署指南](./docs/deployment-guide.zh-CN.md)
 - [Project State](./PROJECT_STATE.md)
 - [Vision](./docs/vision.md)
@@ -333,6 +336,7 @@ Basic flow:
 - Forks may use the code under Apache 2.0, but must not imply official affiliation or ship under the official Waveary branding without permission.
 - See [TRADEMARKS.md](./TRADEMARKS.md) and [BRAND-ASSETS.md](./BRAND-ASSETS.md).
 - A practical usage guide is here: [Commercial Use And Brand Licensing](./docs/commercial-use.md).
+- Official packaging direction is summarized here: [Waveary Editions](./docs/editions.md).
 
 ## License
 
