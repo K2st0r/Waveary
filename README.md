@@ -12,7 +12,7 @@
 
 [简体中文](./README.zh-CN.md) · **English**
 
-[![License: MIT](https://img.shields.io/badge/license-MIT-black.svg)](./LICENSE)
+[![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-black.svg)](./LICENSE)
 [![GitHub stars](https://img.shields.io/github/stars/K2st0r/Waveary?style=social)](https://github.com/K2st0r/Waveary/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/K2st0r/Waveary?style=social)](https://github.com/K2st0r/Waveary/network/members)
 [![GitHub issues](https://img.shields.io/github/issues/K2st0r/Waveary)](https://github.com/K2st0r/Waveary/issues)
@@ -321,6 +321,15 @@ Basic flow:
 3. Make one focused change.
 4. Open a pull request.
 
+## Brand, Trademarks, And Official Assets
+
+- The source code in this repository is licensed under [Apache License 2.0](./LICENSE).
+- The names `Waveary` and `回响之境`, official logos, portrait cards, illustrations, screenshots, and other official brand assets are not licensed under Apache 2.0.
+- Personal, educational, and evaluation use of the open-source code follows the Apache 2.0 license.
+- Commercial use of the official marks or official brand assets requires prior written permission.
+- Forks may use the code under Apache 2.0, but must not imply official affiliation or ship under the official Waveary branding without permission.
+- See [TRADEMARKS.md](./TRADEMARKS.md) and [BRAND-ASSETS.md](./BRAND-ASSETS.md).
+
 ## License
 
-This project is released under the [MIT License](./LICENSE).
+This project is released under the [Apache License 2.0](./LICENSE).
