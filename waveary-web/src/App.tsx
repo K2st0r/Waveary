@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import type { ChangeEvent, ReactElement } from "react";
+﻿import { useEffect, useRef, useState } from "react";
+import type { CSSProperties, ChangeEvent, ReactElement } from "react";
 import {
   buildProactiveMessageDraft,
   formatProactiveDraftTone,
@@ -21,6 +21,22 @@ interface SavedProviderConfig {
   baseURL: string;
   apiKey: string;
   model: string;
+}
+
+type ModelCapabilitySurface = "speech" | "vision" | "image" | "video";
+
+interface CapabilityProviderConfig {
+  provider: string;
+  baseURL: string;
+  apiKey: string;
+  model: string;
+}
+
+interface SavedModelCapabilityConfig {
+  speech: CapabilityProviderConfig;
+  vision: CapabilityProviderConfig;
+  image: CapabilityProviderConfig;
+  video: CapabilityProviderConfig;
 }
 
 interface SavedVoiceConfig {
@@ -264,6 +280,54 @@ interface SessionIdentitySummary {
   lastUpdatedAt: string;
 }
 
+interface SessionCompanionProfile {
+  portraitId: string;
+  portraitSrc: string;
+  displayName: string;
+  userDisplayName: string;
+  userNickname: string;
+  relationshipVibe: string;
+  speakingStyle: string;
+  personalityTraits: string[];
+  favoriteTopics: string[];
+  preferredVoiceProvider?: string;
+  preferredVoiceModel?: string;
+  preferredVoiceName?: string;
+}
+
+interface CompanionPortraitPreset {
+  id: string;
+  src: string;
+  label: string;
+  vibe: string;
+  traits: string[];
+  topics: string[];
+  speakingStyle: string;
+}
+
+interface NewSessionDraft {
+  title: string;
+  portraitId: string;
+  companionName: string;
+  userName: string;
+  userNickname: string;
+  relationshipVibe: string;
+  speakingStyle: string;
+  personalityTraits: string;
+  favoriteTopics: string;
+}
+
+interface ActiveCompanionDraft {
+  portraitId: string;
+  companionName: string;
+  userName: string;
+  userNickname: string;
+  relationshipVibe: string;
+  speakingStyle: string;
+  personalityTraits: string;
+  favoriteTopics: string;
+}
+
 interface ProactiveCarePolicy {
   enabled: boolean;
   quietHoursStart?: string;
@@ -298,6 +362,7 @@ interface ChatSessionSnapshot {
   messages: ChatMessage[];
   latestInsights: ChatTurnResponse | null;
   identitySummary: SessionIdentitySummary | null;
+  companionProfile: SessionCompanionProfile | null;
   proactiveCarePolicy: ProactiveCarePolicy;
   proactiveCareState: ProactiveCareState;
   memoryArchive: SessionMemoryArchiveItem[];
@@ -347,6 +412,7 @@ interface ChatSessionListItem {
   title: string;
   updatedAt: string;
   messageCount: number;
+  companionProfile: SessionCompanionProfile | null;
 }
 
 type ChatPersistenceBackend = "file" | "sqlite";
@@ -692,7 +758,7 @@ const zhCopy = {
     send: "发送消息",
     sessionExport: "会话导出",
     structuredJson: "结构化 JSON",
-    exportDescription: "该导出包包含当前会话的对话、持久记忆、关系状态、时间轴事件与最新运行时洞察。",
+    exportDescription: "该导出包会一起带走当前人物档案、头像、语音偏好、对话历史、持久记忆、关系状态、时间轴事件与最新运行时洞察。",
     importSafety: "导入安全",
     currentSchemaShort: "当前 schema：",
     proactiveCare: "主动关怀",
@@ -1078,7 +1144,7 @@ const enCopy = {
     quickPermissionsHint: "Adjust time, care, and local powers here without leaving the conversation.",
     sessionExport: "Session Export",
     structuredJson: "Structured JSON",
-    exportDescription: "This export package includes conversation, persisted memories, relationship state, timeline events, and latest insights for the active session.",
+    exportDescription: "This export package carries the active companion profile, portrait, voice preferences, conversation history, persisted memories, relationship state, timeline events, and the latest runtime insights together.",
     importSafety: "Import safety",
     currentSchemaShort: "Current schema:",
     proactiveCare: "Proactive Care",
@@ -1449,7 +1515,38 @@ interface HeroPortraitCard {
   delay: string;
 }
 
-type ConsoleWorkspace = "provider" | "voice" | "sessions" | "care" | "runtime";
+type ConsoleWorkspace =
+  | "provider"
+  | "voice"
+  | "sessions"
+  | "care"
+  | "runtime"
+  | "skills"
+  | "channels"
+  | "settings";
+type ProviderWorkspaceSurface = "language" | "voice" | "vision" | "image" | "video";
+type SessionWorkspaceSurface = "profile" | "session" | "storage" | "transfer" | "permissions";
+type SkillsWorkspaceSurface = "browser" | "local" | "memory" | "care";
+type ChannelsWorkspaceSurface = "desktop" | "feishu" | "wecom" | "wechat";
+type SettingsWorkspaceSurface = "permissions" | "data" | "appearance" | "desktop";
+
+function createEmptyCapabilityProviderConfig(): CapabilityProviderConfig {
+  return {
+    provider: "",
+    baseURL: "",
+    apiKey: "",
+    model: ""
+  };
+}
+
+function getDefaultModelCapabilityConfig(): SavedModelCapabilityConfig {
+  return {
+    speech: createEmptyCapabilityProviderConfig(),
+    vision: createEmptyCapabilityProviderConfig(),
+    image: createEmptyCapabilityProviderConfig(),
+    video: createEmptyCapabilityProviderConfig()
+  };
+}
 
 interface HomeDoodle {
   id: string;
@@ -1460,6 +1557,81 @@ interface HomeDoodle {
   scale: number;
   delay: string;
 }
+
+const companionPortraitPresets: CompanionPortraitPreset[] = [
+  {
+    id: "portrait-01",
+    src: "/images/portraits/portrait-01.png",
+    label: "Quiet Listener",
+    vibe: "gentle and quietly attentive",
+    traits: ["gentle", "observant", "steady"],
+    topics: ["late-night thoughts", "small daily moments", "feelings you do not say out loud"],
+    speakingStyle: "soft, close, and natural"
+  },
+  {
+    id: "portrait-02",
+    src: "/images/portraits/portrait-02.png",
+    label: "Playful Warmth",
+    vibe: "bright, teasing, and affectionate",
+    traits: ["playful", "warm", "quick to reassure"],
+    topics: ["daily check-ins", "tiny celebrations", "little jokes"],
+    speakingStyle: "light, lively, and intimate"
+  },
+  {
+    id: "portrait-03",
+    src: "/images/portraits/portrait-03.png",
+    label: "Protective Calm",
+    vibe: "calm, protective, and grounded",
+    traits: ["protective", "calm", "dependable"],
+    topics: ["hard days", "practical comfort", "making plans together"],
+    speakingStyle: "steady, concise, and reassuring"
+  },
+  {
+    id: "portrait-04",
+    src: "/images/portraits/portrait-04.png",
+    label: "Diary Soul",
+    vibe: "poetic, reflective, and sincere",
+    traits: ["reflective", "sincere", "slightly wistful"],
+    topics: ["memories", "letters never sent", "the shape of a day"],
+    speakingStyle: "diary-like, soft, and emotionally textured"
+  },
+  {
+    id: "portrait-05",
+    src: "/images/portraits/portrait-05.png",
+    label: "Sunny Check-In",
+    vibe: "sweet, energetic, and openly caring",
+    traits: ["energetic", "sweet", "open-hearted"],
+    topics: ["food", "sleep", "how your day really went"],
+    speakingStyle: "clear, caring, and lightly lively"
+  },
+  {
+    id: "portrait-06",
+    src: "/images/portraits/portrait-06.png",
+    label: "Cool Outside",
+    vibe: "cool, sharp, but secretly soft",
+    traits: ["sharp", "composed", "quietly soft"],
+    topics: ["pressure", "ambition", "the things you hide well"],
+    speakingStyle: "cool-toned, compact, and quietly close"
+  },
+  {
+    id: "portrait-07",
+    src: "/images/portraits/portrait-07.png",
+    label: "Dream Chaser",
+    vibe: "idealistic, youthful, and curious",
+    traits: ["curious", "idealistic", "encouraging"],
+    topics: ["future plans", "creative ideas", "the life you still want"],
+    speakingStyle: "hopeful, intimate, and lightly playful"
+  },
+  {
+    id: "portrait-08",
+    src: "/images/portraits/portrait-08.png",
+    label: "Tender Gravity",
+    vibe: "deep-feeling, tender, and emotionally present",
+    traits: ["tender", "deep-feeling", "patient"],
+    topics: ["hurt that lingers", "healing slowly", "staying with you through it"],
+    speakingStyle: "slow, caring, and close to the heart"
+  }
+];
 
 const heroPortraitCards: HeroPortraitCard[] = [
   {
@@ -1545,12 +1717,111 @@ const homeDoodles: HomeDoodle[] = [
   { id: "doodle-butterfly", src: "/images/doodles/butterfly.png", top: "46%", left: "92%", rotation: "9deg", scale: 0.86, delay: "-18s" }
 ];
 
-const consoleWorkspaceOrder: ConsoleWorkspace[] = ["provider", "voice", "sessions", "care", "runtime"];
+const runtimeDoodles: HomeDoodle[] = homeDoodles.slice(0, 10);
+
+const consoleWorkspaceOrder: ConsoleWorkspace[] = [
+  "provider",
+  "sessions",
+  "skills",
+  "channels",
+  "care",
+  "runtime",
+  "settings"
+];
 
 const HERO_BURN_CYCLE_MS = 12000;
 const PROACTIVE_AUTO_CHECK_STORAGE_KEY = "waveary-proactive-auto-check-enabled";
 const PROACTIVE_AUTO_CHECK_INTERVAL_STORAGE_KEY = "waveary-proactive-auto-check-interval-minutes";
 const DEFAULT_PROACTIVE_AUTO_CHECK_INTERVAL_MINUTES = 20;
+
+function createDefaultNewSessionDraft(): NewSessionDraft {
+  return {
+    title: "",
+    portraitId: "",
+    companionName: "",
+    userName: "",
+    userNickname: "",
+    relationshipVibe: "",
+    speakingStyle: "",
+    personalityTraits: "",
+    favoriteTopics: ""
+  };
+}
+
+function buildDefaultSessionTitle(preset: CompanionPortraitPreset, locale: Locale): string {
+  return locale === "zh" ? `${preset.label} 的新对话` : `${preset.label} session`;
+}
+
+function createActiveCompanionDraft(
+  profile: SessionCompanionProfile | null
+): ActiveCompanionDraft {
+  if (!profile) {
+    const preset = companionPortraitPresets[0]!;
+
+    return {
+      portraitId: preset.id,
+      companionName: "",
+      userName: "",
+      userNickname: "",
+      relationshipVibe: preset.vibe,
+      speakingStyle: preset.speakingStyle,
+      personalityTraits: preset.traits.join(", "),
+      favoriteTopics: preset.topics.join(", ")
+    };
+  }
+
+  return {
+    portraitId: profile.portraitId,
+    companionName: profile.displayName,
+    userName: profile.userDisplayName,
+    userNickname: profile.userNickname,
+    relationshipVibe: profile.relationshipVibe,
+    speakingStyle: profile.speakingStyle,
+    personalityTraits: profile.personalityTraits.join(", "),
+    favoriteTopics: profile.favoriteTopics.join(", ")
+  };
+}
+
+function parseCommaSeparatedValues(value: string): string[] {
+  return value
+    .split(/[,\n]/)
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+}
+
+function buildCompanionProfileFromDraft(
+  draft: NewSessionDraft,
+  voiceConfig: SavedVoiceConfig | null
+): SessionCompanionProfile {
+  const preset =
+    companionPortraitPresets.find((entry) => entry.id === draft.portraitId) ??
+    companionPortraitPresets[0]!;
+
+  const displayName = draft.companionName.trim() || preset.label;
+  const userDisplayName = draft.userName.trim();
+  const userNickname = draft.userNickname.trim();
+  const relationshipVibe = draft.relationshipVibe.trim() || preset.vibe;
+  const speakingStyle = draft.speakingStyle.trim() || preset.speakingStyle;
+  const personalityTraits = parseCommaSeparatedValues(draft.personalityTraits);
+  const favoriteTopics = parseCommaSeparatedValues(draft.favoriteTopics);
+
+  return {
+    portraitId: preset.id,
+    portraitSrc: preset.src,
+    displayName,
+    userDisplayName,
+    userNickname,
+    relationshipVibe,
+    speakingStyle,
+    personalityTraits,
+    favoriteTopics,
+    ...(voiceConfig?.provider?.trim()
+      ? { preferredVoiceProvider: voiceConfig.provider.trim() }
+      : {}),
+    ...(voiceConfig?.model?.trim() ? { preferredVoiceModel: voiceConfig.model.trim() } : {}),
+    ...(voiceConfig?.voice?.trim() ? { preferredVoiceName: voiceConfig.voice.trim() } : {})
+  };
+}
 
 export function App(): ReactElement {
   const [locale, setLocale] = useState<Locale>(() => {
@@ -1564,6 +1835,9 @@ export function App(): ReactElement {
   const copy = getCopy(locale);
   const [presets, setPresets] = useState<ProviderPreset[]>([]);
   const [savedConfig, setSavedConfig] = useState<SavedProviderConfig | null>(null);
+  const [capabilityConfig, setCapabilityConfig] = useState<SavedModelCapabilityConfig>(() =>
+    getDefaultModelCapabilityConfig()
+  );
   const [voiceConfig, setVoiceConfig] = useState<SavedVoiceConfig | null>(null);
   const [voicePresets, setVoicePresets] = useState<VoicePresetDescriptor[]>([]);
   const [voiceProviderPresets, setVoiceProviderPresets] = useState<VoiceProviderPreset[]>([]);
@@ -1577,9 +1851,27 @@ export function App(): ReactElement {
   const [apiKey, setApiKey] = useState("");
   const [models, setModels] = useState<ModelDescriptor[]>([]);
   const [selectedModel, setSelectedModel] = useState("");
+  const [capabilityModels, setCapabilityModels] = useState<Record<ModelCapabilitySurface, ModelDescriptor[]>>({
+    speech: [],
+    vision: [],
+    image: [],
+    video: []
+  });
   const [loadState, setLoadState] = useState<LoadState>("idle");
   const [modelsState, setModelsState] = useState<LoadState>("idle");
   const [saveState, setSaveState] = useState<LoadState>("idle");
+  const [capabilityModelsState, setCapabilityModelsState] = useState<Record<ModelCapabilitySurface, LoadState>>({
+    speech: "idle",
+    vision: "idle",
+    image: "idle",
+    video: "idle"
+  });
+  const [capabilitySaveState, setCapabilitySaveState] = useState<Record<ModelCapabilitySurface, LoadState>>({
+    speech: "idle",
+    vision: "idle",
+    image: "idle",
+    video: "idle"
+  });
   const [voiceConfigState, setVoiceConfigState] = useState<LoadState>("idle");
   const [voiceCatalogState, setVoiceCatalogState] = useState<LoadState>("idle");
   const [statusMessage, setStatusMessage] = useState<string>(zhCopy.statuses.loadingProviderConfiguration);
@@ -1640,6 +1932,20 @@ export function App(): ReactElement {
   const [proactiveAutoCheckLastOutcome, setProactiveAutoCheckLastOutcome] =
     useState<ProactiveAutoCheckOutcome | null>(null);
   const [chatPermissionTrayOpen, setChatPermissionTrayOpen] = useState(false);
+  const [chatSettingsDrawerOpen, setChatSettingsDrawerOpen] = useState(false);
+  const [chatRestoreBannerDismissed, setChatRestoreBannerDismissed] = useState(false);
+  const [sidebarSessionsCollapsed, setSidebarSessionsCollapsed] = useState(false);
+  const [sidebarControlsCollapsed, setSidebarControlsCollapsed] = useState(false);
+  const [providerWorkspaceSurface, setProviderWorkspaceSurface] =
+    useState<ProviderWorkspaceSurface>("language");
+  const [sessionWorkspaceSurface, setSessionWorkspaceSurface] =
+    useState<SessionWorkspaceSurface>("profile");
+  const [skillsWorkspaceSurface, setSkillsWorkspaceSurface] =
+    useState<SkillsWorkspaceSurface>("browser");
+  const [channelsWorkspaceSurface, setChannelsWorkspaceSurface] =
+    useState<ChannelsWorkspaceSurface>("desktop");
+  const [settingsWorkspaceSurface, setSettingsWorkspaceSurface] =
+    useState<SettingsWorkspaceSurface>("permissions");
   const [localActionResolveState, setLocalActionResolveState] = useState<LoadState>("idle");
   const [voiceConversationMode, setVoiceConversationMode] = useState(false);
   const [voicePlaybackState, setVoicePlaybackState] = useState<VoicePlaybackState>("idle");
@@ -1652,6 +1958,14 @@ export function App(): ReactElement {
   const [activeSessionId, setActiveSessionId] = useState("");
   const [defaultSessionId, setDefaultSessionId] = useState("");
   const [newSessionTitle, setNewSessionTitle] = useState("");
+  const [newSessionDraft, setNewSessionDraft] = useState<NewSessionDraft>(() =>
+    createDefaultNewSessionDraft()
+  );
+  const [newSessionComposerOpen, setNewSessionComposerOpen] = useState(false);
+  const [activeCompanionDraft, setActiveCompanionDraft] = useState<ActiveCompanionDraft>(() =>
+    createActiveCompanionDraft(null)
+  );
+  const [activeCompanionSaveState, setActiveCompanionSaveState] = useState<LoadState>("idle");
   const [sessionRenameTitle, setSessionRenameTitle] = useState("");
   const [persistenceStatus, setPersistenceStatus] = useState<ChatPersistenceStatus | null>(null);
   const [selectedPersistenceBackend, setSelectedPersistenceBackend] = useState<ChatPersistenceBackend>("file");
@@ -1933,9 +2247,10 @@ export function App(): ReactElement {
           return null;
         }
       );
-      const [presetResponse, configResponse, sessionFormatResponse, sessionsResponse, voiceConfigResponse, voiceProviderPresetResponse] = await Promise.all([
+      const [presetResponse, configResponse, capabilityConfigResponse, sessionFormatResponse, sessionsResponse, voiceConfigResponse, voiceProviderPresetResponse] = await Promise.all([
         fetchJson<{ presets: ProviderPreset[] }>("/api/provider/presets"),
         fetchJson<{ config?: SavedProviderConfig }>("/api/provider/config"),
+        fetchJson<{ config: SavedModelCapabilityConfig }>("/api/provider/capabilities"),
         fetchJson<{ reference: SessionPackageReference }>("/api/chat/session/format"),
         fetchJson<{
           sessions: ChatSessionListItem[];
@@ -1957,6 +2272,7 @@ export function App(): ReactElement {
       setModels([]);
       setSelectedModel("");
       setSavedConfig(nextConfig);
+      setCapabilityConfig(capabilityConfigResponse.config);
       if (voiceConfigResponse) {
         setVoiceConfig(voiceConfigResponse.config);
         setVoicePresets(voiceConfigResponse.presets);
@@ -2035,6 +2351,8 @@ export function App(): ReactElement {
       setSessionTimelineEvents([]);
       setProactiveCarePolicy(null);
       setProactiveCareState(null);
+      setActiveCompanionDraft(createActiveCompanionDraft(null));
+      setActiveCompanionSaveState("idle");
       return;
     }
 
@@ -2051,6 +2369,8 @@ export function App(): ReactElement {
     setSessionTimelineEvents(session.timelineEvents);
     setProactiveCarePolicy(session.proactiveCarePolicy);
     setProactiveCareState(session.proactiveCareState);
+    setActiveCompanionDraft(createActiveCompanionDraft(session.companionProfile));
+    setActiveCompanionSaveState("idle");
   }
 
   function handleProviderChange(event: ChangeEvent<HTMLSelectElement>): void {
@@ -2117,6 +2437,84 @@ export function App(): ReactElement {
       await loadChatSession(activeSessionId || defaultSessionId);
     } catch (error) {
       setSaveState("error");
+      setStatusMessage(getErrorMessage(error));
+    }
+  }
+
+  async function handleFetchCapabilityModels(surface: ModelCapabilitySurface): Promise<void> {
+    const config = capabilityConfig[surface];
+
+    if (!config.provider.trim() || !config.baseURL.trim() || !config.apiKey.trim()) {
+      setCapabilityModelsState((current) => ({ ...current, [surface]: "error" }));
+      setStatusMessage(
+        locale === "zh"
+          ? "请先填写这一能力的供应商、Base URL 和 API Key。"
+          : "Fill provider, base URL, and API key for this capability first."
+      );
+      return;
+    }
+
+    setCapabilityModelsState((current) => ({ ...current, [surface]: "loading" }));
+
+    try {
+      const response = await fetchJson<{ models: ModelDescriptor[] }>("/api/provider/models", {
+        method: "POST",
+        body: JSON.stringify({
+          provider: config.provider,
+          baseURL: config.baseURL,
+          apiKey: config.apiKey
+        })
+      });
+
+      setCapabilityModels((current) => ({
+        ...current,
+        [surface]: response.models
+      }));
+      setCapabilityModelsState((current) => ({ ...current, [surface]: "success" }));
+      setCapabilityConfig((current) => ({
+        ...current,
+        [surface]: {
+          ...current[surface],
+          model: current[surface].model || response.models[0]?.id || ""
+        }
+      }));
+      setStatusMessage(
+        locale === "zh"
+          ? `已为该能力获取 ${response.models.length} 个模型。`
+          : `Fetched ${response.models.length} models for this capability.`
+      );
+    } catch (error) {
+      setCapabilityModels((current) => ({ ...current, [surface]: [] }));
+      setCapabilityModelsState((current) => ({ ...current, [surface]: "error" }));
+      setStatusMessage(getErrorMessage(error));
+    }
+  }
+
+  async function handleSaveCapabilityConfig(surface: ModelCapabilitySurface): Promise<void> {
+    const config = capabilityConfig[surface];
+    setCapabilitySaveState((current) => ({ ...current, [surface]: "loading" }));
+
+    try {
+      const response = await fetchJson<{ config: SavedModelCapabilityConfig }>("/api/provider/capabilities", {
+        method: "POST",
+        body: JSON.stringify({
+          surface,
+          provider: config.provider,
+          baseURL: config.baseURL,
+          apiKey: config.apiKey,
+          model: config.model
+        })
+      });
+
+      setCapabilityConfig(response.config);
+      setCapabilitySaveState((current) => ({ ...current, [surface]: "success" }));
+      setStatusMessage(
+        locale === "zh"
+          ? "能力模型配置已保存。"
+          : "Capability model configuration saved."
+      );
+    } catch (error) {
+      setCapabilitySaveState((current) => ({ ...current, [surface]: "error" }));
       setStatusMessage(getErrorMessage(error));
     }
   }
@@ -2213,6 +2611,13 @@ export function App(): ReactElement {
     await saveVoiceConfigPatch(
       { model: nextModel },
       locale === "zh" ? "语音模型已更新。" : "Voice model updated."
+    );
+  }
+
+  async function handleVoiceSpeechModelChange(nextModel: string): Promise<void> {
+    await saveVoiceConfigPatch(
+      { sttModel: nextModel },
+      locale === "zh" ? "语音识别模型已更新。" : "Speech recognition model updated."
     );
   }
 
@@ -2405,11 +2810,21 @@ export function App(): ReactElement {
   async function handleSessionChange(nextSessionId: string): Promise<void> {
     setActiveSessionId(nextSessionId);
     setSessionRenameTitle(chatSessions.find((session) => session.sessionId === nextSessionId)?.title ?? "");
+    navigateTo("chat");
     await loadChatSession(nextSessionId);
   }
 
   async function handleCreateSession(): Promise<void> {
     try {
+      const companionProfile = buildCompanionProfileFromDraft(
+        {
+          ...newSessionDraft,
+          title: newSessionTitle
+        },
+        voiceConfig
+      );
+      const resolvedTitle =
+        newSessionTitle.trim() || `${companionProfile.displayName} Session`;
       const response = await fetchJson<{
         session: ChatSessionSnapshot;
         sessions: ChatSessionListItem[];
@@ -2418,7 +2833,8 @@ export function App(): ReactElement {
       }>("/api/chat/sessions", {
         method: "POST",
         body: JSON.stringify({
-          title: newSessionTitle.trim() || undefined
+          title: resolvedTitle,
+          companionProfile
         })
       });
 
@@ -2432,6 +2848,8 @@ export function App(): ReactElement {
       setProactiveDecision(null);
       setProactiveDraft(null);
       setNewSessionTitle("");
+      setNewSessionDraft(createDefaultNewSessionDraft());
+      setNewSessionComposerOpen(false);
       setStatusMessage(copy.statuses.sessionCreated);
     } catch (error) {
       setStatusMessage(getErrorMessage(error));
@@ -3023,6 +3441,62 @@ export function App(): ReactElement {
 
   async function handleSendMessage(): Promise<void> {
     await sendChatMessage(chatInput);
+  }
+
+  async function handleSaveActiveCompanionProfile(): Promise<void> {
+    if (!activeSessionId) {
+      return;
+    }
+
+    setActiveCompanionSaveState("loading");
+
+    try {
+      const companionProfile = buildCompanionProfileFromDraft(
+        {
+          title: "",
+          portraitId: activeCompanionDraft.portraitId,
+          companionName: activeCompanionDraft.companionName,
+          userName: activeCompanionDraft.userName,
+          userNickname: activeCompanionDraft.userNickname,
+          relationshipVibe: activeCompanionDraft.relationshipVibe,
+          speakingStyle: activeCompanionDraft.speakingStyle,
+          personalityTraits: activeCompanionDraft.personalityTraits,
+          favoriteTopics: activeCompanionDraft.favoriteTopics
+        },
+        voiceConfig
+      );
+
+      const response = await fetchJson<{
+        session: ChatSessionSnapshot;
+        sessions: ChatSessionListItem[];
+        defaultSessionId: string;
+        persistence: ChatPersistenceStatus;
+      }>("/api/chat/sessions/profile", {
+        method: "POST",
+        body: JSON.stringify({
+          sessionId: activeSessionId,
+          companionProfile
+        })
+      });
+
+      setChatSessions(response.sessions);
+      setDefaultSessionId(response.defaultSessionId);
+      setPersistenceStatus(response.persistence);
+      setSelectedPersistenceBackend(response.persistence.backend);
+      setSessionRenameTitle(
+        response.sessions.find((session) => session.sessionId === activeSessionId)?.title ?? sessionRenameTitle
+      );
+      applySessionSnapshot(response.session);
+      setActiveCompanionSaveState("success");
+      setStatusMessage(
+        locale === "zh"
+          ? "当前陪伴档案已保存。"
+          : "The current companion profile has been saved."
+      );
+    } catch (error) {
+      setActiveCompanionSaveState("error");
+      setStatusMessage(getErrorMessage(error));
+    }
   }
 
   async function handleSaveIdentitySummary(): Promise<void> {
@@ -4331,6 +4805,18 @@ export function App(): ReactElement {
   const canFetchModels = Boolean(selectedProvider && baseURL.trim() && apiKey.trim()) && modelsState !== "loading";
   const canSaveConfig =
     Boolean(selectedProvider && baseURL.trim() && apiKey.trim() && selectedModel) && saveState !== "loading";
+  const activeCapabilitySurface: ModelCapabilitySurface =
+    providerWorkspaceSurface === "voice"
+      ? "speech"
+      : providerWorkspaceSurface === "vision"
+        ? "vision"
+        : providerWorkspaceSurface === "image"
+          ? "image"
+          : "video";
+  const activeCapabilityConfig = capabilityConfig[activeCapabilitySurface];
+  const activeCapabilityModelOptions = capabilityModels[activeCapabilitySurface];
+  const activeCapabilityModelsState = capabilityModelsState[activeCapabilitySurface];
+  const activeCapabilitySaveState = capabilitySaveState[activeCapabilitySurface];
   const canAdjustVoiceConfig = Boolean(voiceConfig) && voiceConfigState !== "loading";
   const selectedPreset = presets.find((preset) => preset.id === selectedProvider) ?? null;
   const providerDraftConfig = buildProviderDraftConfig({
@@ -4581,6 +5067,9 @@ export function App(): ReactElement {
     selectedVoiceProviderPresetId,
     locale
   );
+  const safeVoiceFallbackReason = voiceRoutingStatus?.fallbackReason ?? "";
+  const selectedVoicePresetLabel = selectedVoicePreset?.label ?? "";
+  const selectedVoicePresetDescription = selectedVoicePreset?.description ?? "";
   const voiceRoutingDetailMessage =
     formattedVoiceFallbackReason ||
     voiceRoutingStatus?.summary ||
@@ -4597,7 +5086,37 @@ export function App(): ReactElement {
     chatSessions.find((session) => session.sessionId === activeSessionId) ??
     chatSessions.find((session) => session.sessionId === defaultSessionId) ??
     null;
-  const canCreateSession = newSessionTitle.trim().length > 0 || chatSessions.length > 0;
+  const activeSessionCompanionProfile = activeSession?.companionProfile ?? null;
+  const selectedCompanionPreset =
+    companionPortraitPresets.find((entry) => entry.id === newSessionDraft.portraitId) ?? null;
+  const activeCompanionPreset =
+    companionPortraitPresets.find((entry) => entry.id === activeCompanionDraft.portraitId) ??
+    companionPortraitPresets[0]!;
+  const activeCompanionDisplayName =
+    activeSessionCompanionProfile?.displayName || activeCompanionDraft.companionName.trim() || activeCompanionPreset.label;
+  const activeUserDisplayName =
+    activeSessionCompanionProfile?.userDisplayName || activeCompanionDraft.userName.trim() || copy.runtime.you;
+  const activeUserAvatarGlyph = activeUserDisplayName.trim().slice(0, 1).toUpperCase() || "Y";
+  const activeCompanionProfileDirty =
+    Boolean(activeSessionId) &&
+    JSON.stringify(
+      buildCompanionProfileFromDraft(
+        {
+          title: "",
+          portraitId: activeCompanionDraft.portraitId,
+          companionName: activeCompanionDraft.companionName,
+          userName: activeCompanionDraft.userName,
+          userNickname: activeCompanionDraft.userNickname,
+          relationshipVibe: activeCompanionDraft.relationshipVibe,
+          speakingStyle: activeCompanionDraft.speakingStyle,
+          personalityTraits: activeCompanionDraft.personalityTraits,
+          favoriteTopics: activeCompanionDraft.favoriteTopics
+        },
+        voiceConfig
+      )
+    ) !== JSON.stringify(activeSessionCompanionProfile);
+  const hasSelectedNewSessionPortrait = newSessionDraft.portraitId.trim().length > 0;
+  const canCreateSession = hasSelectedNewSessionPortrait;
   const canRenameSession =
     Boolean(activeSessionId) &&
     activeSessionId !== defaultSessionId &&
@@ -4706,28 +5225,40 @@ export function App(): ReactElement {
       ? {
           provider: "模型接入",
           sessions: "会话档案",
+          skills: "技能",
+          channels: "通道",
           care: "主动关怀",
-          runtime: "运行信号"
+          runtime: "运行信号",
+          settings: "设置"
         }
       : {
           provider: "Provider",
           sessions: "Sessions",
+          skills: "Skills",
+          channels: "Channels",
           care: "Care",
-          runtime: "Runtime"
+          runtime: "Runtime",
+          settings: "Settings"
         };
   const consoleWorkspaceDescriptions: Record<Exclude<ConsoleWorkspace, "voice">, string> =
     locale === "zh"
       ? {
           provider: "供应商、密钥、模型发现与运行路径固定。",
           sessions: "会话身份、持久化、导入导出与权限中心。",
+          skills: "浏览器、本地控制、提醒与扩展能力入口。",
+          channels: "桌面通知、飞书、企微与后续外部消息连接。",
           care: "主动关怀策略、通知与本地检查循环。",
-          runtime: "当前关系、记忆、时间轴与导出结果。"
+          runtime: "当前关系、记忆、时间轴与导出结果。",
+          settings: "权限、数据、界面与桌面端行为设置。"
         }
       : {
           provider: "Vendor setup, credentials, model discovery, and one stable runtime path.",
           sessions: "Session identity, persistence, import/export, and the permission center.",
+          skills: "Browser, local-control, care, and extension capability entrypoints.",
+          channels: "Desktop notifications, Feishu, WeCom, and future external message links.",
           care: "Proactive-care policy, browser delivery, and bounded local checks.",
-          runtime: "Current relationship, memory, timeline, and structured export output."
+          runtime: "Current relationship, memory, timeline, and structured export output.",
+          settings: "Permissions, data, interface, and desktop-behavior controls."
         };
   const consoleWorkspaceLabelsResolved = {
     ...consoleWorkspaceLabels,
@@ -4740,11 +5271,104 @@ export function App(): ReactElement {
         ? "实时对话、真人语音和本地 / 国内语音供应路径。"
         : "Realtime conversation, natural voice, and shared or dedicated voice routing."
   } satisfies Record<ConsoleWorkspace, string>;
+  const consoleStageHeadingTitle =
+    activeConsoleWorkspace === "sessions"
+      ? locale === "zh"
+        ? "会话与人物档案"
+        : "Sessions and companion profiles"
+      : activeConsoleWorkspace === "skills"
+        ? locale === "zh"
+          ? "技能工作区"
+          : "Skills workspace"
+        : activeConsoleWorkspace === "channels"
+          ? locale === "zh"
+            ? "外部通道工作区"
+            : "External channels workspace"
+          : activeConsoleWorkspace === "care"
+            ? locale === "zh"
+              ? "主动关怀工作区"
+              : "Proactive care workspace"
+            : activeConsoleWorkspace === "settings"
+              ? locale === "zh"
+                ? "权限与设置"
+                : "Permissions and settings"
+              : locale === "zh"
+                ? "运行时与记忆信号"
+                : "Runtime and memory signals";
+  const consoleStageHeadingDescription =
+    activeConsoleWorkspace === "sessions"
+      ? locale === "zh"
+        ? "这里保留人物档案、会话切换、持久化切换与导入导出，让对话页本身保持更轻。"
+        : "Profiles, session switching, persistence, and transfer stay here so the chat page can stay lighter."
+      : activeConsoleWorkspace === "skills"
+        ? locale === "zh"
+          ? "把浏览器、本地控制、提醒和扩展能力集中在这里，后面所有 skill 都从这层接。"
+          : "Centralize browser, local-control, reminder, and extension abilities here so future skills plug into one layer."
+        : activeConsoleWorkspace === "channels"
+          ? locale === "zh"
+            ? "桌面通知、飞书、企微和后续外部消息入口都会从这层统一管理。"
+            : "Desktop notifications, Feishu, WeCom, and future external message routes are managed from this layer."
+          : activeConsoleWorkspace === "care"
+            ? locale === "zh"
+              ? "主动关怀策略、通知和本地检查循环留在这里，不把对话页做成控制台。"
+              : "Proactive-care policy, notification delivery, and local evaluation loops stay here instead of crowding the chat surface."
+            : activeConsoleWorkspace === "settings"
+              ? locale === "zh"
+                ? "把权限、数据、外观和未来桌面端行为放在同一处，避免散落在各个页面。"
+                : "Keep permissions, data, appearance, and future desktop-app behavior in one place instead of scattering them across pages."
+              : locale === "zh"
+                ? "这里查看关系、记忆、时间轴和结构化理解信号，不打扰主对话。"
+                : "Inspect relationship, memory, timeline, and structured understanding signals here without disturbing the main conversation.";
   const appVersion = `v${import.meta.env.VITE_APP_VERSION ?? "0.1.0"}`;
   const activeBurnPortrait = heroPortraitCards[activeBurnPortraitIndex] ?? heroPortraitCards[0]!;
+  const permissionModeLabel = activePermissionPresetLabel;
+  const browserSkillReadyLabel = chatReady
+    ? locale === "zh"
+      ? "可直接使用"
+      : "Ready"
+    : locale === "zh"
+      ? "先完成模型接入"
+      : "Needs provider";
+  const localSkillPermissionLabel =
+    permissionProfile.localActions === "allow"
+      ? locale === "zh"
+        ? "完全访问"
+        : "Full access"
+      : permissionProfile.localActions === "ask"
+        ? locale === "zh"
+          ? "每次确认"
+          : "Ask first"
+        : locale === "zh"
+          ? "已关闭"
+          : "Disabled";
+  const notificationChannelReadyLabel =
+    browserNotificationPermission === "granted"
+      ? locale === "zh"
+        ? "已连通"
+        : "Connected"
+      : browserNotificationPermission === "unsupported"
+        ? locale === "zh"
+          ? "当前浏览器不支持"
+          : "Unsupported"
+        : locale === "zh"
+          ? "等待授权"
+          : "Awaiting permission";
+  const desktopRouteSummary =
+    browserNotificationPermission === "granted"
+      ? locale === "zh"
+        ? "浏览器通知已可用，后续桌面端可以直接继承这一层触达逻辑。"
+        : "Browser notifications are already usable, and the desktop client can later inherit the same delivery layer."
+      : locale === "zh"
+        ? "先把浏览器通知打通，再升级到桌面系统通知。"
+        : "Connect browser notifications first, then upgrade to native desktop notifications.";
 
   useEffect(() => {
     if (currentPage !== "console") {
+      return;
+    }
+
+    if (activeConsoleWorkspace === "voice") {
+      setActiveConsoleWorkspace("provider");
       return;
     }
 
@@ -4752,6 +5376,10 @@ export function App(): ReactElement {
       setActiveConsoleWorkspace("provider");
     }
   }, [activeConsoleWorkspace, chatReady, currentPage]);
+
+  useEffect(() => {
+    setChatRestoreBannerDismissed(false);
+  }, [chatRestoredAt, activeSessionId]);
 
   useEffect(() => {
     setVoiceDraftInput(voiceConfig?.voice ?? "");
@@ -4821,6 +5449,168 @@ export function App(): ReactElement {
       block: "end"
     });
   }, [chatMessages, pendingLocalAction, currentPage]);
+
+  function updateCapabilityDraft(
+    surface: ModelCapabilitySurface,
+    patch: Partial<CapabilityProviderConfig>
+  ): void {
+    setCapabilityConfig((current) => ({
+      ...current,
+      [surface]: {
+        ...current[surface],
+        ...patch
+      }
+    }));
+  }
+
+  function renderCapabilityWorkspacePanel(
+    surface: Exclude<ModelCapabilitySurface, "speech">,
+    options: {
+      title: string;
+      note: string;
+      saveLabel: string;
+      providerPlaceholder?: string;
+    }
+  ): ReactElement {
+    const config = capabilityConfig[surface];
+    const surfaceModels = capabilityModels[surface];
+    const surfaceModelsState = capabilityModelsState[surface];
+    const surfaceSaveState = capabilitySaveState[surface];
+    const hasDraft = Boolean(
+      config.provider.trim() ||
+        config.baseURL.trim() ||
+        config.apiKey.trim() ||
+        config.model.trim()
+    );
+    const canFetchSurfaceModels =
+      Boolean(config.provider.trim() && config.baseURL.trim() && config.apiKey.trim()) &&
+      surfaceModelsState !== "loading";
+    const canSaveSurfaceConfig =
+      Boolean(
+        config.provider.trim() &&
+          config.baseURL.trim() &&
+          config.apiKey.trim() &&
+          config.model.trim()
+      ) && surfaceSaveState !== "loading";
+    const draftLabel = hasDraft
+      ? locale === "zh"
+        ? "已填写草稿"
+        : "Draft ready"
+      : locale === "zh"
+        ? "待填写"
+        : "Awaiting config";
+
+    return (
+      <div className="workspace-surface-panel workspace-surface-panel-provider">
+        <div className="workspace-surface-head">
+          <div className="workspace-surface-heading">
+            <strong>{options.title}</strong>
+            <p>{options.note}</p>
+          </div>
+          <div className="workspace-surface-head-pills">
+            <span className="provider-draft-status-pill">{draftLabel}</span>
+            {config.model.trim() ? (
+              <span className="provider-draft-status-pill">{config.model.trim()}</span>
+            ) : null}
+          </div>
+        </div>
+
+        <div className="workspace-panel-grid workspace-panel-grid-provider">
+          <label className="form-field">
+            <span>{copy.setup.provider}</span>
+            <input
+              type="text"
+              value={config.provider}
+              onChange={(event) =>
+                updateCapabilityDraft(surface, { provider: event.target.value })
+              }
+              placeholder={options.providerPlaceholder ?? "openai-compatible"}
+            />
+          </label>
+
+          <label className="form-field">
+            <span>{copy.setup.baseUrl}</span>
+            <input
+              type="text"
+              value={config.baseURL}
+              onChange={(event) =>
+                updateCapabilityDraft(surface, { baseURL: event.target.value })
+              }
+              placeholder="https://api.example.com/v1"
+            />
+          </label>
+
+          <label className="form-field form-field-wide">
+            <span>{copy.setup.apiKey}</span>
+            <input
+              type="password"
+              value={config.apiKey}
+              onChange={(event) =>
+                updateCapabilityDraft(surface, { apiKey: event.target.value })
+              }
+              placeholder="sk-..."
+            />
+          </label>
+
+          <div className="models-section workspace-models-card workspace-models-card-provider form-field-wide">
+            <div className="mini-heading">{copy.setup.models}</div>
+            {surfaceModels.length > 0 ? (
+              <label className="form-field">
+                <span>{copy.setup.model}</span>
+                <select
+                  value={config.model}
+                  onChange={(event) =>
+                    updateCapabilityDraft(surface, { model: event.target.value })
+                  }
+                >
+                  {surfaceModels.map((model) => (
+                    <option key={model.id} value={model.id}>
+                      {formatModelOptionLabel(model)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : (
+              <p className="provider-note">
+                {locale === "zh"
+                  ? "先填好接入信息，再获取这个能力可用的模型。"
+                  : "Fill the connection fields first, then fetch the models for this capability."}
+              </p>
+            )}
+          </div>
+        </div>
+
+        <div className="console-actions workspace-panel-actions workspace-panel-actions-provider">
+          <button
+            className="button button-secondary"
+            onClick={() => void handleFetchCapabilityModels(surface)}
+            disabled={!canFetchSurfaceModels}
+            type="button"
+          >
+            {surfaceModelsState === "loading"
+              ? locale === "zh"
+                ? "获取中..."
+                : "Fetching..."
+              : locale === "zh"
+                ? "获取模型"
+                : "Fetch models"}
+          </button>
+          <button
+            className="button button-primary"
+            onClick={() => void handleSaveCapabilityConfig(surface)}
+            disabled={!canSaveSurfaceConfig}
+            type="button"
+          >
+            {surfaceSaveState === "loading"
+              ? locale === "zh"
+                ? "保存中..."
+                : "Saving..."
+              : options.saveLabel}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   function renderVoiceConfigControls(mode: "chat" | "console"): ReactElement {
     const isConsole = mode === "console";
@@ -4915,6 +5705,29 @@ export function App(): ReactElement {
                     </option>
                   ))}
                 </select>
+              </label>
+              <label className="chat-voice-select chat-voice-select-compact">
+                <span>{locale === "zh" ? "识别模型" : "STT model"}</span>
+                <input
+                  type="text"
+                  value={voiceConfig?.sttModel ?? ""}
+                  onChange={(event) =>
+                    setVoiceConfig((current) =>
+                      current ? { ...current, sttModel: event.target.value } : current
+                    )
+                  }
+                  onBlur={(event) => void handleVoiceSpeechModelChange(event.target.value)}
+                  placeholder={
+                    activeVoiceProviderType === "fish-audio"
+                      ? "whisper-1"
+                      : activeVoiceProviderType === "local"
+                        ? locale === "zh"
+                          ? "输入本地识别模型名"
+                          : "Enter a local speech model"
+                        : "gpt-4o-mini-transcribe"
+                  }
+                  disabled={!canAdjustVoiceConfig}
+                />
               </label>
               <label className="chat-voice-select chat-voice-select-block voice-picker-field">
                 <span>{voiceFieldLabel}</span>
@@ -5399,16 +6212,279 @@ export function App(): ReactElement {
           </div>
 
           <div className="app-sidebar-create">
-            <button className="button button-primary app-sidebar-create-button" onClick={() => void handleCreateSession()} type="button">
+            <button
+              className="button button-primary app-sidebar-create-button"
+              onClick={() => setNewSessionComposerOpen((current) => !current)}
+              type="button"
+            >
               {locale === "zh" ? "+ 新会话" : "+ New Session"}
             </button>
           </div>
+
+          {newSessionComposerOpen ? (
+            <div className="app-sidebar-new-session-panel">
+              <div className="app-sidebar-new-session-head">
+                <strong>{locale === "zh" ? "新对话档案" : "New companion session"}</strong>
+                <span>
+                  {locale === "zh"
+                    ? "先手动选一个人物卡，再决定名字、语气和 TA 怎么称呼你。"
+                    : "Pick a portrait card first, then decide the name, tone, and how they call you."}
+                </span>
+              </div>
+
+              <div className="app-sidebar-portrait-grid">
+                {companionPortraitPresets.map((preset, index) => {
+                  const isActive = preset.id === newSessionDraft.portraitId;
+
+                  return (
+                    <button
+                      className={`app-sidebar-portrait-card ${isActive ? "app-sidebar-portrait-card-active" : ""}`}
+                      key={preset.id}
+                      onClick={() => {
+                        setNewSessionDraft((current) => ({
+                          ...current,
+                          portraitId: preset.id,
+                          relationshipVibe: preset.vibe,
+                          speakingStyle: preset.speakingStyle,
+                          personalityTraits: preset.traits.join(", "),
+                          favoriteTopics: preset.topics.join(", ")
+                        }));
+                        setNewSessionTitle((current) =>
+                          current.trim().length > 0 ? current : buildDefaultSessionTitle(preset, locale)
+                        );
+                      }}
+                      type="button"
+                    >
+                      <img alt={preset.label} src={preset.src} />
+                      <span>{preset.label}</span>
+                      <small>{String(index + 1).padStart(2, "0")}</small>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div
+                className={`app-sidebar-portrait-state ${hasSelectedNewSessionPortrait ? "app-sidebar-portrait-state-ready" : ""}`}
+              >
+                {hasSelectedNewSessionPortrait
+                  ? locale === "zh"
+                    ? "已载入这张人物卡的默认语气和相处风格，下面可以按你的感觉继续改。"
+                    : "The portrait's default tone and relationship style are loaded. Adjust the details below however you like."
+                  : locale === "zh"
+                    ? "先选一个你想对话的人物，下面的风格、语气和话题会自动补上。"
+                    : "Choose the person you want to talk to first. Style, tone, and topics will auto-fill below."}
+              </div>
+
+              <div
+                className="app-sidebar-new-session-fields"
+                hidden={!hasSelectedNewSessionPortrait}
+              >
+                <label className="form-field">
+                  <span>{locale === "zh" ? "会话标题" : "Session title"}</span>
+                  <input
+                    type="text"
+                    value={newSessionTitle}
+                    onChange={(event) => setNewSessionTitle(event.target.value)}
+                    placeholder={
+                      selectedCompanionPreset
+                        ? locale === "zh"
+                          ? `${selectedCompanionPreset.label} 的新对话`
+                          : `${selectedCompanionPreset.label} session`
+                        : locale === "zh"
+                          ? "先选人物卡"
+                          : "Pick a portrait first"
+                    }
+                  />
+                </label>
+
+                <label className="form-field">
+                  <span>{locale === "zh" ? "TA 的名字" : "Companion name"}</span>
+                  <input
+                    type="text"
+                    value={newSessionDraft.companionName}
+                    onChange={(event) =>
+                      setNewSessionDraft((current) => ({
+                        ...current,
+                        companionName: event.target.value
+                      }))
+                    }
+                    placeholder={
+                      selectedCompanionPreset
+                        ? selectedCompanionPreset.label
+                        : locale === "zh"
+                          ? "选完人物卡后再填写"
+                          : "Choose a portrait first"
+                    }
+                  />
+                </label>
+
+                <label className="form-field">
+                  <span>{locale === "zh" ? "怎么称呼你" : "What should they call you"}</span>
+                  <input
+                    type="text"
+                    value={newSessionDraft.userName}
+                    onChange={(event) =>
+                      setNewSessionDraft((current) => ({
+                        ...current,
+                        userName: event.target.value
+                      }))
+                    }
+                    placeholder={locale === "zh" ? "你的名字" : "Your name"}
+                  />
+                </label>
+
+                <label className="form-field">
+                  <span>{locale === "zh" ? "亲昵称呼" : "Nickname for you"}</span>
+                  <input
+                    type="text"
+                    value={newSessionDraft.userNickname}
+                    onChange={(event) =>
+                      setNewSessionDraft((current) => ({
+                        ...current,
+                        userNickname: event.target.value
+                      }))
+                    }
+                    placeholder={locale === "zh" ? "可选" : "Optional"}
+                  />
+                </label>
+
+                <label className="form-field">
+                  <span>{locale === "zh" ? "关系氛围" : "Relationship vibe"}</span>
+                  <input
+                    type="text"
+                    value={newSessionDraft.relationshipVibe}
+                    onChange={(event) =>
+                      setNewSessionDraft((current) => ({
+                        ...current,
+                        relationshipVibe: event.target.value
+                      }))
+                    }
+                  />
+                </label>
+
+                <label className="form-field">
+                  <span>{locale === "zh" ? "说话方式" : "Speaking style"}</span>
+                  <input
+                    type="text"
+                    value={newSessionDraft.speakingStyle}
+                    onChange={(event) =>
+                      setNewSessionDraft((current) => ({
+                        ...current,
+                        speakingStyle: event.target.value
+                      }))
+                    }
+                  />
+                </label>
+              </div>
+
+              <div
+                className="app-sidebar-new-session-meta"
+                hidden={!hasSelectedNewSessionPortrait}
+              >
+                <label className="form-field">
+                  <span>{locale === "zh" ? "性格关键词" : "Personality traits"}</span>
+                  <textarea
+                    rows={2}
+                    value={newSessionDraft.personalityTraits}
+                    onChange={(event) =>
+                      setNewSessionDraft((current) => ({
+                        ...current,
+                        personalityTraits: event.target.value
+                      }))
+                    }
+                  />
+                </label>
+
+                <label className="form-field">
+                  <span>{locale === "zh" ? "偏爱的聊天主题" : "Favorite topics"}</span>
+                  <textarea
+                    rows={2}
+                    value={newSessionDraft.favoriteTopics}
+                    onChange={(event) =>
+                      setNewSessionDraft((current) => ({
+                        ...current,
+                        favoriteTopics: event.target.value
+                      }))
+                    }
+                  />
+                </label>
+              </div>
+
+              <div className="app-sidebar-new-session-actions">
+                <button
+                  className="button button-secondary"
+                  onClick={() => {
+                    setNewSessionComposerOpen(false);
+                    setNewSessionTitle("");
+                    setNewSessionDraft(createDefaultNewSessionDraft());
+                  }}
+                  type="button"
+                >
+                  {locale === "zh" ? "收起" : "Close"}
+                </button>
+                <button
+                  className="button button-primary"
+                  onClick={() => void handleCreateSession()}
+                  disabled={!canCreateSession}
+                  type="button"
+                >
+                  {locale === "zh" ? "创建并开始" : "Create and start"}
+                </button>
+              </div>
+            </div>
+          ) : null}
         </div>
 
         <div className="app-sidebar-body">
           <section className="app-sidebar-section">
-            <div className="app-sidebar-section-label">{locale === "zh" ? "最近" : "Recent"}</div>
-            <div className="app-sidebar-session-list">
+            <div className="app-sidebar-section-header">
+              <div className="app-sidebar-section-label">{locale === "zh" ? "对话" : "Conversation"}</div>
+            </div>
+            <div className="app-sidebar-nav-list">
+              <button
+                className={`app-sidebar-nav-item ${currentPage === "chat" ? "app-sidebar-nav-item-active" : ""}`}
+                onClick={() => navigateTo("chat")}
+                type="button"
+              >
+                <strong>{locale === "zh" ? "进入对话" : "Open chat"}</strong>
+                <span>
+                  {locale === "zh"
+                    ? "把陪伴本身放在最前面。"
+                    : "Keep the companion itself front and center."}
+                </span>
+              </button>
+            </div>
+          </section>
+
+          <section className="app-sidebar-section">
+            <div className="app-sidebar-section-header">
+              <div className="app-sidebar-section-label">{locale === "zh" ? "会话" : "Sessions"}</div>
+              <button
+                className={`app-sidebar-section-toggle ${sidebarSessionsCollapsed ? "app-sidebar-section-toggle-collapsed" : ""}`}
+                onClick={() => setSidebarSessionsCollapsed((current) => !current)}
+                type="button"
+                aria-label={sidebarSessionsCollapsed ? "Expand sessions" : "Collapse sessions"}
+                title={sidebarSessionsCollapsed ? "Expand sessions" : "Collapse sessions"}
+              >
+                <span className="app-sidebar-section-toggle-mark" aria-hidden="true">{sidebarSessionsCollapsed ? "▸" : "▾"}</span>
+              </button>
+            </div>
+            <div className="app-sidebar-session-list" hidden={sidebarSessionsCollapsed}>
+              <button
+                className={`app-sidebar-nav-item ${currentPage === "console" && activeConsoleWorkspace === "sessions" ? "app-sidebar-nav-item-active" : ""}`}
+                onClick={() => {
+                  setActiveConsoleWorkspace("sessions");
+                  navigateTo("console");
+                }}
+                type="button"
+              >
+                <strong>{locale === "zh" ? "人物 / 记忆 / 迁移" : "Profiles / Memory / Transfer"}</strong>
+                <span>
+                  {locale === "zh"
+                    ? "人物档案、持久化、导入导出都收在这里。"
+                    : "Profiles, persistence, and import/export live here."}
+                </span>
+              </button>
               {chatSessions.length > 0 ? (
                 chatSessions.map((session) => {
                   const isActive = session.sessionId === activeSessionId;
@@ -5421,11 +6497,32 @@ export function App(): ReactElement {
                       onClick={() => void handleSessionChange(session.sessionId)}
                       type="button"
                     >
-                      <div className="app-sidebar-session-title-row">
-                        <strong>{session.title}</strong>
-                        {isMain ? (
-                          <span className="app-sidebar-session-badge">{copy.runtime.main}</span>
-                        ) : null}
+                      <div className="app-sidebar-session-identity">
+                        <div className="app-sidebar-session-avatar">
+                          {session.companionProfile?.portraitSrc ? (
+                            <img
+                              alt={session.companionProfile.displayName}
+                              src={session.companionProfile.portraitSrc}
+                            />
+                          ) : (
+                            <span>?</span>
+                          )}
+                        </div>
+                        <div className="app-sidebar-session-copy">
+                          <div className="app-sidebar-session-title-row">
+                            <strong>{session.title}</strong>
+                            {isMain ? (
+                              <span className="app-sidebar-session-badge">{copy.runtime.main}</span>
+                            ) : null}
+                          </div>
+                          <span className="app-sidebar-session-subline">
+                            {session.companionProfile?.displayName ??
+                              (locale === "zh" ? "未设定人物" : "No persona yet")}
+                            {session.companionProfile?.relationshipVibe
+                              ? ` · ${session.companionProfile.relationshipVibe}`
+                              : ""}
+                          </span>
+                        </div>
                       </div>
                       <span>{formatSessionTimestamp(session.updatedAt, locale)}</span>
                     </button>
@@ -5440,23 +6537,22 @@ export function App(): ReactElement {
           </section>
 
           <section className="app-sidebar-section">
-            <div className="app-sidebar-section-label">{locale === "zh" ? "聊天" : "Chat"}</div>
-            <div className="app-sidebar-nav-list">
+            <div className="app-sidebar-section-header">
+              <div className="app-sidebar-section-label">{locale === "zh" ? "控制" : "Control"}</div>
               <button
-                className={`app-sidebar-nav-item ${currentPage === "chat" ? "app-sidebar-nav-item-active" : ""}`}
-                onClick={() => navigateTo("chat")}
+                className={`app-sidebar-section-toggle ${sidebarControlsCollapsed ? "app-sidebar-section-toggle-collapsed" : ""}`}
+                onClick={() => setSidebarControlsCollapsed((current) => !current)}
                 type="button"
+                aria-label={sidebarControlsCollapsed ? "Expand controls" : "Collapse controls"}
+                title={sidebarControlsCollapsed ? "Expand controls" : "Collapse controls"}
               >
-                <strong>{locale === "zh" ? "对话" : "Conversation"}</strong>
-                <span>{activeSession ? activeSession.title : copy.runtime.noLocalSession}</span>
+                <span className="app-sidebar-section-toggle-mark" aria-hidden="true">{sidebarControlsCollapsed ? "▸" : "▾"}</span>
               </button>
             </div>
-          </section>
-
-          <section className="app-sidebar-section">
-            <div className="app-sidebar-section-label">{locale === "zh" ? "控制" : "Control"}</div>
-            <div className="app-sidebar-nav-list">
-              {consoleWorkspaceOrder.map((workspace) => {
+            <div className="app-sidebar-nav-list" hidden={sidebarControlsCollapsed}>
+              {consoleWorkspaceOrder
+                .filter((workspace) => workspace !== "settings" && workspace !== "sessions")
+                .map((workspace) => {
                 const isActive = currentPage === "console" && activeConsoleWorkspace === workspace;
 
                 return (
@@ -5476,13 +6572,31 @@ export function App(): ReactElement {
               })}
             </div>
           </section>
+
+          <section className="app-sidebar-section">
+            <div className="app-sidebar-section-header">
+              <div className="app-sidebar-section-label">{locale === "zh" ? "设置" : "Settings"}</div>
+            </div>
+            <div className="app-sidebar-nav-list">
+              <button
+                className={`app-sidebar-nav-item ${currentPage === "console" && activeConsoleWorkspace === "settings" ? "app-sidebar-nav-item-active" : ""}`}
+                onClick={() => {
+                  setActiveConsoleWorkspace("settings");
+                  navigateTo("console");
+                }}
+                type="button"
+              >
+                <strong>{consoleWorkspaceLabelsResolved.settings}</strong>
+                <span>{consoleWorkspaceDescriptionsResolved.settings}</span>
+              </button>
+            </div>
+          </section>
         </div>
 
         <div className="app-sidebar-footer">
-          <div className="app-sidebar-runtime">
-            <span>{configuredProviderLabel}</span>
-            <span>{configuredModelLabel}</span>
-            <span>{sessionSummaryLabel}</span>
+          <div className="app-sidebar-runtime app-sidebar-runtime-compact">
+            <span>{configuredRuntimeLabel}</span>
+            <span>{activeSessionCompanionProfile?.displayName ?? sessionSummaryLabel}</span>
           </div>
           <div className="app-sidebar-version">
             <span>{locale === "zh" ? "版本" : "Version"}</span>
@@ -5778,182 +6892,236 @@ export function App(): ReactElement {
                 <p>{copy.setup.description}</p>
               </div>
 
-              <div className="setup-layout console-workspace-stage">
-                <div className="panel setup-overview-panel console-workspace-panel">
-                  <div className="panel-header">
-                    <span>{copy.setup.sequence}</span>
-                    <span className="panel-tag">{copy.setup.interactive}</span>
-                  </div>
-                  <div className="console-workspace-scroll">
-                  <ol className="step-list">
-                    {copy.setup.steps.map((step) => (
-                      <li key={step}>{step}</li>
-                    ))}
-                  </ol>
-
-                  <div className="saved-config-block">
-                    <div className="mini-heading">{copy.setup.savedConfiguration}</div>
-                    {savedConfig ? (
-                      <div className="saved-config-card">
-                        <div>
-                          <span className="saved-label">{copy.setup.provider}</span>
-                          <strong>{savedConfig.provider}</strong>
-                        </div>
-                        <div>
-                          <span className="saved-label">{copy.setup.model}</span>
-                          <strong>{savedConfig.model}</strong>
-                        </div>
-                        <div>
-                          <span className="saved-label">{copy.setup.baseUrl}</span>
-                          <code>{savedConfig.baseURL}</code>
-                        </div>
-                        <div>
-                          <span className="saved-label">{locale === "zh" ? "API Key（部分隐藏）" : "API Key (masked)"}</span>
-                          <code>{maskSecret(savedConfig.apiKey)}</code>
-                        </div>
-                      </div>
-                    ) : (
-                      <p className="provider-note">{copy.setup.noSavedConfiguration}</p>
-                    )}
-                  </div>
-
-                  <div className="saved-config-block">
-                    <div className="mini-heading">{locale === "zh" ? "当前生效状态" : "Active Runtime Status"}</div>
-                    <div className={`provider-draft-status-card ${providerDraftMatchesSaved ? "provider-draft-status-card-synced" : "provider-draft-status-card-pending"}`}>
-                      <div className="provider-draft-status-header">
-                        <strong>{providerDraftStateLabel}</strong>
-                        <span className="provider-draft-status-pill">{providerRuntimeNotice}</span>
-                      </div>
-                      <p>{providerDraftStatusMessage}</p>
-                    </div>
-                  </div>
-
-                  <div className="saved-config-block">
-                    <div className="mini-heading">{copy.setup.presetCoverage}</div>
-                    <div className="provider-list">
-                      {presets.map((preset) => (
-                        <span className="provider-chip" key={preset.id}>
-                          {preset.label}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                  </div>
-                </div>
-
-                <div className="panel provider-console-panel console-workspace-panel">
+              <div className="console-workspace-stage console-workspace-stage-single">
+                <div className="panel provider-console-panel console-workspace-panel console-workspace-panel-full">
                   <div className="panel-header">
                     <span>{copy.setup.setupConsole}</span>
                     <span className="panel-tag">{copy.setup.localApi}</span>
                   </div>
-                  <div className="console-workspace-scroll">
-                  <div
-                    className={`status-banner ${
-                      loadState === "error" || modelsState === "error" || saveState === "error"
-                        ? "status-banner-error"
-                        : "status-banner-info"
-                    }`}
-                  >
-                    {statusMessage}
-                  </div>
-
-                  <div className={`provider-draft-inline-banner ${providerDraftMatchesSaved ? "provider-draft-inline-banner-synced" : "provider-draft-inline-banner-pending"}`}>
-                    <strong>{locale === "zh" ? "当前输入" : "Current Draft"}</strong>
-                    <span>{providerDraftStateLabel}</span>
-                    <p>{providerDraftStatusMessage}</p>
-                  </div>
-
-                  <div className="provider-form-grid">
-                    <label className="form-field">
-                      <span>{copy.setup.provider}</span>
-                      <select value={selectedProvider} onChange={handleProviderChange} disabled={isBusy}>
-                        <option value="">{copy.setup.providerPlaceholder}</option>
-                        {presets.map((preset) => (
-                          <option key={preset.id} value={preset.id}>
-                            {preset.label}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-
-                    <label className="form-field form-field-wide">
-                      <span>{copy.setup.baseUrl}</span>
-                      <input
-                        type="text"
-                        value={baseURL}
-                        onChange={(event) => setBaseURL(event.target.value)}
-                        placeholder="https://api.example.com/v1"
-                        disabled={isBusy}
-                      />
-                    </label>
-
-                    <label className="form-field form-field-wide">
-                      <span>{copy.setup.apiKey}</span>
-                      <input
-                        type="password"
-                        value={apiKey}
-                        onChange={(event) => setApiKey(event.target.value)}
-                        placeholder="sk-..."
-                        disabled={isBusy}
-                      />
-                    </label>
-
-                    <div className="provider-hint">
-                      <span className="mini-heading">{copy.setup.selectedPreset}</span>
-                      <p>
-                        {selectedPreset
-                          ? `${selectedPreset.label} ${copy.setup.selectedPresetSuffix}`
-                          : copy.setup.selectedPresetFallback}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="console-actions">
-                    <button
-                      className="button button-secondary"
-                      onClick={() => void loadInitialState()}
-                      disabled={loadState === "loading"}
+                  <div className="console-workspace-scroll provider-workspace-scroll provider-workspace-scroll-single">
+                    <div
+                      className={`status-banner ${
+                        loadState === "error" || modelsState === "error" || saveState === "error"
+                          ? "status-banner-error"
+                          : "status-banner-info"
+                      }`}
                     >
-                      {locale === "zh"
-                        ? loadState === "loading"
-                          ? "正在刷新供应商..."
-                          : "刷新供应商"
-                        : loadState === "loading"
-                          ? "Refreshing providers..."
-                          : "Refresh providers"}
-                    </button>
-                    <button className="button button-primary" onClick={() => void handleFetchModels()} disabled={!canFetchModels}>
-                      {modelsState === "loading" ? copy.setup.fetchingModels : copy.setup.fetchModels}
-                    </button>
-                  </div>
+                      {statusMessage}
+                    </div>
 
-                  <div className="models-section">
-                    <div className="mini-heading">{copy.setup.models}</div>
-                    {models.length > 0 ? (
-                      <label className="form-field">
-                        <span>{copy.setup.model}</span>
-                        <select
-                          value={selectedModel}
-                          onChange={(event) => setSelectedModel(event.target.value)}
-                          disabled={isBusy}
+                    <div className="workspace-surface-tabs" role="tablist" aria-label={locale === "zh" ? "模型接入分区" : "Model setup sections"}>
+                      {([
+                        ["language", locale === "zh" ? "语言模型" : "Language"],
+                        ["voice", locale === "zh" ? "语音模型" : "Voice"],
+                        ["vision", locale === "zh" ? "视觉模型" : "Vision"],
+                        ["image", locale === "zh" ? "生图模型" : "Image"],
+                        ["video", locale === "zh" ? "视频模型" : "Video"]
+                      ] as const).map(([surface, label]) => (
+                        <button
+                          key={surface}
+                          className={`workspace-surface-tab ${providerWorkspaceSurface === surface ? "workspace-surface-tab-active" : ""}`}
+                          onClick={() => setProviderWorkspaceSurface(surface)}
+                          type="button"
                         >
-                          {models.map((model) => (
-                            <option key={model.id} value={model.id}>
-                              {formatModelOptionLabel(model)}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                    ) : (
-                      <p className="provider-note">{copy.setup.modelsHint}</p>
-                    )}
-                  </div>
+                          {label}
+                        </button>
+                      ))}
+                    </div>
 
-                  <div className="console-actions">
-                    <button className="button button-secondary" onClick={() => void handleSaveConfig()} disabled={!canSaveConfig}>
-                      {saveState === "loading" ? copy.setup.saving : copy.setup.saveConfig}
-                    </button>
-                  </div>
+                    {providerWorkspaceSurface === "language" ? (
+                      <div className="workspace-surface-panel workspace-surface-panel-provider">
+                        <div className="workspace-surface-head">
+                          <div className="workspace-surface-heading">
+                            <strong>{locale === "zh" ? "语言模型接入" : "Language model setup"}</strong>
+                            <p>{providerDraftStatusMessage}</p>
+                          </div>
+                          <div className="workspace-surface-head-pills">
+                            <span className="provider-draft-status-pill">{providerDraftStateLabel}</span>
+                            {selectedModel ? (
+                              <span className="provider-draft-status-pill">{selectedModel}</span>
+                            ) : null}
+                          </div>
+                        </div>
+
+                        <div className="workspace-panel-grid workspace-panel-grid-provider">
+                          <label className="form-field">
+                            <span>{copy.setup.provider}</span>
+                            <select value={selectedProvider} onChange={handleProviderChange} disabled={isBusy}>
+                              <option value="">{copy.setup.providerPlaceholder}</option>
+                              {presets.map((preset) => (
+                                <option key={preset.id} value={preset.id}>
+                                  {preset.label}
+                                </option>
+                              ))}
+                            </select>
+                          </label>
+
+                          <label className="form-field">
+                            <span>{copy.setup.baseUrl}</span>
+                            <input
+                              type="text"
+                              value={baseURL}
+                              onChange={(event) => setBaseURL(event.target.value)}
+                              placeholder="https://api.example.com/v1"
+                              disabled={isBusy}
+                            />
+                          </label>
+
+                          <label className="form-field form-field-wide">
+                            <span>{copy.setup.apiKey}</span>
+                            <input
+                              type="password"
+                              value={apiKey}
+                              onChange={(event) => setApiKey(event.target.value)}
+                              placeholder="sk-..."
+                              disabled={isBusy}
+                            />
+                          </label>
+
+                          <div className="models-section workspace-models-card workspace-models-card-provider form-field-wide">
+                            <div className="mini-heading">
+                              {selectedPreset ? copy.setup.selectedPreset : copy.setup.models}
+                            </div>
+                            <p className="provider-note">
+                              {selectedPreset
+                                ? `${selectedPreset.label} ${copy.setup.selectedPresetSuffix}`
+                                : copy.setup.selectedPresetFallback}
+                            </p>
+                            {models.length > 0 ? (
+                              <label className="form-field">
+                                <span>{copy.setup.model}</span>
+                                <select
+                                  value={selectedModel}
+                                  onChange={(event) => setSelectedModel(event.target.value)}
+                                  disabled={isBusy}
+                                >
+                                  {models.map((model) => (
+                                    <option key={model.id} value={model.id}>
+                                      {formatModelOptionLabel(model)}
+                                    </option>
+                                  ))}
+                                </select>
+                              </label>
+                            ) : (
+                              <p className="provider-note">{copy.setup.modelsHint}</p>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="console-actions workspace-panel-actions workspace-panel-actions-provider">
+                          <button
+                            className="button button-secondary"
+                            onClick={() => void loadInitialState()}
+                            disabled={loadState === "loading"}
+                            type="button"
+                          >
+                            {locale === "zh"
+                              ? loadState === "loading"
+                                ? "正在刷新供应商..."
+                                : "刷新供应商"
+                              : loadState === "loading"
+                                ? "Refreshing providers..."
+                                : "Refresh providers"}
+                          </button>
+                          <button
+                            className="button button-secondary"
+                            onClick={() => void handleFetchModels()}
+                            disabled={!canFetchModels}
+                            type="button"
+                          >
+                            {modelsState === "loading" ? copy.setup.fetchingModels : copy.setup.fetchModels}
+                          </button>
+                          <button
+                            className="button button-primary"
+                            onClick={() => void handleSaveConfig()}
+                            disabled={!canSaveConfig}
+                            type="button"
+                          >
+                            {saveState === "loading" ? copy.setup.saving : copy.setup.saveConfig}
+                          </button>
+                        </div>
+                      </div>
+                    ) : null}
+
+                    {providerWorkspaceSurface === "voice" ? (
+                      <div className="workspace-surface-panel workspace-surface-panel-provider">
+                        <div className="workspace-surface-head">
+                          <div className="workspace-surface-heading">
+                            <strong>{locale === "zh" ? "语音模型工作台" : "Voice model workspace"}</strong>
+                            <p>{voiceStatusMessage || voiceRoutingDetailMessage}</p>
+                          </div>
+                          <div className="workspace-surface-head-pills">
+                            <span className="provider-draft-status-pill">{activeVoiceRoutingLabel}</span>
+                            <span className="provider-draft-status-pill">{voiceRoutingReadyLabel}</span>
+                          </div>
+                        </div>
+
+                        <div className="workspace-surface-metrics">
+                          <div className="signal-metric-card">
+                            <span>{locale === "zh" ? "路由" : "Routing"}</span>
+                            <strong>{activeVoiceRoutingLabel}</strong>
+                          </div>
+                          <div className="signal-metric-card">
+                            <span>{locale === "zh" ? "目标" : "Target"}</span>
+                            <strong>{voiceRoutingTargetLabel}</strong>
+                          </div>
+                          <div className="signal-metric-card">
+                            <span>{locale === "zh" ? "状态" : "Readiness"}</span>
+                            <strong>{voiceRoutingReadyLabel}</strong>
+                          </div>
+                          <div className="signal-metric-card">
+                            <span>{locale === "zh" ? "缺失字段" : "Missing"}</span>
+                            <strong>{voiceRoutingMissingFieldsLabel}</strong>
+                          </div>
+                        </div>
+
+                        <div className="provider-voice-bridge provider-voice-bridge-embedded">
+                          {renderVoiceConfigControls("console")}
+                        </div>
+                      </div>
+                    ) : null}
+
+                    {providerWorkspaceSurface === "vision"
+                      ? renderCapabilityWorkspacePanel("vision", {
+                          title: locale === "zh" ? "视觉模型接入" : "Vision model setup",
+                          note:
+                            locale === "zh"
+                              ? "把截图理解、图片问答这类视觉能力直接接在这里。"
+                              : "Connect screenshot understanding and image-questioning models here directly.",
+                          saveLabel:
+                            locale === "zh"
+                              ? "保存视觉配置"
+                              : "Save vision config"
+                        })
+                      : null}
+
+                    {providerWorkspaceSurface === "image"
+                      ? renderCapabilityWorkspacePanel("image", {
+                          title: locale === "zh" ? "生图模型接入" : "Image model setup",
+                          note:
+                            locale === "zh"
+                              ? "图片生成模型也在这里统一配置，不再额外改文件。"
+                              : "Image-generation models are configured here too, without editing extra files.",
+                          saveLabel:
+                            locale === "zh"
+                              ? "保存生图配置"
+                              : "Save image config"
+                        })
+                      : null}
+
+                    {providerWorkspaceSurface === "video"
+                      ? renderCapabilityWorkspacePanel("video", {
+                          title: locale === "zh" ? "视频模型接入" : "Video model setup",
+                          note:
+                            locale === "zh"
+                              ? "视频理解、视频生成这类能力也走同一套控制台。"
+                              : "Video understanding and video-generation routes use the same console workflow.",
+                          saveLabel:
+                            locale === "zh"
+                              ? "保存视频配置"
+                              : "Save video config"
+                        })
+                      : null}
                   </div>
                 </div>
               </div>
@@ -5961,7 +7129,7 @@ export function App(): ReactElement {
         </section>
         ) : null}
 
-        {currentPage === "console" && activeConsoleWorkspace === "voice" ? (
+        {false && currentPage === "console" && activeConsoleWorkspace === "voice" ? (
         <section className="section-grid section-block console-stage console-stage-compact" id="console-voice">
             <div className="console-pane-main">
           <div className="section-heading console-stage-heading">
@@ -6112,11 +7280,11 @@ export function App(): ReactElement {
                       ? `缺失字段：${voiceRoutingMissingFieldsLabel}`
                       : `Missing fields: ${voiceRoutingMissingFieldsLabel}`}
                   </p>
-                  {voiceRoutingStatus?.attemptedProviderAudio && voiceRoutingStatus.fallbackReason ? (
+                  {voiceRoutingStatus?.attemptedProviderAudio ? (
                     <p>
                       {locale === "zh"
-                        ? `本次 fallback 原因：${voiceRoutingStatus.fallbackReason}`
-                        : `Last fallback reason: ${formattedVoiceFallbackReason ?? voiceRoutingStatus.fallbackReason}`}
+                        ? `本次 fallback 原因：${safeVoiceFallbackReason}`
+                        : `Last fallback reason: ${formattedVoiceFallbackReason ?? voiceRoutingStatus?.fallbackReason ?? ""}`}
                     </p>
                   ) : null}
                 </div>
@@ -6182,8 +7350,8 @@ export function App(): ReactElement {
                 {selectedVoicePreset ? (
                   <div className="insight-card">
                     <div className="mini-heading">{locale === "zh" ? "当前预设" : "Current preset"}</div>
-                    <p>{selectedVoicePreset.label}</p>
-                    <p className="provider-note">{selectedVoicePreset.description}</p>
+                    <p>{selectedVoicePresetLabel}</p>
+                    <p className="provider-note">{selectedVoicePresetDescription}</p>
                   </div>
                 ) : null}
               </div>
@@ -6200,12 +7368,8 @@ export function App(): ReactElement {
             <div className="console-pane-main">
           <div className="section-heading console-stage-heading">
             <span className="section-caption">{copy.runtime.caption}</span>
-            <h2>{locale === "zh" ? "会话与持久化控制台" : "Session and persistence console"}</h2>
-            <p>
-              {locale === "zh"
-                ? "这里保留会话管理、持久化切换、导入导出与运行诊断，让对话页面本身保持更轻、更安静。"
-                : "Keep session management, persistence switching, import/export, and runtime diagnostics here so the conversation page itself stays lighter and more focused."}
-            </p>
+            <h2>{consoleStageHeadingTitle}</h2>
+            <p>{consoleStageHeadingDescription}</p>
           </div>
 
           {activeConsoleWorkspace === "sessions" ? (
@@ -6216,7 +7380,7 @@ export function App(): ReactElement {
               <span className="panel-tag">{copy.runtime.sessionTag}</span>
             </div>
 
-            <div className="session-panel-grid console-workspace-scroll">
+            <div className="session-panel-grid session-panel-grid-balanced console-workspace-scroll">
               <div className="session-list console-subpanel">
                 {chatSessions.map((session) => {
                   const isActive = session.sessionId === activeSessionId;
@@ -6244,7 +7408,229 @@ export function App(): ReactElement {
                 })}
               </div>
 
-              <div className="session-controls">
+              <div className="session-workspace">
+                <div className="workspace-surface-tabs" role="tablist" aria-label={locale === "zh" ? "会话工作区分区" : "Session workspace sections"}>
+                  {([
+                    ["profile", locale === "zh" ? "人物档案" : "Profile"],
+                    ["session", locale === "zh" ? "会话管理" : "Session"],
+                    ["storage", locale === "zh" ? "持久化" : "Storage"],
+                    ["transfer", locale === "zh" ? "导入导出" : "Transfer"],
+                    ["permissions", locale === "zh" ? "权限" : "Permissions"]
+                  ] as const).map(([surface, label]) => (
+                    <button
+                      key={surface}
+                      className={`workspace-surface-tab ${sessionWorkspaceSurface === surface ? "workspace-surface-tab-active" : ""}`}
+                      onClick={() => setSessionWorkspaceSurface(surface)}
+                      type="button"
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+
+                {sessionWorkspaceSurface === "profile" ? (
+                <div className="console-workspace-stage console-workspace-stage-compact">
+                  <div className="session-controls session-controls-single">
+                    <div className="session-control-card session-control-card-companion">
+                  <div className="mini-heading">{locale === "zh" ? "当前人物档案" : "Active companion profile"}</div>
+                  <div className="session-companion-profile-card">
+                    <div className="session-companion-profile-head">
+                      <div className="session-companion-portrait-grid">
+                        {companionPortraitPresets.map((preset) => {
+                          const isActive = preset.id === activeCompanionDraft.portraitId;
+
+                          return (
+                            <button
+                              className={`session-companion-portrait-button ${isActive ? "session-companion-portrait-button-active" : ""}`}
+                              key={preset.id}
+                              onClick={() =>
+                                setActiveCompanionDraft((current) => ({
+                                  ...current,
+                                  portraitId: preset.id
+                                }))
+                              }
+                              type="button"
+                            >
+                              <img alt={preset.label} src={preset.src} />
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <div className="session-companion-profile-copy">
+                        <strong>{activeCompanionDisplayName}</strong>
+                        <span>
+                          {activeSessionCompanionProfile?.relationshipVibe ||
+                            activeCompanionDraft.relationshipVibe ||
+                            (locale === "zh" ? "等待设定关系气氛" : "Waiting for a relationship vibe")}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="session-companion-form-grid">
+                      <label className="form-field">
+                        <span>{locale === "zh" ? "TA 的名字" : "Companion name"}</span>
+                        <input
+                          type="text"
+                          value={activeCompanionDraft.companionName}
+                          onChange={(event) =>
+                            setActiveCompanionDraft((current) => ({
+                              ...current,
+                              companionName: event.target.value
+                            }))
+                          }
+                        />
+                      </label>
+                      <label className="form-field">
+                        <span>{locale === "zh" ? "怎么称呼你" : "What they call you"}</span>
+                        <input
+                          type="text"
+                          value={activeCompanionDraft.userName}
+                          onChange={(event) =>
+                            setActiveCompanionDraft((current) => ({
+                              ...current,
+                              userName: event.target.value
+                            }))
+                          }
+                        />
+                      </label>
+                      <label className="form-field">
+                        <span>{locale === "zh" ? "亲昵称呼" : "Nickname for you"}</span>
+                        <input
+                          type="text"
+                          value={activeCompanionDraft.userNickname}
+                          onChange={(event) =>
+                            setActiveCompanionDraft((current) => ({
+                              ...current,
+                              userNickname: event.target.value
+                            }))
+                          }
+                        />
+                      </label>
+                      <label className="form-field">
+                        <span>{locale === "zh" ? "关系气氛" : "Relationship vibe"}</span>
+                        <input
+                          type="text"
+                          value={activeCompanionDraft.relationshipVibe}
+                          onChange={(event) =>
+                            setActiveCompanionDraft((current) => ({
+                              ...current,
+                              relationshipVibe: event.target.value
+                            }))
+                          }
+                        />
+                      </label>
+                      <label className="form-field">
+                        <span>{locale === "zh" ? "说话方式" : "Speaking style"}</span>
+                        <input
+                          type="text"
+                          value={activeCompanionDraft.speakingStyle}
+                          onChange={(event) =>
+                            setActiveCompanionDraft((current) => ({
+                              ...current,
+                              speakingStyle: event.target.value
+                            }))
+                          }
+                        />
+                      </label>
+                    </div>
+
+                    <label className="form-field">
+                      <span>{locale === "zh" ? "性格关键词" : "Personality traits"}</span>
+                      <textarea
+                        rows={2}
+                        value={activeCompanionDraft.personalityTraits}
+                        onChange={(event) =>
+                          setActiveCompanionDraft((current) => ({
+                            ...current,
+                            personalityTraits: event.target.value
+                          }))
+                        }
+                      />
+                    </label>
+
+                    <label className="form-field">
+                      <span>{locale === "zh" ? "喜欢聊的话题" : "Favorite topics"}</span>
+                      <textarea
+                        rows={2}
+                        value={activeCompanionDraft.favoriteTopics}
+                        onChange={(event) =>
+                          setActiveCompanionDraft((current) => ({
+                            ...current,
+                            favoriteTopics: event.target.value
+                          }))
+                        }
+                      />
+                    </label>
+
+                    <div className="console-actions">
+                      <button
+                        className="button button-secondary"
+                        onClick={() => setActiveCompanionDraft(createActiveCompanionDraft(activeSessionCompanionProfile))}
+                        disabled={!activeCompanionProfileDirty || activeCompanionSaveState === "loading"}
+                        type="button"
+                      >
+                        {locale === "zh" ? "还原" : "Reset"}
+                      </button>
+                      <button
+                        className="button button-primary"
+                        onClick={() => void handleSaveActiveCompanionProfile()}
+                        disabled={!activeCompanionProfileDirty || activeCompanionSaveState === "loading"}
+                        type="button"
+                      >
+                        {activeCompanionSaveState === "loading"
+                          ? locale === "zh"
+                            ? "保存中..."
+                            : "Saving..."
+                          : locale === "zh"
+                            ? "保存人物档案"
+                            : "Save profile"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                  </div>
+
+                  <div className="insight-stack insight-stack-compact">
+                    <div className="insight-card">
+                      <div className="mini-heading">{locale === "zh" ? "当前人物状态" : "Current companion state"}</div>
+                      <p>
+                        {locale === "zh"
+                          ? "这里保存的是这一段会话里的陪伴档案，不会替代自然聊天里的互相了解。"
+                          : "This preserves the companion archive for this session without replacing natural discovery inside the conversation."}
+                      </p>
+                    </div>
+                    <div className="session-reference-card">
+                      <strong>{locale === "zh" ? "人物名字" : "Companion name"}</strong>
+                      <span>{activeCompanionDisplayName}</span>
+                    </div>
+                    <div className="session-reference-card">
+                      <strong>{locale === "zh" ? "关系气氛" : "Relationship vibe"}</strong>
+                      <span>
+                        {activeCompanionDraft.relationshipVibe ||
+                          (locale === "zh" ? "等待设定" : "Awaiting setup")}
+                      </span>
+                    </div>
+                    <div className="session-reference-card">
+                      <strong>{locale === "zh" ? "说话方式" : "Speaking style"}</strong>
+                      <span>
+                        {activeCompanionDraft.speakingStyle ||
+                          (locale === "zh" ? "等待设定" : "Awaiting setup")}
+                      </span>
+                    </div>
+                    <div className="session-reference-card">
+                      <strong>{locale === "zh" ? "偏好语音" : "Preferred voice"}</strong>
+                      <span>
+                        {activeSessionCompanionProfile?.preferredVoiceName ||
+                          voiceConfig?.voice ||
+                          (locale === "zh" ? "跟随当前语音设置" : "Follow current voice settings")}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                ) : null}
+
+                {sessionWorkspaceSurface === "storage" ? (
+                <div className="session-controls session-controls-single">
                 <div className="session-control-card">
                   <div className="mini-heading">{copy.runtime.persistence}</div>
                   <div className="session-active-summary">
@@ -6341,19 +7727,23 @@ export function App(): ReactElement {
                         ? locale === "zh"
                           ? `${formatPersistenceBackendLabel(alternateBackendStatus.backend, locale)} 已与当前激活后端保持一致。`
                           : `${formatPersistenceBackendLabel(alternateBackendStatus.backend, locale)} is aligned with the active backend.`
-                        : locale === "zh"
-                          ? `${formatPersistenceBackendLabel(alternateBackendStatus.backend, locale)} 当前状态为 ${formatPersistenceSyncState(
-                              alternateBackendStatus.syncState,
-                              locale
-                            )}，共有 ${alternateBackendStatus.differingSessionCount} 个差异会话。`
+                          : locale === "zh"
+                            ? `${formatPersistenceBackendLabel(alternateBackendStatus.backend, locale)} 当前状态为 ${formatPersistenceSyncState(
+                                alternateBackendStatus.syncState,
+                                locale
+                              )}，共有 ${alternateBackendStatus.differingSessionCount} 个差异会话。`
                           : `${formatPersistenceBackendLabel(alternateBackendStatus.backend, locale)} is ${formatPersistenceSyncState(
                               alternateBackendStatus.syncState,
                               locale
-                            ).toLowerCase()} with ${alternateBackendStatus.differingSessionCount} differing sessions.`}
+                              ).toLowerCase()} with ${alternateBackendStatus.differingSessionCount} differing sessions.`}
                     </p>
                   ) : null}
                 </div>
+                </div>
+                ) : null}
 
+                {sessionWorkspaceSurface === "permissions" ? (
+                <div className="session-controls session-controls-single">
                 <div className="session-control-card">
                   <div className="mini-heading">{copy.runtime.permissions}</div>
                   <p className="provider-note">{copy.runtime.permissionsDescription}</p>
@@ -6421,7 +7811,11 @@ export function App(): ReactElement {
                     </div>
                   ) : null}
                 </div>
+                </div>
+                ) : null}
 
+                {sessionWorkspaceSurface === "transfer" ? (
+                <div className="session-controls session-controls-transfer">
                 <div className="session-control-card">
                   <div className="mini-heading">{copy.runtime.createSession}</div>
                   <label className="form-field">
@@ -6548,7 +7942,11 @@ export function App(): ReactElement {
                     </div>
                   ) : null}
                 </div>
+                </div>
+                ) : null}
 
+                {sessionWorkspaceSurface === "session" ? (
+                <div className="session-controls session-controls-single">
                 <div className="session-control-card">
                   <div className="mini-heading">{copy.runtime.manageSession}</div>
                   {activeSession ? (
@@ -6612,9 +8010,725 @@ export function App(): ReactElement {
                     <p className="provider-note">{copy.runtime.noLocalSession}</p>
                   )}
                 </div>
+                </div>
+                ) : null}
               </div>
             </div>
           </div>
+          </div>
+          ) : null}
+
+          {activeConsoleWorkspace === "skills" ? (
+          <div className="console-diagnostics-grid console-workspace-stage">
+            <div className="panel insight-panel console-workspace-panel console-workspace-panel-full">
+              <div className="panel-header">
+                <span>{locale === "zh" ? "内置技能" : "Built-in skills"}</span>
+                <span className="panel-tag">Skill</span>
+              </div>
+
+              <div className="console-workspace-scroll provider-workspace-scroll provider-workspace-scroll-single">
+                <div className="workspace-surface-tabs" role="tablist" aria-label={locale === "zh" ? "技能分区" : "Skill sections"}>
+                  {([
+                    ["browser", locale === "zh" ? "浏览器" : "Browser"],
+                    ["local", locale === "zh" ? "本地动作" : "Local"],
+                    ["memory", locale === "zh" ? "记忆工具" : "Memory"],
+                    ["care", locale === "zh" ? "关怀" : "Care"]
+                  ] as const).map(([surface, label]) => (
+                    <button
+                      key={surface}
+                      className={`workspace-surface-tab ${skillsWorkspaceSurface === surface ? "workspace-surface-tab-active" : ""}`}
+                      onClick={() => setSkillsWorkspaceSurface(surface)}
+                      type="button"
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+
+                {skillsWorkspaceSurface === "browser" ? (
+                  <div className="console-workspace-stage">
+                    <div className="workspace-surface-panel workspace-surface-panel-provider workspace-surface-panel-fill">
+                      <div className="workspace-surface-head">
+                        <div className="workspace-surface-heading">
+                          <strong>{locale === "zh" ? "浏览器技能" : "Browser skill"}</strong>
+                          <p>
+                            {locale === "zh"
+                              ? "把网页打开、站内搜索、可点击项读取和表单填写统一放在这里管理。"
+                              : "Manage page opening, on-page search, clickable-item reading, and form filling from one layer."}
+                          </p>
+                        </div>
+                        <div className="workspace-surface-head-pills">
+                          <span className="provider-draft-status-pill">{browserSkillReadyLabel}</span>
+                          <span className="provider-draft-status-pill">
+                            {locale === "zh" ? "Bing 优先" : "Bing-first"}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="session-reference-grid workspace-reference-grid">
+                        {[
+                          [
+                            locale === "zh" ? "当前能力" : "Current abilities",
+                            locale === "zh"
+                              ? "打开网址、搜索页面、列出可点击项、点击目标、填写输入框、提交表单。"
+                              : "Open URLs, search pages, list clickable targets, click items, fill inputs, and submit forms."
+                          ],
+                          [
+                            locale === "zh" ? "执行方式" : "Execution model",
+                            locale === "zh"
+                              ? "全部经过聊天中的待确认动作卡，不会悄悄在后台自行乱跑。"
+                              : "Everything flows through pending action cards in chat instead of silently running in the background."
+                          ]
+                        ].map(([title, description]) => (
+                          <div className="session-reference-card" key={title}>
+                            <strong>{title}</strong>
+                            <span>{description}</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="console-actions workspace-panel-actions workspace-panel-actions-provider">
+                        <button className="button button-secondary" onClick={() => navigateTo("chat")} type="button">
+                          {locale === "zh" ? "去对话里试用" : "Test in chat"}
+                        </button>
+                        <button
+                          className="button button-primary"
+                          onClick={() => {
+                            setActiveConsoleWorkspace("provider");
+                            navigateTo("console");
+                          }}
+                          type="button"
+                        >
+                          {locale === "zh" ? "先检查模型接入" : "Check provider setup"}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="insight-stack">
+                      <div className="insight-card">
+                        <div className="mini-heading">{locale === "zh" ? "状态" : "Status"}</div>
+                        <p>
+                          {chatReady
+                            ? locale === "zh"
+                              ? "聊天运行时已经准备好，可以直接从对话页触发浏览器技能。"
+                              : "The chat runtime is ready, so browser skills can be triggered directly from the conversation page."
+                            : locale === "zh"
+                              ? "还没完成模型接入，所以先不要让浏览器技能往外跑。"
+                              : "Provider setup is not complete yet, so browser skills should stay idle for now."}
+                        </p>
+                      </div>
+                      <div className="session-reference-card">
+                        <strong>{locale === "zh" ? "优先入口" : "Preferred entrypoint"}</strong>
+                        <span>{locale === "zh" ? "聊天页待确认动作卡" : "Chat-side pending action cards"}</span>
+                      </div>
+                      <div className="session-reference-card">
+                        <strong>{locale === "zh" ? "默认搜索" : "Default search"}</strong>
+                        <span>{locale === "zh" ? "中国大陆优先 Bing" : "Bing-first in mainland China"}</span>
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
+
+                {skillsWorkspaceSurface === "local" ? (
+                  <div className="console-workspace-stage">
+                    <div className="workspace-surface-panel workspace-surface-panel-provider workspace-surface-panel-fill">
+                    <div className="workspace-surface-head">
+                      <div className="workspace-surface-heading">
+                        <strong>{locale === "zh" ? "本地动作技能" : "Local action skill"}</strong>
+                        <p>
+                          {locale === "zh"
+                            ? "打开软件、打开文件夹和后续桌面动作都从这里归口，不和人物性格混在一起。"
+                            : "App launch, folder opening, and later desktop actions live here instead of blending into persona settings."}
+                        </p>
+                      </div>
+                      <div className="workspace-surface-head-pills">
+                        <span className="provider-draft-status-pill">{localSkillPermissionLabel}</span>
+                        <span className="provider-draft-status-pill">
+                          {localActionResolveState === "loading"
+                            ? locale === "zh"
+                              ? "执行中"
+                              : "Running"
+                            : locale === "zh"
+                              ? "待命"
+                              : "Idle"}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="session-reference-grid workspace-reference-grid">
+                      {[
+                        [
+                          locale === "zh" ? "权限边界" : "Permission boundary",
+                          locale === "zh"
+                            ? "受限模式关闭，本地高权限模式逐次确认，完全访问模式才允许直接执行。"
+                            : "Limited mode keeps this off, elevated mode asks per action, and full access allows direct execution."
+                        ],
+                        [
+                          locale === "zh" ? "当前能力" : "Current abilities",
+                          locale === "zh"
+                            ? "打开网址、文件夹、应用，并对已批准动作给出真实执行回执。"
+                            : "Open URLs, folders, and apps, then return truthful execution receipts for approved actions."
+                        ]
+                      ].map(([title, description]) => (
+                        <div className="session-reference-card" key={title}>
+                          <strong>{title}</strong>
+                          <span>{description}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="console-actions workspace-panel-actions workspace-panel-actions-provider">
+                      <button
+                        className="button button-secondary"
+                        onClick={() => handlePermissionPresetChange("elevated")}
+                        type="button"
+                      >
+                        {locale === "zh" ? "切到高权限" : "Use elevated mode"}
+                      </button>
+                      <button
+                        className="button button-primary"
+                        onClick={() => handlePermissionPresetChange("full")}
+                        type="button"
+                      >
+                        {locale === "zh" ? "切到完全访问" : "Use full access"}
+                      </button>
+                    </div>
+                    </div>
+
+                    <div className="insight-stack">
+                      <div className="insight-card">
+                        <div className="mini-heading">{locale === "zh" ? "执行状态" : "Execution status"}</div>
+                        <p>
+                          {localActionResolveState === "loading"
+                            ? locale === "zh"
+                              ? "有一个本地动作正在执行，执行结果会回到当前对话里。"
+                              : "A local action is currently running, and its result will flow back into the active chat."
+                            : locale === "zh"
+                              ? "现在没有挂起的本地动作，可以从聊天里继续发起。"
+                              : "No local action is currently pending, so new ones can be triggered from chat."}
+                        </p>
+                      </div>
+                      <div className="session-reference-card">
+                        <strong>{locale === "zh" ? "当前权限" : "Current access"}</strong>
+                        <span>{localSkillPermissionLabel}</span>
+                      </div>
+                      <div className="session-reference-card">
+                        <strong>{locale === "zh" ? "推荐入口" : "Preferred entrypoint"}</strong>
+                        <span>{locale === "zh" ? "聊天页待确认动作卡" : "Chat-side pending action cards"}</span>
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
+
+                {skillsWorkspaceSurface === "memory" ? (
+                  <div className="console-workspace-stage">
+                    <div className="workspace-surface-panel workspace-surface-panel-provider workspace-surface-panel-fill">
+                    <div className="workspace-surface-head">
+                      <div className="workspace-surface-heading">
+                        <strong>{locale === "zh" ? "记忆工具技能" : "Memory tools"}</strong>
+                        <p>
+                          {locale === "zh"
+                            ? "会话迁移、摘要修正和关系档案维护都从这里进入，不把运行信号页变成操作页。"
+                            : "Session transfer, summary correction, and relationship-profile upkeep enter here instead of cluttering the runtime-signal view."}
+                        </p>
+                      </div>
+                      <div className="workspace-surface-head-pills">
+                        <span className="provider-draft-status-pill">
+                          {locale === "zh" ? "SQLite 主存储" : "SQLite primary"}
+                        </span>
+                        <span className="provider-draft-status-pill">
+                          {locale === "zh" ? "JSON 迁移" : "JSON transfer"}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="session-reference-grid workspace-reference-grid">
+                      {[
+                        [
+                          locale === "zh" ? "当前职责" : "Current role",
+                          locale === "zh"
+                            ? "身份摘要修正、人物档案编辑、会话导入导出和跨设备迁移。"
+                            : "Identity-summary correction, companion-profile editing, session import/export, and device migration."
+                        ],
+                        [
+                          locale === "zh" ? "为什么单独分层" : "Why it stays separate",
+                          locale === "zh"
+                            ? "人物是谁归会话档案，技能做什么归这里，避免以后桌面端出现边界混乱。"
+                            : "Who the companion is belongs to sessions; what the system can do belongs here, keeping desktop boundaries cleaner later."
+                        ]
+                      ].map(([title, description]) => (
+                        <div className="session-reference-card" key={title}>
+                          <strong>{title}</strong>
+                          <span>{description}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="console-actions workspace-panel-actions workspace-panel-actions-provider">
+                      <button
+                        className="button button-secondary"
+                        onClick={() => {
+                          setActiveConsoleWorkspace("runtime");
+                          navigateTo("console");
+                        }}
+                        type="button"
+                      >
+                        {locale === "zh" ? "查看运行理解" : "View runtime understanding"}
+                      </button>
+                      <button
+                        className="button button-primary"
+                        onClick={() => {
+                          setActiveConsoleWorkspace("sessions");
+                          setSessionWorkspaceSurface("transfer");
+                          navigateTo("console");
+                        }}
+                        type="button"
+                        >
+                          {locale === "zh" ? "去会话迁移" : "Open transfer"}
+                        </button>
+                    </div>
+                    </div>
+
+                    <div className="insight-stack">
+                      <div className="insight-card">
+                        <div className="mini-heading">{locale === "zh" ? "存储原则" : "Storage rule"}</div>
+                        <p>
+                          {locale === "zh"
+                            ? "运行时优先写入本地 SQLite，导入导出只负责把这段关系和历史安全搬走。"
+                            : "Runtime state writes into local SQLite first, while import/export is only the safe transport layer for this relationship and history."}
+                        </p>
+                      </div>
+                      <div className="session-reference-card">
+                        <strong>{locale === "zh" ? "主存储" : "Primary store"}</strong>
+                        <span>{locale === "zh" ? "SQLite 本地运行时" : "Local SQLite runtime"}</span>
+                      </div>
+                      <div className="session-reference-card">
+                        <strong>{locale === "zh" ? "迁移方式" : "Migration path"}</strong>
+                        <span>{locale === "zh" ? "JSON 导出 / 导入包" : "JSON export / import package"}</span>
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
+
+                {skillsWorkspaceSurface === "care" ? (
+                  <div className="console-workspace-stage">
+                    <div className="workspace-surface-panel workspace-surface-panel-provider workspace-surface-panel-fill">
+                    <div className="workspace-surface-head">
+                      <div className="workspace-surface-heading">
+                        <strong>{locale === "zh" ? "关怀技能" : "Care skill"}</strong>
+                        <p>
+                          {locale === "zh"
+                            ? "主动问候、轻提醒、晚安和回捞式陪伴属于一层能力，不是单轮 prompt 花活。"
+                            : "Proactive outreach, light reminders, goodnight care, and soft check-ins belong to one capability layer, not one-off prompt tricks."}
+                        </p>
+                      </div>
+                      <div className="workspace-surface-head-pills">
+                        <span className="provider-draft-status-pill">
+                          {proactiveAutoCheckEnabled
+                            ? locale === "zh"
+                              ? "本地巡检开启"
+                              : "Local loop on"
+                            : locale === "zh"
+                              ? "本地巡检关闭"
+                              : "Local loop off"}
+                        </span>
+                        <span className="provider-draft-status-pill">
+                          {proactiveNotificationEnabled
+                            ? locale === "zh"
+                              ? "通知可投递"
+                              : "Delivery on"
+                            : locale === "zh"
+                              ? "仅建议"
+                              : "Suggest only"}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="session-reference-grid workspace-reference-grid">
+                      {[
+                        [
+                          locale === "zh" ? "当前策略" : "Current policy",
+                          locale === "zh"
+                            ? "默认允许主动关怀，但仍受安静时段、未回应次数和权限边界约束。"
+                            : "Proactive care is enabled by default, but still bounded by quiet hours, unanswered counts, and explicit permissions."
+                        ],
+                        [
+                          locale === "zh" ? "下一步重点" : "Next priority",
+                          locale === "zh"
+                            ? "继续把关怀消息做得更像真人，而不是把聊天页塞满控制开关。"
+                            : "Keep making care messages feel more human without stuffing the chat page with control switches."
+                        ]
+                      ].map(([title, description]) => (
+                        <div className="session-reference-card" key={title}>
+                          <strong>{title}</strong>
+                          <span>{description}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="console-actions workspace-panel-actions workspace-panel-actions-provider">
+                      <button
+                        className="button button-secondary"
+                        onClick={() => void handleEvaluateProactiveCare()}
+                        disabled={!canEvaluateProactive}
+                        type="button"
+                      >
+                        {locale === "zh" ? "立即评估一次" : "Evaluate now"}
+                      </button>
+                      <button
+                        className="button button-primary"
+                        onClick={() => {
+                          setActiveConsoleWorkspace("care");
+                          navigateTo("console");
+                        }}
+                        type="button"
+                        >
+                          {locale === "zh" ? "打开完整关怀台" : "Open care console"}
+                        </button>
+                    </div>
+                    </div>
+
+                    <div className="insight-stack">
+                      <div className="insight-card">
+                        <div className="mini-heading">{locale === "zh" ? "当前节奏" : "Current rhythm"}</div>
+                        <p>
+                          {proactiveAutoCheckEnabled
+                            ? locale === "zh"
+                              ? "本地巡检会继续评估什么时候适合轻轻找你，而不是把提醒做成机械闹钟。"
+                              : "The local loop keeps evaluating when a gentle reach-out is appropriate instead of behaving like a mechanical alarm."
+                            : locale === "zh"
+                              ? "现在只保留建议层，还没有自动巡检节奏。"
+                              : "Only the suggestion layer is active right now, without the automatic local care loop."}
+                        </p>
+                      </div>
+                      <div className="session-reference-card">
+                        <strong>{locale === "zh" ? "本地巡检" : "Local loop"}</strong>
+                        <span>{proactiveAutoCheckEnabled ? (locale === "zh" ? "已开启" : "Enabled") : (locale === "zh" ? "已关闭" : "Disabled")}</span>
+                      </div>
+                      <div className="session-reference-card">
+                        <strong>{locale === "zh" ? "投递方式" : "Delivery mode"}</strong>
+                        <span>{proactiveNotificationEnabled ? (locale === "zh" ? "通知可投递" : "Notification delivery on") : (locale === "zh" ? "仅给建议" : "Suggestion only")}</span>
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          </div>
+          ) : null}
+
+          {activeConsoleWorkspace === "channels" ? (
+          <div className="console-diagnostics-grid console-workspace-stage">
+            <div className="panel insight-panel console-workspace-panel console-workspace-panel-full">
+              <div className="panel-header">
+                <span>{locale === "zh" ? "外部通道" : "External channels"}</span>
+                <span className="panel-tag">Bridge</span>
+              </div>
+
+              <div className="console-workspace-scroll provider-workspace-scroll provider-workspace-scroll-single">
+                <div className="workspace-surface-tabs" role="tablist" aria-label={locale === "zh" ? "通道分区" : "Channel sections"}>
+                  {([
+                    ["desktop", locale === "zh" ? "桌面通知" : "Desktop"],
+                    ["feishu", locale === "zh" ? "飞书" : "Feishu"],
+                    ["wecom", locale === "zh" ? "企业微信" : "WeCom"],
+                    ["wechat", locale === "zh" ? "个人微信实验" : "Personal WeChat"]
+                  ] as const).map(([surface, label]) => (
+                    <button
+                      key={surface}
+                      className={`workspace-surface-tab ${channelsWorkspaceSurface === surface ? "workspace-surface-tab-active" : ""}`}
+                      onClick={() => setChannelsWorkspaceSurface(surface)}
+                      type="button"
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+
+                {channelsWorkspaceSurface === "desktop" ? (
+                  <div className="console-workspace-stage">
+                    <div className="workspace-surface-panel workspace-surface-panel-provider workspace-surface-panel-fill">
+                      <div className="workspace-surface-head">
+                        <div className="workspace-surface-heading">
+                          <strong>{locale === "zh" ? "桌面通知通道" : "Desktop notification route"}</strong>
+                          <p>{desktopRouteSummary}</p>
+                        </div>
+                        <div className="workspace-surface-head-pills">
+                          <span className="provider-draft-status-pill">{notificationChannelReadyLabel}</span>
+                          <span className="provider-draft-status-pill">{permissionModeLabel}</span>
+                        </div>
+                      </div>
+
+                      <div className="session-reference-grid workspace-reference-grid">
+                        {[
+                          [
+                            locale === "zh" ? "当前阶段" : "Current stage",
+                            locale === "zh"
+                              ? "先通过浏览器通知验证主动触达逻辑，未来桌面端直接切到系统通知。"
+                              : "Validate proactive delivery through browser notifications first, then graduate to native desktop notifications."
+                          ],
+                          [
+                            locale === "zh" ? "为什么优先做它" : "Why it comes first",
+                            locale === "zh"
+                              ? "学习成本最低，最接近真正“有人在找你”的感受，也最容易做成客户端。"
+                              : "It has the lowest learning cost, feels closest to genuine outreach, and maps cleanly into a future desktop client."
+                          ]
+                        ].map(([title, description]) => (
+                          <div className="session-reference-card" key={title}>
+                            <strong>{title}</strong>
+                            <span>{description}</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="console-actions workspace-panel-actions workspace-panel-actions-provider">
+                        {browserNotificationPermission !== "granted" &&
+                        browserNotificationPermission !== "unsupported" ? (
+                          <button
+                            className="button button-secondary"
+                            onClick={() => void handleRequestNotificationPermission()}
+                            disabled={notificationPermissionState === "loading"}
+                            type="button"
+                          >
+                            {notificationPermissionState === "loading"
+                              ? locale === "zh"
+                                ? "授权中..."
+                                : "Authorizing..."
+                              : locale === "zh"
+                                ? "请求通知授权"
+                                : "Request permission"}
+                          </button>
+                        ) : null}
+                        <button
+                          className="button button-primary"
+                          onClick={() => {
+                            setActiveConsoleWorkspace("care");
+                            navigateTo("console");
+                          }}
+                          type="button"
+                        >
+                          {locale === "zh" ? "去关怀策略" : "Open care policy"}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="insight-stack">
+                      <div className="insight-card">
+                        <div className="mini-heading">{locale === "zh" ? "通道状态" : "Channel status"}</div>
+                        <p>
+                          {desktopRouteSummary}
+                        </p>
+                      </div>
+                      <div className="session-reference-card">
+                        <strong>{locale === "zh" ? "通知权限" : "Notification permission"}</strong>
+                        <span>{formatBrowserNotificationPermission(browserNotificationPermission, locale)}</span>
+                      </div>
+                      <div className="session-reference-card">
+                        <strong>{locale === "zh" ? "自动投递" : "Auto delivery"}</strong>
+                        <span>{proactiveNotificationEnabled ? (locale === "zh" ? "已开启" : "Enabled") : (locale === "zh" ? "已关闭" : "Disabled")}</span>
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
+
+                {channelsWorkspaceSurface === "feishu" ? (
+                  <div className="console-workspace-stage">
+                    <div className="workspace-surface-panel workspace-surface-panel-provider workspace-surface-panel-fill">
+                    <div className="workspace-surface-head">
+                      <div className="workspace-surface-heading">
+                        <strong>{locale === "zh" ? "飞书通道" : "Feishu route"}</strong>
+                        <p>
+                          {locale === "zh"
+                            ? "适合作为第一条正式外部消息链路，后面可以接入企业或个人工作流。"
+                            : "A strong first formal external-message route, with room for future work and enterprise workflows."}
+                        </p>
+                      </div>
+                      <div className="workspace-surface-head-pills">
+                        <span className="provider-draft-status-pill">
+                          {locale === "zh" ? "规划中" : "Planned"}
+                        </span>
+                        <span className="provider-draft-status-pill">
+                          {locale === "zh" ? "推荐优先级高" : "High priority"}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="session-reference-grid workspace-reference-grid">
+                      {[
+                        [
+                          locale === "zh" ? "为什么适合先做" : "Why it fits early",
+                          locale === "zh"
+                            ? "授权链路正规、消息模型清晰，比个人微信更适合先做成稳定功能。"
+                            : "Its auth path is formal and its messaging model is clearer, making it a safer stable feature than personal WeChat first."
+                        ],
+                        [
+                          locale === "zh" ? "预期形态" : "Expected shape",
+                          locale === "zh"
+                            ? "扫码绑定或机器人配置后，把关怀提醒和重要回捞消息带出浏览器。"
+                            : "After QR or bot-based binding, carry proactive care and important check-ins outside the browser."
+                        ]
+                      ].map(([title, description]) => (
+                        <div className="session-reference-card" key={title}>
+                          <strong>{title}</strong>
+                          <span>{description}</span>
+                        </div>
+                      ))}
+                    </div>
+                    </div>
+
+                    <div className="insight-stack">
+                      <div className="insight-card">
+                        <div className="mini-heading">{locale === "zh" ? "路线状态" : "Route status"}</div>
+                        <p>
+                          {locale === "zh"
+                            ? "这条路更适合作为第一条正式外部消息链路，重点是把绑定、投递和撤销权限做稳。"
+                            : "This is the strongest candidate for the first formal external-message route, with the focus on stable binding, delivery, and revocable permissions."}
+                        </p>
+                      </div>
+                      <div className="session-reference-card">
+                        <strong>{locale === "zh" ? "优先级" : "Priority"}</strong>
+                        <span>{locale === "zh" ? "高" : "High"}</span>
+                      </div>
+                      <div className="session-reference-card">
+                        <strong>{locale === "zh" ? "适合作用" : "Best role"}</strong>
+                        <span>{locale === "zh" ? "浏览器外正式提醒链路" : "Formal off-browser reminder route"}</span>
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
+
+                {channelsWorkspaceSurface === "wecom" ? (
+                  <div className="console-workspace-stage">
+                    <div className="workspace-surface-panel workspace-surface-panel-provider workspace-surface-panel-fill">
+                    <div className="workspace-surface-head">
+                      <div className="workspace-surface-heading">
+                        <strong>{locale === "zh" ? "企业微信通道" : "WeCom route"}</strong>
+                        <p>
+                          {locale === "zh"
+                            ? "作为第二条正式通道更稳，也给后续微信生态扩展留位置。"
+                            : "A steadier second formal route that still leaves room for later WeChat-ecosystem expansion."}
+                        </p>
+                      </div>
+                      <div className="workspace-surface-head-pills">
+                        <span className="provider-draft-status-pill">
+                          {locale === "zh" ? "规划中" : "Planned"}
+                        </span>
+                        <span className="provider-draft-status-pill">
+                          {locale === "zh" ? "企业友好" : "Enterprise-friendly"}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="session-reference-grid workspace-reference-grid">
+                      {[
+                        [
+                          locale === "zh" ? "适合场景" : "Best fit",
+                          locale === "zh"
+                            ? "更适合未来正式部署、组织内部使用和多设备协同。"
+                            : "Best suited to later formal deployment, organizational use, and multi-device coordination."
+                        ],
+                        [
+                          locale === "zh" ? "和飞书的区别" : "How it differs from Feishu",
+                          locale === "zh"
+                            ? "不是替代关系，而是第二条正式路由，给不同生态的用户选择。"
+                            : "It is not a replacement for Feishu, but a second official route for users in a different ecosystem."
+                        ]
+                      ].map(([title, description]) => (
+                        <div className="session-reference-card" key={title}>
+                          <strong>{title}</strong>
+                          <span>{description}</span>
+                        </div>
+                      ))}
+                    </div>
+                    </div>
+
+                    <div className="insight-stack">
+                      <div className="insight-card">
+                        <div className="mini-heading">{locale === "zh" ? "路线状态" : "Route status"}</div>
+                        <p>
+                          {locale === "zh"
+                            ? "更像第二条正式桥梁，适合以后做成更稳定的组织内陪伴入口。"
+                            : "This behaves more like the second official bridge, suited to a steadier organization-level companionship entry later."}
+                        </p>
+                      </div>
+                      <div className="session-reference-card">
+                        <strong>{locale === "zh" ? "优先级" : "Priority"}</strong>
+                        <span>{locale === "zh" ? "中高" : "Medium-high"}</span>
+                      </div>
+                      <div className="session-reference-card">
+                        <strong>{locale === "zh" ? "适合作用" : "Best role"}</strong>
+                        <span>{locale === "zh" ? "组织内 / 多设备正式通道" : "Formal org / multi-device route"}</span>
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
+
+                {channelsWorkspaceSurface === "wechat" ? (
+                  <div className="console-workspace-stage">
+                    <div className="workspace-surface-panel workspace-surface-panel-provider workspace-surface-panel-fill">
+                    <div className="workspace-surface-head">
+                      <div className="workspace-surface-heading">
+                        <strong>{locale === "zh" ? "个人微信实验" : "Personal WeChat experiment"}</strong>
+                        <p>
+                          {locale === "zh"
+                            ? "先把它当实验桥接而不是正式主线，避免一开始就把产品稳定性拖进高风险区。"
+                            : "Treat this as an experimental bridge rather than a first-class route so product stability does not start in the highest-risk area."}
+                        </p>
+                      </div>
+                      <div className="workspace-surface-head-pills">
+                        <span className="provider-draft-status-pill">
+                          {locale === "zh" ? "实验项" : "Experimental"}
+                        </span>
+                        <span className="provider-draft-status-pill">
+                          {locale === "zh" ? "后置处理" : "Later"}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="session-reference-grid workspace-reference-grid">
+                      {[
+                        [
+                          locale === "zh" ? "为什么不先做主线" : "Why not first-class now",
+                          locale === "zh"
+                            ? "授权、稳定性和可维护性都更复杂，不适合拿来定义第一版外部通道体验。"
+                            : "Auth, stability, and maintainability are all more complex, so it should not define the first external-channel experience."
+                        ],
+                        [
+                          locale === "zh" ? "更合适的顺序" : "Better sequence",
+                          locale === "zh"
+                            ? "先把桌面通知、飞书、企微跑通，再决定是否单独做微信桥接层。"
+                            : "Ship desktop notifications, Feishu, and WeCom first, then decide whether to build a separate WeChat bridge."
+                        ]
+                      ].map(([title, description]) => (
+                        <div className="session-reference-card" key={title}>
+                          <strong>{title}</strong>
+                          <span>{description}</span>
+                        </div>
+                      ))}
+                    </div>
+                    </div>
+
+                    <div className="insight-stack">
+                      <div className="insight-card">
+                        <div className="mini-heading">{locale === "zh" ? "路线状态" : "Route status"}</div>
+                        <p>
+                          {locale === "zh"
+                            ? "这里先维持实验态，不拿它定义第一版外部通道的稳定体验。"
+                            : "This stays experimental for now and should not define the stable first-generation external-channel experience."}
+                        </p>
+                      </div>
+                      <div className="session-reference-card">
+                        <strong>{locale === "zh" ? "风险级别" : "Risk level"}</strong>
+                        <span>{locale === "zh" ? "高" : "High"}</span>
+                      </div>
+                      <div className="session-reference-card">
+                        <strong>{locale === "zh" ? "产品位置" : "Product role"}</strong>
+                        <span>{locale === "zh" ? "后置实验桥接层" : "Later experimental bridge"}</span>
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            </div>
           </div>
           ) : null}
 
@@ -7266,6 +9380,11 @@ export function App(): ReactElement {
                       </span>
                     </div>
                   ) : null}
+                  <p className="provider-note">
+                    {locale === "zh"
+                      ? "本地运行时会优先把会话写进 SQLite；这里导出的 JSON 只负责迁移这段人物关系、档案与历史到另一台设备。"
+                      : "Runtime state is primarily stored in local SQLite; this JSON package is the portable transport layer for moving the companion profile, relationship, and history to another device."}
+                  </p>
                   <pre className="session-export-block">
                     <code>{sessionExportJson}</code>
                   </pre>
@@ -7281,6 +9400,352 @@ export function App(): ReactElement {
             </div>
           </div>
           ) : null}
+
+          {activeConsoleWorkspace === "settings" ? (
+          <div className="console-diagnostics-grid console-workspace-stage">
+            <div className="panel insight-panel console-workspace-panel console-workspace-panel-full">
+              <div className="panel-header">
+                <span>{locale === "zh" ? "权限与设置" : "Permissions and settings"}</span>
+                <span className="panel-tag">Config</span>
+              </div>
+              <div className="console-workspace-scroll provider-workspace-scroll provider-workspace-scroll-single">
+                <div className="workspace-surface-tabs" role="tablist" aria-label={locale === "zh" ? "设置分区" : "Settings sections"}>
+                  {([
+                    ["permissions", locale === "zh" ? "权限" : "Permissions"],
+                    ["data", locale === "zh" ? "数据" : "Data"],
+                    ["appearance", locale === "zh" ? "界面" : "Appearance"],
+                    ["desktop", locale === "zh" ? "桌面端" : "Desktop"]
+                  ] as const).map(([surface, label]) => (
+                    <button
+                      key={surface}
+                      className={`workspace-surface-tab ${settingsWorkspaceSurface === surface ? "workspace-surface-tab-active" : ""}`}
+                      onClick={() => setSettingsWorkspaceSurface(surface)}
+                      type="button"
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+
+                {settingsWorkspaceSurface === "permissions" ? (
+                  <div className="console-workspace-stage">
+                    <div className="workspace-surface-panel workspace-surface-panel-provider">
+                      <div className="workspace-surface-head">
+                        <div className="workspace-surface-heading">
+                          <strong>{locale === "zh" ? "权限策略" : "Permission policy"}</strong>
+                          <p>
+                            {locale === "zh"
+                              ? "这里管受限、高权限、完全访问和逐项能力授权，不让这些开关散落在多个页面。"
+                              : "Keep limited, elevated, full access, and per-capability grants here instead of scattering them across pages."}
+                          </p>
+                        </div>
+                        <div className="workspace-surface-head-pills">
+                          <span className="provider-draft-status-pill">{permissionModeLabel}</span>
+                          <span className="provider-draft-status-pill">
+                            {formatBrowserNotificationPermission(browserNotificationPermission, locale)}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="session-reference-grid workspace-reference-grid">
+                        {[
+                          [
+                            locale === "zh" ? "当前模式" : "Current mode",
+                            locale === "zh"
+                              ? "聊天里展示的是快捷入口，这里才是完整的全局权限台。"
+                              : "Chat shows a fast entrypoint, while this workspace remains the full global permission desk."
+                          ],
+                          [
+                            locale === "zh" ? "建议用法" : "Suggested use",
+                            locale === "zh"
+                              ? "普通用户先用高权限，想要完全自动执行时再切完全访问。"
+                              : "Most users should start with elevated mode and only switch to full access when they want direct execution."
+                          ]
+                        ].map(([title, description]) => (
+                          <div className="session-reference-card" key={title}>
+                            <strong>{title}</strong>
+                            <span>{description}</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="console-actions workspace-panel-actions workspace-panel-actions-provider">
+                        <button
+                          className="button button-secondary"
+                          onClick={() => handlePermissionPresetChange("limited")}
+                          type="button"
+                        >
+                          {locale === "zh" ? "切到受限" : "Use limited mode"}
+                        </button>
+                        <button
+                          className="button button-secondary"
+                          onClick={() => handlePermissionPresetChange("elevated")}
+                          type="button"
+                        >
+                          {locale === "zh" ? "切到高权限" : "Use elevated mode"}
+                        </button>
+                        <button
+                          className="button button-primary"
+                          onClick={() => handlePermissionPresetChange("full")}
+                          type="button"
+                        >
+                          {locale === "zh" ? "切到完全访问" : "Use full access"}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="insight-stack">
+                      <div className="insight-card">
+                        <div className="mini-heading">{locale === "zh" ? "权限提示" : "Permission note"}</div>
+                        <p>
+                          {locale === "zh"
+                            ? "真正需要用户理解的区别，是“逐次确认”和“完全自动执行”之间的边界。"
+                            : "The boundary users really need to understand is the difference between ask-first execution and fully automatic execution."}
+                        </p>
+                      </div>
+                      <div className="session-reference-card">
+                        <strong>{locale === "zh" ? "本地动作" : "Local actions"}</strong>
+                        <span>{localSkillPermissionLabel}</span>
+                      </div>
+                      <div className="session-reference-card">
+                        <strong>{locale === "zh" ? "主动通知" : "Proactive notifications"}</strong>
+                        <span>{proactiveNotificationEnabled ? (locale === "zh" ? "允许" : "Allowed") : (locale === "zh" ? "关闭" : "Disabled")}</span>
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
+
+                {settingsWorkspaceSurface === "data" ? (
+                  <div className="console-workspace-stage">
+                    <div className="workspace-surface-panel workspace-surface-panel-provider">
+                    <div className="workspace-surface-head">
+                      <div className="workspace-surface-heading">
+                        <strong>{locale === "zh" ? "数据与存储" : "Data and storage"}</strong>
+                        <p>
+                          {locale === "zh"
+                            ? "SQLite 作为本地实时主存储，JSON 只做迁移包，这层负责把这件事讲清楚。"
+                            : "SQLite remains the live local store while JSON stays a transport package, and this layer keeps that split legible."}
+                        </p>
+                      </div>
+                      <div className="workspace-surface-head-pills">
+                        <span className="provider-draft-status-pill">
+                          {formatPersistenceBackendLabel(persistenceStatus?.backend ?? selectedPersistenceBackend, locale)}
+                        </span>
+                        <span className="provider-draft-status-pill">
+                          {persistenceStatus ? formatPersistenceSyncState(persistenceStatus.backendDetails[0]?.syncState ?? "active", locale) : (locale === "zh" ? "未加载" : "Not loaded")}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="session-reference-grid workspace-reference-grid">
+                      {[
+                        [
+                          locale === "zh" ? "当前后端" : "Active backend",
+                          locale === "zh"
+                            ? "现在运行时状态跟着当前持久化后端走，切换后会同步更新。"
+                            : "Live runtime state follows the active persistence backend and updates when you switch it."
+                        ],
+                        [
+                          locale === "zh" ? "迁移方式" : "Migration path",
+                          locale === "zh"
+                            ? "跨设备时导出 JSON，再导入到另一台设备的 SQLite。"
+                            : "For cross-device migration, export JSON first, then import it into the other device's SQLite store."
+                        ]
+                      ].map(([title, description]) => (
+                        <div className="session-reference-card" key={title}>
+                          <strong>{title}</strong>
+                          <span>{description}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="console-actions workspace-panel-actions workspace-panel-actions-provider">
+                      <button
+                        className="button button-secondary"
+                        onClick={() => {
+                          setActiveConsoleWorkspace("sessions");
+                          setSessionWorkspaceSurface("storage");
+                          navigateTo("console");
+                        }}
+                        type="button"
+                      >
+                        {locale === "zh" ? "打开存储面板" : "Open storage panel"}
+                      </button>
+                      <button
+                        className="button button-primary"
+                        onClick={() => {
+                          setActiveConsoleWorkspace("sessions");
+                          setSessionWorkspaceSurface("transfer");
+                          navigateTo("console");
+                        }}
+                        type="button"
+                        >
+                          {locale === "zh" ? "打开迁移面板" : "Open transfer panel"}
+                        </button>
+                    </div>
+                    </div>
+
+                    <div className="insight-stack">
+                      <div className="insight-card">
+                        <div className="mini-heading">{locale === "zh" ? "当前规则" : "Current rule"}</div>
+                        <p>
+                          {locale === "zh"
+                            ? "本地运行时状态跟着主存储走，导出包只负责迁移，不抢运行时主权。"
+                            : "Live runtime state follows the primary store, while export packages handle migration without taking over runtime authority."}
+                        </p>
+                      </div>
+                      <div className="session-reference-card">
+                        <strong>{locale === "zh" ? "主后端" : "Primary backend"}</strong>
+                        <span>{formatPersistenceBackendLabel(persistenceStatus?.backend ?? selectedPersistenceBackend, locale)}</span>
+                      </div>
+                      <div className="session-reference-card">
+                        <strong>{locale === "zh" ? "迁移容器" : "Migration container"}</strong>
+                        <span>{locale === "zh" ? "结构化 JSON" : "Structured JSON"}</span>
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
+
+                {settingsWorkspaceSurface === "appearance" ? (
+                  <div className="console-workspace-stage">
+                    <div className="workspace-surface-panel workspace-surface-panel-provider">
+                    <div className="workspace-surface-head">
+                      <div className="workspace-surface-heading">
+                        <strong>{locale === "zh" ? "界面与语言" : "Interface and language"}</strong>
+                        <p>
+                          {locale === "zh"
+                            ? "语言切换、后续主题和桌面外观偏好从这里进入，而不是塞在对话页里。"
+                            : "Language switching, later themes, and desktop-shell appearance preferences belong here rather than on the chat surface."}
+                        </p>
+                      </div>
+                      <div className="workspace-surface-head-pills">
+                        <span className="provider-draft-status-pill">{locale === "zh" ? "简中" : "English"}</span>
+                        <span className="provider-draft-status-pill">
+                          {locale === "zh" ? "手绘奶白" : "Ink-on-milk"}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="session-reference-grid workspace-reference-grid">
+                      {[
+                        [
+                          locale === "zh" ? "当前状态" : "Current state",
+                          locale === "zh"
+                            ? "现在已经支持中英切换，后续主题和密度会继续从这一层扩展。"
+                            : "Chinese and English switching already exists, and later theme or density controls can grow from this layer."
+                        ],
+                        [
+                          locale === "zh" ? "产品方向" : "Product direction",
+                          locale === "zh"
+                            ? "保持客户端壳层统一，不让首页式说明重新挤回运行界面。"
+                            : "Keep one consistent client shell and avoid letting marketing-style explanation drift back into runtime screens."
+                        ]
+                      ].map(([title, description]) => (
+                        <div className="session-reference-card" key={title}>
+                          <strong>{title}</strong>
+                          <span>{description}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="console-actions workspace-panel-actions workspace-panel-actions-provider">
+                      <button className="button button-secondary" onClick={() => setLocale("zh")} type="button">
+                        切换中文
+                      </button>
+                      <button className="button button-primary" onClick={() => setLocale("en")} type="button">
+                        Switch English
+                      </button>
+                    </div>
+                    </div>
+
+                    <div className="insight-stack">
+                      <div className="insight-card">
+                        <div className="mini-heading">{locale === "zh" ? "壳层原则" : "Shell rule"}</div>
+                        <p>
+                          {locale === "zh"
+                            ? "对话和控制台要共用一套客户端壳层，不再把首页式说明挤回运行界面。"
+                            : "Conversation and console should keep sharing one client shell instead of letting homepage-style explanation drift back into runtime."}
+                        </p>
+                      </div>
+                      <div className="session-reference-card">
+                        <strong>{locale === "zh" ? "当前语言" : "Current language"}</strong>
+                        <span>{locale === "zh" ? "简体中文" : "English"}</span>
+                      </div>
+                      <div className="session-reference-card">
+                        <strong>{locale === "zh" ? "界面基调" : "Interface tone"}</strong>
+                        <span>{locale === "zh" ? "手绘奶白 / 墨色" : "Ink-on-milk"}</span>
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
+
+                {settingsWorkspaceSurface === "desktop" ? (
+                  <div className="console-workspace-stage">
+                    <div className="workspace-surface-panel workspace-surface-panel-provider">
+                    <div className="workspace-surface-head">
+                      <div className="workspace-surface-heading">
+                        <strong>{locale === "zh" ? "桌面端预留" : "Desktop-ready shell"}</strong>
+                        <p>
+                          {locale === "zh"
+                            ? "桌面托盘、开机启动、自动更新和系统通知都从这里接，不再另起一套设置体系。"
+                            : "Tray behavior, launch-on-startup, auto-update, and system notifications will enter here rather than through a separate settings system later."}
+                        </p>
+                      </div>
+                      <div className="workspace-surface-head-pills">
+                        <span className="provider-draft-status-pill">{appVersion}</span>
+                        <span className="provider-draft-status-pill">
+                          {locale === "zh" ? "客户端方向" : "Client path"}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="session-reference-grid workspace-reference-grid">
+                      {[
+                        [
+                          locale === "zh" ? "未来入口" : "Future entrypoints",
+                          locale === "zh"
+                            ? "托盘菜单、自动启动、后台提醒、自动更新和设备级权限提示。"
+                            : "Tray menus, startup behavior, background reminders, auto-update, and device-level permission prompts."
+                        ],
+                        [
+                          locale === "zh" ? "为什么先预留" : "Why reserve it now",
+                          locale === "zh"
+                            ? "现在先把信息架构摆正，后面做 Electron 时就不用重新推翻控制台。"
+                            : "Getting the information architecture right now prevents a later Electron pass from having to rebuild the whole console."
+                        ]
+                      ].map(([title, description]) => (
+                        <div className="session-reference-card" key={title}>
+                          <strong>{title}</strong>
+                          <span>{description}</span>
+                        </div>
+                      ))}
+                    </div>
+                    </div>
+
+                    <div className="insight-stack">
+                      <div className="insight-card">
+                        <div className="mini-heading">{locale === "zh" ? "客户端方向" : "Client direction"}</div>
+                        <p>
+                          {locale === "zh"
+                            ? "这里先把桌面托盘、开机启动、通知和更新入口摆正，后面做桌面壳时就不用再推翻控制台。"
+                            : "This reserves the right tray, startup, notification, and update entrypoints now so a later desktop shell does not have to rebuild the console."}
+                        </p>
+                      </div>
+                      <div className="session-reference-card">
+                        <strong>{locale === "zh" ? "当前版本" : "Current version"}</strong>
+                        <span>{appVersion}</span>
+                      </div>
+                      <div className="session-reference-card">
+                        <strong>{locale === "zh" ? "打包目标" : "Packaging target"}</strong>
+                        <span>{locale === "zh" ? "独立桌面客户端" : "Standalone desktop client"}</span>
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          </div>
+          ) : null}
             </div>
         </section>
         ) : null}
@@ -7290,7 +9755,10 @@ export function App(): ReactElement {
           <div className="chat-page-shell">
             <div className="chat-page-header">
               <div className="chat-page-header-bar">
-                <div className="chat-page-header-copy">
+                <div
+                  className="chat-page-header-copy"
+                  data-page-label={locale === "zh" ? "\u5bf9\u8bdd\u9875\u9762" : "Conversation"}
+                >
                   <span className="section-caption">{copy.runtime.caption}</span>
                   <strong>{locale === "zh" ? "瀵硅瘽椤甸潰" : "Conversation"}</strong>
                   <span className="chat-page-header-note">{copy.slogan}</span>
@@ -7339,29 +9807,224 @@ export function App(): ReactElement {
               </div>
             </div>
 
+            <div className="chat-runtime-shell">
+            <div className="runtime-doodle-layer" aria-hidden="true">
+              {runtimeDoodles.map((doodle) => (
+                <span
+                  className="runtime-doodle"
+                  key={`runtime-${doodle.id}`}
+                  style={
+                    {
+                      "--doodle-delay": doodle.delay,
+                      "--doodle-left": doodle.left,
+                      "--doodle-rotation": doodle.rotation,
+                      "--doodle-scale": doodle.scale.toString(),
+                      "--doodle-top": doodle.top
+                    } as CSSProperties
+                  }
+                >
+                  <img alt="" src={doodle.src} />
+                </span>
+              ))}
+            </div>
             <div className="panel chat-panel chat-panel-focused">
-              <div className="panel-header">
-                <span>{copy.runtime.canvas}</span>
-                <span className="panel-tag">{chatReady ? copy.runtime.runtimeReady : copy.runtime.setupRequired}</span>
-              </div>
-
-              {chatRestoredAt ? (
-                <div className="status-banner status-banner-info">
-                  {copy.runtime.restored} {formatSessionTimestamp(chatRestoredAt, locale)}.
+              {chatRestoredAt && !chatRestoreBannerDismissed ? (
+                <div className="chat-restore-banner" role="status" aria-live="polite">
+                  <span className="chat-restore-banner-copy">
+                    {copy.runtime.restored} {formatSessionTimestamp(chatRestoredAt, locale)}.
+                  </span>
+                  <span className="chat-restore-banner-runtime">
+                    {chatReady ? configuredRuntimeLabel : copy.runtime.setupRequired}
+                  </span>
+                  <button
+                    className="chat-restore-banner-close"
+                    onClick={() => setChatRestoreBannerDismissed(true)}
+                    type="button"
+                    aria-label={locale === "zh" ? "关闭恢复提示" : "Close restore notice"}
+                  >
+                    ×
+                  </button>
                 </div>
               ) : null}
 
               <div className="chat-log">
                 {chatMessages.length === 0 ? (
-                  <div className="empty-chat-state">{copy.runtime.emptyChat}</div>
+                  <div className="empty-chat-state empty-chat-state-rich">
+                    <div className="empty-chat-state-avatar">
+                      <img alt={activeCompanionPreset.label} src={activeCompanionPreset.src} />
+                    </div>
+                    <div className="empty-chat-state-copy">
+                      <strong>
+                        {locale === "zh"
+                          ? `${activeCompanionDisplayName} 正在等你先开口。`
+                          : `${activeCompanionDisplayName} is waiting for your first line.`}
+                      </strong>
+                      <p>{copy.runtime.emptyChat}</p>
+                      <span>
+                        {locale === "zh"
+                          ? "你可以先打个招呼，给 TA 起名字，或者告诉 TA 希望怎样称呼你。"
+                          : "Say hello first, give them a name, or tell them how they should call you."}
+                      </span>
+                      <div className="empty-chat-setup-card">
+                        <div className="empty-chat-setup-header">
+                          <strong>{locale === "zh" ? "先补完这次人物档案" : "Finish this companion profile first"}</strong>
+                          <span>
+                            {locale === "zh"
+                              ? "这部分只影响当前人物与当前会话，保存后会继续跟着这段关系走。"
+                              : "These details shape this companion in this session and continue forward with the relationship after you save them."}
+                          </span>
+                        </div>
+                        <div className="empty-chat-setup-grid">
+                          <label className="form-field">
+                            <span>{locale === "zh" ? "TA 的名字" : "Companion name"}</span>
+                            <input
+                              type="text"
+                              value={activeCompanionDraft.companionName}
+                              onChange={(event) =>
+                                setActiveCompanionDraft((current) => ({
+                                  ...current,
+                                  companionName: event.target.value
+                                }))
+                              }
+                              placeholder={activeCompanionPreset.label}
+                            />
+                          </label>
+                          <label className="form-field">
+                            <span>{locale === "zh" ? "怎么称呼你" : "What should they call you"}</span>
+                            <input
+                              type="text"
+                              value={activeCompanionDraft.userName}
+                              onChange={(event) =>
+                                setActiveCompanionDraft((current) => ({
+                                  ...current,
+                                  userName: event.target.value
+                                }))
+                              }
+                              placeholder={locale === "zh" ? "你的名字" : "Your name"}
+                            />
+                          </label>
+                          <label className="form-field">
+                            <span>{locale === "zh" ? "亲昵称呼" : "Nickname for you"}</span>
+                            <input
+                              type="text"
+                              value={activeCompanionDraft.userNickname}
+                              onChange={(event) =>
+                                setActiveCompanionDraft((current) => ({
+                                  ...current,
+                                  userNickname: event.target.value
+                                }))
+                              }
+                              placeholder={locale === "zh" ? "可选" : "Optional"}
+                            />
+                          </label>
+                          <label className="form-field">
+                            <span>{locale === "zh" ? "相处风格" : "Relationship vibe"}</span>
+                            <input
+                              type="text"
+                              value={activeCompanionDraft.relationshipVibe}
+                              onChange={(event) =>
+                                setActiveCompanionDraft((current) => ({
+                                  ...current,
+                                  relationshipVibe: event.target.value
+                                }))
+                              }
+                            />
+                          </label>
+                          <label className="form-field">
+                            <span>{locale === "zh" ? "说话方式" : "Speaking style"}</span>
+                            <input
+                              type="text"
+                              value={activeCompanionDraft.speakingStyle}
+                              onChange={(event) =>
+                                setActiveCompanionDraft((current) => ({
+                                  ...current,
+                                  speakingStyle: event.target.value
+                                }))
+                              }
+                            />
+                          </label>
+                          <label className="form-field">
+                            <span>{locale === "zh" ? "性格关键词" : "Personality traits"}</span>
+                            <textarea
+                              rows={2}
+                              value={activeCompanionDraft.personalityTraits}
+                              onChange={(event) =>
+                                setActiveCompanionDraft((current) => ({
+                                  ...current,
+                                  personalityTraits: event.target.value
+                                }))
+                              }
+                            />
+                          </label>
+                          <label className="form-field">
+                            <span>{locale === "zh" ? "偏爱的聊天话题" : "Favorite topics"}</span>
+                            <textarea
+                              rows={2}
+                              value={activeCompanionDraft.favoriteTopics}
+                              onChange={(event) =>
+                                setActiveCompanionDraft((current) => ({
+                                  ...current,
+                                  favoriteTopics: event.target.value
+                                }))
+                              }
+                            />
+                          </label>
+                        </div>
+                        <div className="empty-chat-setup-actions">
+                          <button
+                            className="button button-secondary"
+                            onClick={() => setActiveCompanionDraft(createActiveCompanionDraft(activeSessionCompanionProfile))}
+                            disabled={!activeCompanionProfileDirty || activeCompanionSaveState === "loading"}
+                            type="button"
+                          >
+                            {locale === "zh" ? "还原" : "Reset"}
+                          </button>
+                          <button
+                            className="button button-primary"
+                            onClick={() => void handleSaveActiveCompanionProfile()}
+                            disabled={!activeCompanionProfileDirty || activeCompanionSaveState === "loading"}
+                            type="button"
+                          >
+                            {activeCompanionSaveState === "loading"
+                              ? locale === "zh"
+                                ? "保存中..."
+                                : "Saving..."
+                              : locale === "zh"
+                                ? "保存人物档案"
+                                : "Save profile"}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 ) : (
                   chatMessages.map((message) => (
                     <article
                       className={`chat-bubble ${message.role === "assistant" ? "chat-bubble-assistant" : "chat-bubble-user"}`}
                       key={message.id}
                     >
-                      <span className="chat-role">{message.role === "assistant" ? copy.runtime.assistant : copy.runtime.you}</span>
-                      <p>{message.content}</p>
+                      <div className="chat-bubble-avatar">
+                        {message.role === "assistant" ? (
+                          activeSessionCompanionProfile?.portraitSrc ? (
+                            <img
+                              alt={activeCompanionDisplayName}
+                              src={activeSessionCompanionProfile.portraitSrc}
+                            />
+                          ) : (
+                            <span>?</span>
+                          )
+                        ) : (
+                          <span>{activeUserAvatarGlyph}</span>
+                        )}
+                      </div>
+                      <div className="chat-bubble-body">
+                        <span className="chat-role">
+                          {message.role === "assistant"
+                            ? activeCompanionDisplayName
+                            : activeUserDisplayName}
+                        </span>
+                        <p>{message.content}</p>
+                      </div>
                     </article>
                   ))
                 )}
@@ -7425,6 +10088,7 @@ export function App(): ReactElement {
                   </div>
                 ) : null}
 
+                <div className="chat-composer-surface">
                 <textarea
                   value={chatInput}
                   onChange={(event) => setChatInput(event.target.value)}
@@ -7512,7 +10176,6 @@ export function App(): ReactElement {
                       ) : null}
                     </div>
 
-                    {renderVoiceConfigControls("chat")}
                   </div>
 
                   <div className="chat-composer-main-actions">
@@ -7527,7 +10190,13 @@ export function App(): ReactElement {
                       }
                       type="button"
                     >
-                      {voiceConversationMode ? "End live chat" : "Start live chat"}
+                      {voiceConversationMode
+                        ? locale === "zh"
+                          ? "结束语音"
+                          : "End voice"
+                        : locale === "zh"
+                          ? "开始语音"
+                          : "Start voice"}
                     </button>
                     <button
                       className="button button-primary"
@@ -7538,52 +10207,51 @@ export function App(): ReactElement {
                     </button>
                   </div>
                 </div>
-                <div className="chat-voice-status" aria-live="polite">
-                  <span className={`chat-voice-status-badge chat-voice-status-${voicePlaybackState}`}>
-                    {locale === "zh" ? "语音" : "Voice"}
-                  </span>
-                  <span>
-                    {voiceStatusMessage ||
-                      (locale === "zh"
-                        ? "当前会根据回复情绪规划朗读语气。"
-                        : "Reply playback will follow the current emotional tone.")}
-                  </span>
-                  <span className="chat-voice-meta">
-                    {usesDedicatedVoiceProvider
-                      ? locale === "zh"
-                        ? `独立真人语音${voiceConfig?.provider ? ` · ${voiceConfig.provider}` : ""}${usesLocalVoiceProvider && voiceConfig?.engine ? ` · ${voiceConfig.engine}` : ""}`
-                        : `Dedicated voice${voiceConfig?.provider ? ` · ${voiceConfig.provider}` : ""}${usesLocalVoiceProvider && voiceConfig?.engine ? ` · ${voiceConfig.engine}` : ""}`
-                      : locale === "zh"
-                        ? "跟随聊天模型"
-                        : "Using chat provider"}
-                  </span>
-                  {selectedVoicePreset ? (
-                    <span className="chat-voice-meta">
-                      {selectedVoicePreset.label}
-                      {voiceConfig?.voice ? ` · ${voiceConfig.voice}` : ""}
-                    </span>
-                  ) : null}
-                </div>
-                <div className="chat-voice-status chat-voice-status-secondary" aria-live="polite">
-                  <span className={`chat-voice-status-badge chat-mic-status-${speechInputState}`}>
-                    {locale === "zh" ? "麦克风" : "Mic"}
-                  </span>
-                  <span>
-                    {speechInputStatusMessage ||
-                      (speechInputState === "unsupported"
-                        ? locale === "zh"
-                          ? "当前浏览器暂不支持语音输入。"
-                          : "Speech input is not supported in this browser."
-                        : voiceConversationMode
-                          ? locale === "zh"
-                            ? "我会持续听你说、回答你、再继续听你。"
-                            : "I will keep listening, answering, and listening again."
-                          : locale === "zh"
-                            ? "点开始实时对话后，我会把听到的内容直接送进对话。"
-                            : "Start live chat and I will turn what I hear into the next turn.")}
-                  </span>
                 </div>
               </div>
+            </div>
+            <aside className="chat-utility-rail" aria-label={locale === "zh" ? "会话工具栏" : "Conversation utility rail"}>
+              <button
+                className={`chat-utility-dot ${currentPage === "chat" ? "chat-utility-dot-active" : ""}`}
+                onClick={() => navigateTo("chat")}
+                title={locale === "zh" ? "对话" : "Chat"}
+                type="button"
+              >
+                C
+              </button>
+              <button
+                className="chat-utility-dot"
+                onClick={() => navigateTo("console")}
+                title={locale === "zh" ? "控制台" : "Console"}
+                type="button"
+              >
+                S
+              </button>
+              <div className="chat-utility-divider" />
+              <div className={`chat-utility-indicator ${chatReady ? "chat-utility-indicator-ready" : ""}`}>
+                <span>{locale === "zh" ? "模" : "M"}</span>
+              </div>
+              <div className={`chat-utility-indicator ${voiceConversationMode ? "chat-utility-indicator-live" : ""}`}>
+                <span>{locale === "zh" ? "声" : "V"}</span>
+              </div>
+              <div className="chat-utility-meta">
+                <span>{activeVoiceRoutingLabel}</span>
+                <span>
+                  {selectedVoicePreset?.label ?? (locale === "zh" ? "默认语音" : "Default voice")}
+                </span>
+                <span>
+                  {voiceStatusMessage ||
+                    speechInputStatusMessage ||
+                    (voiceConversationMode
+                      ? locale === "zh"
+                        ? "正在实时听你说话"
+                        : "Listening in realtime"
+                      : locale === "zh"
+                        ? "语音待命"
+                        : "Voice standing by")}
+                </span>
+              </div>
+            </aside>
             </div>
 
             <p className="chat-page-note">
