@@ -247,7 +247,7 @@ textarea {
   position: relative;
   align-self: stretch;
   display: grid;
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: auto minmax(0, 1fr) auto;
   gap: 0.65rem;
   min-height: 0;
   height: 100dvh;
@@ -424,12 +424,19 @@ textarea {
 }
 
 .app-sidebar-body {
+  position: relative;
+  z-index: 1;
   min-height: 0;
+  max-height: 100%;
   align-content: start;
   align-self: stretch;
   overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
   overflow-x: hidden;
   padding-right: 0.18rem;
+  padding-bottom: 0.55rem;
+  scroll-padding-bottom: 1rem;
 }
 
 .app-sidebar-section {
@@ -617,6 +624,8 @@ textarea {
 }
 
 .app-sidebar-footer {
+  position: relative;
+  z-index: 2;
   align-content: end;
 }
 
@@ -3047,8 +3056,9 @@ textarea {
 
 .chat-runtime-shell {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 4.25rem;
+  grid-template-columns: minmax(0, 1fr) clamp(4.25rem, 4.8vw, 4.75rem);
   gap: 0;
+  min-width: 0;
   min-height: 0;
   height: 100%;
   position: relative;
@@ -3699,19 +3709,56 @@ textarea {
   border-left: 1px solid rgba(21, 18, 15, 0.06);
   border-radius: 0;
   background: rgba(247, 245, 241, 0.96);
+  box-sizing: border-box;
+  width: 100%;
   min-width: 4.25rem;
   overflow: hidden;
   align-self: stretch;
   height: 100%;
   max-height: 100%;
   position: relative;
-  z-index: 1;
+  z-index: 3;
 }
 
 .chat-utility-rail-open {
   min-width: 4.25rem;
 }
 
+@media (max-height: 820px) and (min-width: 901px) {
+  .app-sidebar {
+    gap: 0.48rem;
+    padding-block: 0.52rem;
+  }
+
+  .app-sidebar-top,
+  .app-sidebar-body,
+  .app-sidebar-footer {
+    gap: 0.48rem;
+  }
+
+  .app-sidebar-runtime,
+  .app-sidebar-version {
+    padding: 0.5rem 0.62rem;
+  }
+
+  .app-sidebar-runtime {
+    display: none;
+  }
+
+  .app-sidebar-runtime span,
+  .app-sidebar-version span {
+    font-size: 0.72rem;
+    line-height: 1.28;
+  }
+
+  .app-sidebar-version strong {
+    font-size: 0.78rem;
+  }
+
+  .app-sidebar-legal-note {
+    display: none;
+  }
+}
 .chat-runtime-shell > .chat-utility-rail:not(:first-of-type) {
   display: none;
 }
