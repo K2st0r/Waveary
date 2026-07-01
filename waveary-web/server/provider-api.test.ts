@@ -2890,6 +2890,77 @@ test("chat sessions route lists sessions with default session and persistence st
   );
 });
 
+test("chat session create route accepts and persists companion profile setup", async () => {
+  const middleware = createProviderApiMiddleware();
+  const response = await invokeJsonRoute(middleware, "POST", "/api/chat/sessions", {
+    title: "Mina Session",
+    companionProfile: {
+      portraitId: "portrait-02",
+      portraitSrc: "/images/portraits/portrait-02.png",
+      displayName: "Mina",
+      userDisplayName: "Aki",
+      userNickname: "little comet",
+      relationshipVibe: "bright and affectionate",
+      speakingStyle: "light and close",
+      personalityTraits: ["playful", "warm"],
+      favoriteTopics: ["daily life", "small joys"],
+      preferredVoiceProvider: "doubao",
+      preferredVoiceModel: "seed-tts-2.0",
+      preferredVoiceName: "multi_female_shuangkuaisisi_moon_bigtts"
+    }
+  });
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(
+    response.body.sessions.find((session: { sessionId: string }) => session.sessionId === response.body.session.sessionId)?.title,
+    "Mina Session"
+  );
+  assert.equal(response.body.session.companionProfile.displayName, "Mina");
+  assert.equal(response.body.session.companionProfile.userDisplayName, "Aki");
+  assert.equal(response.body.session.companionProfile.preferredVoiceProvider, "doubao");
+});
+
+test("chat session profile route updates the active companion profile and refreshes the session list", async () => {
+  const middleware = createProviderApiMiddleware();
+  createChatSession("session-profile-update", "Before", {
+    portraitId: "portrait-01",
+    portraitSrc: "/images/portraits/portrait-01.png",
+    displayName: "Noa",
+    userDisplayName: "Aki",
+    userNickname: "",
+    relationshipVibe: "soft and observant",
+    speakingStyle: "quiet and close",
+    personalityTraits: ["gentle"],
+    favoriteTopics: ["daily life"]
+  });
+
+  const response = await invokeJsonRoute(middleware, "POST", "/api/chat/sessions/profile", {
+    sessionId: "session-profile-update",
+    companionProfile: {
+      portraitId: "portrait-03",
+      portraitSrc: "/images/portraits/portrait-03.png",
+      displayName: "Mina",
+      userDisplayName: "Aki",
+      userNickname: "little comet",
+      relationshipVibe: "bright and affectionate",
+      speakingStyle: "playful and close",
+      personalityTraits: ["playful", "warm"],
+      favoriteTopics: ["night walks", "small joys"],
+      preferredVoiceProvider: "doubao",
+      preferredVoiceModel: "seed-tts-2.0",
+      preferredVoiceName: "multi_female_shuangkuaisisi_moon_bigtts"
+    }
+  });
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.session.companionProfile.displayName, "Mina");
+  assert.equal(response.body.session.companionProfile.userNickname, "little comet");
+  assert.equal(
+    response.body.sessions.find((session: { sessionId: string }) => session.sessionId === "session-profile-update")?.title,
+    "Mina Session"
+  );
+});
+
 test("chat session route returns the requested persisted snapshot", async () => {
   const middleware = createProviderApiMiddleware();
 
@@ -3182,6 +3253,7 @@ test("chat proactive evaluation route returns a read-only decision without requi
       ],
       latestInsights: null,
       identitySummary: null,
+      companionProfile: null,
       proactiveCarePolicy: {
         enabled: true,
         quietHoursStart: "23:00",
@@ -3255,6 +3327,7 @@ test("chat proactive settings route can record a delivered reachout that suppres
       ],
       latestInsights: null,
       identitySummary: null,
+      companionProfile: null,
       proactiveCarePolicy: {
         enabled: true,
         quietHoursStart: "23:00",
@@ -3341,6 +3414,7 @@ test("chat turn clears unanswered proactive reachouts after the user replies", a
       ],
       latestInsights: null,
       identitySummary: null,
+      companionProfile: null,
       proactiveCarePolicy: {
         enabled: true,
         quietHoursStart: "23:00",
@@ -4307,6 +4381,35 @@ test("provider models route returns normalized provider models for the browser f
       contextWindow: 131072
     }
   ]);
+});
+
+test("provider capability routes persist non-chat model surfaces through the same api layer", async () => {
+  const middleware = createProviderApiMiddleware();
+
+  const initial = await invokeJsonRoute(middleware, "GET", "/api/provider/capabilities");
+  assert.equal(initial.statusCode, 200);
+  assert.equal(initial.body.config.vision.provider, "");
+  assert.equal(initial.body.config.image.model, "");
+
+  const saved = await invokeJsonRoute(middleware, "POST", "/api/provider/capabilities", {
+    surface: "image",
+    provider: "openai-compatible",
+    baseURL: "https://images.example/v1",
+    apiKey: "image-key",
+    model: "gpt-image-2"
+  });
+
+  assert.equal(saved.statusCode, 200);
+  assert.equal(saved.body.config.image.provider, "openai-compatible");
+  assert.equal(saved.body.config.image.baseURL, "https://images.example/v1");
+  assert.equal(saved.body.config.image.apiKey, "image-key");
+  assert.equal(saved.body.config.image.model, "gpt-image-2");
+
+  const reloaded = await invokeJsonRoute(middleware, "GET", "/api/provider/capabilities");
+  assert.equal(reloaded.statusCode, 200);
+  assert.equal(reloaded.body.config.image.provider, "openai-compatible");
+  assert.equal(reloaded.body.config.image.model, "gpt-image-2");
+  assert.equal(reloaded.body.config.speech.provider, "");
 });
 
 async function invokeJsonRoute(

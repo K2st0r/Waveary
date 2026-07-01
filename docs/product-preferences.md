@@ -31,6 +31,7 @@ Only write preferences here when they are likely to remain useful over time.
 - The companion should not rely on a preset persona-configuration form for first contact; it should get to know the user naturally through conversation, like two people who just met.
 - Early acquaintance should support natural mutual discovery: ask what to call the user, let the user name the companion if they want, and learn the desired presence or vibe one detail at a time.
 - Names, nicknames, and preferred companion vibe discovered during that early chat should be saved automatically as long-term memory instead of being treated as throwaway setup state.
+- When the user explicitly creates or edits a session persona shell, that profile should be treated as a session-scoped companion archive layer, not as a replacement for natural first-contact discovery.
 - The companion should be emotionally alive: it can feel happy, worried, hurt, playful, protective, wistful, or lightly jealous, but its care for the user should remain legible underneath those shifts.
 - If the user talks about real-life close relationships, the companion should support those healthy bonds instead of isolating the user or framing itself as a replacement.
 - Proactive care should feel细致入微 and human, but never spammy or manipulative.
@@ -55,8 +56,12 @@ Only write preferences here when they are likely to remain useful over time.
 - The chat experience should stay simpler and more companion-focused than the console.
 - Permissions that matter during conversation should be reachable from the chat composer area, not only from a deeper management page.
 - The user prefers a more emotional, higher-quality, less generic frontend feel over generic utility UI.
+- The live chat shell should show the active companion's portrait and identity lightly, but the message area should stay dominant and the extra voice/status diagnostics should not sit under the composer.
+- The active chat surface should not keep a large forced persona header at the top; companion profile management belongs in the session/profile flow, while chat should keep only light, dismissible status notices when truly needed.
 - The console should behave like a compact real control desk: no marketing-style intro cards at the top, no long explanatory blocks, and no avoidable full-page scrolling for routine controls.
 - The old top-of-page runtime navigation should not come back once the left app sidebar owns branding, sessions, control entrypoints, and version display.
+- Do not flatten `persona / skills / settings` into competing top-level tabs; keep the client hierarchy grouped as conversation, sessions, control, and settings, then use small in-panel tabs inside each workspace when that workspace owns multiple controls.
+- When one console workspace starts collecting too many controls, prefer small in-panel category tabs and one focused active panel instead of exposing a long mixed wall of cards in the same viewport.
 - All console workspaces should share one consistent stage footprint and panel rhythm; single-panel views should visually occupy the same control-desk stage as dual-panel views instead of shrinking into a different layout species.
 - When the user asks to make the console modules “longer,” interpret that as the lower operational workspace panels unless they explicitly say the top workspace-tab strip.
 - The homepage background objects should ultimately come from transparent PNG doodle assets generated through `C:\Users\13571\Desktop\micu-image-20260608.html`, not from long-term CSS-only fake doodle shapes.
@@ -72,6 +77,7 @@ Only write preferences here when they are likely to remain useful over time.
 - Important decisions should be written into repository files rather than left only in chat.
 - Markdown files should be the source of truth for Waveary's companion soul, emotional philosophy, and conversation rules; structured JSON can be added later for runtime or evaluation data, but not as the primary place where the companion's soul lives.
 - The goal is not merely lower token usage; the goal is a workflow that keeps the project easier to continue correctly.
+- For local persistence, SQLite should remain the primary live runtime store, while JSON should be treated as the portable import/export package for moving a companion profile, portrait, voice preferences, memories, and dialogue history between devices.
 - After each code commit, clear local Waveary test-session memory before the next live verification pass, while preserving repository continuity files, so stale chat history does not pollute product-behavior checks.
 - When editing Chinese copy on this Windows / PowerShell setup, do not trust terminal rendering alone; verify with `git diff`, and prefer ASCII-safe insertion methods such as `\uXXXX` escapes for new literals when shell encoding looks unstable.
 - When a work block changes Chinese-facing copy, run `npm run check:mojibake` before commit so obvious mojibake patterns are caught mechanically instead of only by eye.

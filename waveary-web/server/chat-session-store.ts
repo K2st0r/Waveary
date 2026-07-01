@@ -48,6 +48,21 @@ export interface SessionIdentitySummary {
   lastUpdatedAt: string;
 }
 
+export interface SessionCompanionProfile {
+  portraitId: string;
+  portraitSrc: string;
+  displayName: string;
+  userDisplayName: string;
+  userNickname: string;
+  relationshipVibe: string;
+  speakingStyle: string;
+  personalityTraits: string[];
+  favoriteTopics: string[];
+  preferredVoiceProvider?: string;
+  preferredVoiceModel?: string;
+  preferredVoiceName?: string;
+}
+
 export interface ChatReplyPayload {
   reply: string;
   relationship: RelationshipProfile;
@@ -69,6 +84,7 @@ export interface ChatSessionSnapshot {
   messages: Message[];
   latestInsights: ChatReplyPayload | null;
   identitySummary: SessionIdentitySummary | null;
+  companionProfile: SessionCompanionProfile | null;
   proactiveCarePolicy: ProactiveCarePolicy;
   proactiveCareState: ProactiveCareState;
   memoryArchive: Array<{
@@ -95,6 +111,7 @@ export interface ChatSessionListItem {
   title: string;
   updatedAt: string;
   messageCount: number;
+  companionProfile: SessionCompanionProfile | null;
 }
 
 export interface UpdateChatProactiveCareResult {
@@ -105,6 +122,13 @@ export interface UpdateChatProactiveCareResult {
 }
 
 export interface UpdateChatIdentitySummaryResult {
+  session: ChatSessionSnapshot;
+  sessions: ChatSessionListItem[];
+  defaultSessionId: string;
+  persistence: ChatPersistenceStatus;
+}
+
+export interface UpdateChatCompanionProfileResult {
   session: ChatSessionSnapshot;
   sessions: ChatSessionListItem[];
   defaultSessionId: string;
@@ -139,6 +163,7 @@ export class ChatSessionImportValidationError extends Error {
 interface PersistedChatSession extends PersistedSessionState {
   latestInsights: ChatReplyPayload | null;
   title?: string;
+  companionProfile?: SessionCompanionProfile;
 }
 
 type PersistedChatSessions = Record<string, PersistedChatSession>;
@@ -387,6 +412,7 @@ export function listChatSessions(): ChatSessionListItem[] {
         sessionId,
         title: session.title ?? deriveSessionTitle(sessionId, session),
         updatedAt: session.updatedAt,
+        companionProfile: session.companionProfile ?? null,
         messageCount: session.context.history.filter(
           (message) => message.role === "user" || message.role === "assistant"
         ).length
@@ -395,22 +421,56 @@ export function listChatSessions(): ChatSessionListItem[] {
   });
 }
 
-export function createChatSession(sessionId?: string, title?: string): ChatSessionSnapshot {
+export function createChatSession(
+  sessionId?: string,
+  title?: string,
+  companionProfileInput?: SessionCompanionProfile
+): ChatSessionSnapshot {
   return withChatSessionRepository((repository) => {
     const resolvedSessionId = resolveSessionId(sessionId);
-    const session = ensureSession(resolvedSessionId, repository);
+    const normalizedCompanionProfile = normalizeCompanionProfile(companionProfileInput);
+    const existing = repository.load(resolvedSessionId);
+    const created =
+      existing ??
+      createInitialSessionState(resolvedSessionId, normalizedCompanionProfile);
 
-    if (title?.trim()) {
-      updateSession(
-        resolvedSessionId,
-        (current) => ({
-          ...current,
-          title: title.trim(),
-          updatedAt: new Date().toISOString()
-        }),
-        repository
-      );
+    if (!existing) {
+      repository.save(resolvedSessionId, created);
     }
+
+    const desiredTitle =
+      title?.trim() ||
+      (normalizedCompanionProfile
+        ? deriveSessionTitleFromCompanionProfile(normalizedCompanionProfile)
+        : "");
+    const needsProfileUpdate =
+      normalizedCompanionProfile &&
+      !companionProfilesSemanticallyMatch(
+        existing?.companionProfile,
+        normalizedCompanionProfile
+      );
+    const needsTitleUpdate =
+      desiredTitle.length > 0 &&
+      desiredTitle !== (existing?.title ?? created.title ?? "");
+
+    const session =
+      needsProfileUpdate || needsTitleUpdate
+        ? updateSession(
+            resolvedSessionId,
+            (current) => {
+              const base = needsProfileUpdate
+                ? applyCompanionProfileToSession(current, normalizedCompanionProfile!)
+                : current;
+
+              return {
+                ...base,
+                ...(needsTitleUpdate ? { title: desiredTitle } : {}),
+                updatedAt: new Date().toISOString()
+              };
+            },
+            repository
+          )
+        : created;
 
     return buildChatSessionSnapshot(resolvedSessionId, session);
   });
@@ -448,6 +508,39 @@ export function renameChatSession(sessionId: string, title: string): ChatSession
   });
 }
 
+export function updateChatSessionCompanionProfile(
+  sessionId: string,
+  companionProfileInput: SessionCompanionProfile
+): UpdateChatCompanionProfileResult {
+  const normalizedCompanionProfile = normalizeCompanionProfile(companionProfileInput);
+
+  if (!normalizedCompanionProfile) {
+    throw new Error("Companion profile is required.");
+  }
+
+  return withChatSessionRepository((repository) => {
+    ensureSession(sessionId, repository);
+    const nextTitle = deriveSessionTitleFromCompanionProfile(normalizedCompanionProfile);
+    const updatedAt = new Date().toISOString();
+    const session = updateSession(
+      sessionId,
+      (current) => ({
+        ...applyCompanionProfileToSession(current, normalizedCompanionProfile),
+        ...(nextTitle ? { title: nextTitle } : {}),
+        updatedAt
+      }),
+      repository
+    );
+
+    return {
+      session: buildChatSessionSnapshot(sessionId, session),
+      sessions: listChatSessions(),
+      defaultSessionId: DEFAULT_CHAT_SESSION_ID,
+      persistence: getCurrentChatPersistenceStatus()
+    };
+  });
+}
+
 export function deleteChatSession(sessionId: string): ChatSessionListItem[] {
   if (sessionId === DEFAULT_CHAT_SESSION_ID) {
     throw new Error("The default main session cannot be deleted.");
@@ -469,7 +562,10 @@ export function deleteChatSession(sessionId: string): ChatSessionListItem[] {
 export function resetChatSession(sessionId: string): ChatSessionSnapshot {
   return withChatSessionRepository((repository) => {
     const previous = repository.load(sessionId);
-    const initialState = createInitialSessionState(sessionId);
+    const initialState = createInitialSessionState(
+      sessionId,
+      previous?.companionProfile
+    );
     const nextState: PersistedChatSession = previous?.title
       ? {
           ...initialState,
@@ -488,6 +584,7 @@ export function resetChatSession(sessionId: string): ChatSessionSnapshot {
       messages: [],
       latestInsights: null,
       identitySummary: null,
+      companionProfile: nextState.companionProfile ?? null,
       proactiveCarePolicy: resolveProactiveCarePolicy(
         nextState.proactiveCarePolicy ?? createDefaultProactiveCarePolicy()
       ),
@@ -511,6 +608,9 @@ export function resetAllChatSessions(): {
 } {
   return withChatSessionRepository((repository) => {
     const existingSessions = repository.list();
+    const previousDefaultSession =
+      existingSessions.find((entry) => entry.sessionId === DEFAULT_CHAT_SESSION_ID)?.state ??
+      null;
     const resetSessionCount = existingSessions.length;
 
     for (const { sessionId } of existingSessions) {
@@ -520,12 +620,18 @@ export function resetAllChatSessions(): {
     saveChatPersistenceConfig(createDefaultChatPersistenceConfig());
 
     ensureSession(DEFAULT_CHAT_SESSION_ID, repository);
+    const resetDefaultState = createInitialSessionState(
+      DEFAULT_CHAT_SESSION_ID,
+      previousDefaultSession?.companionProfile
+    );
+    repository.save(DEFAULT_CHAT_SESSION_ID, resetDefaultState);
 
     const session = {
       sessionId: DEFAULT_CHAT_SESSION_ID,
       messages: [],
       latestInsights: null,
       identitySummary: null,
+      companionProfile: resetDefaultState.companionProfile ?? null,
       proactiveCarePolicy: createDefaultProactiveCarePolicy(),
       proactiveCareState: createDefaultProactiveCareState(),
       memoryArchive: [],
@@ -570,15 +676,22 @@ export function importChatSession(
     const importedTitle = (titleOverride?.trim() || exported.title.trim() || "Imported Session").slice(0, 120);
     const snapshot = exported.snapshot;
     const now = new Date().toISOString();
+    const importedCompanionProfile = normalizeCompanionProfile(
+      snapshot.companionProfile ?? undefined
+    );
+    const initialContext = createInitialRuntimeContext(
+      importedSessionId,
+      importedCompanionProfile
+    );
 
     const importedState: PersistedChatSession = {
       context: {
         session: {
-          ...createInitialRuntimeContext(importedSessionId).session,
+          ...initialContext.session,
           id: importedSessionId
         },
-        user: createInitialRuntimeContext(importedSessionId).user,
-        persona: createInitialRuntimeContext(importedSessionId).persona,
+        user: initialContext.user,
+        persona: initialContext.persona,
         history: snapshot.messages.map((message) => ({
           ...message,
           sessionId: importedSessionId
@@ -619,6 +732,11 @@ export function importChatSession(
       proactiveCareState: resolveProactiveCareState(
         snapshot.proactiveCareState ?? createDefaultProactiveCareState()
       ),
+      ...(importedCompanionProfile
+        ? {
+            companionProfile: importedCompanionProfile
+          }
+        : {}),
       title: importedTitle,
       updatedAt: now
     };
@@ -788,7 +906,18 @@ function writeAllSessions(sessions: PersistedChatSessions): void {
   writeFileSync(CHAT_SESSION_JSON_PATH, JSON.stringify(sessions, null, 2));
 }
 
-function createInitialRuntimeContext(sessionId: string): RuntimeContext {
+function createInitialRuntimeContext(
+  sessionId: string,
+  companionProfile?: SessionCompanionProfile
+): RuntimeContext {
+  const normalizedCompanionProfile = normalizeCompanionProfile(companionProfile);
+  const personaTraits =
+    normalizedCompanionProfile?.personalityTraits.length
+      ? normalizedCompanionProfile.personalityTraits
+      : ["steady", "attentive"];
+  const userDisplayName =
+    normalizedCompanionProfile?.userDisplayName || "Waveary User";
+
   return {
     session: {
       id: sessionId,
@@ -800,17 +929,20 @@ function createInitialRuntimeContext(sessionId: string): RuntimeContext {
     },
     user: {
       id: "user-web-1",
-      displayName: "Waveary User",
+      displayName: userDisplayName,
       profileTraits: ["reflective", "long-term thinker"],
       preferences: ["continuity", "memory"]
     },
     persona: {
       id: "persona-waveary-1",
-      name: "Waveary",
+      name: normalizedCompanionProfile?.displayName || "Waveary",
       tone: "warm",
-      personaTraits: ["steady", "attentive"],
-      relationshipStyle: "supportive",
-      speakingStyle: "natural, concise, like a real person texting with care",
+      personaTraits,
+      relationshipStyle:
+        normalizedCompanionProfile?.relationshipVibe || "supportive",
+      speakingStyle:
+        normalizedCompanionProfile?.speakingStyle ||
+        "natural, concise, like a real person texting with care",
       emotionalStyle: "gentle, emotionally aware, and sincere without overacting",
       humorStyle: "soft and occasional",
       conversationLengthPreference: "brief",
@@ -824,12 +956,21 @@ function createInitialRuntimeContext(sessionId: string): RuntimeContext {
   };
 }
 
-function createInitialSessionState(sessionId: string): PersistedChatSession {
+function createInitialSessionState(
+  sessionId: string,
+  companionProfile?: SessionCompanionProfile
+): PersistedChatSession {
+  const normalizedCompanionProfile = normalizeCompanionProfile(companionProfile);
   const baseState: PersistedChatSession = {
-    context: createInitialRuntimeContext(sessionId),
+    context: createInitialRuntimeContext(sessionId, normalizedCompanionProfile),
     memories: [],
     timeline: [],
     latestInsights: null,
+    ...(normalizedCompanionProfile
+      ? {
+          companionProfile: normalizedCompanionProfile
+        }
+      : {}),
     proactiveCarePolicy: createDefaultProactiveCarePolicy(),
     proactiveCareState: createDefaultProactiveCareState(),
     updatedAt: new Date().toISOString()
@@ -856,6 +997,7 @@ function buildChatSessionSnapshot(
     ),
     latestInsights: session.latestInsights,
     identitySummary: toSessionIdentitySummary(session.identitySummary) ?? null,
+    companionProfile: session.companionProfile ?? null,
     proactiveCarePolicy: resolveProactiveCarePolicy(
       session.proactiveCarePolicy ?? createDefaultProactiveCarePolicy()
     ),
@@ -966,6 +1108,107 @@ function resolveSessionId(sessionId?: string): string {
   }
 
   return `session-${Date.now()}`;
+}
+
+function applyCompanionProfileToSession(
+  current: PersistedChatSession,
+  companionProfile: SessionCompanionProfile
+): PersistedChatSession {
+  return {
+    ...current,
+    companionProfile,
+    context: {
+      ...current.context,
+      user: {
+        ...current.context.user,
+        displayName: companionProfile.userDisplayName || current.context.user.displayName
+      },
+      persona: {
+        ...current.context.persona,
+        name: companionProfile.displayName || current.context.persona.name,
+        personaTraits:
+          companionProfile.personalityTraits.length > 0
+            ? [...companionProfile.personalityTraits]
+            : current.context.persona.personaTraits,
+        relationshipStyle:
+          companionProfile.relationshipVibe || current.context.persona.relationshipStyle,
+        speakingStyle: companionProfile.speakingStyle || current.context.persona.speakingStyle || ""
+      }
+    }
+  };
+}
+
+function deriveSessionTitleFromCompanionProfile(
+  companionProfile: SessionCompanionProfile
+): string {
+  return `${companionProfile.displayName} Session`.slice(0, 120);
+}
+
+function normalizeCompanionProfile(
+  input?: SessionCompanionProfile | null
+): SessionCompanionProfile | undefined {
+  if (!input) {
+    return undefined;
+  }
+
+  const portraitId = input.portraitId.trim();
+  const portraitSrc = input.portraitSrc.trim();
+  const displayName = input.displayName.trim();
+
+  if (!portraitId || !portraitSrc || !displayName) {
+    return undefined;
+  }
+
+  return {
+    portraitId,
+    portraitSrc,
+    displayName,
+    userDisplayName: input.userDisplayName.trim(),
+    userNickname: input.userNickname.trim(),
+    relationshipVibe: input.relationshipVibe.trim(),
+    speakingStyle: input.speakingStyle.trim(),
+    personalityTraits: normalizeCompanionProfileLines(input.personalityTraits),
+    favoriteTopics: normalizeCompanionProfileLines(input.favoriteTopics),
+    ...(input.preferredVoiceProvider?.trim()
+      ? { preferredVoiceProvider: input.preferredVoiceProvider.trim() }
+      : {}),
+    ...(input.preferredVoiceModel?.trim()
+      ? { preferredVoiceModel: input.preferredVoiceModel.trim() }
+      : {}),
+    ...(input.preferredVoiceName?.trim()
+      ? { preferredVoiceName: input.preferredVoiceName.trim() }
+      : {})
+  };
+}
+
+function normalizeCompanionProfileLines(values: string[]): string[] {
+  const seen = new Set<string>();
+  const normalized: string[] = [];
+
+  for (const rawValue of values) {
+    const value = rawValue.trim();
+
+    if (!value) {
+      continue;
+    }
+
+    const key = value.toLowerCase();
+    if (seen.has(key)) {
+      continue;
+    }
+
+    seen.add(key);
+    normalized.push(value);
+  }
+
+  return normalized;
+}
+
+function companionProfilesSemanticallyMatch(
+  left?: SessionCompanionProfile | null,
+  right?: SessionCompanionProfile | null
+): boolean {
+  return JSON.stringify(normalizeCompanionProfile(left)) === JSON.stringify(normalizeCompanionProfile(right));
 }
 
 function deriveSessionTitle(sessionId: string, session: PersistedChatSession): string {

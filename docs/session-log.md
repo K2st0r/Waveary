@@ -9,6 +9,49 @@ Git history keeps the fine-grained archive; this file keeps the current continua
 
 Objective:
 
+Classify and preserve the useful dirty worktree pieces instead of treating all leftover files as disposable noise.
+
+Summary:
+
+- identified the valuable dirty changes as server-side companion-profile archive persistence and non-chat model capability config support
+- added server support for session companion profiles carrying portrait, display names, relationship vibe, speaking style, traits, favorite topics, and preferred voice fields
+- preserved companion profiles across create, update, reset, export, and import flows
+- added a small provider capability config store and API routes for speech / vision / image / video model surfaces
+- ignored the local `output/` folder so screenshots and desktop-dev logs stop polluting `git status`
+- left logo/favicon/portrait asset drafts uncommitted for a separate visual-assets decision
+
+Files changed:
+
+- `.gitignore`
+- `docs/product-preferences.md`
+- `waveary-web/server/chat-session-store.ts`
+- `waveary-web/server/chat-session-store.test.ts`
+- `waveary-web/server/provider-api.ts`
+- `waveary-web/server/provider-api.test.ts`
+- `waveary-web/server/model-config.ts`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run test --workspace @waveary/web`
+- `npm run build:server --workspace @waveary/web`
+- `npm run check --workspace @waveary/web`
+- `npm run check:mojibake`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-07-01
+
+Objective:
+
 Expose chat reasoning effort directly inside the composer and carry the selection through the chat runtime to provider requests.
 
 Summary:

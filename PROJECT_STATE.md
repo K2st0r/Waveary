@@ -47,8 +47,9 @@ What is remembered returns as an echo.
   - control workspaces such as skills, channels, proactive care, and settings are no longer forced back to provider setup when chat runtime readiness is still settling
   - the skills workspace has been reshaped into a Hermes-inspired skill workbench with searchable built-in skills, status filters, a compact library list, and a right-side detail / SKILL.md preview pane
   - sessions persist companion-profile setup, export/import metadata, runtime understanding, and local history
+  - server-side companion-profile archives now persist portrait, naming, relationship vibe, speaking style, traits, favorite topics, and preferred voice fields through create/update/export/import flows
   - the chat composer exposes a compact `fast / balanced / deep` reasoning-effort switch inside the input surface and persists the user's choice locally
-  - provider/model setup, voice setup, and grouped control workspaces exist in the console shell
+  - provider/model setup, voice setup, grouped control workspaces, and server-side non-chat model capability config for speech / vision / image / video exist in the console shell foundation
 - `waveary-desktop`
   - first Electron desktop shell now exists
   - desktop preparation can build and materialize a standalone local runtime bundle from the existing Waveary web/server packages
@@ -103,25 +104,19 @@ These are the latest trustworthy verification paths recorded in the repo before 
 
 ## Current Worktree Notes
 
-The worktree is currently dirty outside this continuity-doc task. Do not revert these unrelated changes unless explicitly asked:
+The worktree is currently dirty outside the latest verified backend cleanup. Do not revert these unrelated changes unless explicitly asked:
 
-- modified: `docs/product-preferences.md`
 - modified: `waveary-web/index.html`
 - modified: `waveary-web/public/images/portraits/portrait-04.png`
-- modified: `waveary-web/server/chat-session-store.test.ts`
-- modified: `waveary-web/server/chat-session-store.ts`
-- modified: `waveary-web/server/provider-api.test.ts`
-- modified: `waveary-web/server/provider-api.ts`
-- modified: `waveary-web/src/styles.css`
 - untracked: `docs/assets/waveary-logo-lockup.svg`
 - untracked: `docs/assets/waveary-logo-mark.svg`
 - untracked: `docs/assets/waveary-logo-preview.html`
-- untracked: `output/`
 - untracked: `waveary-web/public/brand/waveary-logo-final-draft-11.png`
-- untracked: `waveary-web/server/model-config.ts`
 
 ## Next Recommended Step
 
+- next web-shell follow-up should wire the server-side companion-profile archive and model capability config into the visible sessions/profile and provider/model control UI without reintroducing long mixed control walls
+- next repo maintenance follow-up should run a dedicated dependency-security block for Electron and esbuild instead of mixing semver-major desktop runtime upgrades with UI work
 - next web-shell follow-up should visually inspect the new skills workbench in the fresh desktop dev window and decide whether to add real custom-skill import/export after the layout is approved
 - next web-shell follow-up should visually inspect the remaining chat / console density at installed desktop-window sizes after the sidebar breakpoint fix, especially widths near `640px` to `900px`
 - next desktop follow-up should manually click through the desktop notification channel in the fresh Electron window, then add a small in-app test-notification button if the UX needs a direct smoke-test control

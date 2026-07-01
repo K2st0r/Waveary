@@ -47,6 +47,8 @@ import {
   resetAllChatSessions,
   resetChatSession,
   renameChatSession,
+  updateChatSessionCompanionProfile,
+  type SessionCompanionProfile,
   switchChatPersistenceBackend,
   type SessionIdentitySummary,
   updateChatSessionIdentitySummary,
@@ -55,6 +57,12 @@ import {
 import type { ChatPersistenceBackend } from "./chat-persistence-config.js";
 import type { LocalActionPermissionLevel } from "./local-actions.js";
 import { loadSavedProviderConfig, saveProviderConfig } from "./provider-config.js";
+import {
+  loadSavedModelCapabilityConfig,
+  saveModelCapabilityConfig,
+  type CapabilityProviderConfig,
+  type ModelCapabilitySurface
+} from "./model-config.js";
 import {
   buildStaticVoiceCatalog,
   listVoiceProviderPresets,
@@ -76,6 +84,10 @@ interface ProviderModelsRequest {
 
 interface ProviderConfigRequest extends ProviderModelsRequest {
   model?: string;
+}
+
+interface ModelCapabilityConfigRequest extends ProviderConfigRequest {
+  surface?: ModelCapabilitySurface;
 }
 
 interface ChatTurnRequest {
@@ -257,11 +269,17 @@ interface UpdateIdentitySummaryRequest extends ChatSessionRequest {
 interface CreateChatSessionRequest {
   sessionId?: string;
   title?: string;
+  companionProfile?: SessionCompanionProfile;
 }
 
 interface UpdateChatSessionRequest {
   sessionId?: string;
   title?: string;
+}
+
+interface UpdateChatSessionCompanionProfileRequest {
+  sessionId?: string;
+  companionProfile?: SessionCompanionProfile;
 }
 
 interface UpdateChatPersistenceRequest {
@@ -819,7 +837,11 @@ export function createProviderApiMiddleware() {
 
       if (request.method === "POST" && request.url === "/api/chat/sessions") {
         const payload = (await readJsonBody(request)) as CreateChatSessionRequest;
-        const session = createChatSession(payload.sessionId, payload.title);
+        const session = createChatSession(
+          payload.sessionId,
+          payload.title,
+          payload.companionProfile
+        );
 
         sendJson(response, 200, {
           session,
@@ -843,6 +865,20 @@ export function createProviderApiMiddleware() {
           defaultSessionId: DEFAULT_CHAT_SESSION_ID,
           persistence: getCurrentChatPersistenceStatus()
         });
+        return;
+      }
+
+      if (request.method === "POST" && request.url === "/api/chat/sessions/profile") {
+        const payload = (await readJsonBody(request)) as UpdateChatSessionCompanionProfileRequest;
+        const result = updateChatSessionCompanionProfile(
+          requireNonEmpty(payload.sessionId, "Session ID is required."),
+          payload.companionProfile ?? (() => {
+            throw new Error("Companion profile is required.");
+          })()
+        );
+
+        resetChatRuntimeSessions();
+        sendJson(response, 200, result);
         return;
       }
 
@@ -909,6 +945,13 @@ export function createProviderApiMiddleware() {
         return;
       }
 
+      if (request.method === "GET" && request.url === "/api/provider/capabilities") {
+        sendJson(response, 200, {
+          config: loadSavedModelCapabilityConfig()
+        });
+        return;
+      }
+
       if (request.method === "POST" && request.url === "/api/provider/models") {
         const payload = (await readJsonBody(request)) as ProviderModelsRequest;
         const provider = requireNonEmpty(payload.provider, "Provider is required.");
@@ -936,6 +979,30 @@ export function createProviderApiMiddleware() {
           model: requireNonEmpty(payload.model, "Model is required.")
         });
         resetChatRuntimeSessions();
+
+        sendJson(response, 200, { config });
+        return;
+      }
+
+      if (request.method === "POST" && request.url === "/api/provider/capabilities") {
+        const payload = (await readJsonBody(request)) as ModelCapabilityConfigRequest;
+        const surface = requireModelCapabilitySurface(payload.surface);
+        const patch: Partial<CapabilityProviderConfig> = {};
+
+        if (payload.provider !== undefined) {
+          patch.provider = payload.provider;
+        }
+        if (payload.baseURL !== undefined) {
+          patch.baseURL = payload.baseURL;
+        }
+        if (payload.apiKey !== undefined) {
+          patch.apiKey = payload.apiKey;
+        }
+        if (payload.model !== undefined) {
+          patch.model = payload.model;
+        }
+
+        const config = saveModelCapabilityConfig(surface, patch);
 
         sendJson(response, 200, { config });
         return;
@@ -986,6 +1053,16 @@ function requirePersistenceBackend(
   }
 
   throw new Error("A valid chat persistence backend is required.");
+}
+
+function requireModelCapabilitySurface(
+  value: ModelCapabilitySurface | undefined
+): ModelCapabilitySurface {
+  if (value === "speech" || value === "vision" || value === "image" || value === "video") {
+    return value;
+  }
+
+  throw new Error("A valid model capability surface is required.");
 }
 
 function requireLocalActionPermission(
