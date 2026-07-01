@@ -76,3 +76,4 @@ Only write preferences here when they are likely to remain useful over time.
 - When editing Chinese copy on this Windows / PowerShell setup, do not trust terminal rendering alone; verify with `git diff`, and prefer ASCII-safe insertion methods such as `\uXXXX` escapes for new literals when shell encoding looks unstable.
 - When a work block changes Chinese-facing copy, run `npm run check:mojibake` before commit so obvious mojibake patterns are caught mechanically instead of only by eye.
 - Do not publish third-party project whitelists or named borrowing targets inside the public Waveary repository; keep public guidance generic and handle any external code reuse with case-by-case license review.
+- After code changes that affect the web UI, desktop shell, server runtime, or anything visible in the desktop client, close stale Electron / `desktop:dev` processes and launch a fresh `npm run desktop:dev` before treating desktop behavior as verified.
