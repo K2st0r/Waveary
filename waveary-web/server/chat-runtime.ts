@@ -3,6 +3,7 @@ import {
   InMemoryEmotionStore,
   InMemoryIdentityStore,
   type LocalTimeContext,
+  type ReasoningEffort,
   OpenAICompatibleChatProvider,
   type ProactiveCarePolicy,
   type ProactiveCareState,
@@ -73,6 +74,7 @@ export async function sendChatTurn(
   options: {
     localTime?: LocalTimeContext;
     localActionPermission?: LocalActionPermissionLevel;
+    reasoningEffort?: ReasoningEffort;
     locale?: LocalActionAuditLocale;
   } = {}
 ): Promise<ChatReplyPayload> {
@@ -95,7 +97,8 @@ export async function sendChatTurn(
   };
 
   const result = await state.runtime.handleTurn(context, input, {
-    ...(options.localTime ? { localTime: options.localTime } : {})
+    ...(options.localTime ? { localTime: options.localTime } : {}),
+    ...(options.reasoningEffort ? { reasoningEffort: options.reasoningEffort } : {})
   });
   const payload = toReplyPayload(result);
   const locale = options.locale ?? "en";

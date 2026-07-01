@@ -453,6 +453,7 @@ type LoadState = "idle" | "loading" | "success" | "error";
 type AppPage = "home" | "console" | "chat";
 type BrowserNotificationPermissionState = NotificationPermission | "unsupported";
 type DesktopNotificationPermissionState = NotificationPermission | "unsupported";
+type ChatReasoningEffort = "light" | "balanced" | "deep";
 type PermissionLevel = WavearyPermissionProfile["browserNotifications"];
 type PermissionPresetMode = "limited" | "elevated" | "full";
 type VoicePlaybackState = "idle" | "planning" | "speaking" | "error";
@@ -1751,6 +1752,7 @@ const HERO_BURN_CYCLE_MS = 12000;
 const PROACTIVE_AUTO_CHECK_STORAGE_KEY = "waveary-proactive-auto-check-enabled";
 const PROACTIVE_AUTO_CHECK_INTERVAL_STORAGE_KEY = "waveary-proactive-auto-check-interval-minutes";
 const DEFAULT_PROACTIVE_AUTO_CHECK_INTERVAL_MINUTES = 20;
+const CHAT_REASONING_EFFORT_STORAGE_KEY = "waveary-chat-reasoning-effort";
 
 function createDefaultNewSessionDraft(): NewSessionDraft {
   return {
@@ -1894,6 +1896,16 @@ export function App(): ReactElement {
   const [voiceCatalogState, setVoiceCatalogState] = useState<LoadState>("idle");
   const [statusMessage, setStatusMessage] = useState<string>(zhCopy.statuses.loadingProviderConfiguration);
   const [chatInput, setChatInput] = useState("");
+  const [chatReasoningEffort, setChatReasoningEffort] = useState<ChatReasoningEffort>(() => {
+    if (typeof window === "undefined") {
+      return "balanced";
+    }
+
+    const stored = window.localStorage.getItem(CHAT_REASONING_EFFORT_STORAGE_KEY);
+    return stored === "light" || stored === "balanced" || stored === "deep"
+      ? stored
+      : "balanced";
+  });
   const [chatState, setChatState] = useState<LoadState>("idle");
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatInsights, setChatInsights] = useState<ChatTurnResponse | null>(null);
@@ -2066,6 +2078,14 @@ export function App(): ReactElement {
       stopVoicePlayback();
     };
   }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    window.localStorage.setItem(CHAT_REASONING_EFFORT_STORAGE_KEY, chatReasoningEffort);
+  }, [chatReasoningEffort]);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -3451,6 +3471,7 @@ export function App(): ReactElement {
           sessionId: activeSessionId || defaultSessionId,
           message: trimmed,
           localActionPermission: permissionProfile.localActions,
+          reasoningEffort: chatReasoningEffort,
           locale,
           ...(timeContext ? { timeContext } : {})
         })
@@ -10058,6 +10079,25 @@ export function App(): ReactElement {
                 />
                 <div className="chat-composer-toolbar">
                   <div className="chat-composer-side-actions">
+                    <div className="chat-reasoning-controls" role="group" aria-label={locale === "zh" ? "思考程度" : "Reasoning effort"}>
+                      <span className="chat-reasoning-label">{locale === "zh" ? "思考" : "Thinking"}</span>
+                      {([
+                        ["light", locale === "zh" ? "快速" : "Fast"],
+                        ["balanced", locale === "zh" ? "均衡" : "Balanced"],
+                        ["deep", locale === "zh" ? "深想" : "Deep"]
+                      ] as const).map(([effort, label]) => (
+                        <button
+                          key={effort}
+                          className={`chat-reasoning-button ${chatReasoningEffort === effort ? "chat-reasoning-button-active" : ""}`}
+                          onClick={() => setChatReasoningEffort(effort)}
+                          type="button"
+                          disabled={chatState === "loading"}
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+
                     <div className="chat-permission-controls">
                       <button
                         className={`button button-secondary chat-permission-trigger ${chatPermissionTrayOpen ? "chat-permission-trigger-active" : ""}`}

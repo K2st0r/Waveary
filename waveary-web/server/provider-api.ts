@@ -5,7 +5,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { OpenAICompatibleChatProvider, PROVIDER_PRESETS } from "@waveary/core";
-import type { EmotionState, RelationshipProfile } from "@waveary/core";
+import type { EmotionState, ReasoningEffort, RelationshipProfile } from "@waveary/core";
 import {
   FishAudioSpeechToTextProvider,
   OpenAICompatibleSpeechToTextProvider
@@ -82,6 +82,7 @@ interface ChatTurnRequest {
   sessionId?: string;
   message?: string;
   localActionPermission?: LocalActionPermissionLevel;
+  reasoningEffort?: ReasoningEffort;
   locale?: string;
   timeContext?: {
     localTimeIso?: string;
@@ -320,6 +321,9 @@ export function createProviderApiMiddleware() {
                 }
               : {}),
             ...(payload.locale ? { locale: normalizeLocalActionLocale(payload.locale) } : {}),
+            ...(payload.reasoningEffort
+              ? { reasoningEffort: requireReasoningEffort(payload.reasoningEffort) }
+              : {}),
             ...(payload.timeContext?.localTimeIso
               ? {
                   localTime: {
@@ -992,6 +996,14 @@ function requireLocalActionPermission(
   }
 
   throw new Error("A valid local action permission is required.");
+}
+
+function requireReasoningEffort(value: ReasoningEffort | undefined): ReasoningEffort {
+  if (value === "light" || value === "balanced" || value === "deep") {
+    return value;
+  }
+
+  throw new Error("A valid reasoning effort is required.");
 }
 
 function normalizeLocalActionLocale(value: string | undefined): "zh" | "en" {
