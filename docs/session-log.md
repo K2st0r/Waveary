@@ -9,6 +9,44 @@ Git history keeps the fine-grained archive; this file keeps the current continua
 
 Objective:
 
+Add a real Electron desktop notification delivery path for proactive care instead of relying only on browser notifications.
+
+Summary:
+
+- added a desktop preload bridge exposing a narrow `wavearyDesktop.notifications` API to the web renderer
+- added Electron main-process IPC handlers for notification availability, permission state, and native system notification delivery
+- changed proactive-care delivery to prefer desktop native notifications and fall back to browser notifications when not running in Electron
+- updated notification status labels so the console can show desktop notification readiness
+- restarted the desktop development app after the UI/runtime change
+
+Files changed:
+
+- `waveary-desktop/src/main.cjs`
+- `waveary-desktop/src/preload.cjs`
+- `waveary-web/src/App.tsx`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/web`
+- `npm run check:mojibake`
+- `git diff --check -- waveary-desktop/src/main.cjs waveary-desktop/src/preload.cjs waveary-web/src/App.tsx`
+- fresh `npm run desktop:dev` launched; latest built desktop asset: `assets/index-BCGH44Ja.js`
+- `npm run desktop:prepare` was also tried while the fresh desktop app was running; it rebuilt web/server assets but failed at runtime-folder cleanup with `EPERM` because the active Electron runtime held `waveary-desktop/app-runtime`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-07-01
+
+Objective:
+
 Reshape the skills console workspace into a compact skill-management workbench inspired by Hermes Agent while preserving Waveary's existing capability boundaries.
 
 Summary:

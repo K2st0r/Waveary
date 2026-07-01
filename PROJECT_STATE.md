@@ -51,6 +51,7 @@ What is remembered returns as an echo.
   - first Electron desktop shell now exists
   - desktop preparation can build and materialize a standalone local runtime bundle from the existing Waveary web/server packages
   - desktop dev launch can start the embedded runtime and open the app as a native window
+  - desktop native notifications are now bridged through a preload IPC layer, and proactive-care delivery prefers Electron system notifications before falling back to browser notifications
   - Windows installer packaging now produces `waveary-desktop/dist/Waveary-Setup-0.1.0.exe`
   - the desktop build path can fall back to a prepackaged `win-unpacked` bundle when `electron-builder --dir` hits transient network download failures
   - the packaged `Waveary.exe` has been verified to start the embedded standalone runtime and emit a ready local port
@@ -121,6 +122,7 @@ The worktree is currently dirty outside this continuity-doc task. Do not revert 
 
 - next web-shell follow-up should visually inspect the new skills workbench in the fresh desktop dev window and decide whether to add real custom-skill import/export after the layout is approved
 - next web-shell follow-up should visually inspect the remaining chat / console density at installed desktop-window sizes after the sidebar breakpoint fix, especially widths near `640px` to `900px`
+- next desktop follow-up should manually click through the desktop notification channel in the fresh Electron window, then add a small in-app test-notification button if the UX needs a direct smoke-test control
 - next desktop follow-up should add proper Windows app icon / installer metadata and verify a real installed launch from the refreshed `Waveary-Setup-0.1.0.exe`
 - after that, add auto-update / version channel planning before treating the desktop app as public-release ready
 - keep future Chinese-text cleanup separate from feature work unless the change is strictly local and verified with `git diff` plus `npm run check:mojibake`

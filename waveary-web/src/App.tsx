@@ -452,11 +452,28 @@ interface ChatMessage {
 type LoadState = "idle" | "loading" | "success" | "error";
 type AppPage = "home" | "console" | "chat";
 type BrowserNotificationPermissionState = NotificationPermission | "unsupported";
+type DesktopNotificationPermissionState = NotificationPermission | "unsupported";
 type PermissionLevel = WavearyPermissionProfile["browserNotifications"];
 type PermissionPresetMode = "limited" | "elevated" | "full";
 type VoicePlaybackState = "idle" | "planning" | "speaking" | "error";
 type SpeechInputState = "idle" | "listening" | "processing" | "unsupported" | "error";
 type VoiceConversationResumeReason = "reply-finished" | "retry-listening";
+
+interface WavearyDesktopNotificationBridge {
+  getState: () => Promise<{ available: boolean; permission: DesktopNotificationPermissionState }>;
+  requestPermission: () => Promise<DesktopNotificationPermissionState>;
+  show: (payload: { title: string; body: string }) => Promise<{ delivered: boolean; reason?: string }>;
+}
+
+interface WavearyDesktopBridge {
+  notifications?: WavearyDesktopNotificationBridge;
+}
+
+declare global {
+  interface Window {
+    wavearyDesktop?: WavearyDesktopBridge;
+  }
+}
 
 interface BrowserSpeechRecognitionAlternative {
   transcript: string;
@@ -807,8 +824,8 @@ const zhCopy = {
     proactiveAutoOutcomeWait: "当前继续等待更合适",
     requestNotificationPermission: "请求通知权限",
     requestingNotificationPermission: "请求中...",
-    notificationDelivered: "已发送浏览器通知。",
-    notificationNeedsPermission: "通知开关已打开，但浏览器通知权限还没有授权。",
+    notificationDelivered: "已发送通知。",
+    notificationNeedsPermission: "通知开关已打开，但通知权限还没有授权。",
     notificationNoReachout: "这次评估没有建议主动触达，因此没有发送通知。",
     permissions: "权限中心",
     permissionsTag: "Consent",
@@ -1193,7 +1210,7 @@ const enCopy = {
     proactiveAutoOutcomeWait: "Waiting remains the better move",
     requestNotificationPermission: "Request Notification Permission",
     requestingNotificationPermission: "Requesting...",
-    notificationDelivered: "Delivered a browser notification.",
+    notificationDelivered: "Delivered a notification.",
     notificationNeedsPermission: "Notifications are enabled, but browser permission has not been granted yet.",
     notificationNoReachout: "This evaluation did not recommend a proactive reachout, so no notification was sent.",
     permissions: "Permission Center",
@@ -1897,6 +1914,8 @@ export function App(): ReactElement {
   const [proactiveEvaluateState, setProactiveEvaluateState] = useState<LoadState>("idle");
   const [browserNotificationPermission, setBrowserNotificationPermission] =
     useState<BrowserNotificationPermissionState>(() => getBrowserNotificationPermission());
+  const [desktopNotificationPermission, setDesktopNotificationPermission] =
+    useState<DesktopNotificationPermissionState>("unsupported");
   const [proactiveNotificationEnabled, setProactiveNotificationEnabled] = useState<boolean>(() => {
     if (typeof window === "undefined") {
       return false;
@@ -2058,6 +2077,32 @@ export function App(): ReactElement {
       proactiveNotificationEnabled ? "true" : "false"
     );
   }, [proactiveNotificationEnabled]);
+
+  useEffect(() => {
+    const desktopNotifications = getDesktopNotificationBridge();
+    if (!desktopNotifications) {
+      setDesktopNotificationPermission("unsupported");
+      return;
+    }
+
+    let cancelled = false;
+    desktopNotifications
+      .getState()
+      .then((state) => {
+        if (!cancelled) {
+          setDesktopNotificationPermission(state.available ? state.permission : "unsupported");
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setDesktopNotificationPermission("unsupported");
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -3154,8 +3199,11 @@ export function App(): ReactElement {
 
       setProactiveDecision(response.decision);
       setProactiveDraft(response.draft);
+      const notificationDeliverable =
+        proactiveNotificationEnabled &&
+        (desktopNotificationPermission === "granted" || browserNotificationPermission === "granted");
       const nextOutcome: ProactiveAutoCheckOutcome = response.decision.shouldReachOut
-        ? proactiveNotificationEnabled && browserNotificationPermission === "granted"
+        ? notificationDeliverable
           ? "notified"
           : "recommended"
         : "wait";
@@ -3166,21 +3214,31 @@ export function App(): ReactElement {
       }
 
       if (proactiveNotificationEnabled && response.decision.shouldReachOut) {
-        if (browserNotificationPermission === "granted") {
-          deliverProactiveBrowserNotification(
+        if (notificationDeliverable) {
+          const delivered = await deliverProactiveNotification(
             response.decision,
             locale,
             permissionProfile,
             response.draft
           );
-          await recordDeliveredProactiveReachout(response.decision);
-          setStatusMessage(
-            options.source === "auto"
-              ? locale === "zh"
-                ? "本地巡检已命中建议触达，并已发送浏览器通知。"
-                : "The local check recommended outreach and delivered a browser notification."
-              : copy.runtime.notificationDelivered
-          );
+          if (delivered) {
+            await recordDeliveredProactiveReachout(response.decision);
+            setStatusMessage(
+              options.source === "auto"
+                ? locale === "zh"
+                  ? "本地巡检已命中建议触达，并已发送桌面通知。"
+                  : "The local check recommended outreach and delivered a desktop notification."
+                : copy.runtime.notificationDelivered
+            );
+          } else {
+            setStatusMessage(
+              options.source === "auto"
+                ? locale === "zh"
+                  ? "本地巡检命中了建议触达，但本轮没有投递通知。"
+                  : "The local check recommended outreach, but no notification was delivered in this pass."
+                : copy.runtime.proactiveEvaluationReady
+            );
+          }
         } else if (browserNotificationPermission === "default") {
           setStatusMessage(
             options.source === "auto"
@@ -3271,6 +3329,26 @@ export function App(): ReactElement {
   }
 
   async function handleRequestNotificationPermission(): Promise<void> {
+    const desktopNotifications = getDesktopNotificationBridge();
+
+    if (desktopNotifications) {
+      setNotificationPermissionState("loading");
+      try {
+        const permission = await desktopNotifications.requestPermission();
+        setDesktopNotificationPermission(permission);
+        setNotificationPermissionState("success");
+        setStatusMessage(
+          permission === "granted"
+            ? copy.runtime.notificationDelivered
+            : copy.runtime.notificationNeedsPermission
+        );
+      } catch (error) {
+        setNotificationPermissionState("error");
+        setStatusMessage(getErrorMessage(error));
+      }
+      return;
+    }
+
     if (typeof window === "undefined" || !("Notification" in window)) {
       setBrowserNotificationPermission("unsupported");
       return;
@@ -5318,7 +5396,11 @@ export function App(): ReactElement {
           ? "已关闭"
           : "Disabled";
   const notificationChannelReadyLabel =
-    browserNotificationPermission === "granted"
+    desktopNotificationPermission === "granted"
+      ? locale === "zh"
+        ? "桌面已连通"
+        : "Desktop connected"
+      : browserNotificationPermission === "granted"
       ? locale === "zh"
         ? "已连通"
         : "Connected"
@@ -5329,6 +5411,18 @@ export function App(): ReactElement {
         : locale === "zh"
           ? "等待授权"
           : "Awaiting permission";
+  const activeNotificationPermission =
+    desktopNotificationPermission !== "unsupported"
+      ? desktopNotificationPermission
+      : browserNotificationPermission;
+  const activeNotificationPermissionLabel =
+    desktopNotificationPermission !== "unsupported"
+      ? locale === "zh"
+        ? `桌面通知 · ${formatBrowserNotificationPermission(desktopNotificationPermission, locale)}`
+        : `Desktop · ${formatBrowserNotificationPermission(desktopNotificationPermission, locale)}`
+      : formatBrowserNotificationPermission(browserNotificationPermission, locale);
+  const notificationsUnsupported =
+    desktopNotificationPermission === "unsupported" && browserNotificationPermission === "unsupported";
   const skillCatalog: Array<{
     id: SkillsWorkspaceSurface;
     name: string;
@@ -7899,7 +7993,7 @@ export function App(): ReactElement {
                           <span className="provider-note">
                             {copy.runtime.notificationPermission}
                             {copy.formatting.sep}
-                            {formatBrowserNotificationPermission(browserNotificationPermission, locale)}
+                            {activeNotificationPermissionLabel}
                           </span>
                         ) : (
                           <span className="provider-note">{copy.runtime.permissionNotImplemented}</span>
@@ -7909,8 +8003,8 @@ export function App(): ReactElement {
                   </div>
 
                   {permissionProfile.browserNotifications !== "deny" &&
-                  browserNotificationPermission !== "granted" &&
-                  browserNotificationPermission !== "unsupported" ? (
+                  activeNotificationPermission !== "granted" &&
+                  activeNotificationPermission !== "unsupported" ? (
                     <div className="console-actions">
                       <button
                         className="button button-secondary"
@@ -8347,8 +8441,8 @@ export function App(): ReactElement {
                       </div>
 
                       <div className="console-actions workspace-panel-actions workspace-panel-actions-provider">
-                        {browserNotificationPermission !== "granted" &&
-                        browserNotificationPermission !== "unsupported" ? (
+                        {activeNotificationPermission !== "granted" &&
+                        activeNotificationPermission !== "unsupported" ? (
                           <button
                             className="button button-secondary"
                             onClick={() => void handleRequestNotificationPermission()}
@@ -8386,7 +8480,7 @@ export function App(): ReactElement {
                       </div>
                       <div className="session-reference-card">
                         <strong>{locale === "zh" ? "通知权限" : "Notification permission"}</strong>
-                        <span>{formatBrowserNotificationPermission(browserNotificationPermission, locale)}</span>
+                        <span>{activeNotificationPermissionLabel}</span>
                       </div>
                       <div className="session-reference-card">
                         <strong>{locale === "zh" ? "自动投递" : "Auto delivery"}</strong>
@@ -8798,7 +8892,7 @@ export function App(): ReactElement {
                       <span>
                         {copy.runtime.notificationPermission}
                         {copy.formatting.sep}
-                        {formatBrowserNotificationPermission(browserNotificationPermission, locale)}
+                        {activeNotificationPermissionLabel}
                       </span>
                       <span>{copy.runtime.notificationHint}</span>
                       <label className="proactive-toggle">
@@ -8814,7 +8908,7 @@ export function App(): ReactElement {
                             }));
                           }}
                           disabled={
-                            browserNotificationPermission === "unsupported" ||
+                            notificationsUnsupported ||
                             permissionProfile.browserNotifications === "deny"
                           }
                         />
@@ -8824,8 +8918,8 @@ export function App(): ReactElement {
                           {proactiveNotificationEnabled ? copy.runtime.yes : copy.runtime.no}
                         </span>
                       </label>
-                      {browserNotificationPermission !== "granted" &&
-                      browserNotificationPermission !== "unsupported" ? (
+                      {activeNotificationPermission !== "granted" &&
+                      activeNotificationPermission !== "unsupported" ? (
                         <button
                           className="button button-secondary"
                           onClick={() => void handleRequestNotificationPermission()}
@@ -9308,7 +9402,7 @@ export function App(): ReactElement {
                         <div className="workspace-surface-head-pills">
                           <span className="provider-draft-status-pill">{permissionModeLabel}</span>
                           <span className="provider-draft-status-pill">
-                            {formatBrowserNotificationPermission(browserNotificationPermission, locale)}
+                            {activeNotificationPermissionLabel}
                           </span>
                         </div>
                       </div>
@@ -10340,6 +10434,14 @@ function getBrowserNotificationPermission(): BrowserNotificationPermissionState 
   return window.Notification.permission;
 }
 
+function getDesktopNotificationBridge(): WavearyDesktopNotificationBridge | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  return window.wavearyDesktop?.notifications ?? null;
+}
+
 function createDefaultPermissionProfile(): WavearyPermissionProfile {
   return createLimitedPermissionProfile();
 }
@@ -10683,16 +10785,12 @@ function localizeVoiceStyle(style: string, locale: Locale): string {
   return "柔和";
 }
 
-function deliverProactiveBrowserNotification(
+async function deliverProactiveNotification(
   decision: ProactiveCareDecision,
   locale: Locale,
   permissionProfile: WavearyPermissionProfile,
   providedDraft?: ProactiveMessageDraft
-): void {
-  if (typeof window === "undefined" || !("Notification" in window)) {
-    return;
-  }
-
+): Promise<boolean> {
   const draft =
     providedDraft ??
     buildProactiveMessageDraft(decision, locale, resolveNotificationDayPart(permissionProfile));
@@ -10713,14 +10811,35 @@ function deliverProactiveBrowserNotification(
     decision.reasons[0] ? formatProactiveReason(decision.reasons[0], locale) : null
   ].filter((part): part is string => Boolean(part));
 
-  new window.Notification(title, {
-    body:
-      bodyParts.length > 0
-        ? bodyParts.join(" · ")
-        : locale === "zh"
-          ? "当前会话被评估为适合主动关怀。"
-          : "The active session was evaluated as ready for proactive care."
-  });
+  const body =
+    bodyParts.length > 0
+      ? bodyParts.join(" · ")
+      : locale === "zh"
+        ? "当前会话被评估为适合主动关怀。"
+        : "The active session was evaluated as ready for proactive care.";
+
+  const desktopNotifications = getDesktopNotificationBridge();
+  if (desktopNotifications) {
+    try {
+      const result = await desktopNotifications.show({ title, body });
+      if (result.delivered) {
+        return true;
+      }
+    } catch {
+      // Browser fallback below.
+    }
+  }
+
+  if (typeof window === "undefined" || !("Notification" in window)) {
+    return false;
+  }
+
+  if (window.Notification.permission !== "granted") {
+    return false;
+  }
+
+  new window.Notification(title, { body });
+  return true;
 }
 
 function localizeLocalActionSummary(
