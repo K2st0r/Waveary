@@ -16,7 +16,7 @@ What is remembered returns as an echo.
 
 ## Latest Verified Commit
 
-- `ba6cbf0` - `Add desktop notification bridge`
+- `79d4a92` - `Add chat reasoning effort control`
 
 ## Repository Surface
 
