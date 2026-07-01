@@ -1527,6 +1527,7 @@ type ConsoleWorkspace =
 type ProviderWorkspaceSurface = "language" | "voice" | "vision" | "image" | "video";
 type SessionWorkspaceSurface = "profile" | "session" | "storage" | "transfer" | "permissions";
 type SkillsWorkspaceSurface = "browser" | "local" | "memory" | "care";
+type SkillStatusFilter = "all" | "enabled" | "disabled";
 type ChannelsWorkspaceSurface = "desktop" | "feishu" | "wecom" | "wechat";
 type SettingsWorkspaceSurface = "permissions" | "data" | "appearance" | "desktop";
 
@@ -1940,8 +1941,10 @@ export function App(): ReactElement {
     useState<ProviderWorkspaceSurface>("language");
   const [sessionWorkspaceSurface, setSessionWorkspaceSurface] =
     useState<SessionWorkspaceSurface>("profile");
-  const [skillsWorkspaceSurface, setSkillsWorkspaceSurface] =
-    useState<SkillsWorkspaceSurface>("browser");
+  const [, setSkillsWorkspaceSurface] = useState<SkillsWorkspaceSurface>("browser");
+  const [selectedSkillId, setSelectedSkillId] = useState<SkillsWorkspaceSurface>("browser");
+  const [skillSearchQuery, setSkillSearchQuery] = useState("");
+  const [skillStatusFilter, setSkillStatusFilter] = useState<SkillStatusFilter>("all");
   const [channelsWorkspaceSurface, setChannelsWorkspaceSurface] =
     useState<ChannelsWorkspaceSurface>("desktop");
   const [settingsWorkspaceSurface, setSettingsWorkspaceSurface] =
@@ -5326,6 +5329,172 @@ export function App(): ReactElement {
         : locale === "zh"
           ? "等待授权"
           : "Awaiting permission";
+  const skillCatalog: Array<{
+    id: SkillsWorkspaceSurface;
+    name: string;
+    slug: string;
+    category: string;
+    status: "enabled" | "disabled";
+    statusLabel: string;
+    summary: string;
+    detail: string;
+    source: string;
+    tags: string[];
+    rules: string[];
+    actions: Array<{ label: string; onClick: () => void; variant: "primary" | "secondary"; disabled?: boolean }>;
+  }> = [
+    {
+      id: "browser",
+      name: locale === "zh" ? "浏览器行动" : "Browser Actions",
+      slug: "browser-actions",
+      category: locale === "zh" ? "自动化" : "Automation",
+      status: chatReady ? "enabled" : "disabled",
+      statusLabel: browserSkillReadyLabel,
+      summary:
+        locale === "zh"
+          ? "打开网页、搜索、读取可点击项、点击目标、填写并提交表单。"
+          : "Open pages, search, read clickable targets, click items, fill inputs, and submit forms.",
+      detail:
+        locale === "zh"
+          ? "所有浏览器动作都通过对话里的待确认动作卡进入，适合把“帮我找、帮我点、帮我填”这种请求变成可追踪的真实操作。"
+          : "Browser actions run through chat-side pending action cards, turning browsing requests into visible and traceable operations.",
+      source: "waveary-web/server/browser-action",
+      tags: [locale === "zh" ? "Bing 优先" : "Bing-first", locale === "zh" ? "需模型接入" : "Provider-bound"],
+      rules:
+        locale === "zh"
+          ? ["默认不在后台静默乱跑。", "高风险动作必须保留确认边界。", "中国大陆搜索默认优先 Bing。"]
+          : ["Do not run silently in the background.", "Keep confirmation boundaries for high-trust actions.", "Prefer Bing for mainland-China-friendly search."],
+      actions: [
+        { label: locale === "zh" ? "去对话试用" : "Test in chat", onClick: () => navigateTo("chat"), variant: "secondary" },
+        {
+          label: locale === "zh" ? "检查模型接入" : "Check provider",
+          onClick: () => {
+            setActiveConsoleWorkspace("provider");
+            navigateTo("console");
+          },
+          variant: "primary"
+        }
+      ]
+    },
+    {
+      id: "local",
+      name: locale === "zh" ? "本地动作" : "Local Actions",
+      slug: "local-actions",
+      category: locale === "zh" ? "权限" : "Permission",
+      status: permissionProfile.localActions === "deny" ? "disabled" : "enabled",
+      statusLabel: localSkillPermissionLabel,
+      summary:
+        locale === "zh"
+          ? "打开应用、文件夹、网址，并把真实执行结果回到当前对话。"
+          : "Open apps, folders, and URLs, then return truthful execution receipts to the active chat.",
+      detail:
+        locale === "zh"
+          ? "本地动作是高信任技能，必须跟权限档案绑定。完全访问时可直接执行，其他模式保留逐次确认。"
+          : "Local actions are high-trust skills tied to the permission profile. Full access can run directly; other modes keep per-action confirmation.",
+      source: "waveary-core/local-action",
+      tags: [permissionModeLabel, localActionResolveState === "loading" ? (locale === "zh" ? "执行中" : "Running") : (locale === "zh" ? "待命" : "Idle")],
+      rules:
+        locale === "zh"
+          ? ["权限关闭时不执行本地动作。", "每次确认模式必须先给用户看清楚要做什么。", "完全访问模式也要返回真实执行回执。"]
+          : ["Do not execute when local permissions are disabled.", "Ask-first mode must show the action clearly before running.", "Full access still returns truthful execution receipts."],
+      actions: [
+        { label: locale === "zh" ? "切到高权限" : "Use elevated", onClick: () => handlePermissionPresetChange("elevated"), variant: "secondary" },
+        { label: locale === "zh" ? "切到完全访问" : "Use full access", onClick: () => handlePermissionPresetChange("full"), variant: "primary" }
+      ]
+    },
+    {
+      id: "memory",
+      name: locale === "zh" ? "记忆迁移" : "Memory Transfer",
+      slug: "memory-transfer",
+      category: locale === "zh" ? "记忆" : "Memory",
+      status: "enabled",
+      statusLabel: locale === "zh" ? "本地可用" : "Local ready",
+      summary:
+        locale === "zh"
+          ? "人物档案、身份摘要、会话历史和跨设备 JSON 迁移入口。"
+          : "Companion profile, identity summaries, conversation history, and JSON migration entrypoints.",
+      detail:
+        locale === "zh"
+          ? "运行时以 SQLite 为主存储，导入导出使用 JSON 包，避免把人物记忆做成散落的表单碎片。"
+          : "Runtime state uses SQLite as the primary store, while JSON packages handle import/export without scattering companion memory across loose forms.",
+      source: "waveary-web/session-archive",
+      tags: [locale === "zh" ? "SQLite 主存储" : "SQLite primary", locale === "zh" ? "JSON 迁移" : "JSON transfer"],
+      rules:
+        locale === "zh"
+          ? ["活跃记忆优先落到本地 SQLite。", "导出包应携带人物、声音偏好、历史和理解摘要。", "导入后要恢复为同一段关系，而不是只恢复消息。"]
+          : ["Live memory should write to local SQLite first.", "Export packages should carry profile, voice preference, history, and understanding summaries.", "Import should restore the relationship, not only raw messages."],
+      actions: [
+        {
+          label: locale === "zh" ? "查看运行理解" : "View understanding",
+          onClick: () => {
+            setActiveConsoleWorkspace("runtime");
+            navigateTo("console");
+          },
+          variant: "secondary"
+        },
+        {
+          label: locale === "zh" ? "打开迁移" : "Open transfer",
+          onClick: () => {
+            setActiveConsoleWorkspace("sessions");
+            setSessionWorkspaceSurface("transfer");
+            navigateTo("console");
+          },
+          variant: "primary"
+        }
+      ]
+    },
+    {
+      id: "care",
+      name: locale === "zh" ? "主动关怀" : "Proactive Care",
+      slug: "proactive-care",
+      category: locale === "zh" ? "陪伴" : "Companion",
+      status: proactiveAutoCheckEnabled ? "enabled" : "disabled",
+      statusLabel: proactiveAutoCheckEnabled ? (locale === "zh" ? "巡检开启" : "Loop on") : (locale === "zh" ? "巡检关闭" : "Loop off"),
+      summary:
+        locale === "zh"
+          ? "主动问候、轻提醒、晚安、回捞式陪伴和通知投递策略。"
+          : "Gentle outreach, reminders, goodnight care, soft check-ins, and notification delivery strategy.",
+      detail:
+        locale === "zh"
+          ? "关怀技能不应该像机械闹钟，而要结合时间、关系、最近情绪和未回应节奏，判断什么时候轻轻找用户。"
+          : "Care skills should not behave like mechanical alarms; they use time, relationship, recent emotion, and unanswered rhythm to decide when to reach out softly.",
+      source: "waveary-core/proactive-care",
+      tags: [notificationChannelReadyLabel, proactiveNotificationEnabled ? (locale === "zh" ? "可通知" : "Deliverable") : (locale === "zh" ? "仅建议" : "Suggest only")],
+      rules:
+        locale === "zh"
+          ? ["默认温柔克制，不刷屏。", "安静时段和未回应次数要压住主动频率。", "情绪重的时候可以更细腻，但不要演成模板。"]
+          : ["Stay gentle and restrained by default.", "Quiet hours and unanswered counts should limit outreach.", "Heavy emotional moments can be more tender without becoming scripted."],
+      actions: [
+        { label: locale === "zh" ? "立即评估" : "Evaluate now", onClick: () => void handleEvaluateProactiveCare(), variant: "secondary", disabled: !canEvaluateProactive },
+        {
+          label: locale === "zh" ? "打开关怀台" : "Open care console",
+          onClick: () => {
+            setActiveConsoleWorkspace("care");
+            navigateTo("console");
+          },
+          variant: "primary"
+        }
+      ]
+    }
+  ];
+  const filteredSkillCatalog = skillCatalog.filter((skill) => {
+    const matchesStatus = skillStatusFilter === "all" || skill.status === skillStatusFilter;
+    const query = skillSearchQuery.trim().toLowerCase();
+    const matchesQuery =
+      query.length === 0 ||
+      [skill.name, skill.slug, skill.category, skill.summary, skill.detail, skill.source, ...skill.tags]
+        .join(" ")
+        .toLowerCase()
+        .includes(query);
+
+    return matchesStatus && matchesQuery;
+  });
+  const selectedSkill = skillCatalog.find((skill) => skill.id === selectedSkillId) ?? skillCatalog[0]!;
+  const skillStatusCounts = {
+    all: skillCatalog.length,
+    enabled: skillCatalog.filter((skill) => skill.status === "enabled").length,
+    disabled: skillCatalog.filter((skill) => skill.status === "disabled").length
+  };
   const desktopRouteSummary =
     browserNotificationPermission === "granted"
       ? locale === "zh"
@@ -7967,396 +8136,148 @@ export function App(): ReactElement {
           <div className="console-diagnostics-grid console-workspace-stage">
             <div className="panel insight-panel console-workspace-panel console-workspace-panel-full">
               <div className="panel-header">
-                <span>{locale === "zh" ? "内置技能" : "Built-in skills"}</span>
-                <span className="panel-tag">Skill</span>
+                <span>{locale === "zh" ? "技能" : "Skills"}</span>
+                <span className="panel-tag">
+                  {locale === "zh"
+                    ? `${skillStatusCounts.all} 个内置 · ${skillStatusCounts.enabled} 已启用`
+                    : `${skillStatusCounts.all} built-in · ${skillStatusCounts.enabled} enabled`}
+                </span>
               </div>
 
-              <div className="console-workspace-scroll provider-workspace-scroll provider-workspace-scroll-single">
-                <div className="workspace-surface-tabs" role="tablist" aria-label={locale === "zh" ? "技能分区" : "Skill sections"}>
-                  {([
-                    ["browser", locale === "zh" ? "浏览器" : "Browser"],
-                    ["local", locale === "zh" ? "本地动作" : "Local"],
-                    ["memory", locale === "zh" ? "记忆工具" : "Memory"],
-                    ["care", locale === "zh" ? "关怀" : "Care"]
-                  ] as const).map(([surface, label]) => (
-                    <button
-                      key={surface}
-                      className={`workspace-surface-tab ${skillsWorkspaceSurface === surface ? "workspace-surface-tab-active" : ""}`}
-                      onClick={() => setSkillsWorkspaceSurface(surface)}
-                      type="button"
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-
-                {skillsWorkspaceSurface === "browser" ? (
-                  <div className="console-workspace-stage">
-                    <div className="workspace-surface-panel workspace-surface-panel-provider workspace-surface-panel-fill">
-                      <div className="workspace-surface-head">
-                        <div className="workspace-surface-heading">
-                          <strong>{locale === "zh" ? "浏览器技能" : "Browser skill"}</strong>
-                          <p>
-                            {locale === "zh"
-                              ? "把网页打开、站内搜索、可点击项读取和表单填写统一放在这里管理。"
-                              : "Manage page opening, on-page search, clickable-item reading, and form filling from one layer."}
-                          </p>
-                        </div>
-                        <div className="workspace-surface-head-pills">
-                          <span className="provider-draft-status-pill">{browserSkillReadyLabel}</span>
-                          <span className="provider-draft-status-pill">
-                            {locale === "zh" ? "Bing 优先" : "Bing-first"}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="session-reference-grid workspace-reference-grid">
-                        {[
-                          [
-                            locale === "zh" ? "当前能力" : "Current abilities",
-                            locale === "zh"
-                              ? "打开网址、搜索页面、列出可点击项、点击目标、填写输入框、提交表单。"
-                              : "Open URLs, search pages, list clickable targets, click items, fill inputs, and submit forms."
-                          ],
-                          [
-                            locale === "zh" ? "执行方式" : "Execution model",
-                            locale === "zh"
-                              ? "全部经过聊天中的待确认动作卡，不会悄悄在后台自行乱跑。"
-                              : "Everything flows through pending action cards in chat instead of silently running in the background."
-                          ]
-                        ].map(([title, description]) => (
-                          <div className="session-reference-card" key={title}>
-                            <strong>{title}</strong>
-                            <span>{description}</span>
-                          </div>
-                        ))}
-                      </div>
-
-                      <div className="console-actions workspace-panel-actions workspace-panel-actions-provider">
-                        <button className="button button-secondary" onClick={() => navigateTo("chat")} type="button">
-                          {locale === "zh" ? "去对话里试用" : "Test in chat"}
-                        </button>
+              <div className="skills-console-shell">
+                <aside className="skills-library-pane" aria-label={locale === "zh" ? "技能列表" : "Skill list"}>
+                  <div className="skills-library-toolbar">
+                    <input
+                      className="skills-search-input"
+                      value={skillSearchQuery}
+                      onChange={(event) => setSkillSearchQuery(event.target.value)}
+                      placeholder={locale === "zh" ? "搜索技能名 / 描述..." : "Search skill name / description..."}
+                      type="search"
+                    />
+                    <div className="skills-filter-row" role="tablist" aria-label={locale === "zh" ? "技能状态筛选" : "Skill status filter"}>
+                      {([
+                        ["all", locale === "zh" ? `全部 ${skillStatusCounts.all}` : `All ${skillStatusCounts.all}`],
+                        ["enabled", locale === "zh" ? `启用 ${skillStatusCounts.enabled}` : `Enabled ${skillStatusCounts.enabled}`],
+                        ["disabled", locale === "zh" ? `停用 ${skillStatusCounts.disabled}` : `Disabled ${skillStatusCounts.disabled}`]
+                      ] as const).map(([filter, label]) => (
                         <button
-                          className="button button-primary"
+                          key={filter}
+                          className={`skills-filter-button ${skillStatusFilter === filter ? "skills-filter-button-active" : ""}`}
+                          onClick={() => setSkillStatusFilter(filter)}
+                          type="button"
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="skills-category-group">
+                    <div className="skills-category-title">
+                      <span>{locale === "zh" ? "内置 Skills" : "Built-in Skills"}</span>
+                      <small>{filteredSkillCatalog.length}</small>
+                    </div>
+
+                    <div className="skills-list" role="listbox" aria-label={locale === "zh" ? "内置技能" : "Built-in skills"}>
+                      {filteredSkillCatalog.map((skill) => (
+                        <button
+                          key={skill.id}
+                          className={`skills-list-item ${selectedSkill.id === skill.id ? "skills-list-item-active" : ""}`}
                           onClick={() => {
-                            setActiveConsoleWorkspace("provider");
-                            navigateTo("console");
+                            setSelectedSkillId(skill.id);
+                            setSkillsWorkspaceSurface(skill.id);
                           }}
                           type="button"
                         >
-                          {locale === "zh" ? "先检查模型接入" : "Check provider setup"}
+                          <span className={`skills-status-dot skills-status-dot-${skill.status}`} aria-hidden="true" />
+                          <span className="skills-list-main">
+                            <strong>{skill.name}</strong>
+                            <code>{skill.slug}</code>
+                            <small>{skill.summary}</small>
+                          </span>
+                          <span className={`skills-mini-toggle skills-mini-toggle-${skill.status}`}>
+                            {skill.status === "enabled" ? (locale === "zh" ? "开" : "On") : (locale === "zh" ? "关" : "Off")}
+                          </span>
                         </button>
-                      </div>
-                    </div>
-
-                    <div className="insight-stack">
-                      <div className="insight-card">
-                        <div className="mini-heading">{locale === "zh" ? "状态" : "Status"}</div>
-                        <p>
-                          {chatReady
-                            ? locale === "zh"
-                              ? "聊天运行时已经准备好，可以直接从对话页触发浏览器技能。"
-                              : "The chat runtime is ready, so browser skills can be triggered directly from the conversation page."
-                            : locale === "zh"
-                              ? "还没完成模型接入，所以先不要让浏览器技能往外跑。"
-                              : "Provider setup is not complete yet, so browser skills should stay idle for now."}
-                        </p>
-                      </div>
-                      <div className="session-reference-card">
-                        <strong>{locale === "zh" ? "优先入口" : "Preferred entrypoint"}</strong>
-                        <span>{locale === "zh" ? "聊天页待确认动作卡" : "Chat-side pending action cards"}</span>
-                      </div>
-                      <div className="session-reference-card">
-                        <strong>{locale === "zh" ? "默认搜索" : "Default search"}</strong>
-                        <span>{locale === "zh" ? "中国大陆优先 Bing" : "Bing-first in mainland China"}</span>
-                      </div>
-                    </div>
-                  </div>
-                ) : null}
-
-                {skillsWorkspaceSurface === "local" ? (
-                  <div className="console-workspace-stage">
-                    <div className="workspace-surface-panel workspace-surface-panel-provider workspace-surface-panel-fill">
-                    <div className="workspace-surface-head">
-                      <div className="workspace-surface-heading">
-                        <strong>{locale === "zh" ? "本地动作技能" : "Local action skill"}</strong>
-                        <p>
-                          {locale === "zh"
-                            ? "打开软件、打开文件夹和后续桌面动作都从这里归口，不和人物性格混在一起。"
-                            : "App launch, folder opening, and later desktop actions live here instead of blending into persona settings."}
-                        </p>
-                      </div>
-                      <div className="workspace-surface-head-pills">
-                        <span className="provider-draft-status-pill">{localSkillPermissionLabel}</span>
-                        <span className="provider-draft-status-pill">
-                          {localActionResolveState === "loading"
-                            ? locale === "zh"
-                              ? "执行中"
-                              : "Running"
-                            : locale === "zh"
-                              ? "待命"
-                              : "Idle"}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="session-reference-grid workspace-reference-grid">
-                      {[
-                        [
-                          locale === "zh" ? "权限边界" : "Permission boundary",
-                          locale === "zh"
-                            ? "受限模式关闭，本地高权限模式逐次确认，完全访问模式才允许直接执行。"
-                            : "Limited mode keeps this off, elevated mode asks per action, and full access allows direct execution."
-                        ],
-                        [
-                          locale === "zh" ? "当前能力" : "Current abilities",
-                          locale === "zh"
-                            ? "打开网址、文件夹、应用，并对已批准动作给出真实执行回执。"
-                            : "Open URLs, folders, and apps, then return truthful execution receipts for approved actions."
-                        ]
-                      ].map(([title, description]) => (
-                        <div className="session-reference-card" key={title}>
-                          <strong>{title}</strong>
-                          <span>{description}</span>
-                        </div>
                       ))}
-                    </div>
 
-                    <div className="console-actions workspace-panel-actions workspace-panel-actions-provider">
-                      <button
-                        className="button button-secondary"
-                        onClick={() => handlePermissionPresetChange("elevated")}
-                        type="button"
-                      >
-                        {locale === "zh" ? "切到高权限" : "Use elevated mode"}
-                      </button>
-                      <button
-                        className="button button-primary"
-                        onClick={() => handlePermissionPresetChange("full")}
-                        type="button"
-                      >
-                        {locale === "zh" ? "切到完全访问" : "Use full access"}
-                      </button>
-                    </div>
-                    </div>
-
-                    <div className="insight-stack">
-                      <div className="insight-card">
-                        <div className="mini-heading">{locale === "zh" ? "执行状态" : "Execution status"}</div>
-                        <p>
-                          {localActionResolveState === "loading"
-                            ? locale === "zh"
-                              ? "有一个本地动作正在执行，执行结果会回到当前对话里。"
-                              : "A local action is currently running, and its result will flow back into the active chat."
-                            : locale === "zh"
-                              ? "现在没有挂起的本地动作，可以从聊天里继续发起。"
-                              : "No local action is currently pending, so new ones can be triggered from chat."}
-                        </p>
-                      </div>
-                      <div className="session-reference-card">
-                        <strong>{locale === "zh" ? "当前权限" : "Current access"}</strong>
-                        <span>{localSkillPermissionLabel}</span>
-                      </div>
-                      <div className="session-reference-card">
-                        <strong>{locale === "zh" ? "推荐入口" : "Preferred entrypoint"}</strong>
-                        <span>{locale === "zh" ? "聊天页待确认动作卡" : "Chat-side pending action cards"}</span>
-                      </div>
-                    </div>
-                  </div>
-                ) : null}
-
-                {skillsWorkspaceSurface === "memory" ? (
-                  <div className="console-workspace-stage">
-                    <div className="workspace-surface-panel workspace-surface-panel-provider workspace-surface-panel-fill">
-                    <div className="workspace-surface-head">
-                      <div className="workspace-surface-heading">
-                        <strong>{locale === "zh" ? "记忆工具技能" : "Memory tools"}</strong>
-                        <p>
-                          {locale === "zh"
-                            ? "会话迁移、摘要修正和关系档案维护都从这里进入，不把运行信号页变成操作页。"
-                            : "Session transfer, summary correction, and relationship-profile upkeep enter here instead of cluttering the runtime-signal view."}
-                        </p>
-                      </div>
-                      <div className="workspace-surface-head-pills">
-                        <span className="provider-draft-status-pill">
-                          {locale === "zh" ? "SQLite 主存储" : "SQLite primary"}
-                        </span>
-                        <span className="provider-draft-status-pill">
-                          {locale === "zh" ? "JSON 迁移" : "JSON transfer"}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="session-reference-grid workspace-reference-grid">
-                      {[
-                        [
-                          locale === "zh" ? "当前职责" : "Current role",
-                          locale === "zh"
-                            ? "身份摘要修正、人物档案编辑、会话导入导出和跨设备迁移。"
-                            : "Identity-summary correction, companion-profile editing, session import/export, and device migration."
-                        ],
-                        [
-                          locale === "zh" ? "为什么单独分层" : "Why it stays separate",
-                          locale === "zh"
-                            ? "人物是谁归会话档案，技能做什么归这里，避免以后桌面端出现边界混乱。"
-                            : "Who the companion is belongs to sessions; what the system can do belongs here, keeping desktop boundaries cleaner later."
-                        ]
-                      ].map(([title, description]) => (
-                        <div className="session-reference-card" key={title}>
-                          <strong>{title}</strong>
-                          <span>{description}</span>
+                      {filteredSkillCatalog.length === 0 ? (
+                        <div className="skills-empty-state">
+                          {locale === "zh" ? "没有匹配的技能。" : "No matching skills."}
                         </div>
-                      ))}
-                    </div>
-
-                    <div className="console-actions workspace-panel-actions workspace-panel-actions-provider">
-                      <button
-                        className="button button-secondary"
-                        onClick={() => {
-                          setActiveConsoleWorkspace("runtime");
-                          navigateTo("console");
-                        }}
-                        type="button"
-                      >
-                        {locale === "zh" ? "查看运行理解" : "View runtime understanding"}
-                      </button>
-                      <button
-                        className="button button-primary"
-                        onClick={() => {
-                          setActiveConsoleWorkspace("sessions");
-                          setSessionWorkspaceSurface("transfer");
-                          navigateTo("console");
-                        }}
-                        type="button"
-                        >
-                          {locale === "zh" ? "去会话迁移" : "Open transfer"}
-                        </button>
-                    </div>
-                    </div>
-
-                    <div className="insight-stack">
-                      <div className="insight-card">
-                        <div className="mini-heading">{locale === "zh" ? "存储原则" : "Storage rule"}</div>
-                        <p>
-                          {locale === "zh"
-                            ? "运行时优先写入本地 SQLite，导入导出只负责把这段关系和历史安全搬走。"
-                            : "Runtime state writes into local SQLite first, while import/export is only the safe transport layer for this relationship and history."}
-                        </p>
-                      </div>
-                      <div className="session-reference-card">
-                        <strong>{locale === "zh" ? "主存储" : "Primary store"}</strong>
-                        <span>{locale === "zh" ? "SQLite 本地运行时" : "Local SQLite runtime"}</span>
-                      </div>
-                      <div className="session-reference-card">
-                        <strong>{locale === "zh" ? "迁移方式" : "Migration path"}</strong>
-                        <span>{locale === "zh" ? "JSON 导出 / 导入包" : "JSON export / import package"}</span>
-                      </div>
+                      ) : null}
                     </div>
                   </div>
-                ) : null}
+                </aside>
 
-                {skillsWorkspaceSurface === "care" ? (
-                  <div className="console-workspace-stage">
-                    <div className="workspace-surface-panel workspace-surface-panel-provider workspace-surface-panel-fill">
-                    <div className="workspace-surface-head">
-                      <div className="workspace-surface-heading">
-                        <strong>{locale === "zh" ? "关怀技能" : "Care skill"}</strong>
-                        <p>
-                          {locale === "zh"
-                            ? "主动问候、轻提醒、晚安和回捞式陪伴属于一层能力，不是单轮 prompt 花活。"
-                            : "Proactive outreach, light reminders, goodnight care, and soft check-ins belong to one capability layer, not one-off prompt tricks."}
-                        </p>
-                      </div>
-                      <div className="workspace-surface-head-pills">
-                        <span className="provider-draft-status-pill">
-                          {proactiveAutoCheckEnabled
-                            ? locale === "zh"
-                              ? "本地巡检开启"
-                              : "Local loop on"
-                            : locale === "zh"
-                              ? "本地巡检关闭"
-                              : "Local loop off"}
-                        </span>
-                        <span className="provider-draft-status-pill">
-                          {proactiveNotificationEnabled
-                            ? locale === "zh"
-                              ? "通知可投递"
-                              : "Delivery on"
-                            : locale === "zh"
-                              ? "仅建议"
-                              : "Suggest only"}
-                        </span>
-                      </div>
+                <section className="skills-detail-pane" aria-label={locale === "zh" ? "技能详情" : "Skill detail"}>
+                  <div className="skills-detail-header">
+                    <div className="skills-detail-title">
+                      <span className="skills-detail-kicker">{selectedSkill.category}</span>
+                      <h3>{selectedSkill.name}</h3>
+                      <code>{selectedSkill.slug}</code>
                     </div>
-
-                    <div className="session-reference-grid workspace-reference-grid">
-                      {[
-                        [
-                          locale === "zh" ? "当前策略" : "Current policy",
-                          locale === "zh"
-                            ? "默认允许主动关怀，但仍受安静时段、未回应次数和权限边界约束。"
-                            : "Proactive care is enabled by default, but still bounded by quiet hours, unanswered counts, and explicit permissions."
-                        ],
-                        [
-                          locale === "zh" ? "下一步重点" : "Next priority",
-                          locale === "zh"
-                            ? "继续把关怀消息做得更像真人，而不是把聊天页塞满控制开关。"
-                            : "Keep making care messages feel more human without stuffing the chat page with control switches."
-                        ]
-                      ].map(([title, description]) => (
-                        <div className="session-reference-card" key={title}>
-                          <strong>{title}</strong>
-                          <span>{description}</span>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="console-actions workspace-panel-actions workspace-panel-actions-provider">
-                      <button
-                        className="button button-secondary"
-                        onClick={() => void handleEvaluateProactiveCare()}
-                        disabled={!canEvaluateProactive}
-                        type="button"
-                      >
-                        {locale === "zh" ? "立即评估一次" : "Evaluate now"}
+                    <div className="skills-detail-actions">
+                      <span className={`skills-status-pill skills-status-pill-${selectedSkill.status}`}>
+                        {selectedSkill.statusLabel}
+                      </span>
+                      <button className="button button-secondary" type="button">
+                        {locale === "zh" ? "复制 ID" : "Copy ID"}
                       </button>
-                      <button
-                        className="button button-primary"
-                        onClick={() => {
-                          setActiveConsoleWorkspace("care");
-                          navigateTo("console");
-                        }}
-                        type="button"
-                        >
-                          {locale === "zh" ? "打开完整关怀台" : "Open care console"}
-                        </button>
-                    </div>
-                    </div>
-
-                    <div className="insight-stack">
-                      <div className="insight-card">
-                        <div className="mini-heading">{locale === "zh" ? "当前节奏" : "Current rhythm"}</div>
-                        <p>
-                          {proactiveAutoCheckEnabled
-                            ? locale === "zh"
-                              ? "本地巡检会继续评估什么时候适合轻轻找你，而不是把提醒做成机械闹钟。"
-                              : "The local loop keeps evaluating when a gentle reach-out is appropriate instead of behaving like a mechanical alarm."
-                            : locale === "zh"
-                              ? "现在只保留建议层，还没有自动巡检节奏。"
-                              : "Only the suggestion layer is active right now, without the automatic local care loop."}
-                        </p>
-                      </div>
-                      <div className="session-reference-card">
-                        <strong>{locale === "zh" ? "本地巡检" : "Local loop"}</strong>
-                        <span>{proactiveAutoCheckEnabled ? (locale === "zh" ? "已开启" : "Enabled") : (locale === "zh" ? "已关闭" : "Disabled")}</span>
-                      </div>
-                      <div className="session-reference-card">
-                        <strong>{locale === "zh" ? "投递方式" : "Delivery mode"}</strong>
-                        <span>{proactiveNotificationEnabled ? (locale === "zh" ? "通知可投递" : "Notification delivery on") : (locale === "zh" ? "仅给建议" : "Suggestion only")}</span>
-                      </div>
                     </div>
                   </div>
-                ) : null}
+
+                  <div className="skills-detail-tags">
+                    <span>{locale === "zh" ? "内置" : "Built-in"}</span>
+                    {selectedSkill.tags.map((tag) => (
+                      <span key={tag}>{tag}</span>
+                    ))}
+                  </div>
+
+                  <div className="skills-description-card">
+                    <strong>{locale === "zh" ? "说明" : "Description"}</strong>
+                    <p>{selectedSkill.detail}</p>
+                  </div>
+
+                  <div className="skills-markdown-card">
+                    <div className="skills-markdown-head">
+                      <span>SKILL.md</span>
+                      <small>{selectedSkill.source}</small>
+                    </div>
+                    <div className="skills-markdown-body">
+                      <h4>{selectedSkill.name}</h4>
+                      <p>{selectedSkill.summary}</p>
+                      <strong>{locale === "zh" ? "执行规则" : "Runtime rules"}</strong>
+                      <ol>
+                        {selectedSkill.rules.map((rule) => (
+                          <li key={rule}>{rule}</li>
+                        ))}
+                      </ol>
+                    </div>
+                  </div>
+
+                  <div className="skills-source-card">
+                    <div>
+                      <span>{locale === "zh" ? "来源目录" : "Source directory"}</span>
+                      <code>{selectedSkill.source}</code>
+                    </div>
+                    <span>{locale === "zh" ? "运行时扫描到的内置能力，后续可扩展为自建 Skill 与市场 Skill。" : "Built-in runtime capability; later expandable to custom and marketplace skills."}</span>
+                  </div>
+
+                  <div className="console-actions skills-detail-footer">
+                    {selectedSkill.actions.map((action) => (
+                      <button
+                        key={action.label}
+                        className={`button ${action.variant === "primary" ? "button-primary" : "button-secondary"}`}
+                        onClick={action.onClick}
+                        disabled={action.disabled}
+                        type="button"
+                      >
+                        {action.label}
+                      </button>
+                    ))}
+                  </div>
+                </section>
               </div>
             </div>
           </div>
