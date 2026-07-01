@@ -1,4 +1,4 @@
-const { app, BrowserWindow, dialog, shell } = require("electron");
+const { app, BrowserWindow, Notification, dialog, ipcMain, shell } = require("electron");
 const path = require("node:path");
 const { spawn } = require("node:child_process");
 const fs = require("node:fs");
@@ -10,6 +10,7 @@ let shutdownRequested = false;
 const desktopRoot = path.resolve(__dirname, "..");
 const runtimeRoot = path.join(desktopRoot, "app-runtime");
 const serverScriptPath = path.join(runtimeRoot, "waveary-web", "server", "standalone-server.mjs");
+const preloadPath = path.join(__dirname, "preload.cjs");
 const windowIconPath = path.join(
   runtimeRoot,
   "waveary-web",
@@ -76,10 +77,60 @@ function createWindow() {
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,
+      preload: preloadPath,
       sandbox: true,
       spellcheck: false
     }
   });
+}
+
+ipcMain.handle("waveary:notifications:get-state", () => {
+  return {
+    available: Notification.isSupported(),
+    permission: Notification.isSupported() ? "granted" : "unsupported"
+  };
+});
+
+ipcMain.handle("waveary:notifications:request-permission", () => {
+  return Notification.isSupported() ? "granted" : "unsupported";
+});
+
+ipcMain.handle("waveary:notifications:show", (_event, payload) => {
+  if (!Notification.isSupported()) {
+    return { delivered: false, reason: "unsupported" };
+  }
+
+  const title = normalizeNotificationText(payload?.title, "Waveary");
+  const body = normalizeNotificationText(payload?.body, "");
+
+  const notification = new Notification({
+    title,
+    body,
+    icon: fs.existsSync(windowIconPath) ? windowIconPath : undefined,
+    silent: false
+  });
+
+  notification.on("click", () => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      if (mainWindow.isMinimized()) {
+        mainWindow.restore();
+      }
+      mainWindow.show();
+      mainWindow.focus();
+    }
+  });
+
+  notification.show();
+  return { delivered: true };
+});
+
+function normalizeNotificationText(value, fallback) {
+  if (typeof value !== "string") {
+    return fallback;
+  }
+
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed.slice(0, 320) : fallback;
 }
 
 function ensureRuntimeExists() {
