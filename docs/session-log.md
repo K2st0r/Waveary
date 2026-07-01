@@ -190,6 +190,40 @@ Push:
 
 Objective:
 
+Fix packaged desktop static serving after the packaged runtime returned `Waveary desktop runtime could not find the requested page.`
+
+Summary:
+
+- corrected `standalone-server.mjs` so `distRoot` resolves to `app-runtime/waveary-web/dist` inside packaged desktop builds
+- rebuilt the desktop installer
+- verified the packaged `Waveary.exe` standalone runtime serves both `/#chat` and the bundled JS asset with HTTP 200
+
+Files changed:
+
+- `waveary-web/server/standalone-server.mjs`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run desktop:dist`
+- packaged `Waveary.exe` launched with `ELECTRON_RUN_AS_NODE=1`
+- `GET /#chat` returned HTTP 200
+- `GET /assets/index-DpsKmIb1.js` returned HTTP 200
+- `npm run check:mojibake`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-07-01
+
+Objective:
+
 Finish the first Windows desktop installer path and verify that the packaged runtime can start without the Vite dev server.
 
 Summary:

@@ -16,7 +16,7 @@ What is remembered returns as an echo.
 
 ## Latest Verified Commit
 
-- `b9118fb` - `Finish desktop installer packaging path`
+- pending - fix desktop packaged static serving
 
 ## Repository Surface
 
@@ -51,6 +51,7 @@ What is remembered returns as an echo.
   - Windows installer packaging now produces `waveary-desktop/dist/Waveary-Setup-0.1.0.exe`
   - the desktop build path can fall back to a prepackaged `win-unpacked` bundle when `electron-builder --dir` hits transient network download failures
   - the packaged `Waveary.exe` has been verified to start the embedded standalone runtime and emit a ready local port
+  - packaged static serving for `/#chat` and bundled assets has been verified through the packaged `Waveary.exe`
 - `waveary-dataset`
   - markdown-first companion soul, conversation rules, and healthy-boundary guidance exist here and should remain the source of truth for companion philosophy
 
@@ -92,6 +93,7 @@ These are the latest trustworthy verification paths recorded in the repo before 
 - `npm run dev --workspace @waveary/desktop` with runtime reachability confirmed at `http://127.0.0.1:4173`
 - `npm run desktop:dist`
 - packaged `Waveary.exe` launched with `ELECTRON_RUN_AS_NODE=1` against the bundled `standalone-server.mjs` and emitted `__WAVEARY_SERVER_READY__:<port>`
+- packaged `Waveary.exe` standalone runtime served `/#chat` with HTTP 200 and served the bundled JS asset with HTTP 200
 
 ## Current Worktree Notes
 
@@ -114,7 +116,7 @@ The worktree is currently dirty outside this continuity-doc task. Do not revert 
 
 ## Next Recommended Step
 
-- next desktop follow-up should add proper Windows app icon / installer metadata and verify a real installed launch from `Waveary-Setup-0.1.0.exe`
+- next desktop follow-up should add proper Windows app icon / installer metadata and verify a real installed launch from the refreshed `Waveary-Setup-0.1.0.exe`
 - after that, add auto-update / version channel planning before treating the desktop app as public-release ready
 - keep future Chinese-text cleanup separate from feature work unless the change is strictly local and verified with `git diff` plus `npm run check:mojibake`
 

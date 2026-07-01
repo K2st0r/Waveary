@@ -5,8 +5,7 @@ import { fileURLToPath } from "node:url";
 
 import { createProviderApiMiddleware } from "../dist-server/server/provider-api.js";
 
-const serverRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
-const webRoot = resolve(serverRoot, "..");
+const webRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const distRoot = resolve(webRoot, "dist");
 const host = process.env.WAVEARY_HOST?.trim() || "127.0.0.1";
 const requestedPort = Number.parseInt(process.env.WAVEARY_PORT ?? "4173", 10);
