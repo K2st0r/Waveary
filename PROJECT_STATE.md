@@ -16,7 +16,7 @@ What is remembered returns as an echo.
 
 ## Latest Verified Commit
 
-- `ba518d1` - `Allow console workspaces before chat ready`
+- `4c9a283` - `Reshape skills workspace`
 
 ## Repository Surface
 

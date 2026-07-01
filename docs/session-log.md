@@ -34,11 +34,11 @@ Verification:
 
 Commit:
 
-- pending
+- `4c9a283` - `Reshape skills workspace`
 
 Push:
 
-- pending
+- pending continuity sync
 
 ## 2026-07-01
 
