@@ -16,7 +16,7 @@ What is remembered returns as an echo.
 
 ## Latest Verified Commit
 
-- `f14cf82` - `Refresh favicon and portrait asset`
+- `613482c` - `Sync visual asset continuity`
 
 ## Repository Surface
 
@@ -51,8 +51,10 @@ What is remembered returns as an echo.
   - the chat composer exposes a compact `fast / balanced / deep` reasoning-effort switch inside the input surface and persists the user's choice locally
   - provider/model setup, voice setup, grouped control workspaces, and server-side non-chat model capability config for speech / vision / image / video exist in the console shell foundation
   - favicon references now include a cache-busting query and the fourth portrait card has a smaller corrected question-face asset
+  - web build tooling now uses Vite `8.1.2` and `@vitejs/plugin-react` `6.0.3`
 - `waveary-desktop`
   - first Electron desktop shell now exists
+  - desktop dependency baseline now uses Electron `43.0.0`
   - desktop preparation can build and materialize a standalone local runtime bundle from the existing Waveary web/server packages
   - desktop dev launch can start the embedded runtime and open the app as a native window
   - desktop native notifications are now bridged through a preload IPC layer, and proactive-care delivery prefers Electron system notifications before falling back to browser notifications
@@ -115,7 +117,7 @@ The worktree is currently dirty outside the latest verified visual-asset cleanup
 ## Next Recommended Step
 
 - next web-shell follow-up should wire the server-side companion-profile archive and model capability config into the visible sessions/profile and provider/model control UI without reintroducing long mixed control walls
-- next repo maintenance follow-up should run a dedicated dependency-security block for Electron and esbuild instead of mixing semver-major desktop runtime upgrades with UI work
+- next repo maintenance follow-up should verify whether GitHub Dependabot now reflects `npm audit` reporting zero vulnerabilities after the Electron / Vite upgrade
 - next web-shell follow-up should visually inspect the new skills workbench in the fresh desktop dev window and decide whether to add real custom-skill import/export after the layout is approved
 - next web-shell follow-up should visually inspect the remaining chat / console density at installed desktop-window sizes after the sidebar breakpoint fix, especially widths near `640px` to `900px`
 - next desktop follow-up should manually click through the desktop notification channel in the fresh Electron window, then add a small in-app test-notification button if the UX needs a direct smoke-test control

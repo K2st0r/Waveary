@@ -9,6 +9,46 @@ Git history keeps the fine-grained archive; this file keeps the current continua
 
 Objective:
 
+Clear the GitHub / npm dependency security warnings without mixing the security work into product UI changes.
+
+Summary:
+
+- upgraded the desktop Electron dependency from `37.2.6` to fixed `43.0.0`
+- upgraded web build tooling from Vite 7 / React plugin 5 to Vite `8.1.2` and `@vitejs/plugin-react` `6.0.3`
+- removed the audited `esbuild` exposure from the active dependency tree through the Vite upgrade
+- verified `npm audit` now reports zero vulnerabilities
+- Electron 43 binary download initially failed on the default network path, then succeeded through the `npmmirror` Electron mirror
+- restarted a fresh `npm run desktop:dev` process after the upgrade and confirmed Electron 43 processes are running
+
+Files changed:
+
+- `package-lock.json`
+- `waveary-desktop/package.json`
+- `waveary-web/package.json`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm audit --json`
+- `npm ls electron esbuild vite @vitejs/plugin-react --all`
+- `npm run check --workspace @waveary/web`
+- `npm run desktop:prepare`
+- `npm run check:mojibake`
+- fresh `npm run desktop:dev` launched after closing old Electron processes; Electron 43 processes confirmed running
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-07-01
+
+Objective:
+
 Clean up the remaining brand / visual asset worktree pieces without committing broken logo drafts.
 
 Summary:
