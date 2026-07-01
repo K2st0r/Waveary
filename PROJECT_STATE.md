@@ -16,7 +16,7 @@ What is remembered returns as an echo.
 
 ## Latest Verified Commit
 
-- pending - fix desktop packaged static serving
+- `fab3a63` - `Fix desktop packaged static serving`
 
 ## Repository Surface
 

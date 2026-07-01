@@ -214,11 +214,11 @@ Verification:
 
 Commit:
 
-- pending
+- `fab3a63` - `Fix desktop packaged static serving`
 
 Push:
 
-- pending
+- pending continuity sync
 
 ## 2026-07-01
 
