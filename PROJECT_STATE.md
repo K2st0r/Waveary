@@ -16,7 +16,7 @@ What is remembered returns as an echo.
 
 ## Latest Verified Commit
 
-- `d6597e0` - `Fix sidebar breakpoint interactions`
+- `ba518d1` - `Allow console workspaces before chat ready`
 
 ## Repository Surface
 
@@ -43,6 +43,7 @@ What is remembered returns as an echo.
   - active official runtime surface
   - current shell uses one persistent left sidebar instead of the old top navigation
   - the left sidebar keeps its navigation hit areas usable across shorter desktop heights and narrow client windows, and the chat utility rail remains visible as a stable narrow right-side strip
+  - control workspaces such as skills, channels, proactive care, and settings are no longer forced back to provider setup when chat runtime readiness is still settling
   - sessions persist companion-profile setup, export/import metadata, runtime understanding, and local history
   - provider/model setup, voice setup, and grouped control workspaces exist in the console shell
 - `waveary-desktop`
@@ -117,6 +118,7 @@ The worktree is currently dirty outside this continuity-doc task. Do not revert 
 
 ## Next Recommended Step
 
+- next web-shell follow-up should verify the same console workspace behavior through `npm run desktop:dev` after rebuilding the desktop runtime, not only through the browser dev server
 - next web-shell follow-up should visually inspect the remaining chat / console density at installed desktop-window sizes after the sidebar breakpoint fix, especially widths near `640px` to `900px`
 - next desktop follow-up should add proper Windows app icon / installer metadata and verify a real installed launch from the refreshed `Waveary-Setup-0.1.0.exe`
 - after that, add auto-update / version channel planning before treating the desktop app as public-release ready

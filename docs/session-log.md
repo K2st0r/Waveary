@@ -9,6 +9,36 @@ Git history keeps the fine-grained archive; this file keeps the current continua
 
 Objective:
 
+Fix console workspace buttons such as skills, channels, proactive care, and settings appearing not to open when the chat runtime was not ready.
+
+Summary:
+
+- removed the guard that forced any non-provider console workspace back to provider setup when `chatReady` was false
+- kept only the voice workspace fallback, because voice configuration is currently folded into provider/model setup
+- verified that skills, channels, proactive care, and settings each show their own visible panel after clicking
+
+Files changed:
+
+- `waveary-web/src/App.tsx`
+
+Verification:
+
+- Playwright content-switch check for sidebar indexes `2`, `3`, `4`, and `6`
+- `npm run check --workspace @waveary/web`
+- `npm run check:mojibake`
+
+Commit:
+
+- `ba518d1` - `Allow console workspaces before chat ready`
+
+Push:
+
+- succeeded: `git push origin main` pushed functional commit `ba518d1` to `origin/main`
+
+## 2026-07-01
+
+Objective:
+
 Fix the remaining left-sidebar interaction failure caused by the `max-width: 900px` responsive breakpoint treating narrow desktop/client windows as mobile.
 
 Summary:
