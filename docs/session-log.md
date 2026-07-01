@@ -9,6 +9,36 @@ Git history keeps the fine-grained archive; this file keeps the current continua
 
 Objective:
 
+Fix the remaining left-sidebar interaction failure caused by the `max-width: 900px` responsive breakpoint treating narrow desktop/client windows as mobile.
+
+Summary:
+
+- moved the mobile stacked-shell breakpoint down to `420px` so normal desktop and installed-client widths keep the left-sidebar app layout
+- changed the short-height rule to hide the whole sidebar footer instead of only the runtime block, prioritizing functional navigation hit areas
+- verified sidebar hit targets and click behavior across `1280x800`, `1080x760`, `900x700`, `760x700`, `640x700`, `540x700`, and `421x700`
+
+Files changed:
+
+- `waveary-web/src/styles.css`
+
+Verification:
+
+- Playwright multi-viewport hit-test and click-flow check for all 7 `.app-sidebar-nav-item` controls
+- `npm run check --workspace @waveary/web`
+- `npm run check:mojibake`
+
+Commit:
+
+- `d6597e0` - `Fix sidebar breakpoint interactions`
+
+Push:
+
+- pending continuity sync
+
+## 2026-07-01
+
+Objective:
+
 Fix the runtime shell bug where lower left-sidebar controls were not clickable at shorter desktop heights and the right chat utility rail could feel missing.
 
 Summary:
