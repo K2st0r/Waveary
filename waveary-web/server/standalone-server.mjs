@@ -3,7 +3,7 @@ import { createServer } from "node:http";
 import { extname, join, normalize, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { createProviderApiMiddleware } from "../dist-server/provider-api.js";
+import { createProviderApiMiddleware } from "../dist-server/server/provider-api.js";
 
 const serverRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const webRoot = resolve(serverRoot, "..");

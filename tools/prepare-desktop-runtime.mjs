@@ -21,7 +21,7 @@ for (const requiredPath of requiredPaths) {
   }
 }
 
-rmSync(runtimeDir, { recursive: true, force: true });
+rmSync(runtimeDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 500 });
 mkdirSync(runtimeDir, { recursive: true });
 
 copyWorkspaceRuntime("@waveary/core", "waveary-core");

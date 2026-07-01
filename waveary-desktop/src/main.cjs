@@ -18,6 +18,8 @@ const windowIconPath = path.join(
   "waveary-logo-final-draft-11.png"
 );
 
+app.setName("Waveary");
+app.setPath("userData", path.join(app.getPath("appData"), "Waveary"));
 app.disableHardwareAcceleration();
 
 app.whenReady()
