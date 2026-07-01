@@ -16,7 +16,7 @@ What is remembered returns as an echo.
 
 ## Latest Verified Commit
 
-- `4c9a283` - `Reshape skills workspace`
+- `ba6cbf0` - `Add desktop notification bridge`
 
 ## Repository Surface
 
