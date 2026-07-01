@@ -16,7 +16,7 @@ What is remembered returns as an echo.
 
 ## Latest Verified Commit
 
-- `9342cd9` - `Rewrite continuity docs`
+- `200c6c3` - `Add desktop app packaging scaffold`
 
 ## Repository Surface
 
