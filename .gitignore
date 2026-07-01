@@ -25,6 +25,8 @@ node_modules/
 dist/
 dist-server/
 build/
+waveary-desktop/app-runtime/
+waveary-desktop/dist/
 .next/
 .nuxt/
 .turbo/

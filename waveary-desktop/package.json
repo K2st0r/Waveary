@@ -1,0 +1,48 @@
+{
+  "name": "@waveary/desktop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Desktop shell and installer packaging for Waveary.",
+  "author": "Waveary",
+  "main": "src/main.cjs",
+  "scripts": {
+    "dev": "electron ./src/main.cjs",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder --win nsis"
+  },
+  "devDependencies": {
+    "electron": "37.2.6",
+    "electron-builder": "26.15.3"
+  },
+  "build": {
+    "appId": "com.waveary.desktop",
+    "productName": "Waveary",
+    "asar": false,
+    "files": [
+      "src/**/*",
+      "app-runtime/**/*",
+      "package.json"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "signExecutable": false,
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "artifactName": "Waveary-Setup-${version}.${ext}"
+    }
+  }
+}
