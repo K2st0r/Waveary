@@ -44,6 +44,11 @@ What is remembered returns as an echo.
   - current shell uses one persistent left sidebar instead of the old top navigation
   - sessions persist companion-profile setup, export/import metadata, runtime understanding, and local history
   - provider/model setup, voice setup, and grouped control workspaces exist in the console shell
+- `waveary-desktop`
+  - first Electron desktop shell now exists
+  - desktop preparation can build and materialize a standalone local runtime bundle from the existing Waveary web/server packages
+  - desktop dev launch can start the embedded runtime and open the app as a native window
+  - Windows installer packaging is not fully verified yet because the current machine timed out while `electron-builder` tried to fetch packaging resources over the network
 - `waveary-dataset`
   - markdown-first companion soul, conversation rules, and healthy-boundary guidance exist here and should remain the source of truth for companion philosophy
 
@@ -66,6 +71,7 @@ What is remembered returns as an echo.
 3. Keep polishing the `waveary-web` shell density and proportion without reintroducing long scrolling control walls.
 4. Continue the `waveary-core` dialogue-quality pass toward shorter, more human, emotionally believable companion replies.
 5. Keep public onboarding and brand-rights documentation clean, accurate, and easy for non-developers to follow.
+6. Finish the first desktop packaging path so Windows users can install Waveary directly instead of starting it from source.
 
 ## Verified Baseline Commands
 
@@ -80,6 +86,8 @@ These are the latest trustworthy verification paths recorded in the repo before 
 - `npm run build:server --workspace @waveary/web`
 - `npx tsc --noEmit -p waveary-web/tsconfig.json`
 - `npm run check:mojibake`
+- `npm run desktop:prepare`
+- `npm run dev --workspace @waveary/desktop` with runtime reachability confirmed at `http://127.0.0.1:4173`
 
 ## Current Worktree Notes
 
@@ -103,7 +111,7 @@ The worktree is currently dirty outside this continuity-doc task. Do not revert 
 ## Next Recommended Step
 
 - return to product work in one bounded block only after this continuity-doc cleanup is committed and pushed
-- first product-side follow-up should stay within one of the current active priorities from `ACTIVE_TASKS.md`, not broad multi-surface rewrites
+- first desktop follow-up should finish the Windows installer verification path once Electron packaging resources can be fetched successfully on this machine or through a more reliable network path
 - keep future Chinese-text cleanup separate from feature work unless the change is strictly local and verified with `git diff` plus `npm run check:mojibake`
 
 ## Open Issues
@@ -114,4 +122,5 @@ The worktree is currently dirty outside this continuity-doc task. Do not revert 
 - provider and voice setup still have different save ergonomics, which can confuse runtime expectations
 - the browser live-chat voice path is not yet a true full-duplex transport
 - live Fish Audio verification is currently blocked by upstream reachability from this machine
+- `electron-builder` packaging is currently blocked by transient network timeouts while downloading packaging resources, even though the desktop runtime preparation and development launch path already work
 - some historical repository files still contain mojibake outside this cleanup scope; treat broad encoding repair as deliberate documentation work, not incidental feature cleanup

@@ -47,6 +47,11 @@ Update it when:
    Current state: each meaningful step is being verified, committed, pushed, and written back into continuity files. The repository now includes `npm run check:mojibake` for changed-line Chinese-copy checks and `npm run reset:test-memory` for clearing local chat/test-session memory while preserving saved provider and voice config. The current Windows verification caveat is explicit too: do not run `npm run build --workspace @waveary/core` in parallel with compiled `dist` tests.
    Next cut: keep using the post-commit test-memory reset flow before live verification, keep repository-side state files aligned so session resets do not cause duplicate work or architectural drift, keep using the mojibake guard plus `git diff` for Chinese-copy edits, preserve the sequential `@waveary/core` build-then-test order on Windows, and preserve the doodle-generation constraints that avoid repeated `524` timeouts.
 
+8. Finish the first desktop packaging path.
+   Status: in progress
+   Current state: a new `waveary-desktop` Electron shell exists, `npm run desktop:prepare` successfully builds and materializes a standalone local runtime bundle, and desktop dev launch can start the embedded runtime and serve the app successfully. The remaining blocker is Windows packaging verification: `electron-builder` timed out while fetching packaging resources over the current network path.
+   Next cut: retry `npm run desktop:pack` and `npm run desktop:dist` on a more reliable network path, then verify that the unpacked app and NSIS installer can launch Waveary with only provider configuration required from the user.
+
 ## Deferred But Important
 
 1. Strengthen live-provider dialogue regression beyond scripted providers.

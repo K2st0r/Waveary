@@ -5,7 +5,8 @@
     "waveary-core",
     "waveary-memory",
     "waveary-voice",
-    "waveary-web"
+    "waveary-web",
+    "waveary-desktop"
   ],
   "devDependencies": {
     "@types/node": "^24.0.10",
@@ -25,6 +26,10 @@
     "web:build": "npm run build --workspace @waveary/core && npm run build --workspace @waveary/memory && npm run build --workspace @waveary/voice && npm run build --workspace @waveary/web",
     "web:dev": "npm run build --workspace @waveary/core && npm run build --workspace @waveary/memory && npm run build --workspace @waveary/voice && npm run dev --workspace @waveary/web",
     "web:preview": "npm run build --workspace @waveary/core && npm run build --workspace @waveary/memory && npm run build --workspace @waveary/voice && npm run build --workspace @waveary/web && npm run preview --workspace @waveary/web",
+    "desktop:prepare": "npm run build --workspace @waveary/core && npm run build --workspace @waveary/memory && npm run build --workspace @waveary/voice && npm run build --workspace @waveary/web && npm run build:server --workspace @waveary/web && node tools/prepare-desktop-runtime.mjs",
+    "desktop:dev": "npm run desktop:prepare && npm run dev --workspace @waveary/desktop",
+    "desktop:pack": "npm run desktop:prepare && npm run pack --workspace @waveary/desktop",
+    "desktop:dist": "npm run desktop:prepare && npm run dist --workspace @waveary/desktop",
     "test": "npm run build --workspaces && npm run test --workspace @waveary/memory && npm run test --workspace @waveary/core && npm run test --workspace @waveary/voice && npm run test --workspace @waveary/web"
   }
 }

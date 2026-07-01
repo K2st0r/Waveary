@@ -185,3 +185,47 @@ Commit:
 Push:
 
 - succeeded: `git push origin main` pushed functional commit `9342cd9` to `origin/main`
+
+## 2026-07-01
+
+Objective:
+
+Start the first real desktop packaging path so Waveary can move toward an installable Windows app instead of remaining source-run only.
+
+Summary:
+
+- added a new `waveary-desktop` Electron package as the first desktop shell
+- added `waveary-web/server/standalone-server.mjs` so the built app can serve static assets plus the existing API/runtime middleware without depending on the Vite dev server
+- added `tools/prepare-desktop-runtime.mjs` plus root desktop scripts so the built `core / memory / voice / web` runtime can be materialized into a standalone desktop bundle
+- verified that `npm run desktop:prepare` succeeds and that desktop dev launch can start the embedded runtime, with successful reachability at `http://127.0.0.1:4173`
+- attempted Windows packaging through `electron-builder`; configuration issues were fixed, but final packaging verification is still blocked by transient network timeouts while downloading packaging resources
+
+Files changed:
+
+- `package.json`
+- `package-lock.json`
+- `.gitignore`
+- `tools/prepare-desktop-runtime.mjs`
+- `waveary-web/server/standalone-server.mjs`
+- `waveary-desktop/package.json`
+- `waveary-desktop/README.md`
+- `waveary-desktop/src/main.cjs`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm install`
+- `npm run desktop:prepare`
+- `npm run dev --workspace @waveary/desktop`
+- runtime reachability check against `http://127.0.0.1:4173`
+- `npm run pack --workspace @waveary/desktop` reached `electron-builder`, but final packaging verification is still blocked by remote resource download timeout on the current network path after config fixes
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
