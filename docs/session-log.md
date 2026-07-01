@@ -9,6 +9,41 @@ Git history keeps the fine-grained archive; this file keeps the current continua
 
 Objective:
 
+Reshape the skills console workspace into a compact skill-management workbench inspired by Hermes Agent while preserving Waveary's existing capability boundaries.
+
+Summary:
+
+- replaced the previous long card/tab skills page with a searchable built-in skill library, status filters, and a right-side detail pane
+- kept existing browser, local action, memory transfer, and proactive care actions wired to their original runtime handlers
+- added a SKILL.md-style preview, source path display, tags, status pills, and compact list affordances for each built-in skill
+- closed stale Waveary Electron / desktop development processes and launched a fresh `npm run desktop:dev`
+
+Files changed:
+
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/web`
+- `npm run check:mojibake`
+- Playwright browser check for skills workspace visibility, skill selection, search filtering, and status filtering
+- fresh `npm run desktop:dev` launched; latest built desktop asset: `assets/index-CmwzWJut.js`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-07-01
+
+Objective:
+
 Fix console workspace buttons such as skills, channels, proactive care, and settings appearing not to open when the chat runtime was not ready.
 
 Summary:
