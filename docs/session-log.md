@@ -9,6 +9,40 @@ Git history keeps the fine-grained archive; this file keeps the current continua
 
 Objective:
 
+Clean up the remaining brand / visual asset worktree pieces without committing broken logo drafts.
+
+Summary:
+
+- kept the favicon cache-busting update in the web HTML so browsers are more likely to show the current Waveary mark
+- inspected `portrait-04.png` and kept the smaller corrected question-face portrait asset
+- intentionally left the untracked `docs/assets` logo draft files out of the commit because the lockup draft contains mojibake and malformed text
+- intentionally left the untracked large PNG logo draft out of the commit for a separate logo decision
+
+Files changed:
+
+- `waveary-web/index.html`
+- `waveary-web/public/images/portraits/portrait-04.png`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- visual inspection of `waveary-web/public/images/portraits/portrait-04.png`
+- `npm run check --workspace @waveary/web`
+- `npm run check:mojibake`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-07-01
+
+Objective:
+
 Classify and preserve the useful dirty worktree pieces instead of treating all leftover files as disposable noise.
 
 Summary:

@@ -50,6 +50,7 @@ What is remembered returns as an echo.
   - server-side companion-profile archives now persist portrait, naming, relationship vibe, speaking style, traits, favorite topics, and preferred voice fields through create/update/export/import flows
   - the chat composer exposes a compact `fast / balanced / deep` reasoning-effort switch inside the input surface and persists the user's choice locally
   - provider/model setup, voice setup, grouped control workspaces, and server-side non-chat model capability config for speech / vision / image / video exist in the console shell foundation
+  - favicon references now include a cache-busting query and the fourth portrait card has a smaller corrected question-face asset
 - `waveary-desktop`
   - first Electron desktop shell now exists
   - desktop preparation can build and materialize a standalone local runtime bundle from the existing Waveary web/server packages
@@ -104,10 +105,8 @@ These are the latest trustworthy verification paths recorded in the repo before 
 
 ## Current Worktree Notes
 
-The worktree is currently dirty outside the latest verified backend cleanup. Do not revert these unrelated changes unless explicitly asked:
+The worktree is currently dirty outside the latest verified visual-asset cleanup. Do not revert these unrelated changes unless explicitly asked:
 
-- modified: `waveary-web/index.html`
-- modified: `waveary-web/public/images/portraits/portrait-04.png`
 - untracked: `docs/assets/waveary-logo-lockup.svg`
 - untracked: `docs/assets/waveary-logo-mark.svg`
 - untracked: `docs/assets/waveary-logo-preview.html`
