@@ -4362,6 +4362,57 @@ textarea {
   flex-wrap: wrap;
 }
 
+.chat-reasoning-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.18rem;
+  min-height: 2.18rem;
+  padding: 0.18rem;
+  border: 1px solid rgba(21, 18, 15, 0.09);
+  border-radius: 999px;
+  background: rgba(248, 243, 235, 0.74);
+}
+
+.chat-reasoning-label {
+  padding: 0 0.42rem 0 0.52rem;
+  color: rgba(21, 18, 15, 0.58);
+  font-size: 0.76rem;
+  font-weight: 850;
+}
+
+.chat-reasoning-button {
+  min-height: 1.72rem;
+  padding: 0.22rem 0.5rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted-strong);
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 850;
+  cursor: pointer;
+  transition:
+    background 150ms ease,
+    color 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.chat-reasoning-button:hover:not(:disabled) {
+  color: var(--text-strong);
+  background: rgba(255, 253, 249, 0.78);
+}
+
+.chat-reasoning-button-active {
+  background: rgba(255, 253, 249, 0.96);
+  color: var(--text-strong);
+  box-shadow: 0 3px 9px rgba(33, 25, 17, 0.08);
+}
+
+.chat-reasoning-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 .chat-live-button {
   min-width: 8.2rem;
 }
@@ -5615,6 +5666,15 @@ textarea {
   .chat-composer-main-actions .button,
   .chat-composer-side-actions .button,
   .chat-voice-controls-compact {
+    flex: 1 1 0;
+  }
+
+  .chat-reasoning-controls {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .chat-reasoning-button {
     flex: 1 1 0;
   }
 

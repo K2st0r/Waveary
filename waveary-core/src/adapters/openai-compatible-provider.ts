@@ -232,9 +232,13 @@ function normalizeProviderBaseURL(
 function buildChatCompletionsBody(request: ChatProviderRequest, model: string): {
   model: string;
   messages: Array<{ role: "system" | "user" | "assistant"; content: string }>;
+  reasoning_effort?: "low" | "medium" | "high";
 } {
+  const reasoningEffort = toProviderReasoningEffort(request.reasoningEffort);
+
   return {
     model,
+    ...(reasoningEffort ? { reasoning_effort: reasoningEffort } : {}),
     messages: [
       {
         role: "system",
@@ -254,10 +258,14 @@ function buildResponsesBody(
   profile: ProviderCompatibilityProfile
 ): {
   model: string;
+  reasoning?: { effort: "low" | "medium" | "high" };
   input: Array<{ role: "system" | "developer" | "user" | "assistant"; content: string }>;
 } {
+  const reasoningEffort = toProviderReasoningEffort(request.reasoningEffort);
+
   return {
     model,
+    ...(reasoningEffort ? { reasoning: { effort: reasoningEffort } } : {}),
     input: [
       {
         role: profile.responsesInstructionRole,
@@ -269,6 +277,24 @@ function buildResponsesBody(
       }))
     ]
   };
+}
+
+function toProviderReasoningEffort(
+  effort: ChatProviderRequest["reasoningEffort"]
+): "low" | "medium" | "high" | undefined {
+  if (effort === "light") {
+    return "low";
+  }
+
+  if (effort === "deep") {
+    return "high";
+  }
+
+  if (effort === "balanced") {
+    return "medium";
+  }
+
+  return undefined;
 }
 
 function buildDeveloperInstruction(request: ChatProviderRequest): string {

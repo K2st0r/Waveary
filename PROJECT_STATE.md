@@ -31,6 +31,7 @@ What is remembered returns as an echo.
 
 - `waveary-core`
   - runtime orchestration, provider abstraction, dialogue shaping, relationship state, time-aware helpers, and permission-aware action intent handling are implemented
+  - chat turns now accept a user-facing reasoning-effort hint that OpenAI-compatible providers map into low / medium / high reasoning request fields when supported
   - current quality work focuses on more human reply cadence, stronger continuity-thread selection, concept-level identity summaries, and bounded local-time / local-action behavior
 - `waveary-memory`
   - memory persistence and retrieval layer exists conceptually and is partially embodied through current session persistence, recall logic, and identity-summary storage
@@ -46,6 +47,7 @@ What is remembered returns as an echo.
   - control workspaces such as skills, channels, proactive care, and settings are no longer forced back to provider setup when chat runtime readiness is still settling
   - the skills workspace has been reshaped into a Hermes-inspired skill workbench with searchable built-in skills, status filters, a compact library list, and a right-side detail / SKILL.md preview pane
   - sessions persist companion-profile setup, export/import metadata, runtime understanding, and local history
+  - the chat composer exposes a compact `fast / balanced / deep` reasoning-effort switch inside the input surface and persists the user's choice locally
   - provider/model setup, voice setup, and grouped control workspaces exist in the console shell
 - `waveary-desktop`
   - first Electron desktop shell now exists

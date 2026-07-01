@@ -102,6 +102,7 @@ export class WavearyRuntime {
       relationship,
       timeline,
       ...(options.localTime ? { localTime: options.localTime } : {}),
+      ...(options.reasoningEffort ? { reasoningEffort: options.reasoningEffort } : {}),
       ...(detectedUserEmotion ? { detectedUserEmotion } : {})
     };
     const deterministicLocalTimeReply = buildDeterministicLocalTimeReply(

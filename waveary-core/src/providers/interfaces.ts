@@ -17,6 +17,8 @@ export interface LocalTimeContext {
   locale?: string;
 }
 
+export type ReasoningEffort = "light" | "balanced" | "deep";
+
 export interface ChatProviderRequest {
   session: Session;
   user: UserProfile;
@@ -29,6 +31,7 @@ export interface ChatProviderRequest {
   detectedUserEmotion?: EmotionState;
   timeline: TimelineEvent[];
   localTime?: LocalTimeContext;
+  reasoningEffort?: ReasoningEffort;
 }
 
 export interface ChatProvider {

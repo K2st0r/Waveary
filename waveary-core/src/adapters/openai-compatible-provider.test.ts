@@ -88,6 +88,33 @@ test("OpenAICompatibleChatProvider injects local time context into the instructi
   );
 });
 
+test("OpenAICompatibleChatProvider passes reasoning effort to chat completions", async () => {
+  const recorded: Array<{ url: string; init: RequestInit | undefined }> = [];
+  const provider = new OpenAICompatibleChatProvider({
+    provider: "test-provider",
+    apiKey: "test-key",
+    baseURL: "https://example.com/v1",
+    model: "test-model",
+    fetchFn: async (url, init) => {
+      recorded.push({ url: String(url), init });
+      return new Response(
+        JSON.stringify({
+          choices: [{ message: { content: "mock reply" } }]
+        }),
+        { status: 200 }
+      );
+    }
+  });
+
+  await provider.generateReply(createRequest({ reasoningEffort: "deep" }));
+
+  const body = JSON.parse(String(recorded[0]?.init?.body)) as {
+    reasoning_effort?: string;
+  };
+
+  assert.equal(body.reasoning_effort, "high");
+});
+
 test("OpenAICompatibleChatProvider strengthens companionship guidance in the instruction prompt", async () => {
   const recorded: Array<{ url: string; init: RequestInit | undefined }> = [];
   const provider = new OpenAICompatibleChatProvider({

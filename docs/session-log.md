@@ -9,6 +9,52 @@ Git history keeps the fine-grained archive; this file keeps the current continua
 
 Objective:
 
+Expose chat reasoning effort directly inside the composer and carry the selection through the chat runtime to provider requests.
+
+Summary:
+
+- added a compact `fast / balanced / deep` reasoning-effort segmented control inside the chat input surface
+- persisted the user's reasoning-effort choice in local storage
+- sent the selected effort with each chat turn
+- validated and forwarded the effort through the web API and chat runtime into `waveary-core`
+- mapped Waveary's `light / balanced / deep` effort into OpenAI-compatible `low / medium / high` reasoning fields for chat completions and responses payloads
+- added a provider test covering the chat-completions reasoning-effort request field
+- restarted the desktop development app after the UI/runtime change
+
+Files changed:
+
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `waveary-web/server/provider-api.ts`
+- `waveary-web/server/chat-runtime.ts`
+- `waveary-core/src/providers/interfaces.ts`
+- `waveary-core/src/runtime/types.ts`
+- `waveary-core/src/runtime/waveary-runtime.ts`
+- `waveary-core/src/adapters/openai-compatible-provider.ts`
+- `waveary-core/src/adapters/openai-compatible-provider.test.ts`
+- `PROJECT_STATE.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run build --workspace @waveary/core`
+- `npm run check --workspace @waveary/web`
+- `node --test waveary-core/dist/adapters/openai-compatible-provider.test.js`
+- `npm run check:mojibake`
+- fresh `npm run desktop:dev` launched; latest built desktop assets: `assets/index-DAVhbQXN.js` and `assets/index-D3B78lpa.css`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-07-01
+
+Objective:
+
 Add a real Electron desktop notification delivery path for proactive care instead of relying only on browser notifications.
 
 Summary:
