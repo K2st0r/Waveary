@@ -3724,7 +3724,7 @@ textarea {
   min-width: 4.25rem;
 }
 
-@media (max-height: 820px) and (min-width: 901px) {
+@media (max-height: 820px) {
   .app-sidebar {
     gap: 0.48rem;
     padding-block: 0.52rem;
@@ -3741,7 +3741,7 @@ textarea {
     padding: 0.5rem 0.62rem;
   }
 
-  .app-sidebar-runtime {
+  .app-sidebar-footer {
     display: none;
   }
 
@@ -5037,7 +5037,7 @@ textarea {
   }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 420px) {
   body {
     overflow: auto;
   }
