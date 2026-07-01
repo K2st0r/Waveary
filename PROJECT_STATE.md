@@ -16,7 +16,7 @@ What is remembered returns as an echo.
 
 ## Latest Verified Commit
 
-- `fab3a63` - `Fix desktop packaged static serving`
+- `377e6a5` - `Fix runtime sidebar hit areas`
 
 ## Repository Surface
 
@@ -42,6 +42,7 @@ What is remembered returns as an echo.
 - `waveary-web`
   - active official runtime surface
   - current shell uses one persistent left sidebar instead of the old top navigation
+  - the left sidebar keeps its navigation hit areas usable at shorter desktop heights, and the chat utility rail remains visible as a stable narrow right-side strip
   - sessions persist companion-profile setup, export/import metadata, runtime understanding, and local history
   - provider/model setup, voice setup, and grouped control workspaces exist in the console shell
 - `waveary-desktop`
@@ -116,6 +117,7 @@ The worktree is currently dirty outside this continuity-doc task. Do not revert 
 
 ## Next Recommended Step
 
+- next web-shell follow-up should visually inspect the remaining chat / console density at installed desktop-window sizes after the sidebar hit-area fix
 - next desktop follow-up should add proper Windows app icon / installer metadata and verify a real installed launch from the refreshed `Waveary-Setup-0.1.0.exe`
 - after that, add auto-update / version channel planning before treating the desktop app as public-release ready
 - keep future Chinese-text cleanup separate from feature work unless the change is strictly local and verified with `git diff` plus `npm run check:mojibake`

@@ -5,6 +5,39 @@ This file records recent verified Waveary work blocks in chronological form.
 It is intentionally compact.
 Git history keeps the fine-grained archive; this file keeps the current continuation trail.
 
+## 2026-07-01
+
+Objective:
+
+Fix the runtime shell bug where lower left-sidebar controls were not clickable at shorter desktop heights and the right chat utility rail could feel missing.
+
+Summary:
+
+- changed the app sidebar grid to give the middle navigation a real scrollable `minmax(0, 1fr)` row
+- kept the sidebar footer in its own non-overlapping layer and compacted it at shorter desktop heights
+- stabilized the chat runtime grid so the right utility rail keeps a visible fixed strip
+- verified the sidebar hit targets and chat rail at `1080x760` with Playwright
+
+Files changed:
+
+- `waveary-web/src/styles.css`
+
+Verification:
+
+- Playwright hit-test check at `1080x760`: all 7 `.app-sidebar-nav-item` centers hit their own button content
+- Playwright click-flow check: each sidebar item activates its matching console workspace
+- Playwright rail check at `#chat`: `.chat-utility-rail` visible with 68px width and chat / console buttons present
+- `npm run check --workspace @waveary/web`
+- `npm run check:mojibake`
+
+Commit:
+
+- `377e6a5` - `Fix runtime sidebar hit areas`
+
+Push:
+
+- pending continuity sync
+
 ## 2026-06-28
 
 Objective:
