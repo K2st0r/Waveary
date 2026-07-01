@@ -190,6 +190,47 @@ Push:
 
 Objective:
 
+Finish the first Windows desktop installer path and verify that the packaged runtime can start without the Vite dev server.
+
+Summary:
+
+- fixed the standalone desktop server import path so packaged builds load `dist-server/server/provider-api.js`
+- added a desktop installer build wrapper that can fall back to an existing `win-unpacked` bundle when Electron resource downloads time out
+- made desktop runtime preparation more tolerant of short Windows file-lock races
+- set the desktop app user-data path to `AppData/Roaming/Waveary`
+- produced `waveary-desktop/dist/Waveary-Setup-0.1.0.exe`
+- verified the packaged `Waveary.exe` can run the bundled `standalone-server.mjs` and emit `__WAVEARY_SERVER_READY__:<port>`
+
+Files changed:
+
+- `package.json`
+- `tools/build-desktop-installer.mjs`
+- `tools/prepare-desktop-runtime.mjs`
+- `waveary-desktop/package.json`
+- `waveary-desktop/src/main.cjs`
+- `waveary-web/server/standalone-server.mjs`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run desktop:dist`
+- packaged `Waveary.exe` launched with `ELECTRON_RUN_AS_NODE=1` against bundled `app-runtime/waveary-web/server/standalone-server.mjs`
+- output contained `__WAVEARY_SERVER_READY__:<port>`
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-07-01
+
+Objective:
+
 Start the first real desktop packaging path so Waveary can move toward an installable Windows app instead of remaining source-run only.
 
 Summary:

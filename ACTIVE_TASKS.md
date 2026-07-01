@@ -49,8 +49,8 @@ Update it when:
 
 8. Finish the first desktop packaging path.
    Status: in progress
-   Current state: a new `waveary-desktop` Electron shell exists, `npm run desktop:prepare` successfully builds and materializes a standalone local runtime bundle, and desktop dev launch can start the embedded runtime and serve the app successfully. The remaining blocker is Windows packaging verification: `electron-builder` timed out while fetching packaging resources over the current network path.
-   Next cut: retry `npm run desktop:pack` and `npm run desktop:dist` on a more reliable network path, then verify that the unpacked app and NSIS installer can launch Waveary with only provider configuration required from the user.
+   Current state: a new `waveary-desktop` Electron shell exists, `npm run desktop:prepare` successfully builds and materializes a standalone local runtime bundle, desktop dev launch can start the embedded runtime, and `npm run desktop:dist` now produces `waveary-desktop/dist/Waveary-Setup-0.1.0.exe`. The packaged `Waveary.exe` has been verified in `ELECTRON_RUN_AS_NODE` mode against its bundled `standalone-server.mjs`, and the runtime emits a ready local port. The installer build script now falls back to an existing prepackaged `win-unpacked` bundle when `electron-builder --dir` hits transient network download failures.
+   Next cut: verify a real installed launch from `Waveary-Setup-0.1.0.exe`, then add proper Windows icon / installer metadata and decide the first auto-update channel before public release.
 
 ## Deferred But Important
 
