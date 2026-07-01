@@ -49,5 +49,6 @@ bin/
 # Misc
 tmp/
 temp/
+output/
 .waveary/
 .playwright-cli/

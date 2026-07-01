@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { existsSync, mkdtempSync, rmSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { after, beforeEach, test } from "node:test";
@@ -13,7 +13,9 @@ const {
   getCurrentChatPersistenceStatus,
   listChatSessions,
   PersistentChatSessionState,
-  switchChatPersistenceBackend
+  switchChatPersistenceBackend,
+  exportChatSession,
+  importChatSession
 } = await import("./chat-session-store.js");
 const {
   createDefaultChatPersistenceConfig,
@@ -32,7 +34,15 @@ after(() => {
 });
 
 beforeEach(() => {
-  rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  try {
+    rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  } catch (error) {
+    if (!(error instanceof Error) || !("code" in error) || error.code !== "EPERM") {
+      throw error;
+    }
+  }
+
+  mkdirSync(TEST_DATA_DIR, { recursive: true });
   saveChatPersistenceConfig(createDefaultChatPersistenceConfig());
 });
 
@@ -123,4 +133,32 @@ test("chat persistence switching syncs newer session state back from sqlite to f
     getCurrentChatPersistenceStatus().backendDetails.find((detail) => detail.backend === "sqlite")?.syncState,
     "in-sync"
   );
+});
+
+test("chat sessions persist companion profiles across export and import", () => {
+  const created = createChatSession("session-profile", "Mina Session", {
+    portraitId: "portrait-02",
+    portraitSrc: "/images/portraits/portrait-02.png",
+    displayName: "Mina",
+    userDisplayName: "Aki",
+    userNickname: "little comet",
+    relationshipVibe: "bright and affectionate",
+    speakingStyle: "light and close",
+    personalityTraits: ["playful", "warm"],
+    favoriteTopics: ["daily life", "small joys"],
+    preferredVoiceProvider: "doubao",
+    preferredVoiceModel: "seed-tts-2.0",
+    preferredVoiceName: "multi_female_shuangkuaisisi_moon_bigtts"
+  });
+
+  assert.equal(created.companionProfile?.displayName, "Mina");
+
+  const exported = exportChatSession(created.sessionId);
+  assert.equal(exported.snapshot.companionProfile?.portraitId, "portrait-02");
+  assert.equal(exported.snapshot.companionProfile?.preferredVoiceProvider, "doubao");
+
+  const imported = importChatSession(exported, "Imported Mina");
+  assert.equal(imported.session.companionProfile?.displayName, "Mina");
+  assert.equal(imported.session.companionProfile?.userDisplayName, "Aki");
+  assert.equal(imported.session.companionProfile?.preferredVoiceModel, "seed-tts-2.0");
 });
