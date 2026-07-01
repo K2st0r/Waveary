@@ -5345,10 +5345,7 @@ export function App(): ReactElement {
       return;
     }
 
-    if (!chatReady && activeConsoleWorkspace !== "provider") {
-      setActiveConsoleWorkspace("provider");
-    }
-  }, [activeConsoleWorkspace, chatReady, currentPage]);
+  }, [activeConsoleWorkspace, currentPage]);
 
   useEffect(() => {
     setChatRestoreBannerDismissed(false);
