@@ -16,7 +16,7 @@ What is remembered returns as an echo.
 
 ## Latest Verified Commit
 
-- `79d4a92` - `Add chat reasoning effort control`
+- `fb1ee37` - `Add companion archive server support`
 
 ## Repository Surface
 
