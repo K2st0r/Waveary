@@ -61,6 +61,8 @@ Only write preferences here when they are likely to remain useful over time.
 - The console should behave like a compact real control desk: no marketing-style intro cards at the top, no long explanatory blocks, and no avoidable full-page scrolling for routine controls.
 - The old top-of-page runtime navigation should not come back once the left app sidebar owns branding, sessions, control entrypoints, and version display.
 - Do not flatten `persona / skills / settings` into competing top-level tabs; keep the client hierarchy grouped as conversation, sessions, control, and settings, then use small in-panel tabs inside each workspace when that workspace owns multiple controls.
+- Keep Waveary's client structure layered like a mature AI client: companion profiles belong to the sessions/profile layer, provider capability setup belongs to one model workspace, and skills remain callable abilities instead of being mixed into persona identity.
+- The chat empty state should invite either natural first contact or a light jump into profile setup; it should not duplicate a full persona editor inside the main conversation surface.
 - When one console workspace starts collecting too many controls, prefer small in-panel category tabs and one focused active panel instead of exposing a long mixed wall of cards in the same viewport.
 - All console workspaces should share one consistent stage footprint and panel rhythm; single-panel views should visually occupy the same control-desk stage as dual-panel views instead of shrinking into a different layout species.
 - When the user asks to make the console modules “longer,” interpret that as the lower operational workspace panels unless they explicitly say the top workspace-tab strip.

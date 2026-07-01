@@ -9,6 +9,45 @@ Git history keeps the fine-grained archive; this file keeps the current continua
 
 Objective:
 
+Align the Waveary client shell with a mature layered workspace model before further product UI changes.
+
+Summary:
+
+- clarified the provider console as one model-capability workspace for language, voice, vision, image, and video setup
+- kept companion identity in the sessions/profile layer instead of mixing it into model setup or skills
+- replaced the empty-chat full persona form with a light choice: start talking naturally or open the profile workspace
+- tightened the sessions/profile layout so the session list is a narrower switcher and the profile editor has more room
+- recorded the durable product decision that companion profile, model capabilities, and skills stay separate layers
+- launched a fresh desktop development window after closing stale Waveary Electron processes
+
+Files changed:
+
+- `waveary-web/src/App.tsx`
+- `waveary-web/src/styles.css`
+- `docs/product-preferences.md`
+- `docs/decision-log.md`
+- `PROJECT_STATE.md`
+- `ACTIVE_TASKS.md`
+- `docs/session-log.md`
+
+Verification:
+
+- `npm run check --workspace @waveary/web`
+- `npm run check:mojibake`
+- fresh `npm run desktop:dev` launched after closing old Waveary Electron processes; new Electron processes confirmed running
+
+Commit:
+
+- pending
+
+Push:
+
+- pending
+
+## 2026-07-01
+
+Objective:
+
 Clear the GitHub / npm dependency security warnings without mixing the security work into product UI changes.
 
 Summary:

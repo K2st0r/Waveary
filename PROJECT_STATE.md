@@ -45,6 +45,8 @@ What is remembered returns as an echo.
   - current shell uses one persistent left sidebar instead of the old top navigation
   - the left sidebar keeps its navigation hit areas usable across shorter desktop heights and narrow client windows, and the chat utility rail remains visible as a stable narrow right-side strip
   - control workspaces such as skills, channels, proactive care, and settings are no longer forced back to provider setup when chat runtime readiness is still settling
+  - the client workspace hierarchy now keeps companion profiles, model capability setup, and skills as separate layers instead of mixing them into one settings wall
+  - the empty chat state now offers a light choice between natural first contact and opening the profile workspace, instead of duplicating a full persona editor in the conversation surface
   - the skills workspace has been reshaped into a Hermes-inspired skill workbench with searchable built-in skills, status filters, a compact library list, and a right-side detail / SKILL.md preview pane
   - sessions persist companion-profile setup, export/import metadata, runtime understanding, and local history
   - server-side companion-profile archives now persist portrait, naming, relationship vibe, speaking style, traits, favorite topics, and preferred voice fields through create/update/export/import flows
@@ -117,6 +119,7 @@ The worktree is currently dirty outside the latest verified visual-asset cleanup
 ## Next Recommended Step
 
 - next web-shell follow-up should wire the server-side companion-profile archive and model capability config into the visible sessions/profile and provider/model control UI without reintroducing long mixed control walls
+- next web-shell follow-up should visually inspect the layered client workspace in the fresh desktop dev window, especially the empty-chat profile shortcut and the sessions/profile proportion
 - next repo maintenance follow-up should verify whether GitHub Dependabot now reflects `npm audit` reporting zero vulnerabilities after the Electron / Vite upgrade
 - next web-shell follow-up should visually inspect the new skills workbench in the fresh desktop dev window and decide whether to add real custom-skill import/export after the layout is approved
 - next web-shell follow-up should visually inspect the remaining chat / console density at installed desktop-window sizes after the sidebar breakpoint fix, especially widths near `640px` to `900px`

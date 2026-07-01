@@ -47,6 +47,27 @@ Impact:
 - the repository now includes `TRADEMARKS.md`, `BRAND-ASSETS.md`, and `NOTICE`
 - public docs must keep the code-license / brand-rights split accurate
 
+## 2026-07-01 - Keep Client Workspaces Layered Instead Of Mixing Persona, Models, And Skills
+
+Status:
+
+- accepted
+
+Decision:
+
+Waveary's client shell should keep companion profiles, provider capability setup, and skills as separate layers: sessions/profile owns companion identity, the model workspace owns language / voice / vision / image / video access, and skills remain callable abilities.
+
+Reason:
+
+- mature AI clients tend to stay understandable by separating presets or agents, model capability configuration, and tools / skills instead of exposing one mixed settings wall
+- Waveary's product identity depends on relationship continuity and memory, so persona setup should not become a generic model preset form
+- chat should stay emotionally focused and should not duplicate a full configuration surface inside the first-message empty state
+
+Impact:
+
+- future UI work should refine these layers rather than adding new competing top-level tabs
+- public repository docs should not list third-party projects as borrowing targets; any learning from mature products should be generalized into Waveary's own architecture
+
 ## 2026-07-01 - Commercial Use And Editions Should Be Explained On Dedicated Public Pages
 
 Status:
