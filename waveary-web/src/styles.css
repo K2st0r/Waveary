@@ -3368,7 +3368,7 @@ textarea {
 }
 
 .session-panel-grid-balanced {
-  grid-template-columns: minmax(16rem, 0.62fr) minmax(0, 1.38fr);
+  grid-template-columns: minmax(13rem, 0.42fr) minmax(0, 1.58fr);
 }
 
 .console-workspace-scroll,
@@ -3814,7 +3814,8 @@ textarea {
 }
 
 .session-list .session-card {
-  min-height: 5.6rem;
+  min-height: 4.6rem;
+  padding: 0.78rem 0.82rem;
 }
 
 .session-active-summary {
@@ -3834,7 +3835,7 @@ textarea {
 }
 
 .session-companion-profile-card {
-  gap: 0.85rem;
+  gap: 0.78rem;
 }
 
 .session-companion-profile-head {
@@ -3844,14 +3845,15 @@ textarea {
 
 .session-companion-portrait-grid {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 0.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(4rem, 1fr));
+  gap: 0.55rem;
 }
 
 .session-companion-portrait-button {
   display: grid;
   place-items: center;
   width: 100%;
+  min-height: 5rem;
   padding: 0.22rem;
   border: 1px solid rgba(21, 18, 15, 0.1);
   border-radius: 0.9rem;
@@ -3875,7 +3877,7 @@ textarea {
 
 .session-companion-portrait-button img {
   width: 100%;
-  aspect-ratio: 1 / 1;
+  aspect-ratio: 4 / 5;
   object-fit: cover;
   border-radius: 0.72rem;
 }
@@ -5061,10 +5063,6 @@ textarea {
   font-size: 1rem;
 }
 
-.empty-chat-state-rich .empty-chat-setup-card {
-  display: none;
-}
-
 .empty-chat-state-avatar {
   display: grid;
   place-items: center;
@@ -5103,12 +5101,14 @@ textarea {
 
 .empty-chat-setup-card {
   display: grid;
-  gap: 0.8rem;
-  margin-top: 0.35rem;
-  padding: 0.92rem 1rem;
+  gap: 0.72rem;
+  margin-top: 0.45rem;
+  padding: 0.82rem 0.92rem;
   border: 1px solid rgba(21, 18, 15, 0.1);
   border-radius: 1rem;
-  background: rgba(255, 252, 247, 0.92);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.72), rgba(246, 240, 230, 0.86)),
+    rgba(255, 252, 247, 0.92);
 }
 
 .empty-chat-setup-header {
@@ -5130,7 +5130,7 @@ textarea {
 .empty-chat-setup-actions {
   display: flex;
   gap: 0.55rem;
-  justify-content: flex-end;
+  justify-content: flex-start;
   flex-wrap: wrap;
 }
 

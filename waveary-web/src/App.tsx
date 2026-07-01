@@ -5347,6 +5347,11 @@ export function App(): ReactElement {
     voice: locale === "zh" ? "语音设置" : "Voice"
   } satisfies Record<ConsoleWorkspace, string>;
   const consoleStageHeadingTitle =
+    activeConsoleWorkspace === "provider"
+      ? locale === "zh"
+        ? "模型能力接入"
+        : "Model capability setup"
+      : 
     activeConsoleWorkspace === "sessions"
       ? locale === "zh"
         ? "会话与人物档案"
@@ -5371,6 +5376,11 @@ export function App(): ReactElement {
                 ? "运行时与记忆信号"
                 : "Runtime and memory signals";
   const consoleStageHeadingDescription =
+    activeConsoleWorkspace === "provider"
+      ? locale === "zh"
+        ? "语言、语音、视觉、生图和视频能力都从这里接入；人物、记忆和技能不混在模型配置里。"
+        : "Connect language, voice, vision, image, and video capabilities here while keeping persona, memory, and skills separate."
+      :
     activeConsoleWorkspace === "sessions"
       ? locale === "zh"
         ? "这里保留人物档案、会话切换、持久化切换与导入导出，让对话页本身保持更轻。"
@@ -9848,131 +9858,34 @@ export function App(): ReactElement {
                       </span>
                       <div className="empty-chat-setup-card">
                         <div className="empty-chat-setup-header">
-                          <strong>{locale === "zh" ? "先补完这次人物档案" : "Finish this companion profile first"}</strong>
+                          <strong>{locale === "zh" ? "想先定好 TA 吗？" : "Want to shape them first?"}</strong>
                           <span>
                             {locale === "zh"
-                              ? "这部分只影响当前人物与当前会话，保存后会继续跟着这段关系走。"
-                              : "These details shape this companion in this session and continue forward with the relationship after you save them."}
+                              ? "你可以直接开始聊，让关系自然长出来；也可以先去人物档案里选头像、名字、称呼和相处风格。"
+                              : "You can start talking and let the bond grow naturally, or open the profile workspace to choose their portrait, name, nickname, and vibe first."}
                           </span>
-                        </div>
-                        <div className="empty-chat-setup-grid">
-                          <label className="form-field">
-                            <span>{locale === "zh" ? "TA 的名字" : "Companion name"}</span>
-                            <input
-                              type="text"
-                              value={activeCompanionDraft.companionName}
-                              onChange={(event) =>
-                                setActiveCompanionDraft((current) => ({
-                                  ...current,
-                                  companionName: event.target.value
-                                }))
-                              }
-                              placeholder={activeCompanionPreset.label}
-                            />
-                          </label>
-                          <label className="form-field">
-                            <span>{locale === "zh" ? "怎么称呼你" : "What should they call you"}</span>
-                            <input
-                              type="text"
-                              value={activeCompanionDraft.userName}
-                              onChange={(event) =>
-                                setActiveCompanionDraft((current) => ({
-                                  ...current,
-                                  userName: event.target.value
-                                }))
-                              }
-                              placeholder={locale === "zh" ? "你的名字" : "Your name"}
-                            />
-                          </label>
-                          <label className="form-field">
-                            <span>{locale === "zh" ? "亲昵称呼" : "Nickname for you"}</span>
-                            <input
-                              type="text"
-                              value={activeCompanionDraft.userNickname}
-                              onChange={(event) =>
-                                setActiveCompanionDraft((current) => ({
-                                  ...current,
-                                  userNickname: event.target.value
-                                }))
-                              }
-                              placeholder={locale === "zh" ? "可选" : "Optional"}
-                            />
-                          </label>
-                          <label className="form-field">
-                            <span>{locale === "zh" ? "相处风格" : "Relationship vibe"}</span>
-                            <input
-                              type="text"
-                              value={activeCompanionDraft.relationshipVibe}
-                              onChange={(event) =>
-                                setActiveCompanionDraft((current) => ({
-                                  ...current,
-                                  relationshipVibe: event.target.value
-                                }))
-                              }
-                            />
-                          </label>
-                          <label className="form-field">
-                            <span>{locale === "zh" ? "说话方式" : "Speaking style"}</span>
-                            <input
-                              type="text"
-                              value={activeCompanionDraft.speakingStyle}
-                              onChange={(event) =>
-                                setActiveCompanionDraft((current) => ({
-                                  ...current,
-                                  speakingStyle: event.target.value
-                                }))
-                              }
-                            />
-                          </label>
-                          <label className="form-field">
-                            <span>{locale === "zh" ? "性格关键词" : "Personality traits"}</span>
-                            <textarea
-                              rows={2}
-                              value={activeCompanionDraft.personalityTraits}
-                              onChange={(event) =>
-                                setActiveCompanionDraft((current) => ({
-                                  ...current,
-                                  personalityTraits: event.target.value
-                                }))
-                              }
-                            />
-                          </label>
-                          <label className="form-field">
-                            <span>{locale === "zh" ? "偏爱的聊天话题" : "Favorite topics"}</span>
-                            <textarea
-                              rows={2}
-                              value={activeCompanionDraft.favoriteTopics}
-                              onChange={(event) =>
-                                setActiveCompanionDraft((current) => ({
-                                  ...current,
-                                  favoriteTopics: event.target.value
-                                }))
-                              }
-                            />
-                          </label>
                         </div>
                         <div className="empty-chat-setup-actions">
                           <button
                             className="button button-secondary"
-                            onClick={() => setActiveCompanionDraft(createActiveCompanionDraft(activeSessionCompanionProfile))}
-                            disabled={!activeCompanionProfileDirty || activeCompanionSaveState === "loading"}
+                            onClick={() => {
+                              setActiveConsoleWorkspace("sessions");
+                              setSessionWorkspaceSurface("profile");
+                              navigateTo("console");
+                            }}
                             type="button"
                           >
-                            {locale === "zh" ? "还原" : "Reset"}
+                            {locale === "zh" ? "打开人物档案" : "Open profile"}
                           </button>
                           <button
                             className="button button-primary"
-                            onClick={() => void handleSaveActiveCompanionProfile()}
-                            disabled={!activeCompanionProfileDirty || activeCompanionSaveState === "loading"}
+                            onClick={() => {
+                              const composerInput = document.querySelector<HTMLTextAreaElement>(".chat-composer-surface textarea");
+                              composerInput?.focus();
+                            }}
                             type="button"
                           >
-                            {activeCompanionSaveState === "loading"
-                              ? locale === "zh"
-                                ? "保存中..."
-                                : "Saving..."
-                              : locale === "zh"
-                                ? "保存人物档案"
-                                : "Save profile"}
+                            {locale === "zh" ? "直接开始聊" : "Start talking"}
                           </button>
                         </div>
                       </div>
