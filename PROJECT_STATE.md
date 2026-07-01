@@ -16,7 +16,7 @@ What is remembered returns as an echo.
 
 ## Latest Verified Commit
 
-- `fb1ee37` - `Add companion archive server support`
+- `f14cf82` - `Refresh favicon and portrait asset`
 
 ## Repository Surface
 
