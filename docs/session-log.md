@@ -38,11 +38,11 @@ Verification:
 
 Commit:
 
-- pending
+- `16a24a8` - `Layer companion client workspaces`
 
 Push:
 
-- pending
+- pending continuity sync
 
 ## 2026-07-01
 
