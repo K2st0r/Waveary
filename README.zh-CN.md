@@ -17,7 +17,9 @@
 [![GitHub forks](https://img.shields.io/github/forks/K2st0r/Waveary?style=social)](https://github.com/K2st0r/Waveary/network/members)
 [![GitHub issues](https://img.shields.io/github/issues/K2st0r/Waveary)](https://github.com/K2st0r/Waveary/issues)
 [![GitHub last commit](https://img.shields.io/github/last-commit/K2st0r/Waveary)](https://github.com/K2st0r/Waveary/commits/main)
+[![GitHub release](https://img.shields.io/github/v/release/K2st0r/Waveary?display_name=tag)](https://github.com/K2st0r/Waveary/releases/latest)
 
+[下载安装](#windows-下载安装) ·
 [快速开始](#快速开始) ·
 [智能体结构](#陪伴智能体结构) ·
 [桌面端](#桌面端) ·
@@ -167,6 +169,23 @@ Waveary 的长期方向是五层记忆。
 - 桌面端打包路径已经存在，但正式消费级发布仍在打磨
 - 目前最稳的使用方式仍然是本地开发或自行部署 Node 服务
 
+## Windows 下载安装
+
+如果你只是想直接使用 Waveary，请从这里开始，不要先看部署文档。
+
+- [下载最新版 Windows 安装包](https://github.com/K2st0r/Waveary/releases/latest/download/Waveary-Setup-Windows-x64.exe)
+- [查看全部 Releases](https://github.com/K2st0r/Waveary/releases)
+
+推荐流程：
+
+1. 下载 `Waveary-Setup-Windows-x64.exe`
+2. 双击运行安装包
+3. 从桌面快捷方式或开始菜单启动 Waveary
+4. 在应用里接入一个模型供应商
+5. 直接开始使用
+
+如果你是开发者，想从源码运行，再继续看下面的快速开始。
+
 ## 快速开始
 
 ### 1. 安装前置环境
@@ -229,9 +248,9 @@ npm run setup:provider
 
 Waveary 已包含 Electron 桌面端壳层。
 
-对普通用户来说，推荐的交付方式是 GitHub Releases 安装包：
+对普通用户来说，推荐的交付方式就是 GitHub Releases 安装包：
 
-1. 从 GitHub Releases 下载 `Waveary-Setup-<版本>.exe`。
+1. 从 [GitHub Releases](https://github.com/K2st0r/Waveary/releases/latest) 下载 `Waveary-Setup-Windows-x64.exe`
 2. 双击安装包，按安装向导完成安装。
 3. 安装器会创建桌面快捷方式和开始菜单入口，安装后可直接启动。
 4. 打开 Waveary，接入一次模型供应商后即可开始使用。
@@ -260,11 +279,17 @@ npm run desktop:dist
 waveary-desktop/dist/
 ```
 
-上传到 GitHub Releases 的核心文件是：
+发布到 GitHub Releases 的核心文件是：
 
 ```text
-waveary-desktop/dist/Waveary-Setup-0.1.0.exe
+waveary-desktop/dist/Waveary-Setup-Windows-x64.exe
 ```
+
+维护者发布流程：
+
+1. 推送一个像 `v0.1.0` 这样的 tag，或者手动运行 GitHub Actions 里的 `Release Desktop Installer`
+2. GitHub Actions 会在 `windows-latest` 上自动构建安装包
+3. 工作流会把安装包自动上传到对应的 GitHub Release
 
 ## 本地数据与迁移
 
@@ -317,6 +342,8 @@ http://127.0.0.1:4173
 
 - [中文部署指南](./docs/deployment-guide.zh-CN.md)
 - [English Deployment Guide](./docs/deployment-guide.md)
+
+如果你只是要直接下载使用，不要从这里开始，直接用上面的 Windows 安装包入口。
 
 ## 常用命令
 

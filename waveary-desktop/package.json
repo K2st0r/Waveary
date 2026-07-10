@@ -20,6 +20,7 @@
     "asar": false,
     "files": [
       "src/**/*",
+      "build/**/*",
       "app-runtime/**/*",
       "package.json"
     ],
@@ -27,6 +28,7 @@
       "output": "dist"
     },
     "win": {
+      "icon": "build/icon.png",
       "signAndEditExecutable": false,
       "signExecutable": false,
       "target": [
@@ -43,7 +45,7 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "artifactName": "Waveary-Setup-${version}.${ext}"
+      "artifactName": "Waveary-Setup-Windows-x64.${ext}"
     }
   }
 }

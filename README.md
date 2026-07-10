@@ -17,7 +17,9 @@
 [![GitHub forks](https://img.shields.io/github/forks/K2st0r/Waveary?style=social)](https://github.com/K2st0r/Waveary/network/members)
 [![GitHub issues](https://img.shields.io/github/issues/K2st0r/Waveary)](https://github.com/K2st0r/Waveary/issues)
 [![GitHub last commit](https://img.shields.io/github/last-commit/K2st0r/Waveary)](https://github.com/K2st0r/Waveary/commits/main)
+[![GitHub release](https://img.shields.io/github/v/release/K2st0r/Waveary?display_name=tag)](https://github.com/K2st0r/Waveary/releases/latest)
 
+[Download](#download-for-windows) ·
 [Quick Start](#quick-start) ·
 [Architecture](#companion-agent-architecture) ·
 [Desktop](#desktop-app) ·
@@ -167,6 +169,23 @@ Current project status:
 - desktop packaging exists, but the consumer release path is still being polished
 - easiest working path today is local development or self-hosted Node deployment
 
+## Download For Windows
+
+If you just want to use Waveary, start here instead of reading deployment steps.
+
+- [Download the latest Windows installer](https://github.com/K2st0r/Waveary/releases/latest/download/Waveary-Setup-Windows-x64.exe)
+- [Browse all releases](https://github.com/K2st0r/Waveary/releases)
+
+Recommended user flow:
+
+1. Download `Waveary-Setup-Windows-x64.exe`.
+2. Run the installer.
+3. Launch Waveary from the desktop shortcut or Start Menu.
+4. Connect one model provider inside the app.
+5. Start chatting.
+
+If you are a developer and want to run from source instead, continue below.
+
 ## Quick Start
 
 ### 1. Install prerequisites
@@ -229,9 +248,9 @@ npm run setup:provider
 
 Waveary includes an Electron desktop shell.
 
-For non-developers, the intended delivery path is a GitHub Release asset:
+For non-developers, the intended delivery path is GitHub Releases:
 
-1. Download `Waveary-Setup-<version>.exe` from GitHub Releases.
+1. Download `Waveary-Setup-Windows-x64.exe` from [GitHub Releases](https://github.com/K2st0r/Waveary/releases/latest).
 2. Double-click the installer and complete the setup wizard.
 3. Launch Waveary from the desktop shortcut or Start Menu entry created by the installer.
 4. Open the app, connect a model provider once, and start chatting.
@@ -260,11 +279,17 @@ The installer output is written under:
 waveary-desktop/dist/
 ```
 
-The file to upload to GitHub Releases is:
+The file to publish to GitHub Releases is:
 
 ```text
-waveary-desktop/dist/Waveary-Setup-0.1.0.exe
+waveary-desktop/dist/Waveary-Setup-Windows-x64.exe
 ```
+
+Maintainer release flow:
+
+1. Push a tag such as `v0.1.0`, or run the `Release Desktop Installer` GitHub Actions workflow manually.
+2. GitHub Actions builds the Windows installer on `windows-latest`.
+3. The workflow uploads the installer to the matching GitHub Release automatically.
 
 ## Local Data And Migration
 
@@ -317,6 +342,8 @@ Detailed deployment instructions:
 
 - [Deployment Guide](./docs/deployment-guide.md)
 - [中文部署指南](./docs/deployment-guide.zh-CN.md)
+
+If you only want the app, do not start here. Use the Windows installer above.
 
 ## Common Commands
 
